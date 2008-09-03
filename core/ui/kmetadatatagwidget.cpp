@@ -64,8 +64,6 @@ public:
         lay->addWidget( sa, 1 );
         lay->addWidget( button );
 
-        connect( label, SIGNAL( tagClicked( const QString& ) ),
-                 parent, SLOT( slotTagClicked( const QString& ) ) );
         connect( tagMenu, SIGNAL( aboutToShow() ), parent, SLOT( fillTagMenu() ) );
     }
 
@@ -177,11 +175,6 @@ void Nepomuk::TagWidget::slotTagUpdateDone()
     setEnabled( true );
 }
 
-void Nepomuk::TagWidget::slotTagClicked( const QString& text) 
-{
-    Nepomuk::Tag tag( text );
-    emit tagClicked( tag );
-}
 
 static bool tagLabelLessThan( const Nepomuk::Tag& t1, const Nepomuk::Tag& t2 )
 {

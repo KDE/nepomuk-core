@@ -130,8 +130,8 @@ bool Nepomuk::Types::EntityPrivate::loadAncestors()
 
 void Nepomuk::Types::EntityPrivate::reset( bool )
 {
-    QString label;
-    QString comment;
+    QString label = QString();
+    QString comment = QString();
     l10nLabels.clear();
     l10nComments.clear();;
 
