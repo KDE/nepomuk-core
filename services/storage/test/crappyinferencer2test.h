@@ -1,6 +1,6 @@
 /*
-    This file is part of the Nepomuk KDE project.
-    Copyright (C) 2010  Vishesh Handa <handa.vish@gmail.com>
+   This file is part of the Nepomuk KDE project.
+   Copyright (C) 2010 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,31 +19,39 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef CRAPPYINFERENCER2TEST_H
+#define CRAPPYINFERENCER2TEST_H
 
-#ifndef TOOLS_H
-#define TOOLS_H
+#include <QObject>
 
-#include <QtCore/QList>
-#include <QtCore/QUrl>
-
+class KTempDir;
+class CrappyInferencer2;
 namespace Soprano {
-    class Statement;
-    class Model;
+class Model;
 }
 
-namespace Nepomuk {
+class CrappyInferencer2Test : public QObject
+{
+    Q_OBJECT
 
-    /**
-     * Saves a changeLog with the list of all the statements that should be backed up.
-     * It's useful in when doing a first sync or first backup.
-     *
-     * \param uniqueUris After execution, it will contain a list of unique uris
-     * 
-     * Returns the numbers of records in the changelog
-     */
-    int saveBackupChangeLog( const QUrl& url, QSet<QUrl> & uniqueUris );
+private Q_SLOTS:
+    void initTestCase();
+    void cleanupTestCase();
+    void init();
+    void testAddAnyStatement();
+    void testAddTypeStatement();
+    void testAddSubClassOfStatement();
+    void testRemoveAnyStatement();
+    void testRemoveTypeStatement();
+    void testRemoveSubClassOfStatement();
+    void testRemoveAllStatements();
+    void testCyclicSubClassRelation();
+    void testUpdateAllResources();
 
-    bool saveBackupSyncFile( const QUrl& url );
-}
+private:
+    KTempDir* m_storageDir;
+    Soprano::Model* m_baseModel;
+    CrappyInferencer2* m_model;
+};
 
-#endif // TOOLS_H
+#endif

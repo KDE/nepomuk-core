@@ -1,6 +1,6 @@
 /*
-    This file is part of the Nepomuk KDE project.
-    Copyright (C) 2010  Vishesh Handa <handa.vish@gmail.com>
+   This file is part of the Nepomuk KDE project.
+   Copyright (C) 2010 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,31 +19,41 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef TYPEVISIBILITYTREE_H
+#define TYPEVISIBILITYTREE_H
 
-#ifndef TOOLS_H
-#define TOOLS_H
-
-#include <QtCore/QList>
 #include <QtCore/QUrl>
+#include <QtCore/QHash>
+#include <QtCore/QMutex>
 
 namespace Soprano {
-    class Statement;
-    class Model;
+class Model;
 }
 
-namespace Nepomuk {
+/**
+ * Builds a type tree that allows to check the nao:userVisible
+ * value for each existing type.
+ */
+class TypeVisibilityTree
+{
+public:
+    TypeVisibilityTree( Soprano::Model* model );
+    ~TypeVisibilityTree();
+
+    void rebuildTree();
 
     /**
-     * Saves a changeLog with the list of all the statements that should be backed up.
-     * It's useful in when doing a first sync or first backup.
-     *
-     * \param uniqueUris After execution, it will contain a list of unique uris
-     * 
-     * Returns the numbers of records in the changelog
+     * Check if the specified type is visible.
      */
-    int saveBackupChangeLog( const QUrl& url, QSet<QUrl> & uniqueUris );
+    bool isVisible( const QUrl& type ) const;
 
-    bool saveBackupSyncFile( const QUrl& url );
-}
+    QList<QUrl> visibleTypes() const;
 
-#endif // TOOLS_H
+private:
+    Soprano::Model* m_model;
+    class TypeVisibilityNode;
+    QHash<QUrl, bool> m_visibilityHash;
+    mutable QMutex m_mutex;
+};
+
+#endif // TYPEVISIBILITYTREE_H
