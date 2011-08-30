@@ -57,6 +57,7 @@ include_directories(
 )
 
 add_subdirectory(libnepomukcore)
+add_subdirectory(rcgen)
 add_subdirectory(ontologies)
 add_subdirectory(common)
 add_subdirectory(server)
