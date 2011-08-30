@@ -24,8 +24,8 @@
 #define SIMPLE_SUBSYSTEM_TEST
 
 #include <QObject>
-#include "../lib/simpleresource.h"
-#include "../lib/simpleresourcegraph.h"
+#include "simpleresource.h"
+#include "simpleresourcegraph.h"
 
 class SimpleResourceSubsystemTest : public QObject
 {

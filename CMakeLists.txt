@@ -31,15 +31,33 @@ macro_log_feature(SOPRANO_PLUGIN_REDLANDBACKEND_FOUND "Soprano Redland Backend" 
 macro_log_feature(SHAREDDESKTOPONTOLOGIES_FOUND "Shared desktop ontologies" "Desktop ontologies" "http://oscaf.sourceforge.net" TRUE ${SDO_MIN_VERSION} "Ontologies necessary for the Nepomuk semantic desktop.")
 macro_log_feature(STRIGI_FOUND "Strigi" "Strigi is a fast and light-weight file indexing solution" "http://strigi.sourceforge.net" TRUE ${STRIGI_MIN_VERSION} "Required for file indexing (only libstreamanalyzer is required actually)")
 
+
+# Some definitions
+# ===============================================================================================
+add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS})
+add_definitions(-DQT_USE_FAST_CONCATENATION -DQT_USE_FAST_OPERATOR_PLUS)
+add_definitions(-DKDE_DEFAULT_DEBUG_AREA=300000)
+
+
+# Add all the parts that make up nepomuk-core
+# ===============================================================================================
 include_directories(
   ${QT_INCLUDES}
   ${KDE4_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
   ${STRIGI_INCLUDE_DIR}
+  ${nepomuk-core_SOURCE_DIR}/libnepomukcore
+  ${nepomuk-core_SOURCE_DIR}/libnepomukcore/resource
+  ${nepomuk-core_SOURCE_DIR}/libnepomukcore/query
+  ${nepomuk-core_SOURCE_DIR}/libnepomukcore/types
+  ${nepomuk-core_SOURCE_DIR}/libnepomukcore/datamanagement
+  ${nepomuk-core_SOURCE_DIR}/libnepomukcore/misc
   ${nepomuk-core_SOURCE_DIR}/common
   ${nepomuk-core_BINARY_DIR}/common
+  ${nepomuk-core_BINARY_DIR}/libnepomukcore
 )
 
+add_subdirectory(libnepomukcore)
 add_subdirectory(ontologies)
 add_subdirectory(common)
 add_subdirectory(server)

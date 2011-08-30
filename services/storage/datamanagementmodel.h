@@ -22,7 +22,7 @@
 #ifndef DATAMANAGEMENTMODEL_H
 #define DATAMANAGEMENTMODEL_H
 
-#include "lib/datamanagement.h"
+#include "datamanagement.h"
 
 #include <Soprano/FilterModel>
 

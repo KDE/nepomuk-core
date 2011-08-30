@@ -5,9 +5,6 @@ add_definitions(-DKDE_DEFAULT_DEBUG_AREA=300105)
 include_directories(
   ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
-  ${NEPOMUK_INCLUDE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/lib
-  ${CMAKE_CURRENT_SOURCE_DIR}/../backupsync/lib
   )
 
 set(storage_SRCS
@@ -42,8 +39,6 @@ qt4_add_dbus_adaptor(storage_SRCS
   resourcewatcherconnection.h
   Nepomuk::ResourceWatcherConnection)
 
-set(HAVE_SOPRANO_INDEX ${SopranoIndex_FOUND})
-
 kde4_add_plugin(nepomukstorage ${storage_SRCS})
 
 target_link_libraries(nepomukstorage
@@ -53,9 +48,9 @@ target_link_libraries(nepomukstorage
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
   ${NEPOMUK_LIBRARIES}
-  nepomuksync
-  nepomukdatamanagement
+  nepomukcore
   nepomukcommon
+  nepomuksync
   )
 
 install(
@@ -71,6 +66,5 @@ install(
   DESTINATION ${PLUGIN_INSTALL_DIR})
 # -----------------------------
 
-add_subdirectory(lib)
 add_subdirectory(rcgen)
 add_subdirectory(test)

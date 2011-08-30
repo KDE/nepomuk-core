@@ -26,10 +26,10 @@
 #include <QtCore/QVariant>
 #include <QtDBus/QDBusMessage>
 
-#include "lib/dbustypes.h"
-#include "lib/simpleresource.h"
-#include "lib/simpleresourcegraph.h"
-#include "lib/datamanagement.h"
+#include "dbustypes.h"
+#include "simpleresource.h"
+#include "simpleresourcegraph.h"
+#include "datamanagement.h"
 #include "datamanagementmodel.h"
 
 

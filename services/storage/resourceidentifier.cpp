@@ -19,7 +19,7 @@
 
 
 #include "resourceidentifier.h"
-#include "syncresource.h"
+#include "../backupsync/lib/syncresource.h"
 #include "classandpropertytree.h"
 
 #include <QtCore/QDateTime>
