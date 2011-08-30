@@ -34,8 +34,7 @@ target_link_libraries(nepomukfileindexer
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
   ${KDE4_KIDLETIME_LIBS}
-  ${NEPOMUK_QUERY_LIBRARIES}
-  ${NEPOMUK_LIBRARIES}
+  nepomukcore
   ${SOPRANO_LIBRARIES}
   )
 

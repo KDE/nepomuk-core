@@ -45,10 +45,8 @@ target_link_libraries( nepomukindexer
   ${STRIGI_STREAMANALYZER_LIBRARY}
   ${STRIGI_STREAMS_LIBRARY}
   ${KDE4_KIO_LIBS}
-  ${NEPOMUK_QUERY_LIBRARIES}
-  ${NEPOMUK_LIBRARIES}
+  nepomukcore
   ${SOPRANO_LIBRARIES}
-  nepomukdatamanagement
   )
 
 install(

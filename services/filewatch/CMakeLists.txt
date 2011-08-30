@@ -36,14 +36,12 @@ kde4_add_plugin(nepomukfilewatch ${SRCS})
 
 target_link_libraries(nepomukfilewatch
   nepomukcommon
-  nepomukdatamanagement
+  nepomukcore
   ${SOPRANO_CLIENT_LIBRARIES}
   ${SOPRANO_LIBRARIES}
   ${KDE4_KDEUI_LIBS}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  ${NEPOMUK_LIBRARIES}
-  ${NEPOMUK_QUERY_LIBRARIES}
   )
 
 install(

@@ -63,8 +63,7 @@ kde4_add_plugin(nepomukbackupsync ${BackupSyncService_SRCS})
 target_link_libraries(nepomukbackupsync
   ${KDE4_KDEUI_LIBS}
   ${KDE4_KIO_LIBS}
-  ${NEPOMUK_LIBRARIES}
-  ${NEPOMUK_QUERY_LIBRARIES}
+  nepomukcore
   nepomuksync
   ${SOPRANO_LIBRARIES}
   )

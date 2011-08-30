@@ -37,8 +37,7 @@ set_target_properties(nepomuksync PROPERTIES VERSION ${GENERIC_LIB_VERSION} SOVE
 target_link_libraries(nepomuksync
   ${QT_QTCORE_LIBRARY}
   ${SOPRANO_LIBRARIES}
-  ${NEPOMUK_LIBRARIES}
-  ${NEPOMUK_QUERY_LIBRARIES}
+  nepomukcore
   ${KDE4_KIO_LIBS}
   kdecore
   )

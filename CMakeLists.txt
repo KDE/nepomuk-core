@@ -36,7 +36,6 @@ macro_log_feature(STRIGI_FOUND "Strigi" "Strigi is a fast and light-weight file 
 # ===============================================================================================
 add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS})
 add_definitions(-DQT_USE_FAST_CONCATENATION -DQT_USE_FAST_OPERATOR_PLUS)
-add_definitions(-DKDE_DEFAULT_DEBUG_AREA=300000)
 
 
 # Add all the parts that make up nepomuk-core

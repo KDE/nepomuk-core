@@ -32,8 +32,7 @@ target_link_libraries(nepomukqueryservice
   ${SOPRANO_LIBRARIES}
   ${KDE4_KDEUI_LIBS}
   ${KDE4_KIO_LIBS}
-  ${NEPOMUK_LIBRARIES}
-  ${NEPOMUK_QUERY_LIBRARIES}
+  nepomukcore
   )
 
 install(

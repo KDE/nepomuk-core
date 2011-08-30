@@ -16,7 +16,7 @@ target_link_libraries(crappyinferencer2test
   ${QT_QTTEST_LIBRARY}
   ${SOPRANO_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
-  nepomukdatamanagement)
+  nepomukcore)
 
 kde4_add_unit_test(removablemediamodeltest
   removablemediamodeltest.cpp
@@ -28,7 +28,7 @@ target_link_libraries(removablemediamodeltest
   ${SOPRANO_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
   ${KDE4_SOLID_LIBS}
-  ${NEPOMUK_LIBRARIES}
+  nepomukcore
   nepomukcommon
 )
 
@@ -57,8 +57,7 @@ target_link_libraries( datamanagementtestlib
   ${SOPRANO_LIBRARIES}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  ${NEPOMUK_LIBRARIES}
-  nepomukdatamanagement
+  nepomukcore
   nepomuksync
 )
 
@@ -69,7 +68,6 @@ target_link_libraries(classandpropertytreetest
   ${QT_QTTEST_LIBRARY}
   ${SOPRANO_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
-  nepomukdatamanagement
   datamanagementtestlib
 )
 
@@ -82,9 +80,8 @@ target_link_libraries(datamanagementmodeltest
   ${SOPRANO_LIBRARIES}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  ${NEPOMUK_LIBRARIES}
+  nepomukcore
   nepomuksync
-  nepomukdatamanagement
   datamanagementtestlib
 )
 
@@ -99,9 +96,8 @@ target_link_libraries(datamanagementadaptortest
   ${KDE4_KDECORE_LIBS}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  ${NEPOMUK_LIBRARIES}
+  nepomukcore
   nepomuksync
-  nepomukdatamanagement
   datamanagementtestlib
 )
 
@@ -119,9 +115,8 @@ target_link_libraries(fakedms
   ${KDE4_KDECORE_LIBS}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  ${NEPOMUK_LIBRARIES}
+  nepomukcore
   nepomuksync
-  nepomukdatamanagement
   datamanagementtestlib
 )
 
@@ -135,8 +130,7 @@ target_link_libraries(asyncclientapitest
   ${SOPRANO_LIBRARIES}
   ${SOPRANO_CLIENT_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
-  ${NEPOMUK_LIBRARIES}
-  nepomukdatamanagement
+  nepomukcore
 )
 
 kde4_add_executable(resourcewatchertest
@@ -150,17 +144,17 @@ target_link_libraries(resourcewatchertest
   ${KDE4_KDECORE_LIBS}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  ${NEPOMUK_LIBRARIES}
+  nepomukcore
   nepomuksync
-  nepomukdatamanagement
+
   datamanagementtestlib
 )
 
 kde4_add_unit_test(simpleresourceclassestest
-    simpleresourceclassestest.cpp
-    )
+  simpleresourceclassestest.cpp
+)
 target_link_libraries(simpleresourceclassestest
-    nepomukdatamanagement
-    ${QT_QTTEST_LIBRARY}
-    ${QT_QTCORE_LIBRARY}
-    )
+  nepomukcore
+  ${QT_QTTEST_LIBRARY}
+  ${QT_QTCORE_LIBRARY}
+)
