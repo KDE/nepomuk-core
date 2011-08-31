@@ -66,5 +66,4 @@ install(
   DESTINATION ${PLUGIN_INSTALL_DIR})
 # -----------------------------
 
-add_subdirectory(rcgen)
 add_subdirectory(test)
