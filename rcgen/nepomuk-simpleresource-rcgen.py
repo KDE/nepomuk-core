@@ -116,34 +116,6 @@ class OntologyParser():
 
         return True
 
-    def writeAll(self):
-
-        # add rdfs:Resource as domain for all properties without a domain
-        query = 'select ?p where { ?p a %s . OPTIONAL { ?p %s ?d . } . FILTER(!BOUND(?d)) . }' \
-                 % (Soprano.Node.resourceToN3(Soprano.Vocabulary.RDF.Property()), \
-                         Soprano.Node.resourceToN3(Soprano.Vocabulary.RDFS.domain()))
-        nodes = self.model.executeQuery(query, Soprano.Query.QueryLanguageSparql).iterateBindings(0).allNodes()
-        for p in nodes:
-            self.model.addStatement(p, Soprano.Node(Soprano.Vocabulary.RDFS.domain()), Soprano.Node(Soprano.Vocabulary.RDFS.Resource()))
-        
-        # cache a few values we need more than once
-        self.rdfsResourceProperties = self.getPropertiesForClass(Soprano.Vocabulary.RDFS.Resource())
-
-        query = 'select distinct ?uri ?label ?comment where {{ ?uri a {0} . ?uri {1} ?label . OPTIONAL {{ ?uri {2} ?comment . }} . }}' \
-            .format(Soprano.Node.resourceToN3(Soprano.Vocabulary.RDFS.Class()), \
-                         Soprano.Node.resourceToN3(Soprano.Vocabulary.RDFS.label()), \
-                         Soprano.Node.resourceToN3(Soprano.Vocabulary.RDFS.comment()))
-        it = self.model.executeQuery(query, Soprano.Query.QueryLanguageSparql)
-        
-        while it.next():
-            uri = it['uri'].uri()
-            if verbose:
-                print "Parsing class: ", uri
-            ns = self.getNamespaceAbbreviationForUri(uri)
-            name = extractNameFromUri(uri)
-            self.writeHeader(uri, ns, name, it['label'].toString(), it['comment'].toString())
-            print "\n\n"
-
     def getNamespaceAbbreviationForUri(self, uri):
         query = "select ?ns where { graph ?g { %s ?p ?o . } . ?g %s ?ns . } LIMIT 1" \
             % (Soprano.Node.resourceToN3(uri), \
@@ -215,6 +187,40 @@ class OntologyParser():
             properties[p] = dict([('range', r), ('cardinality', c), ('comment', comment)])
         return properties
 
+    def buildCache(self):
+       # add rdfs:Resource as domain for all properties without a domain
+       query = 'select ?p where { ?p a %s . OPTIONAL { ?p %s ?d . } . FILTER(!BOUND(?d)) . }' \
+                % (Soprano.Node.resourceToN3(Soprano.Vocabulary.RDF.Property()), \
+                        Soprano.Node.resourceToN3(Soprano.Vocabulary.RDFS.domain()))
+       nodes = self.model.executeQuery(query, Soprano.Query.QueryLanguageSparql).iterateBindings(0).allNodes()
+       for p in nodes:
+           self.model.addStatement(p, Soprano.Node(Soprano.Vocabulary.RDFS.domain()), Soprano.Node(Soprano.Vocabulary.RDFS.Resource()))
+
+
+
+class Rcgen():
+    def __init__(self, ontologyParser):
+        self.parser = ontologyParser
+
+    def writeAll(self):
+        # cache a few values we need more than once
+        self.rdfsResourceProperties = self.parser.getPropertiesForClass(Soprano.Vocabulary.RDFS.Resource())
+
+        query = 'select distinct ?uri ?label ?comment where {{ ?uri a {0} . ?uri {1} ?label . OPTIONAL {{ ?uri {2} ?comment . }} . }}' \
+            .format(Soprano.Node.resourceToN3(Soprano.Vocabulary.RDFS.Class()), \
+                         Soprano.Node.resourceToN3(Soprano.Vocabulary.RDFS.label()), \
+                         Soprano.Node.resourceToN3(Soprano.Vocabulary.RDFS.comment()))
+        it = self.parser.model.executeQuery(query, Soprano.Query.QueryLanguageSparql)
+
+        while it.next():
+            uri = it['uri'].uri()
+            if verbose:
+                print "Parsing class: ", uri
+            ns = self.parser.getNamespaceAbbreviationForUri(uri)
+            name = extractNameFromUri(uri)
+            self.writeHeader(uri, ns, name, it['label'].toString(), it['comment'].toString())
+            print "\n\n"
+
     def writeComment(self, theFile, text, indent):
         maxLine = 50;
 
@@ -283,7 +289,7 @@ class OntologyParser():
         header = open(filePath, 'w')
 
         # get all direct base classes
-        parentClasses = self.getParentClasses(uri)
+        parentClasses = self.parser.getParentClasses(uri)
 
         # write protecting ifdefs
         header_protect = '_%s_%s_H_' % (nsAbbr.toUpper(), className.toUpper())
@@ -312,7 +318,7 @@ class OntologyParser():
         # get all base classes which we require due to the virtual base class constructor ordering in C++
         # We inverse the order to match the virtual inheritance constructor calling order
         fullParentHierarchyNames = []
-        for parent in self.getFullParentHierarchy(uri, [], []):
+        for parent in self.parser.getFullParentHierarchy(uri, [], []):
             fullParentHierarchyNames.append("%s::%s" %(parent['ns'].toUpper(), parent['name']))
 
         if len(parentClassNames) > 0:
@@ -375,7 +381,7 @@ class OntologyParser():
         # This includes the properties that have domain rdfs:Resource on base classes, ie.
         # those that are not derived from any other class. That way these properties are
         # accessible from all classes.
-        properties = self.getPropertiesForClass(uri)
+        properties = self.parser.getPropertiesForClass(uri)
         if len(parentClassNames) == 0:
             properties.update(self.rdfsResourceProperties)
 
@@ -388,7 +394,7 @@ class OntologyParser():
                 if extractNameFromUri(op) == name:
                     cnt+=1
             if cnt > 1:
-                name = self.getNamespaceAbbreviationForUri(p).toLower() + name[0].toUpper() + name.mid(1)
+                name = self.parser.getNamespaceAbbreviationForUri(p).toLower() + name[0].toUpper() + name.mid(1)
             properties[p]['name'] = name;
             
         for p in properties.keys():
@@ -460,11 +466,13 @@ def main():
         if verbose:
             print "Reading ontology '%s'" % f
         ontoParser.parseFile(f)
+    ontoParser.buildCache()
     if verbose:
         print "All ontologies read. Generating code..."
 
     # Get all classes and handle them one by one
-    ontoParser.writeAll()
+    rcgen = Rcgen(ontoParser)
+    rcgen.writeAll()
 
 if __name__ == "__main__":
     main()
