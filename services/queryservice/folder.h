@@ -21,8 +21,8 @@
 
 #include <QtCore/QObject>
 
-#include <Nepomuk/Query/Result>
-#include <Nepomuk/Query/Query>
+#include "query/result.h"
+#include "query/query.h"
 
 #include <QtCore/QSet>
 #include <QtCore/QTimer>

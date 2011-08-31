@@ -29,7 +29,7 @@
 #include <Soprano/Vocabulary/RDF>
 #include <Soprano/Vocabulary/RDFS>
 
-#include <Nepomuk/ResourceManager>
+#include "resourcemanager.h"
 
 Nepomuk::Sync::IdentificationSetGenerator::IdentificationSetGenerator(const QSet<KUrl>& uniqueUris, Soprano::Model* m, const QSet<KUrl> & ignoreList)
 {

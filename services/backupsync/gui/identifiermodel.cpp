@@ -23,15 +23,15 @@
 #include "identifiermodel.h"
 #include "identifiermodeltree.h"
 
-#include <Nepomuk/Vocabulary/NIE>
-#include <Nepomuk/Vocabulary/NFO>
+#include "nie.h"
+#include "nfo.h"
 #include <Soprano/Vocabulary/RDF>
 
 #include <Soprano/QueryResultIterator>
 #include <Soprano/Model>
 #include <Soprano/Statement>
 
-#include <Nepomuk/ResourceManager>
+#include "resourcemanager.h"
 
 #include <KUrl>
 #include <KDebug>

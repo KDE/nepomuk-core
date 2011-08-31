@@ -25,7 +25,7 @@
 
 #include <QtDBus/QDBusObjectPath>
 
-#include <Nepomuk/Resource>
+#include "resource.h"
 
 #include <KUrl>
 
@@ -73,7 +73,7 @@ bool Nepomuk::ResourceWatcher::start()
     //
     QList<QString> uris;
     foreach( const Nepomuk::Resource & res, d->m_resources ) {
-        uris << KUrl(res.resourceUri()).url();
+        uris << KUrl(res.uri()).url();
     }
 
     QList<QString> props;

@@ -31,8 +31,8 @@
 
 #include <Soprano/Vocabulary/NAO>
 
-#include <Nepomuk/Resource>
-#include <Nepomuk/Variant>
+#include "resource.h"
+#include "variant.h"
 
 Nepomuk::SyncManager::SyncManager(QObject* parent)
     : QObject( parent )
@@ -70,7 +70,7 @@ void Nepomuk::SyncManager::createSyncFile( const QUrl& outputUrl, const QList<QS
         if( dt < min )
             min = dt;
 
-        nepomukUris.insert( res.resourceUri() );
+        nepomukUris.insert( res.uri() );
     }
 
     createSyncFile( outputUrl, nepomukUris, min );

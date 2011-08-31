@@ -20,8 +20,8 @@
 #include "folder.h"
 #include "queryadaptor.h"
 
-#include <nepomuk/resource.h>
-#include <nepomuk/result.h>
+#include "resource.h"
+#include "result.h"
 
 #include <QtCore/QStringList>
 #include <QtDBus/QDBusServiceWatcher>
@@ -109,7 +109,7 @@ void Nepomuk::Query::FolderConnection::slotEntriesRemoved( const QList<Nepomuk::
 {
     QStringList uris;
     for ( int i = 0; i < entries.count(); ++i ) {
-        uris.append( entries[i].resource().resourceUri().toString() );
+        uris.append( entries[i].resource().uri().toString() );
     }
     emit entriesRemoved( uris );
     emit entriesRemoved( entries );

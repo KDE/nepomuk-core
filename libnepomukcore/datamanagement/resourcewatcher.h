@@ -22,9 +22,9 @@
 #ifndef RESOURCEWATCHER_H
 #define RESOURCEWATCHER_H
 
-#include <Nepomuk/Types/Class>
-#include <Nepomuk/Types/Property>
-#include <Nepomuk/Resource>
+#include "types/class.h"
+#include "types/property.h"
+#include "resource.h"
 
 #include <QtDBus/QDBusVariant>
 

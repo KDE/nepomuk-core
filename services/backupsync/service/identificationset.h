@@ -27,7 +27,7 @@
 #include <QtCore/QMultiHash>
 #include <QtCore/QTextStream>
 #include <QtCore/QSharedDataPointer>
-#include <Nepomuk/ResourceManager>
+#include "resourcemanager.h"
 
 namespace Soprano {
     class Statement;

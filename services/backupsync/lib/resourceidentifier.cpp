@@ -38,11 +38,11 @@
 #include <Soprano/Vocabulary/RDF>
 #include <Soprano/Vocabulary/RDFS>
 #include <Soprano/Vocabulary/NAO>
-#include <Nepomuk/Vocabulary/NIE>
+#include "nie.h"
 
-#include <Nepomuk/Resource>
-#include <Nepomuk/ResourceManager>
-#include <Nepomuk/Variant>
+#include "resource.h"
+#include "resourcemanager.h"
+#include "variant.h"
 
 #include <KDebug>
 #include <KUrl>
@@ -383,7 +383,7 @@ namespace {
 
 void Nepomuk::Sync::ResourceIdentifier::forceResource(const KUrl& oldUri, const Nepomuk::Resource& res)
 {
-    d->m_hash[ oldUri ] = res.resourceUri();
+    d->m_hash[ oldUri ] = res.uri();
     d->m_notIdentified.remove( oldUri );
 
     if( res.isFile() ) {

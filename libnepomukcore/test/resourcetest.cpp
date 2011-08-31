@@ -28,6 +28,7 @@
 #include <QtCore/QTextStream>
 
 using namespace Soprano;
+using namespace Soprano::Vocabulary;
 using namespace Nepomuk;
 
 
@@ -57,7 +58,7 @@ void ResourceTest::testResourceRemoval()
     Resource res( testiId );
     res.setProperty( QUrl("http://nepomuk.test.org/foo/bar"),  "foobar" );
 
-    QUrl testiUri = res.resourceUri();
+    QUrl testiUri = res.uri();
 
     QVERIFY( !testiUri.isEmpty() );
 
@@ -79,20 +80,20 @@ void ResourceTest::testResourceRemoval()
     QVERIFY( res.exists() );
     QVERIFY( res2.exists() );
 
-    QVERIFY( ResourceManager::instance()->mainModel()->containsAnyStatement( Statement( res.resourceUri(), QUrl("http://nepomuk.test.org/foo/bar2"), Node(res2.resourceUri()) ) ) );
+    QVERIFY( ResourceManager::instance()->mainModel()->containsAnyStatement( Statement( res.uri(), QUrl("http://nepomuk.test.org/foo/bar2"), Node(res2.uri()) ) ) );
 
     res2.remove();
 
     QVERIFY( res.exists() );
     QVERIFY( !res2.exists() );
 
-    QVERIFY( !ResourceManager::instance()->mainModel()->containsAnyStatement( Statement( res.resourceUri(), QUrl("http://nepomuk.test.org/foo/bar2"), Node(res2.resourceUri()) ) ) );
+    QVERIFY( !ResourceManager::instance()->mainModel()->containsAnyStatement( Statement( res.uri(), QUrl("http://nepomuk.test.org/foo/bar2"), Node(res2.uri()) ) ) );
 
     //
     // Now make sure the relation between id and URI has actually be removed
     //
     Resource res3( testiId );
-    QVERIFY( res3.resourceUri() != testiUri );
+    QVERIFY( res3.uri() != testiUri );
 }
 
 
@@ -112,8 +113,8 @@ void ResourceTest::testProperties()
         r1.setProperty( QUrl("http://nepomuk.test.org/date"), QDate::currentDate() );
         r1.setProperty( QUrl("http://nepomuk.test.org/Resource"), r2 );
 
-        r1Uri = r1.resourceUri();
-        r2Uri = r2.resourceUri();
+        r1Uri = r1.uri();
+        r2Uri = r2.uri();
     }
 
     QTextStream s(stdout);
@@ -169,7 +170,7 @@ void ResourceTest::testRemoveProperty()
     QVERIFY( r1.property( p ).toNodeList().isEmpty() );
 
     QList<Soprano::Node> nodes =
-        ResourceManager::instance()->mainModel()->listStatements(r1.resourceUri(), p, Soprano::Node()).iterateObjects().allNodes();
+        ResourceManager::instance()->mainModel()->listStatements(r1.uri(), p, Soprano::Node()).iterateObjects().allNodes();
     QCOMPARE(nodes.count(), 0);
 
     r1.setProperty( p, 17 );
@@ -182,7 +183,7 @@ void ResourceTest::testRemoveProperty()
     QCOMPARE( r1.property( p ).toNodeList().count(), 1 );
 
     nodes =
-        ResourceManager::instance()->mainModel()->listStatements(r1.resourceUri(), p, Soprano::Node()).iterateObjects().allNodes();
+        ResourceManager::instance()->mainModel()->listStatements(r1.uri(), p, Soprano::Node()).iterateObjects().allNodes();
     QCOMPARE(nodes.count(), 1);
     QCOMPARE(nodes[0], Soprano::Node(Soprano::LiteralValue(18)));
 
@@ -198,7 +199,7 @@ void ResourceTest::testRemoveProperty()
     QVERIFY( r1.property( p ).toNodeList().isEmpty() );
 
     nodes =
-        ResourceManager::instance()->mainModel()->listStatements(r1.resourceUri(), p, Soprano::Node()).iterateObjects().allNodes();
+        ResourceManager::instance()->mainModel()->listStatements(r1.uri(), p, Soprano::Node()).iterateObjects().allNodes();
     QCOMPARE(nodes.count(), 0);
 }
 
@@ -212,20 +213,20 @@ void ResourceTest::testResourceIdentifiers()
 
         QVERIFY( r1 == r2 );
 
-        QVERIFY( r1.resourceUri() != QUrl("wurst") );
+        QVERIFY( r1.uri() != QUrl("wurst") );
 
         r1.setProperty( QUrl("http://nepomuk.test.org/foo/bar"), "foobar" );
 
-        theUri = r1.resourceUri();
+        theUri = r1.uri();
 
         QList<Statement> sl
-            = ResourceManager::instance()->mainModel()->listStatements( Statement( r1.resourceUri(), Node(), Node() ) ).allStatements();
+            = ResourceManager::instance()->mainModel()->listStatements( Statement( r1.uri(), Node(), Node() ) ).allStatements();
 
         // rdf:type, nao:created, nao:lastModified, nao:identifier, and the property above
         QCOMPARE( sl.count(), 5 );
 
-        QVERIFY( ResourceManager::instance()->mainModel()->containsAnyStatement( Statement( r1.resourceUri(),
-                                                                                            QUrl( Resource::identifierUri() ),
+        QVERIFY( ResourceManager::instance()->mainModel()->containsAnyStatement( Statement( r1.uri(),
+                                                                                            NAO::identifier(),
                                                                                             LiteralValue( "wurst" ) ) ) );
     }
 
@@ -252,7 +253,7 @@ void ResourceTest::testResourceManager()
         QCOMPARE( rl.count(), 2 );
         QVERIFY( rl.contains( r1 ) && rl.contains( r2 ) );
 
-        rl = ResourceManager::instance()->allResourcesOfType( r6.resourceType() );
+        rl = ResourceManager::instance()->allResourcesOfType( r6.type() );
         QCOMPARE( rl.count(), 1 );
         QCOMPARE( rl.first(), r6 );
 
@@ -287,7 +288,7 @@ void ResourceTest::testResourceManager()
         QCOMPARE( rl.count(), 2 );
         QVERIFY( rl.contains( r1 ) && rl.contains( r2 ) );
 
-        rl = ResourceManager::instance()->allResourcesOfType( r6.resourceType() );
+        rl = ResourceManager::instance()->allResourcesOfType( r6.type() );
         QCOMPARE( rl.count(), 1 );
         QCOMPARE( rl.first(), r6 );
 
@@ -329,30 +330,30 @@ void ResourceTest::testLocalFileUrls()
         fileRes.setRating( 4 );
 
         // make sure the nie:url is saved
-        QVERIFY( ResourceManager::instance()->mainModel()->containsAnyStatement( fileRes.resourceUri(), Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile1.fileName()) ) );
+        QVERIFY( ResourceManager::instance()->mainModel()->containsAnyStatement( fileRes.uri(), Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile1.fileName()) ) );
 
         // make sure a proper nepomuk:/ uri has been created
-        QVERIFY( fileRes.resourceUri().scheme() == QLatin1String("nepomuk") );
+        QVERIFY( fileRes.uri().scheme() == QLatin1String("nepomuk") );
 
         // make sure the local resource is reused with the file URL
         Resource fileRes2( KUrl(tmpFile1.fileName()) );
-        QCOMPARE( fileRes.resourceUri(), fileRes2.resourceUri() );
+        QCOMPARE( fileRes.uri(), fileRes2.uri() );
 
         // make sure the local resource is reused with the resource URI
-        Resource fileRes3( fileRes.resourceUri() );
-        QCOMPARE( fileRes.resourceUri(), fileRes3.resourceUri() );
+        Resource fileRes3( fileRes.uri() );
+        QCOMPARE( fileRes.uri(), fileRes3.uri() );
 
-        tmpFile1ResUri = fileRes.resourceUri();
+        tmpFile1ResUri = fileRes.uri();
 
         // make sure even the string constructor will find the resource again with
         Resource fileRes4( KUrl(tmpFile1ResUri).url() );
         fileRes4.setRating(4);
-        QCOMPARE( fileRes4.resourceUri(), tmpFile1ResUri );
+        QCOMPARE( fileRes4.uri(), tmpFile1ResUri );
 
         // make sure the resource is reused with the local file path
         Resource fileRes5( tmpFile1.fileName() );
         fileRes4.setRating(5);
-        QCOMPARE( fileRes5.resourceUri(), tmpFile1ResUri );
+        QCOMPARE( fileRes5.uri(), tmpFile1ResUri );
     }
 
     // clear cache to be sure we call ResourceData::determineUri
@@ -361,11 +362,11 @@ void ResourceTest::testLocalFileUrls()
     {
         // verify that the resource in question is found again
         Resource fileRes1( KUrl(tmpFile1.fileName()) );
-        QCOMPARE( tmpFile1ResUri, fileRes1.resourceUri() );
+        QCOMPARE( tmpFile1ResUri, fileRes1.uri() );
 
         // make sure the local resource is reused with the resource URI
         Resource fileRes2( tmpFile1ResUri );
-        QCOMPARE( tmpFile1ResUri, fileRes2.resourceUri() );
+        QCOMPARE( tmpFile1ResUri, fileRes2.uri() );
 
         // create a second test file
         KTemporaryFile tmpFile2;
@@ -376,7 +377,7 @@ void ResourceTest::testLocalFileUrls()
 
         Resource fileRes3( KUrl(tmpFile2.fileName()) );
         fileRes3.setRating( 4 );
-        QCOMPARE( KUrl(fileRes3.resourceUri()), KUrl(tmpFile2.fileName()) );
+        QCOMPARE( KUrl(fileRes3.uri()), KUrl(tmpFile2.fileName()) );
 
         // create a third test file
         KTemporaryFile tmpFile3;
@@ -386,14 +387,14 @@ void ResourceTest::testLocalFileUrls()
         ResourceManager::instance()->mainModel()->addStatement( KUrl(tmpFile3.fileName()), Soprano::Vocabulary::NAO::rating(), Soprano::LiteralValue(4) );
 
         Resource fileRes4( KUrl(tmpFile3.fileName()) );
-        QCOMPARE( KUrl(fileRes4.resourceUri()).url(), KUrl(tmpFile3.fileName()).url() );
+        QCOMPARE( KUrl(fileRes4.uri()).url(), KUrl(tmpFile3.fileName()).url() );
 
         // make sure removing the resource results in us not reusing the URI
-        QUrl fileRes1Uri = fileRes1.resourceUri();
+        QUrl fileRes1Uri = fileRes1.uri();
         fileRes1.remove();
 
         Resource fileRes5( KUrl(tmpFile1.fileName()) );
-        QVERIFY( fileRes1Uri != fileRes5.resourceUri() );
+        QVERIFY( fileRes1Uri != fileRes5.uri() );
     }
 
     // clear cache to be sure we do not reuse the cache
@@ -412,16 +413,16 @@ void ResourceTest::testKickOffListRemoval()
         fileRes.setRating( 4 );
 
         // make sure the nie:url is saved
-        QVERIFY( model->containsAnyStatement( fileRes.resourceUri(), Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile1.fileName()) ) );
+        QVERIFY( model->containsAnyStatement( fileRes.uri(), Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile1.fileName()) ) );
 
         // make sure a proper nepomuk:/ uri has been created
-        QVERIFY( fileRes.resourceUri().scheme() == QLatin1String("nepomuk") );
+        QVERIFY( fileRes.uri().scheme() == QLatin1String("nepomuk") );
 
         // Remove the nie:url
         fileRes.removeProperty( Nepomuk::Vocabulary::NIE::url() );
 
         Resource fileRes2( KUrl(tmpFile1.fileName()) );
-        QVERIFY( fileRes.resourceUri() != fileRes2.resourceUri() );
+        QVERIFY( fileRes.uri() != fileRes2.uri() );
 
         Resource r1( "res1" );
         r1.setProperty( QUrl("http://test/prop1"), 42 );
@@ -430,7 +431,7 @@ void ResourceTest::testKickOffListRemoval()
         Resource r2( "res1" );
         r2.setProperty( QUrl("http://test/prop1"), 46 );
 
-        QVERIFY( r2.resourceUri() != r1.resourceUri() );
+        QVERIFY( r2.uri() != r1.uri() );
         QVERIFY( r1.property(QUrl("http://test/prop1")) != r2.property(QUrl("http://test/prop1")) );
 
     }
@@ -442,10 +443,10 @@ void ResourceTest::testKickOffListRemoval()
         fileRes.setRating( 4 );
 
         // make sure the nie:url is saved
-        QVERIFY( model->containsAnyStatement( fileRes.resourceUri(), Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile.fileName()) ) );
+        QVERIFY( model->containsAnyStatement( fileRes.uri(), Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile.fileName()) ) );
 
         // make sure a proper nepomuk:/ uri has been created
-        QVERIFY( fileRes.resourceUri().scheme() == QLatin1String("nepomuk") );
+        QVERIFY( fileRes.uri().scheme() == QLatin1String("nepomuk") );
 
         // Add a different nie:url
         KTemporaryFile tmpFile2;
@@ -453,18 +454,18 @@ void ResourceTest::testKickOffListRemoval()
         fileRes.setProperty( Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile2.fileName()) );
 
         // make sure the new nie:url is saved and the old one is gone
-        QVERIFY( model->containsAnyStatement( fileRes.resourceUri(), Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile2.fileName()) ) );
-        QVERIFY( !model->containsAnyStatement( fileRes.resourceUri(), Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile.fileName()) ) );
+        QVERIFY( model->containsAnyStatement( fileRes.uri(), Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile2.fileName()) ) );
+        QVERIFY( !model->containsAnyStatement( fileRes.uri(), Nepomuk::Vocabulary::NIE::url(), KUrl(tmpFile.fileName()) ) );
 
         // At this point the ResourceManager's kickOffUri's should contain
         // only tmpFile2 -> fileRes
 
         Resource fileRes2( KUrl(tmpFile.fileName()) );
         
-        QVERIFY( fileRes.resourceUri() != fileRes2.resourceUri() );
+        QVERIFY( fileRes.uri() != fileRes2.uri() );
 
         Resource fileRes3( KUrl(tmpFile2.fileName()) );
-        QVERIFY( fileRes3.resourceUri() == fileRes.resourceUri() );
+        QVERIFY( fileRes3.uri() == fileRes.uri() );
         
         Resource r1( "res1" );
         r1.setProperty( QUrl("http://test/prop1"), 42 );
@@ -474,11 +475,11 @@ void ResourceTest::testKickOffListRemoval()
         Resource r2( "res1" );
         r2.setProperty( QUrl("http://test/prop1"), 46 );
 
-        QVERIFY( r2.resourceUri() != r1.resourceUri() );
+        QVERIFY( r2.uri() != r1.uri() );
         QVERIFY( r1.property(QUrl("http://test/prop1")) != r2.property(QUrl("http://test/prop1")) );
 
         Resource r3( "foo" );
-        QVERIFY( r3.resourceUri() == r1.resourceUri() );
+        QVERIFY( r3.uri() == r1.uri() );
     }
 
 }

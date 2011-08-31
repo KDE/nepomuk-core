@@ -20,7 +20,7 @@
 #ifndef _NEPOMUK_STRIGI_SERVICE_H_
 #define _NEPOMUK_STRIGI_SERVICE_H_
 
-#include <Nepomuk/Service>
+#include "nepomukservice.h"
 #include <QtCore/QTimer>
 #include <QtCore/QThread>
 

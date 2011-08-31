@@ -40,11 +40,11 @@
 #include <KProtocolInfo>
 #include <KDebug>
 
-#include <Nepomuk/Vocabulary/NFO>
-#include <Nepomuk/Vocabulary/NMM>
-#include <Nepomuk/Vocabulary/NCO>
-#include <Nepomuk/Vocabulary/NIE>
-#include <Nepomuk/ResourceManager>
+#include "nfo.h"
+#include "nmm.h"
+#include "nco.h"
+#include "nie.h"
+#include "resourcemanager.h"
 
 using namespace Soprano;
 using namespace Soprano::Vocabulary;

@@ -23,7 +23,7 @@
 #ifndef BACKUPSYNCSERVICE_H
 #define BACKUPSYNCSERVICE_H
 
-#include <Nepomuk/Service>
+#include "nepomukservice.h"
 
 namespace Nepomuk {
 

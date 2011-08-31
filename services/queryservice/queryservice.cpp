@@ -31,10 +31,10 @@
 #include <KUrl>
 #include <KDebug>
 
-#include <Nepomuk/ResourceManager>
-#include <Nepomuk/Types/Property>
-#include <Nepomuk/Query/Query>
-#include <Nepomuk/Query/QueryParser>
+#include "resourcemanager.h"
+#include "types/property.h"
+#include "query/query.h"
+#include "query/queryparser.h"
 
 Q_DECLARE_METATYPE( QList<QUrl> )
 

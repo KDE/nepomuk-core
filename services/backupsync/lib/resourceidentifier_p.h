@@ -32,7 +32,7 @@
 
 #include "resourceidentifier.h"
 #include "syncresource.h"
-#include <Nepomuk/ResourceManager>
+#include "resourcemanager.h"
 
 
 namespace Soprano {

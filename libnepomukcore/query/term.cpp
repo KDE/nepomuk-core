@@ -492,7 +492,7 @@ uint Nepomuk::Query::qHash( const Nepomuk::Query::Term& term )
         return qHash(term.toOptionalTerm().subTerm());
 
     case Nepomuk::Query::Term::Resource:
-        return qHash( term.toResourceTerm().resource().resourceUri() );
+        return qHash( term.toResourceTerm().resource().uri() );
 
     case Nepomuk::Query::Term::ResourceType:
         return qHash( term.toResourceTypeTerm().type().uri() );

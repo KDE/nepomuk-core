@@ -22,7 +22,7 @@
 #ifndef _NEPOMUK_CRAPPY_INFERENCER_H_
 #define _NEPOMUK_CRAPPY_INFERENCER_H_
 
-#include <nepomuk/nepomuk_export.h>
+#include "nepomuk_export.h"
 
 #include <Soprano/FilterModel>
 #include <Soprano/Node> // for qHash(QUrl)

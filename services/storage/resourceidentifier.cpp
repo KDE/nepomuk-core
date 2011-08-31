@@ -33,7 +33,7 @@
 #include <Soprano/NodeIterator>
 #include <Soprano/Vocabulary/RDFS>
 #include <Soprano/Vocabulary/RDF>
-#include <Nepomuk/Vocabulary/NIE>
+#include "nie.h"
 
 #include <KDebug>
 

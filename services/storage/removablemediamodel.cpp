@@ -29,8 +29,8 @@
 #include <Soprano/QueryResultIteratorBackend>
 #include <Soprano/Vocabulary/NAO>
 
-#include <Nepomuk/Vocabulary/NIE>
-#include <Nepomuk/Vocabulary/NFO>
+#include "nie.h"
+#include "nfo.h"
 
 #include <KUrl>
 #include <KDebug>

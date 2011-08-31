@@ -23,7 +23,7 @@
 #include "indexer.h"
 #include "nepomukindexwriter.h"
 
-#include <Nepomuk/Vocabulary/NIE>
+#include "nie.h"
 
 #include <KDebug>
 

@@ -29,7 +29,7 @@
 #include <KTar>
 #include <KTempDir>
 #include <KDebug>
-#include <Nepomuk/ResourceManager>
+#include "resourcemanager.h"
 
 
 class Nepomuk::SyncFile::Private {

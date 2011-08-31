@@ -21,8 +21,8 @@
 #include "countqueryrunnable.h"
 #include "folder.h"
 
-#include <Nepomuk/ResourceManager>
-#include <Nepomuk/Query/Query>
+#include "resourcemanager.h"
+#include "query/query.h"
 
 #include <Soprano/QueryResultIterator>
 #include <Soprano/Node>

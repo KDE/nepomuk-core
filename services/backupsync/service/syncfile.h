@@ -24,7 +24,7 @@
 
 #include <QtCore/QUrl>
 
-#include <Nepomuk/ResourceManager>
+#include "resourcemanager.h"
 
 namespace Soprano {
     class Statement;

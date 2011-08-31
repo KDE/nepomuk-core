@@ -22,14 +22,14 @@
 
 #include "identifiermodeltree.h"
 
-#include <Nepomuk/Vocabulary/NIE>
-#include <Nepomuk/Vocabulary/NFO>
+#include "nie.h"
+#include "nfo.h"
 #include <Soprano/Vocabulary/RDF>
 
 #include <Soprano/Statement>
 #include <Soprano/Vocabulary/RDFS>
 
-#include <Nepomuk/Types/Class>
+#include "types/class.h"
 
 Nepomuk::IdentifierModelTreeItem::IdentifierModelTreeItem(const QString& url, bool isFolder)
     : FileSystemTreeItem( url, isFolder )
