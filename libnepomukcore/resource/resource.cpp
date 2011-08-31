@@ -39,27 +39,16 @@
 #include "kmimetype.h"
 
 #include <Soprano/Vocabulary/NAO>
-#include <Soprano/Vocabulary/Xesam>
 #include <Soprano/Vocabulary/RDFS>
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
 
+using namespace Nepomuk::Vocabulary;
 
 Nepomuk::Resource::Resource()
 {
     QMutexLocker lock( &ResourceManager::instance()->d->mutex );
     m_data = ResourceManager::instance()->d->data( QUrl(), QUrl() );
-    if ( m_data )
-        m_data->ref( this );
-}
-
-
-Nepomuk::Resource::Resource( ResourceManager* manager )
-{
-    if(!manager)
-        manager = ResourceManager::instance();
-    QMutexLocker lock( &manager->d->mutex );
-    m_data = manager->d->data( QUrl(), QUrl() );
     if ( m_data )
         m_data->ref( this );
 }
@@ -83,28 +72,6 @@ Nepomuk::Resource::Resource( const QString& uri, const QUrl& type )
 }
 
 
-Nepomuk::Resource::Resource( const QString& uri, const QUrl& type, ResourceManager* manager )
-{
-    if(!manager)
-        manager = ResourceManager::instance();
-    QMutexLocker lock( &manager->d->mutex );
-    m_data = manager->d->data( uri, type );
-    if ( m_data )
-        m_data->ref( this );
-}
-
-
-#ifndef KDE_NO_DEPRECATED
-Nepomuk::Resource::Resource( const QString& uri, const QString& type )
-{
-    QMutexLocker lock( &ResourceManager::instance()->d->mutex );
-    m_data = ResourceManager::instance()->d->data( uri, type );
-    if ( m_data )
-        m_data->ref( this );
-}
-#endif
-
-
 Nepomuk::Resource::Resource( const QUrl& uri, const QUrl& type )
 {
     QMutexLocker lock( &ResourceManager::instance()->d->mutex );
@@ -113,16 +80,6 @@ Nepomuk::Resource::Resource( const QUrl& uri, const QUrl& type )
         m_data->ref( this );
 }
 
-
-Nepomuk::Resource::Resource( const QUrl& uri, const QUrl& type, ResourceManager* manager )
-{
-    if(!manager)
-        manager = ResourceManager::instance();
-    QMutexLocker lock( &manager->d->mutex );
-    m_data = manager->d->data( uri, type );
-    if ( m_data )
-        m_data->ref( this );
-}
 
 
 Nepomuk::Resource::Resource( Nepomuk::ResourceData* data )
@@ -167,21 +124,7 @@ Nepomuk::Resource& Nepomuk::Resource::operator=( const QUrl& res )
 }
 
 
-Nepomuk::ResourceManager* Nepomuk::Resource::manager() const
-{
-    return m_data->rm()->m_manager;
-}
-
-
-#ifndef KDE_NO_DEPRECATED
-QString Nepomuk::Resource::uri() const
-{
-    return resourceUri().toString();
-}
-#endif
-
-
-QUrl Nepomuk::Resource::resourceUri() const
+QUrl Nepomuk::Resource::uri() const
 {
     if ( m_data ) {
         determineFinalResourceData();
@@ -193,15 +136,7 @@ QUrl Nepomuk::Resource::resourceUri() const
 }
 
 
-#ifndef KDE_NO_DEPRECATED
-QString Nepomuk::Resource::type() const
-{
-    return resourceType().toString();
-}
-#endif
-
-
-QUrl Nepomuk::Resource::resourceType() const
+QUrl Nepomuk::Resource::type() const
 {
     determineFinalResourceData();
     return m_data->type();
@@ -237,32 +172,11 @@ bool Nepomuk::Resource::hasType( const QUrl& typeUri ) const
 }
 
 
-QString Nepomuk::Resource::className() const
-{
-    return resourceType().toString().section( QRegExp( "[#:]" ), -1 );
-}
-
-
 QHash<QUrl, Nepomuk::Variant> Nepomuk::Resource::properties() const
 {
     determineFinalResourceData();
     return m_data->allProperties();
 }
-
-
-#ifndef KDE_NO_DEPRECATED
-QHash<QString, Nepomuk::Variant> Nepomuk::Resource::allProperties() const
-{
-    QHash<QString, Nepomuk::Variant> pl;
-    QHash<QUrl, Nepomuk::Variant> p = properties();
-    QHash<QUrl, Nepomuk::Variant>::const_iterator end = p.constEnd();
-    for ( QHash<QUrl, Nepomuk::Variant>::const_iterator it = p.constBegin();
-          it != end; ++it ) {
-        pl.insert( it.key().toString(), it.value() );
-    }
-    return pl;
-}
-#endif
 
 
 bool Nepomuk::Resource::hasProperty( const QUrl& uri ) const
@@ -279,35 +193,11 @@ bool Nepomuk::Resource::hasProperty( const Types::Property& p, const Variant& v 
 }
 
 
-#ifndef KDE_NO_DEPRECATED
-bool Nepomuk::Resource::hasProperty( const QString& uri ) const
-{
-    return hasProperty( QUrl( uri ) );
-}
-#endif
-
-
-#ifndef KDE_NO_DEPRECATED
-Nepomuk::Variant Nepomuk::Resource::property( const QString& uri ) const
-{
-    return property( QUrl( uri ) );
-}
-#endif
-
-
 Nepomuk::Variant Nepomuk::Resource::property( const QUrl& uri ) const
 {
     determineFinalResourceData();
     return m_data->property( uri );
 }
-
-
-#ifndef KDE_NO_DEPRECATED
-void Nepomuk::Resource::setProperty( const QString& uri, const Nepomuk::Variant& value )
-{
-    setProperty( QUrl( uri ), value );
-}
-#endif
 
 
 void Nepomuk::Resource::addProperty( const QUrl& uri, const Variant& value )
@@ -323,14 +213,6 @@ void Nepomuk::Resource::setProperty( const QUrl& uri, const Nepomuk::Variant& va
     determineFinalResourceData();
     m_data->setProperty( uri, value );
 }
-
-
-#ifndef KDE_NO_DEPRECATED
-void Nepomuk::Resource::removeProperty( const QString& uri )
-{
-    removeProperty( QUrl( uri ) );
-}
-#endif
 
 
 void Nepomuk::Resource::removeProperty( const QUrl& uri )
@@ -417,7 +299,7 @@ QString Nepomuk::Resource::genericLabel() const
     QList<Resource> go = property( Vocabulary::PIMO::groundingOccurrence() ).toResourceList();
     if( !go.isEmpty() ) {
         label = go.first().genericLabel();
-        if( label != KUrl(go.first().resourceUri()).pathOrUrl() ) {
+        if( label != KUrl(go.first().uri()).pathOrUrl() ) {
             return label;
         }
     }
@@ -427,28 +309,13 @@ QString Nepomuk::Resource::genericLabel() const
         return hashValue;
 
     // ugly fallback
-    return KUrl(resourceUri()).pathOrUrl();
+    return KUrl(uri()).pathOrUrl();
 }
 
 
 QString Nepomuk::Resource::genericDescription() const
 {
     QString s = property( Soprano::Vocabulary::NAO::description() ).toString();
-    if ( !s.isEmpty() ) {
-        return s;
-    }
-
-    s = property( Soprano::Vocabulary::Xesam::summary() ).toString();
-    if ( !s.isEmpty() ) {
-        return s;
-    }
-
-    s = property( Soprano::Vocabulary::Xesam::description() ).toString();
-    if ( !s.isEmpty() ) {
-        return s;
-    }
-
-    s = property( Soprano::Vocabulary::Xesam::asText() ).toString();
     if ( !s.isEmpty() ) {
         return s;
     }
@@ -472,17 +339,15 @@ QString Nepomuk::Resource::genericIcon() const
         return l.first();
     }
 
-    // strigi mimetypes are sadly not very reliable, I keep the code here for future use
-//     QString mimeType = property( Soprano::Vocabulary::Xesam::mimeType() ).toString();
-//     if ( !mimeType.isEmpty() ) {
-//         if ( KMimeType::Ptr m = KMimeType::mimeType( mimeType ) ) {
-//             return m->iconName();
-//         }
-//     }
+     QString mimeType = property( NIE::mimeType() ).toString();
+     if ( !mimeType.isEmpty() ) {
+         if ( KMimeType::Ptr m = KMimeType::mimeType( mimeType ) ) {
+             return m->iconName();
+         }
+     }
 
-    if ( hasType( Soprano::Vocabulary::Xesam::File() ) ||
-         resourceUri().scheme() == "file" ) {
-        return KMimeType::iconNameForUrl( resourceUri() );
+    if ( isFile() ) {
+        return KMimeType::iconNameForUrl(toFile().url());
     }
 
     return QString();
@@ -516,7 +381,7 @@ bool Nepomuk::Resource::operator==( const Resource& other ) const
     if( m_data->uri().isEmpty() )
         return *m_data == *other.m_data;
     else
-        return resourceUri() == other.resourceUri();
+        return uri() == other.uri();
 }
 
 
@@ -553,12 +418,6 @@ void Nepomuk::Resource::setDescription( const QString& value )
 }
 
 
-QString Nepomuk::Resource::descriptionUri()
-{
-    return Soprano::Vocabulary::NAO::description().toString();
-}
-
-
 QStringList Nepomuk::Resource::identifiers() const
 {
     return property( Soprano::Vocabulary::NAO::identifier() ).toStringList();
@@ -576,74 +435,6 @@ void Nepomuk::Resource::addIdentifier( const QString& value )
     Variant v = property( Soprano::Vocabulary::NAO::identifier() );
     v.append( value );
     setProperty( Soprano::Vocabulary::NAO::identifier(), v );
-}
-
-
-QString Nepomuk::Resource::identifierUri()
-{
-    return Soprano::Vocabulary::NAO::identifier().toString();
-}
-
-
-QStringList Nepomuk::Resource::altLabels() const
-{
-    return property( Soprano::Vocabulary::NAO::altLabel() ).toStringList();
-}
-
-
-void Nepomuk::Resource::setAltLabels( const QStringList& value )
-{
-    setProperty( Soprano::Vocabulary::NAO::altLabel(), Variant( value ) );
-}
-
-
-void Nepomuk::Resource::addAltLabel( const QString& value )
-{
-    Variant v = property( Soprano::Vocabulary::NAO::altLabel() );
-    v.append( value );
-    setProperty( Soprano::Vocabulary::NAO::altLabel(), v );
-}
-
-
-QString Nepomuk::Resource::altLabelUri()
-{
-    return Soprano::Vocabulary::NAO::altLabel().toString();
-}
-
-
-QList<Nepomuk::Resource> Nepomuk::Resource::annotations() const
-{
-    // We always store all Resource types as plain Resource objects.
-    // It does not introduce any overhead (due to the implicit sharing of
-    // the data and has the advantage that we can mix setProperty calls
-    // with the special Resource subclass methods.
-    // More importantly Resource loads the data as Resource objects anyway.
-    return convertResourceList<Resource>( property( Soprano::Vocabulary::NAO::annotation() ).toResourceList() );
-}
-
-
-void Nepomuk::Resource::setAnnotations( const QList<Nepomuk::Resource>& value )
-{
-    setProperty( Soprano::Vocabulary::NAO::annotation(), Variant( value ) );
-}
-
-
-void Nepomuk::Resource::addAnnotation( const Nepomuk::Resource& value )
-{
-    // We always store all Resource types as plain Resource objects.
-    // It does not introduce any overhead (due to the implicit sharing of
-    // the data and has the advantage that we can mix setProperty calls
-    // with the special Resource subclass methods.
-    // More importantly Resource loads the data as Resource objects anyway.
-    Variant v = property( Soprano::Vocabulary::NAO::annotation() );
-    v.append( Resource( value ) );
-    setProperty( Soprano::Vocabulary::NAO::annotation(), v );
-}
-
-
-QString Nepomuk::Resource::annotationUri()
-{
-    return Soprano::Vocabulary::NAO::annotation().toString();
 }
 
 
@@ -687,84 +478,6 @@ void Nepomuk::Resource::addTag( const Nepomuk::Tag& value )
 }
 
 
-QString Nepomuk::Resource::tagUri()
-{
-    return Soprano::Vocabulary::NAO::hasTag().toString();
-}
-
-
-QList<Nepomuk::Resource> Nepomuk::Resource::topics() const
-{
-    // We always store all Resource types as plain Resource objects.
-    // It does not introduce any overhead (due to the implicit sharing of
-    // the data and has the advantage that we can mix setProperty calls
-    // with the special Resource subclass methods.
-    // More importantly Resource loads the data as Resource objects anyway.
-    return convertResourceList<Resource>( property( Soprano::Vocabulary::NAO::hasTopic() ).toResourceList() );
-}
-
-
-void Nepomuk::Resource::setTopics( const QList<Nepomuk::Resource>& value )
-{
-    setProperty( Soprano::Vocabulary::NAO::hasTopic(), Variant( value ) );
-}
-
-
-void Nepomuk::Resource::addTopic( const Nepomuk::Resource& value )
-{
-    // We always store all Resource types as plain Resource objects.
-    // It does not introduce any overhead (due to the implicit sharing of
-    // the data and has the advantage that we can mix setProperty calls
-    // with the special Resource subclass methods.
-    // More importantly Resource loads the data as Resource objects anyway.
-    Variant v = property( Soprano::Vocabulary::NAO::hasTopic() );
-    v.append( Resource( value ) );
-    setProperty( Soprano::Vocabulary::NAO::hasTopic(), v );
-}
-
-
-QString Nepomuk::Resource::topicUri()
-{
-    return Soprano::Vocabulary::NAO::hasTopic().toString();
-}
-
-
-QList<Nepomuk::Resource> Nepomuk::Resource::isTopicOfs() const
-{
-    // We always store all Resource types as plain Resource objects.
-    // It does not introduce any overhead (due to the implicit sharing of
-    // the data and has the advantage that we can mix setProperty calls
-    // with the special Resource subclass methods.
-    // More importantly Resource loads the data as Resource objects anyway.
-    return convertResourceList<Resource>( property( Soprano::Vocabulary::NAO::isTopicOf() ).toResourceList() );
-}
-
-
-void Nepomuk::Resource::setIsTopicOfs( const QList<Nepomuk::Resource>& value )
-{
-    setProperty( Soprano::Vocabulary::NAO::isTopicOf(), Variant( value ) );
-}
-
-
-void Nepomuk::Resource::addIsTopicOf( const Nepomuk::Resource& value )
-{
-    // We always store all Resource types as plain Resource objects.
-    // It does not introduce any overhead (due to the implicit sharing of
-    // the data and has the advantage that we can mix setProperty calls
-    // with the special Resource subclass methods.
-    // More importantly Resource loads the data as Resource objects anyway.
-    Variant v = property( Soprano::Vocabulary::NAO::isTopicOf() );
-    v.append( Resource( value ) );
-    setProperty( Soprano::Vocabulary::NAO::isTopicOf(), v );
-}
-
-
-QString Nepomuk::Resource::isTopicOfUri()
-{
-    return Soprano::Vocabulary::NAO::isTopicOf().toString();
-}
-
-
 QList<Nepomuk::Resource> Nepomuk::Resource::isRelateds() const
 {
     // We always store all Resource types as plain Resource objects.
@@ -795,12 +508,6 @@ void Nepomuk::Resource::addIsRelated( const Nepomuk::Resource& value )
 }
 
 
-QString Nepomuk::Resource::isRelatedUri()
-{
-    return Soprano::Vocabulary::NAO::isRelated().toString();
-}
-
-
 QString Nepomuk::Resource::label() const
 {
     return ( property( Soprano::Vocabulary::NAO::prefLabel() ).toStringList() << QString() ).first();
@@ -810,12 +517,6 @@ QString Nepomuk::Resource::label() const
 void Nepomuk::Resource::setLabel( const QString& value )
 {
     setProperty( Soprano::Vocabulary::NAO::prefLabel(), Variant( value ) );
-}
-
-
-QString Nepomuk::Resource::labelUri()
-{
-    return Soprano::Vocabulary::NAO::prefLabel().toString();
 }
 
 
@@ -830,55 +531,9 @@ void Nepomuk::Resource::setRating( const quint32& value )
     setProperty( Soprano::Vocabulary::NAO::numericRating(), Variant( value ) );
 }
 
-
-QString Nepomuk::Resource::ratingUri()
-{
-    return Soprano::Vocabulary::NAO::numericRating().toString();
-}
-
-
-QStringList Nepomuk::Resource::symbols() const
-{
-    return property( Soprano::Vocabulary::NAO::hasSymbol() ).toStringList();
-}
-
-
-void Nepomuk::Resource::setSymbols( const QStringList& value )
-{
-    setProperty( Soprano::Vocabulary::NAO::hasSymbol(), Variant( value ) );
-}
-
-
-void Nepomuk::Resource::addSymbol( const QString& value )
-{
-    Variant v = property( Soprano::Vocabulary::NAO::hasSymbol() );
-    v.append( value );
-    setProperty( Soprano::Vocabulary::NAO::hasSymbol(), v );
-}
-
-
-QString Nepomuk::Resource::symbolUri()
-{
-    return Soprano::Vocabulary::NAO::hasSymbol().toString();
-}
-
-
-QList<Nepomuk::Resource> Nepomuk::Resource::annotationOf() const
-{
-    return convertResourceList<Resource>( manager()->allResourcesWithProperty( Soprano::Vocabulary::NAO::annotation(), *this ) );
-}
-
-
 QList<Nepomuk::Resource> Nepomuk::Resource::isRelatedOf() const
 {
-    return convertResourceList<Resource>( manager()->allResourcesWithProperty( Soprano::Vocabulary::NAO::isRelated(), *this ) );
-}
-
-
-// static
-QList<Nepomuk::Resource> Nepomuk::Resource::allResources()
-{
-    return Nepomuk::convertResourceList<Resource>( ResourceManager::instance()->allResourcesOfType( Soprano::Vocabulary::RDFS::Resource() ) );
+    return convertResourceList<Resource>( ResourceManager::instance()->allResourcesWithProperty( Soprano::Vocabulary::NAO::isRelated(), *this ) );
 }
 
 
@@ -922,10 +577,9 @@ Nepomuk::File Nepomuk::Resource::toFile() const
 
 
 // static
-Nepomuk::Resource Nepomuk::Resource::fromResourceUri( const KUrl& uri, const Nepomuk::Types::Class& type, ResourceManager* manager )
+Nepomuk::Resource Nepomuk::Resource::fromResourceUri( const KUrl& uri, const Nepomuk::Types::Class& type )
 {
-    if( !manager )
-        manager = ResourceManager::instance();
+    ResourceManager* manager = ResourceManager::instance();
     QMutexLocker lock( &manager->d->mutex );
     return Resource( manager->d->dataForResourceUri( uri, type.uri() ) );
 }
@@ -960,5 +614,5 @@ void Nepomuk::Resource::determineFinalResourceData() const
 
 uint Nepomuk::qHash( const Resource& res )
 {
-    return qHash(res.resourceUri());
+    return qHash(res.uri());
 }

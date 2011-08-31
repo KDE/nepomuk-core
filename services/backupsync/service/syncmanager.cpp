@@ -70,7 +70,7 @@ void Nepomuk::SyncManager::createSyncFile( const QUrl& outputUrl, const QList<QS
         if( dt < min )
             min = dt;
 
-        nepomukUris.insert( res.resourceUri() );
+        nepomukUris.insert( res.uri() );
     }
 
     createSyncFile( outputUrl, nepomukUris, min );

@@ -30,23 +30,8 @@ Nepomuk::Thing::Thing( const QUrl& uri, const QUrl& pimoType )
 }
 
 
-Nepomuk::Thing::Thing( const QUrl& uri, const QUrl& pimoType, ResourceManager* manager )
-    : Resource( uri, pimoType.isEmpty() ? Vocabulary::PIMO::Thing() : pimoType, manager )
-{
-    // FIXME: somehow ensure that pimoType is actually a pimo:Thing. Maybe
-    // use operator= instead of the contructor and check the value beforehand
-}
-
-
 Nepomuk::Thing::Thing( const QString& uriOrName, const QUrl& pimoType )
     : Resource( uriOrName, pimoType.isEmpty() ? Vocabulary::PIMO::Thing() : pimoType )
-{
-    // FIXME: s.o.
-}
-
-
-Nepomuk::Thing::Thing( const QString& uriOrName, const QUrl& pimoType, ResourceManager* manager )
-    : Resource( uriOrName, pimoType.isEmpty() ? Vocabulary::PIMO::Thing() : pimoType, manager )
 {
     // FIXME: s.o.
 }

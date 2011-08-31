@@ -101,7 +101,7 @@ void NepomukSyncTests::resourceMergerTests()
     Nepomuk::Resource res1( file.fileName() );
     res1.addProperty( QUrl( propString + '5' ), Nepomuk::Variant( 5 ) );
     
-    Soprano::Node context = model->listStatements( res1.resourceUri(), QUrl( propString + '5' ), Soprano::Node( Soprano::LiteralValue( 5 ) ) ).iterateContexts().allElements().first();
+    Soprano::Node context = model->listStatements( res1.uri(), QUrl( propString + '5' ), Soprano::Node( Soprano::LiteralValue( 5 ) ) ).iterateContexts().allElements().first();
     
     QHash<KUrl, Nepomuk::Resource> hash;
     hash.insert( res1uri, res1 );
@@ -111,17 +111,17 @@ void NepomukSyncTests::resourceMergerTests()
     
     // Check if res1uri was mapped to res1 and all its properties were added.
     for( int i=0; i<10; i++ ) {
-        QVERIFY( model->containsAnyStatement( res1.resourceUri(), QUrl( propString + ( i + '0' ) ), Soprano::Node() ) );
+        QVERIFY( model->containsAnyStatement( res1.uri(), QUrl( propString + ( i + '0' ) ), Soprano::Node() ) );
     }
     
     // Make sure that the already present statements were not messed with
-    Soprano::Node context2 = model->listStatements( res1.resourceUri(), QUrl( propString + '5' ), Soprano::Node( Soprano::LiteralValue( 5 ) ) ).iterateContexts().allElements().first();
+    Soprano::Node context2 = model->listStatements( res1.uri(), QUrl( propString + '5' ), Soprano::Node( Soprano::LiteralValue( 5 ) ) ).iterateContexts().allElements().first();
     
     QVERIFY( context == context2 );
     
     // Property10 did not have a valid mapping for its object. A new Resource should
     // have been created
-    Soprano::Node newResNode = model->listStatements( res1.resourceUri(), QUrl( propString + "10" ), Soprano::Node() ).iterateObjects().allNodes().first();
+    Soprano::Node newResNode = model->listStatements( res1.uri(), QUrl( propString + "10" ), Soprano::Node() ).iterateObjects().allNodes().first();
 
     kDebug() << newResNode.uri();
     QVERIFY( !newResNode.uri().isEmpty() );

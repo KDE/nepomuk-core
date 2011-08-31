@@ -110,7 +110,7 @@ namespace {
 
         case Term::Resource:
             xml.writeStartElement( QLatin1String("resource") );
-            xml.writeAttribute( QLatin1String("uri"), KUrl( term.toResourceTerm().resource().resourceUri() ).url() );
+            xml.writeAttribute( QLatin1String("uri"), KUrl( term.toResourceTerm().resource().uri() ).url() );
             xml.writeEndElement();
             break;
 
