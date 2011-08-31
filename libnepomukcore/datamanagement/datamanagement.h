@@ -35,16 +35,6 @@ class KJob;
 class KUrl;
 
 
-// FIXME: remove this section in KDE 4.8
-/**
- * \mainpage %Nepomuk Data Managment API Documentation
- *
- * This API is subject to change!
- *
- * See \ref nepomuk_datamanagement for all the gory details.
- */
-
-
 namespace Nepomuk {
     class DescribeResourcesJob;
     class CreateResourceJob;
