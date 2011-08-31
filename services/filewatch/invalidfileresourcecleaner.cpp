@@ -29,8 +29,8 @@
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
 
-#include <Nepomuk/ResourceManager>
-#include <Nepomuk/Vocabulary/NIE>
+#include "resourcemanager.h"
+#include "nie.h"
 
 #include <KDebug>
 #include <KConfig>

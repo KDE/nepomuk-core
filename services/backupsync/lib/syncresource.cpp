@@ -27,8 +27,8 @@
 #include <Soprano/Statement>
 #include <Soprano/StatementIterator>
 
-#include <Nepomuk/Vocabulary/NIE>
-#include <Nepomuk/Vocabulary/NFO>
+#include "nie.h"
+#include "nfo.h"
 #include <Soprano/Vocabulary/RDF>
 
 #include <QtCore/QSharedData>

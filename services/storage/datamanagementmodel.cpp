@@ -52,8 +52,8 @@
 #include <QtCore/QPair>
 #include <QtCore/QFileInfo>
 
-#include <Nepomuk/Vocabulary/NIE>
-#include <Nepomuk/Vocabulary/NFO>
+#include "nie.h"
+#include "nfo.h"
 
 #include <KDebug>
 #include <KService>

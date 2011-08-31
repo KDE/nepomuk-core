@@ -19,8 +19,8 @@
 
 #include "nepomuksynctests.h"
 
-#include <nepomuk/resourceidentifier.h>
-#include <nepomuk/resourcemerger.h>
+#include "resourceidentifier.h"
+#include "resourcemerger.h"
 
 #include <kdebug.h>
 #include <ktemporaryfile.h>
@@ -29,10 +29,10 @@
 #include <KTempDir>
 #include <KTemporaryFile>
 
-#include <Nepomuk/Resource>
-#include <Nepomuk/ResourceManager>
-#include <Nepomuk/Tag>
-#include <Nepomuk/Variant>
+#include "resource.h"
+#include "resourcemanager.h"
+#include "tag.h"
+#include "variant.h"
 
 #include <Soprano/Model>
 #include <Soprano/StatementIterator>

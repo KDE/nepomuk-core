@@ -25,7 +25,7 @@
 
 #include <QtDBus/QDBusObjectPath>
 
-#include <Nepomuk/Resource>
+#include "resource.h"
 
 #include <KUrl>
 

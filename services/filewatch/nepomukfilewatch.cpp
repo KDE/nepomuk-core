@@ -38,8 +38,8 @@
 #include <KPluginFactory>
 #include <KConfigGroup>
 
-#include <Nepomuk/ResourceManager>
-#include <Nepomuk/Vocabulary/NIE>
+#include "resourcemanager.h"
+#include "nie.h"
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>

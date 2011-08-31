@@ -59,8 +59,8 @@
 #include <sstream>
 #include <algorithm>
 
-#include <Nepomuk/Vocabulary/NFO>
-#include <Nepomuk/Vocabulary/NIE>
+#include "nfo.h"
+#include "nie.h"
 
 
 

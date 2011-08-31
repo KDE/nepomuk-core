@@ -19,8 +19,8 @@
 #ifndef _NEPOMUK_QUERY_SERVICE_H_
 #define _NEPOMUK_QUERY_SERVICE_H_
 
-#include <Nepomuk/Service>
-#include <Nepomuk/Query/Query>
+#include "nepomukservice.h"
+#include "query/query.h"
 
 #include "dbusoperators_p.h"
 

@@ -20,8 +20,8 @@
 #include "folder.h"
 #include "queryadaptor.h"
 
-#include <nepomuk/resource.h>
-#include <nepomuk/result.h>
+#include "resource.h"
+#include "result.h"
 
 #include <QtCore/QStringList>
 #include <QtDBus/QDBusServiceWatcher>

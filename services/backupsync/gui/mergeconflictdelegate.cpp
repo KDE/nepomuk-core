@@ -35,7 +35,7 @@
 #include <KColorScheme>
 #include <kurl.h>
 
-#include <Nepomuk/Types/Class>
+#include "types/class.h"
 
 
 namespace {

@@ -33,8 +33,8 @@
 #include <Soprano/Vocabulary/NAO>
 #include <Soprano/Vocabulary/NRL>
 #include <Soprano/Vocabulary/RDF>
-#include <Nepomuk/Vocabulary/NIE>
-#include <Nepomuk/Vocabulary/NFO>
+#include "nie.h"
+#include "nfo.h"
 
 #include <Soprano/Node>
 #include <Soprano/Statement>
@@ -43,10 +43,10 @@
 #include <Soprano/StatementIterator>
 #include <Soprano/NodeIterator>
 
-#include <Nepomuk/Resource>
-#include <Nepomuk/Variant>
-#include <Nepomuk/Types/Property>
-#include <Nepomuk/ResourceManager>
+#include "resource.h"
+#include "variant.h"
+#include "types/property.h"
+#include "resourcemanager.h"
 
 #include <KDebug>
 

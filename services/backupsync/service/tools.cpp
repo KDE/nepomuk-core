@@ -29,7 +29,7 @@
 #include <Soprano/QueryResultIterator>
 #include <Soprano/StatementIterator>
 
-#include <Nepomuk/ResourceManager>
+#include "resourcemanager.h"
 
 #include <KTemporaryFile>
 #include <KDebug>

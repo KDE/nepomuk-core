@@ -28,7 +28,7 @@
 #include <Soprano/QueryResultIterator>
 #include <Soprano/LiteralValue>
 
-#include <Nepomuk/Vocabulary/NIE>
+#include "nie.h"
 
 #include <KDebug>
 

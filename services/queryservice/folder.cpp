@@ -22,8 +22,8 @@
 #include "countqueryrunnable.h"
 #include "searchrunnable.h"
 
-#include <Nepomuk/Resource>
-#include <Nepomuk/ResourceManager>
+#include "resource.h"
+#include "resourcemanager.h"
 
 #include <Soprano/Model>
 

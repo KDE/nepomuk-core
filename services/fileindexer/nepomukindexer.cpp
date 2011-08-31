@@ -22,7 +22,7 @@
 #include "nepomukindexer.h"
 #include "util.h"
 
-#include <Nepomuk/Resource>
+#include "resource.h"
 
 #include <KUrl>
 #include <KDebug>

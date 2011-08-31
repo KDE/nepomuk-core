@@ -30,7 +30,7 @@
 #include <KIdleTime>
 #include <KLocale>
 
-#include <nepomuk/resourcemanager.h>
+#include "resourcemanager.h"
 
 #include <QtCore/QTimer>
 

@@ -31,8 +31,8 @@
 
 #include <Soprano/Vocabulary/NAO>
 
-#include <Nepomuk/Resource>
-#include <Nepomuk/Variant>
+#include "resource.h"
+#include "variant.h"
 
 Nepomuk::SyncManager::SyncManager(QObject* parent)
     : QObject( parent )

@@ -44,7 +44,7 @@
 #include <Soprano/Util/SimpleStatementIterator>
 #include <Soprano/PluginManager>
 
-#include <Nepomuk/ResourceManager>
+#include "resourcemanager.h"
 
 #include <KDebug>
 #include <Soprano/Vocabulary/NRL>

@@ -28,7 +28,7 @@
 #include <Soprano/Vocabulary/NRL>
 #include <Soprano/Vocabulary/RDF>
 
-#include <Nepomuk/ResourceManager>
+#include "resourcemanager.h"
 
 #include <KUrl>
 #include <KDebug>

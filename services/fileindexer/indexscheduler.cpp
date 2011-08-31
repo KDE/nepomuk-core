@@ -39,10 +39,10 @@
 #include <KTemporaryFile>
 #include <KUrl>
 
-#include <Nepomuk/Resource>
-#include <Nepomuk/ResourceManager>
-#include <Nepomuk/Variant>
-#include <Nepomuk/Query/ResourceTerm>
+#include "resource.h"
+#include "resourcemanager.h"
+#include "variant.h"
+#include "query/resourceterm.h"
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
@@ -50,7 +50,7 @@
 #include <Soprano/Node>
 
 #include <Soprano/Vocabulary/RDF>
-#include <Nepomuk/Vocabulary/NIE>
+#include "nie.h"
 
 #include <map>
 #include <vector>

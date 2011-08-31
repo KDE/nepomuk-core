@@ -34,8 +34,8 @@
 #include <Soprano/Vocabulary/RDF>
 #include <Soprano/Vocabulary/NRL>
 
-#include <Nepomuk/ResourceManager>
-#include <Nepomuk/Types/Property>
+#include "resourcemanager.h"
+#include "types/property.h"
 
 #include <KConfig>
 #include <KConfigGroup>

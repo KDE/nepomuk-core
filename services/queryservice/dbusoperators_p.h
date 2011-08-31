@@ -23,10 +23,10 @@
 
 #include <QtDBus/QDBusArgument>
 
-#include <nepomuk/result.h>
-#include <nepomuk/query.h>
-#include <nepomuk/term.h>
-#include <nepomuk/nepomukquery_export.h>
+#include "result.h"
+#include "query.h"
+#include "term.h"
+#include "nepomuk_export.h"
 
 Q_DECLARE_METATYPE(Nepomuk::Query::Result)
 Q_DECLARE_METATYPE(Soprano::Node)

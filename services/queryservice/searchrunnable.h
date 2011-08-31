@@ -24,7 +24,7 @@
 #include <QtCore/QPointer>
 #include <QtCore/QMutex>
 
-#include <Nepomuk/Query/Result>
+#include "query/result.h"
 
 #include "folder.h"
 

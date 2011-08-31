@@ -28,9 +28,9 @@
 
 #include <KDebug>
 
-#include <Nepomuk/Resource>
-#include <Nepomuk/Variant>
-#include <Nepomuk/Vocabulary/NIE>
+#include "resource.h"
+#include "variant.h"
+#include "nie.h"
 
 int Nepomuk::SyncFileIdentifier::NextId = 0;
 

@@ -28,10 +28,10 @@
 #include <Soprano/Vocabulary/NAO>
 #include <Soprano/Vocabulary/NRL>
 #include <Soprano/Vocabulary/XMLSchema>
-#include <Nepomuk/Vocabulary/NFO>
-#include <Nepomuk/Vocabulary/NMM>
-#include <Nepomuk/Vocabulary/NCO>
-#include <Nepomuk/Vocabulary/NIE>
+#include "nfo.h"
+#include "nmm.h"
+#include "nco.h"
+#include "nie.h"
 
 #include <Soprano/LiteralValue>
 

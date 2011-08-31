@@ -25,7 +25,7 @@
 
 #include <QtCore/QMultiHash>
 
-#include <Nepomuk/Types/Property>
+#include "types/property.h"
 #include <algorithm>
 
 

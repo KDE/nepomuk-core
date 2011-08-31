@@ -36,10 +36,10 @@
 #include <Soprano/PluginManager>
 #include <Soprano/Util/SimpleStatementIterator>
 
-#include <Nepomuk/ResourceManager>
-#include <Nepomuk/Resource>
-#include <Nepomuk/Variant>
-#include <Nepomuk/Vocabulary/NIE>
+#include "resourcemanager.h"
+#include "resource.h"
+#include "variant.h"
+#include "nie.h"
 
 #include <KDebug>
 

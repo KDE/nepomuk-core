@@ -28,8 +28,8 @@
 #include <QtCore/QMutexLocker>
 #include <KDebug>
 
-#include <Nepomuk/Resource>
-#include <Nepomuk/ResourceManager>
+#include "resource.h"
+#include "resourcemanager.h"
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
@@ -39,8 +39,8 @@
 #include <Soprano/Vocabulary/RDF>
 #include <Soprano/Vocabulary/Xesam>
 #include <Soprano/Vocabulary/NAO>
-#include <Nepomuk/Vocabulary/NFO>
-#include <Nepomuk/Vocabulary/NIE>
+#include "nfo.h"
+#include "nie.h"
 
 using namespace Nepomuk::Vocabulary;
 using namespace Soprano::Vocabulary;

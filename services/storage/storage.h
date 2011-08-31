@@ -19,7 +19,7 @@
 #ifndef _NEPOMUK_STORAGE_H_
 #define _NEPOMUK_STORAGE_H_
 
-#include <Nepomuk/Service>
+#include "nepomukservice.h"
 
 namespace Nepomuk {
 

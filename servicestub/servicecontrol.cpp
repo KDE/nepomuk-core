@@ -22,7 +22,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtCore/QTextStream>
 
-#include <Nepomuk/Service>
+#include "nepomukservice.h"
 
 
 Nepomuk::ServiceControl::ServiceControl( const QString& serviceName, const KService::Ptr& service, QObject* parent )

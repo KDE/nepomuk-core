@@ -42,7 +42,7 @@
 #include <Solid/StorageAccess>
 #include <Solid/Predicate>
 
-#include <Nepomuk/Vocabulary/NIE>
+#include "nie.h"
 
 #ifndef FAKE_COMPUTER_XML
     #error "FAKE_COMPUTER_XML not set. An XML file describing a computer is required for this test"
