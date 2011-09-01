@@ -70,23 +70,4 @@ namespace Nepomuk {
     }
 }
 
-
-#ifndef DISABLE_NEPOMUK_LEGACY
-class Nepomuk::Entity::Private : public QSharedData
-{
-public:
-    Private()
-	: ontology( 0 ) {
-    }
-
-    const Ontology* ontology;
-
-    QUrl uri;
-    QString label;
-    QString comment;
-    QHash<QString, QString> l10nLabels;
-    QHash<QString, QString> l10nComments;
-};
-#endif
-
 #endif

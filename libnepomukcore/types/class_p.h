@@ -65,21 +65,4 @@ namespace Nepomuk {
     }
 }
 
-#ifndef DISABLE_NEPOMUK_LEGACY
-namespace Nepomuk {
-
-    class Property;
-    
-    class Class::Private : public QSharedData
-    {
-    public:
-        QHash<QUrl, const Property*> domainOf;
-        QHash<QUrl, const Property*> rangeOf;
-
-        QList<const Nepomuk::Class*> parents;
-        QList<const Nepomuk::Class*> children;
-    };
-}
-#endif
-
 #endif

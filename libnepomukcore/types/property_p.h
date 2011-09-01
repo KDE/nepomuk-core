@@ -57,39 +57,4 @@ namespace Nepomuk {
     }
 }
 
-
-#ifndef DISABLE_NEPOMUK_LEGACY
-namespace Nepomuk {
-
-    class Class;
-
-    class Property::Private : public QSharedData
-    {
-    public:
-        Private()
-            : range( 0 ),
-            domain( 0 ),
-            inverse( 0 ),
-            minCardinality( -1 ),
-            maxCardinality( -1 ),
-            cardinality( -1 ) {
-	    }
-
-	    const Class* range;
-	    const Class* domain;
-
-	    Literal literalRange;
-
-	    const Property* inverse;
-
-	    QList<const Property*> parents;
-	    QList<const Property*> children;
-
-	    int minCardinality;
-	    int maxCardinality;
-	    int cardinality;
-    };
-}
-#endif
-
 #endif

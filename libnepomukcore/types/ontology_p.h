@@ -57,21 +57,4 @@ namespace Nepomuk {
     }
 }
 
-#ifndef DISABLE_NEPOMUK_LEGACY
-#include "ontology.h"
-namespace Nepomuk {
-
-    class Class;
-    class Property;
-
-    class Ontology::Private : public QSharedData
-    {
-    public:
-        QUrl uri;
-        QHash<QUrl, const Class*> classes;
-        QHash<QUrl, const Property*> properties;
-    };
-}
-#endif
-
 #endif
