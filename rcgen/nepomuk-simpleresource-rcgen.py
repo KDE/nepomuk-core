@@ -198,9 +198,16 @@ class OntologyParser():
 
 
 
-class Rcgen():
+class RcGen():
     def __init__(self, ontologyParser):
         self.parser = ontologyParser
+
+    def baseClassName(self):
+        raise NotImplementedError, "Implement me"
+
+    def writeAdditionalMethods(self, className, parentClassNames, fullParentHierarchyNames, header):
+        # do nothing
+        pass
 
     def writeAll(self):
         # cache a few values we need more than once
@@ -245,34 +252,6 @@ class Rcgen():
         theFile.write(' ' * (indent*4+1))
         theFile.write("*/\n")
 
-    def writeGetter(self, theFile, prop, name, propRange, cardinality):
-        theFile.write('    %s %s() const {\n' % (typeString(propRange, cardinality), makeFancy(name, cardinality)))
-        theFile.write('        %s value;\n' % typeString(propRange, cardinality))
-        if cardinality == 1:
-            theFile.write('        if(contains(QUrl::fromEncoded("%s", QUrl::StrictMode)))\n' % prop.toString())
-            theFile.write('            value = property(QUrl::fromEncoded("{0}", QUrl::StrictMode)).first().value<{1}>();\n'.format(prop.toString(), typeString(propRange, 1)))
-        else:
-            theFile.write('        foreach(const QVariant& v, property(QUrl::fromEncoded("%s", QUrl::StrictMode)))\n' % prop.toString())
-            theFile.write('            value << v.value<{0}>();\n'.format(typeString(propRange, 1)))
-        theFile.write('        return value;\n')
-        theFile.write('    }\n')
-
-    def writeSetter(self, theFile, prop, name, propRange, cardinality):
-        theFile.write('    void set%s%s(const %s& value) {\n' % (makeFancy(name, cardinality)[0].toUpper(), makeFancy(name, cardinality).mid(1), typeString(propRange, cardinality)))
-        theFile.write('        QVariantList values;\n')
-        if cardinality == 1:
-            theFile.write('        values << value;\n')
-        else:
-             theFile.write('        foreach(const %s& v, value)\n' % typeString(propRange, 1))
-             theFile.write('            values << v;\n')
-        theFile.write('        setProperty(QUrl::fromEncoded("%s", QUrl::StrictMode), values);\n' % prop.toString())
-        theFile.write('    }\n')
-
-    def writeAdder(self, theFile, prop, name, propRange, cardinality):
-        theFile.write('    void add%s%s(const %s& value) {\n' % (makeFancy(name, 1)[0].toUpper(), makeFancy(name, 1).mid(1), typeString(propRange, 1)))
-        theFile.write('        addProperty(QUrl::fromEncoded("%s", QUrl::StrictMode), value);\n' % prop.toString())
-        theFile.write('    }\n')
-
     def writeHeader(self, uri, nsAbbr, className, label, comment):
         # Construct paths
         relative_path = nsAbbr + '/' + className.toLower() + '.h'
@@ -307,7 +286,7 @@ class Rcgen():
         header.write('\n')
 
         # all classes need the SimpleResource include
-        header.write('#include <nepomuk/simpleresource.h>\n\n')
+        header.write('#include <nepomuk/%s.h>\n\n' % self.baseClassName().lower())
 
         # write includes for the parent classes
         parentClassNames = []
@@ -340,42 +319,15 @@ class Rcgen():
         header.write(' : ')
         header.write(', '.join(['public virtual %s' % (p) for p in parentClassNames]))
         if len(parentClassNames) == 0:
-            header.write('public virtual Nepomuk::SimpleResource');
+            header.write('public virtual Nepomuk::%s' % self.baseClassName());
         header.write('\n{\n')
         header.write('public:\n')
 
-        # write the default constructor
-        # We directly set the type of the class to the SimpleResource. If the class is a base class
-        # not derived from any other classes then we set the type directly. Otherwise we use the
-        # protected constructor defined below which takes a type as parameter making sure that we
-        # only add one type instead of the whole hierarchy
-        header.write('    %s()' % className)
-        if len(parentClasses) > 0:
-            header.write('\n      : ')
-        header.write(', '.join([('%s(QUrl::fromEncoded("' + uri.toString().toUtf8().data() + '", QUrl::StrictMode))') % p for p in fullParentHierarchyNames]))
-        header.write(' {\n')
-        if len(parentClassNames) == 0:
-            header.write('        addType(QUrl::fromEncoded("%s", QUrl::StrictMode));\n' % uri.toString())
-        header.write('    }\n\n')
+        self.writeDefaultConstructor(uri, className, parentClassNames, fullParentHierarchyNames, header)
+        header.write('\n')
 
-        # write the copy constructor
-        header.write('    %s(const SimpleResource& res)\n' % className)
-        header.write('      : ')
-        header.write('SimpleResource(res)')
-        if len(parentClassNames) > 0:
-            header.write(', ')
-            header.write(', '.join([('%s(res, QUrl::fromEncoded("' + uri.toString().toUtf8().data() + '", QUrl::StrictMode))') % p for p in fullParentHierarchyNames]))
-        header.write(' {\n')
-        if len(parentClassNames) == 0:
-            header.write('        addType(QUrl::fromEncoded("%s", QUrl::StrictMode));\n' % uri.toString())
-        header.write('    }\n\n')
-
-        # write the assignment operator
-        header.write('    %s& operator=(const SimpleResource& res) {\n' % className)
-        header.write('        SimpleResource::operator=(res);\n')
-        header.write('        addType(QUrl::fromEncoded("%s", QUrl::StrictMode));\n' % uri.toString())
-        header.write('        return *this;\n')
-        header.write('    }\n\n')
+        self.writeCopyConstructor(uri, className, parentClassNames, fullParentHierarchyNames, header)
+        header.write('\n')
 
         # Write getter and setter methods for all properties
         # This includes the properties that have domain rdfs:Resource on base classes, ie.
@@ -408,27 +360,7 @@ class Rcgen():
             self.writeAdder(header, p, properties[p]['name'], properties[p]['range'], properties[p]['cardinality'])
             header.write('\n')
 
-        # write the protected constructors which avoid adding the whole type hierarchy
-        header.write('protected:\n')
-        header.write('    %s(const QUrl& type)' % className)
-        if len(parentClassNames) > 0:
-            header.write('\n      : ')
-            header.write(', '.join(['%s(type)' % p for p in fullParentHierarchyNames]))
-        header.write(' {\n')
-        if len(parentClassNames) == 0:
-            header.write('        addType(type);\n')
-        header.write('    }\n')
-
-        header.write('    %s(const SimpleResource& res, const QUrl& type)\n' % className)
-        header.write('      : ')
-        header.write('SimpleResource(res)')
-        if len(parentClassNames) > 0:
-            header.write(', ')
-            header.write(', '.join(['%s(res, type)' % p for p in fullParentHierarchyNames]))
-        header.write(' {\n')
-        if len(parentClassNames) == 0:
-            header.write('        addType(type);\n')
-        header.write('    }\n')
+        self.writeAdditionalMethods(className, parentClassNames, fullParentHierarchyNames, header)
 
         # close the class
         header.write('};\n')
@@ -438,16 +370,178 @@ class Rcgen():
 
         # write the closing preprocessor thingi
         header.write('\n#endif\n')
-        
+
+
+class SimpleRcGen(RcGen):
+    def __init__(self, ontologyParser):
+        RcGen.__init__(self, ontologyParser)
+
+    def baseClassName(self):
+        return "SimpleResource"
+
+    def writeGetter(self, theFile, prop, name, propRange, cardinality):
+        theFile.write('    %s %s() const {\n' % (typeString(propRange, cardinality), makeFancy(name, cardinality)))
+        theFile.write('        %s value;\n' % typeString(propRange, cardinality))
+        if cardinality == 1:
+            theFile.write('        if(contains(QUrl::fromEncoded("%s", QUrl::StrictMode)))\n' % prop.toString())
+            theFile.write('            value = property(QUrl::fromEncoded("{0}", QUrl::StrictMode)).first().value<{1}>();\n'.format(prop.toString(), typeString(propRange, 1)))
+        else:
+            theFile.write('        foreach(const QVariant& v, property(QUrl::fromEncoded("%s", QUrl::StrictMode)))\n' % prop.toString())
+            theFile.write('            value << v.value<{0}>();\n'.format(typeString(propRange, 1)))
+        theFile.write('        return value;\n')
+        theFile.write('    }\n')
+
+    def writeSetter(self, theFile, prop, name, propRange, cardinality):
+        theFile.write('    void set%s%s(const %s& value) {\n' % (makeFancy(name, cardinality)[0].toUpper(), makeFancy(name, cardinality).mid(1), typeString(propRange, cardinality)))
+        theFile.write('        QVariantList values;\n')
+        if cardinality == 1:
+            theFile.write('        values << value;\n')
+        else:
+             theFile.write('        foreach(const %s& v, value)\n' % typeString(propRange, 1))
+             theFile.write('            values << v;\n')
+        theFile.write('        setProperty(QUrl::fromEncoded("%s", QUrl::StrictMode), values);\n' % prop.toString())
+        theFile.write('    }\n')
+
+    def writeAdder(self, theFile, prop, name, propRange, cardinality):
+        theFile.write('    void add%s%s(const %s& value) {\n' % (makeFancy(name, 1)[0].toUpper(), makeFancy(name, 1).mid(1), typeString(propRange, 1)))
+        theFile.write('        addProperty(QUrl::fromEncoded("%s", QUrl::StrictMode), value);\n' % prop.toString())
+        theFile.write('    }\n')
+
+    def writeDefaultConstructor(self, uri, className, parentClassNames, fullParentHierarchyNames, header):
+        # write the default constructor
+        # We directly set the type of the class to the SimpleResource. If the class is a base class
+        # not derived from any other classes then we set the type directly. Otherwise we use the
+        # protected constructor defined below which takes a type as parameter making sure that we
+        # only add one type instead of the whole hierarchy
+        header.write('    %s()' % className)
+        if len(parentClassNames) > 0:
+            header.write('\n      : ')
+        header.write(',\n        '.join([('%s(QUrl::fromEncoded("' + uri.toString().toUtf8().data() + '", QUrl::StrictMode))') % p for p in fullParentHierarchyNames]))
+        header.write(' {\n')
+        if len(parentClassNames) == 0:
+            header.write('        addType(QUrl::fromEncoded("%s", QUrl::StrictMode));\n' % uri.toString())
+        header.write('    }\n')
+
+    def writeCopyConstructor(self, uri, className, parentClassNames, fullParentHierarchyNames, header):
+        # write the copy constructor
+        header.write('    %s(const %s& res)\n' % (className, self.baseClassName()))
+        header.write('      : ')
+        header.write('%s(res)' % self.baseClassName())
+        if len(parentClassNames) > 0:
+            header.write(',\n        ')
+            header.write(',\n        '.join([('%s(res, QUrl::fromEncoded("' + uri.toString().toUtf8().data() + '", QUrl::StrictMode))') % p for p in fullParentHierarchyNames]))
+        header.write(' {\n')
+        if len(parentClassNames) == 0:
+            header.write('        addType(QUrl::fromEncoded("%s", QUrl::StrictMode));\n' % uri.toString())
+        header.write('    }\n\n')
+
+        # write the assignment operator
+        header.write('    %s& operator=(const %s& res) {\n' % (className, self.baseClassName()))
+        header.write('        %s::operator=(res);\n' % self.baseClassName())
+        header.write('        addType(QUrl::fromEncoded("%s", QUrl::StrictMode));\n' % uri.toString())
+        header.write('        return *this;\n')
+        header.write('    }\n\n')
+
+
+    def writeAdditionalMethods(self, className, parentClassNames, fullParentHierarchyNames, header):
+        # write the protected constructors which avoid adding the whole type hierarchy
+        header.write('protected:\n')
+        header.write('    %s(const QUrl& type)' % className)
+        if len(parentClassNames) > 0:
+            header.write('\n      : ')
+            header.write(',\n        '.join(['%s(type)' % p for p in fullParentHierarchyNames]))
+        header.write(' {\n')
+        if len(parentClassNames) == 0:
+            header.write('        addType(type);\n')
+        header.write('    }\n')
+
+        header.write('    %s(const SimpleResource& res, const QUrl& type)\n' % className)
+        header.write('      : ')
+        header.write('SimpleResource(res)')
+        if len(parentClassNames) > 0:
+            header.write(',\n        ')
+            header.write(',\n        '.join(['%s(res, type)' % p for p in fullParentHierarchyNames]))
+        header.write(' {\n')
+        if len(parentClassNames) == 0:
+            header.write('        addType(type);\n')
+        header.write('    }\n')
+
+
+# TODO: in both copy constructor and assignment operator we do not change/set the type. Thus, we might want to do that when calling set/addProperty
+class ResourceRcGen(RcGen):
+    def __init__(self, ontologyParser):
+        RcGen.__init__(self, ontologyParser)
+
+    def baseClassName(self):
+        return "Resource"
+
+    # FIXME
+    def writeGetter(self, theFile, prop, name, propRange, cardinality):
+        theFile.write('    %s %s() const {\n' % (typeString(propRange, cardinality), makeFancy(name, cardinality)))
+        theFile.write('        %s value;\n' % typeString(propRange, cardinality))
+        if cardinality == 1:
+            theFile.write('        if(contains(QUrl::fromEncoded("%s", QUrl::StrictMode)))\n' % prop.toString())
+            theFile.write('            value = property(QUrl::fromEncoded("{0}", QUrl::StrictMode)).first().value<{1}>();\n'.format(prop.toString(), typeString(propRange, 1)))
+        else:
+            theFile.write('        foreach(const QVariant& v, property(QUrl::fromEncoded("%s", QUrl::StrictMode)))\n' % prop.toString())
+            theFile.write('            value << v.value<{0}>();\n'.format(typeString(propRange, 1)))
+        theFile.write('        return value;\n')
+        theFile.write('    }\n')
+
+    # FIXME
+    def writeSetter(self, theFile, prop, name, propRange, cardinality):
+        theFile.write('    void set%s%s(const %s& value) {\n' % (makeFancy(name, cardinality)[0].toUpper(), makeFancy(name, cardinality).mid(1), typeString(propRange, cardinality)))
+        theFile.write('        QVariantList values;\n')
+        if cardinality == 1:
+            theFile.write('        values << value;\n')
+        else:
+             theFile.write('        foreach(const %s& v, value)\n' % typeString(propRange, 1))
+             theFile.write('            values << v;\n')
+        theFile.write('        setProperty(QUrl::fromEncoded("%s", QUrl::StrictMode), values);\n' % prop.toString())
+        theFile.write('    }\n')
+
+    # FIXME
+    def writeAdder(self, theFile, prop, name, propRange, cardinality):
+        theFile.write('    void add%s%s(const %s& value) {\n' % (makeFancy(name, 1)[0].toUpper(), makeFancy(name, 1).mid(1), typeString(propRange, 1)))
+        theFile.write('        addProperty(QUrl::fromEncoded("%s", QUrl::StrictMode), value);\n' % prop.toString())
+        theFile.write('    }\n')
+
+    def writeDefaultConstructor(self, uri, className, parentClassNames, fullParentHierarchyNames, header):
+        header.write('    %s(const QUrl& uri = QUrl())' % className)
+        header.write('\n      : Resource(uri, QUrl::fromEncoded("%s", QUrl::StrictMode))' % uri.toString())
+        if len(parentClassNames) > 0:
+            header.write(',\n        ')
+        header.write(',\n        '.join([('%s(uri, QUrl::fromEncoded("' + uri.toString().toUtf8().data() + '", QUrl::StrictMode))') % p for p in fullParentHierarchyNames]))
+        header.write(' {\n')
+        header.write('    }\n')
+
+    def writeCopyConstructor(self, uri, className, parentClassNames, fullParentHierarchyNames, header):
+        # write the copy constructor
+        header.write('    %s(const %s& res)\n' % (className, self.baseClassName()))
+        header.write('      : ')
+        header.write('%s(res)' % self.baseClassName())
+        if len(parentClassNames) > 0:
+            header.write(',\n        ')
+            header.write(',\n        '.join([('%s(res)') % p for p in fullParentHierarchyNames]))
+        header.write(' {\n')
+        header.write('    }\n\n')
+
+        # write the assignment operator
+        header.write('    %s& operator=(const %s& res) {\n' % (className, self.baseClassName()))
+        header.write('        %s::operator=(res);\n' % self.baseClassName())
+        header.write('        return *this;\n')
+        header.write('    }\n\n')
+
 
 def main():
     global output_path
     global verbose
     
     usage = "Usage: %prog [options] ontologyfile1 ontologyfile2 ..."
-    optparser = argparse.ArgumentParser(description="Nepomuk SimpleResource code generator. It will generate a hierarchy of simple wrapper classes around Nepomuk::SimpleResource which provide convinience methods to get and set properties of those classes. Each wrapper class will be defined in its own header file and be written to a subdirectory named as the default ontology prefix. Example: the header file for nao:Tag would be written to nao/tag.h and be defined in the namespace Nepomuk::NAO.")
+    optparser = argparse.ArgumentParser(description="Nepomuk Resource code generator. It will generate a hierarchy of simple wrapper classes around Nepomuk::Resource or Nepomuk::SimpleResource which provide convinience methods to get and set properties of those classes. Each wrapper class will be defined in its own header file and be written to a subdirectory named as the default ontology prefix. Example: the header file for nao:Tag would be written to nao/tag.h and be defined in the namespace Nepomuk::NAO.")
     optparser.add_argument('--output', '-o', type=str, nargs=1, metavar='PATH', dest='output', help='The destination folder')
     optparser.add_argument('--quiet', '-q', action="store_false", dest="verbose", default=True, help="don't print status messages to stdout")
+    optparser.add_argument('--simple', '-s', action="store_true", dest="simple", default=False, help="Generate SimpleResource sub-classes")
     optparser.add_argument("ontologies", type=str, nargs='+', metavar="ONTOLOGY", help="Ontology files to use")
 
     args = optparser.parse_args()
@@ -471,7 +565,10 @@ def main():
         print "All ontologies read. Generating code..."
 
     # Get all classes and handle them one by one
-    rcgen = Rcgen(ontoParser)
+    if args.simple:
+        rcgen = SimpleRcGen(ontoParser)
+    else:
+        rcgen = ResourceRcGen(ontoParser)
     rcgen.writeAll()
 
 if __name__ == "__main__":
