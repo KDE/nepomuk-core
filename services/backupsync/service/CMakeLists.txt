@@ -6,7 +6,6 @@ find_package(Nepomuk REQUIRED)
 
 include(SopranoAddOntology)
 
-add_definitions(-DDISABLE_NEPOMUK_LEGACY=1)
 #add_definitions(-DKDE_DEFAULT_DEBUG_AREA=300106)
 
 include (KDE4Defaults)

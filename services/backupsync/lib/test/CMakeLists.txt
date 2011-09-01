@@ -18,8 +18,6 @@ include (KDE4Defaults)
 
 set( EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR} )
 
-add_definitions(-DDISABLE_NEPOMUK_LEGACY=1)
-
 set(nepomuksynctests_SRCS testbase.cpp nepomuksynctests.cpp )
 
 kde4_add_unit_test(nepomuksynctest ${nepomuksynctests_SRCS})

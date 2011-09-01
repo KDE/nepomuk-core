@@ -6,9 +6,6 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/stuff-to-remove-for-kdelibs-5.0
 )
 
-# remove once the deprecated code is gone
-add_definitions(-DDISABLE_NEPOMUK_LEGACY=1)
-
 set(nepomuk_resource_SRCS
   resource/variant.cpp
   resource/resourcedata.cpp

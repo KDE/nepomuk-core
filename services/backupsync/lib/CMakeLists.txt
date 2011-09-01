@@ -15,7 +15,6 @@ include_directories(
 )
 
 add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS})
-add_definitions(-DDISABLE_NEPOMUK_LEGACY=1)
 
 set(nepomuksync_SRCS
     resourcemerger.cpp
