@@ -4,6 +4,7 @@ add_definitions(-DKDE_DEFAULT_DEBUG_AREA=300000)
 
 include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/stuff-to-remove-for-kdelibs-5.0
+  ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 set(nepomuk_resource_SRCS
