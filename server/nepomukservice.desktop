@@ -2,6 +2,12 @@
 Type=ServiceType
 X-KDE-ServiceType=NepomukService
 Comment=Nepomuk Service
+Comment[de]=Nepomuk-Dienst
+Comment[es]=Servicio Nepomuk
+Comment[pt]=Serviço do Nepomuk
+Comment[sv]=Nepomuk-tjänst
+Comment[uk]=Служба Nepomuk
+Comment[x-test]=xxNepomuk Servicexx
 [PropertyDef::X-KDE-Nepomuk-autostart]
 Type=bool
 [PropertyDef::X-KDE-Nepomuk-start-on-demand]

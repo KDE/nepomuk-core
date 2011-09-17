@@ -1,23 +1,75 @@
 [Global]
 IconName=nepomuk
 Comment=Desktop Search
+Comment[de]=Desktopsuche
+Comment[es]=Búsqueda de escritorio
+Comment[pt]=Pesquisa no Ambiente de Trabalho
+Comment[sv]=Skrivbordssökning
+Comment[uk]=Стільничний пошук
+Comment[x-test]=xxDesktop Searchxx
 
 [Event/initialIndexingStarted]
 Name=Initial Indexing started
+Name[de]=Erstindizierung gestartet
+Name[es]=Indexación inicial comenzada
+Name[pt]=Início da primeira indexação
+Name[sv]=Inledande indexering startad
+Name[uk]=Запущено початкове індексування
+Name[x-test]=xxInitial Indexing startedxx
 Comment=Indexing of local files for fast searches has started.
+Comment[de]=Indizierung der lokalen Dateien für die schnelle Desktopsuche begonnen.
+Comment[es]=La indexación de archivos locales para búsquedas rápidas ha comenzado.
+Comment[pt]=A indexação dos ficheiros para pesquisas mais rápidas começou agora.
+Comment[sv]=Indexering av lokala filer för snabb sökning har startat.
+Comment[uk]=Розпочато індексування локальних файлів для пришвидшення пошуку.
+Comment[x-test]=xxIndexing of local files for fast searches has started.xx
 Action=Popup
 
 [Event/initialIndexingFinished]
 Name=Initial Indexing finished
+Name[de]=Erstindizierung abgeschlossen
+Name[es]=Indexación inicial finalizada
+Name[pt]=Fim da primeira indexação
+Name[sv]=Inledande indexering klar
+Name[uk]=Початкове індексування закінчено
+Name[x-test]=xxInitial Indexing finishedxx
 Comment=The initial indexing of local files for fast desktop searches has completed.
+Comment[de]=Die Erstindizierung der lokalen Dateien für die schnelle Desktopsuche ist abgeschlossen.
+Comment[es]=La indexación inicial de archivos locales para búsquedas rápidas del escritorio se ha completado.
+Comment[pt]=A primeira indexação dos ficheiros para pesquisas mais rápidas terminou.
+Comment[sv]=Den inledande indexeringen av lokala filer för snabb skrivbordssökning är klar.
+Comment[uk]=Початкове індексування локальних файлів для пришвидшення стільничного пошуку завершено.
+Comment[x-test]=xxThe initial indexing of local files for fast desktop searches has completed.xx
 Action=Popup
 
 [Event/indexingSuspended]
 Name=Indexing suspended
+Name[de]=Erstindizierung angehalten
+Name[es]=Indexación suspendida
+Name[pt]=Indexação suspensa
+Name[sv]=Indexering tillfälligt stoppad
+Name[uk]=Пауза індексування
+Name[x-test]=xxIndexing suspendedxx
 Comment=File indexing has been suspended by the search service.
+Comment[de]=Dateiindizierung wurde vom Suchdienst angehalten.
+Comment[es]=La indexación de archivos ha sido suspendida por el servicio de búsqueda.
+Comment[pt]=A indexação de ficheiros foi suspensa pelo serviço de pesquisa.
+Comment[sv]=Filindexering har tillfälligt stoppats av söktjänsten.
+Comment[uk]=Індексування файлів було призупинено службою пошуку.
+Comment[x-test]=xxFile indexing has been suspended by the search service.xx
 Action=Popup
 
 [Event/indexingResumed]
 Name=Indexing resumed
+Name[de]=Erstindizierung fortgesetzt
+Name[pt]=Indexação prosseguida
+Name[sv]=Indexering återupptagen
+Name[uk]=Продовження індексування
+Name[x-test]=xxIndexing resumedxx
 Comment=File indexing has been resumed by the search service.
+Comment[de]=Dateiindizierung wurde vom Suchdienst wieder aufgenommen.
+Comment[pt]=A indexação de ficheiros foi retomada pelo serviço de pesquisa.
+Comment[sv]=Filindexering har återupptagits av söktjänsten.
+Comment[uk]=Індексування файлів було поновлено службою пошуку.
+Comment[x-test]=xxFile indexing has been resumed by the search service.xx
 Action=Popup

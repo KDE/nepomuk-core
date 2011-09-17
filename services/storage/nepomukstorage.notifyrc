@@ -1,24 +1,74 @@
 [Global]
 IconName=nepomuk
 Name=Semantic Data Storage
+Name[de]=Semantische Datenspeicherung
+Name[pt]=Armazenamento de Dados Semânticos
+Name[sv]=Semantisk datalagring
+Name[uk]=Сховище семантичних даних
+Name[x-test]=xxSemantic Data Storagexx
 Comment=Semantic Desktop
+Comment[de]=Semantischer Desktop
+Comment[pt]=Ambiente de Trabalho Semântico
+Comment[sv]=Semantiskt skrivbord
+Comment[uk]=Семантична стільниця
+Comment[x-test]=xxSemantic Desktopxx
 
 [Event/failedToStart]
 Name=Failed to start Nepomuk
+Name[de]=Fehler beim Starten von Nepomuk
+Name[pt]=Não foi possível iniciar o Nepomuk
+Name[sv]=Misslyckades starta Nepomuk
+Name[uk]=Не вдалося запустити Nepomuk
+Name[x-test]=xxFailed to start Nepomukxx
 Comment=The Nepomuk Semantic Desktop system could not be started
+Comment[de]=Die Nepomuk-Semantik-Dienste lassen sich nicht starten
+Comment[pt]=Não foi possível iniciar o sistema do Ambiente Semântico do Nepomuk
+Comment[sv]=Det semantiska skrivbordssystemet Nepomuk kunde inte startas
+Comment[uk]=Не вдалося запустити систему семантичної стільниці Nepomuk
+Comment[x-test]=xxThe Nepomuk Semantic Desktop system could not be startedxx
 Action=Popup
 
 [Event/convertingNepomukData]
 Name=Converting Nepomuk data
+Name[de]=Nepomuk-Daten werden umgewandelt
+Name[pt]=A converter os dados do Nepomuk
+Name[sv]=Konverterar Nepomuks data
+Name[uk]=Перетворення даних Nepomuk
+Name[x-test]=xxConverting Nepomuk dataxx
 Comment=All Nepomuk data is converted to a new storage backend
+Comment[de]=Alle Nepomuk-Daten sind in das neue Speicherformat umgewandelt worden
+Comment[pt]=Todos os dados do Nepomuk foram convertidos para uma nova infra-estrutura de armazenamento
+Comment[sv]=All Nepomuks data konverteras till ett nytt lagringsgränssnitt
+Comment[uk]=Всі дані Nepomuk перетворено для нового сервера зберігання
+Comment[x-test]=xxAll Nepomuk data is converted to a new storage backendxx
 Action=Popup
 
 [Event/convertingNepomukDataFailed]
 Name=Converting Nepomuk data failed
+Name[de]=Die Nepomuk-Daten-Umwandlung ist fehlgeschlagen
+Name[pt]=A conversão dos dados do Nepomuk foi mal-sucedida
+Name[sv]=Konvertering av Nepomuks data misslyckades
+Name[uk]=Спроба перетворення даних Nepomuk завершилася невдало
+Name[x-test]=xxConverting Nepomuk data failedxx
 Comment=Converting Nepomuk data to a new backend failed
+Comment[de]=Die Nepomuk-Daten-Umwandlung für das neue Backend ist fehlgeschlagen
+Comment[pt]=A conversão dos dados do Nepomuk para uma nova infra-estrutura foi mal-sucedida
+Comment[sv]=Misslyckades konvertera Nepomuks data till ett nytt gränssnitt
+Comment[uk]=Спроба перетворення даних Nepomuk для нового сервера зазнала невдачі
+Comment[x-test]=xxConverting Nepomuk data to a new backend failedxx
 Action=Popup
 
 [Event/convertingNepomukDataDone]
 Name=Converting Nepomuk data done
+Name[de]=Umwandlung der Nepomuk-Daten ist abgeschlossen
+Name[pt]=A conversão dos dados do Nepomuk terminou
+Name[sv]=Konvertering av Nepomuks data klar
+Name[uk]=Перетворення даних Nepomuk завершено
+Name[x-test]=xxConverting Nepomuk data donexx
 Comment=Successfully converted Nepomuk data to new backend
+Comment[de]=Die Nepomuk-Daten-Umwandlung für das neue Backend ist abgeschlossen
+Comment[pt]=Os dados do Nepomuk foram convertidos com sucesso para a infra-estrutura nova
+Comment[sv]=Konverterade Nepomuks data till ett nytt gränssnitt med lyckat resultat
+Comment[uk]=Дані Nepomuk успішно перетворено для нового сервера
+Comment[x-test]=xxSuccessfully converted Nepomuk data to new backendxx
 Action=Popup
