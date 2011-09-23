@@ -26,11 +26,16 @@
 #include <KStandardDirs>
 #include <KConfigGroup>
 
+Nepomuk::FileIndexerConfig* Nepomuk::FileIndexerConfig::s_self = 0;
 
-Nepomuk::FileIndexerConfig::FileIndexerConfig()
-    : QObject(),
+Nepomuk::FileIndexerConfig::FileIndexerConfig(QObject* parent)
+    : QObject(parent),
       m_config( "nepomukstrigirc" )
 {
+    if(!s_self) {
+        s_self = this;
+    }
+
     KDirWatch* dirWatch = KDirWatch::self();
     connect( dirWatch, SIGNAL( dirty( const QString& ) ),
              this, SLOT( slotConfigDirty() ) );
@@ -51,8 +56,7 @@ Nepomuk::FileIndexerConfig::~FileIndexerConfig()
 
 Nepomuk::FileIndexerConfig* Nepomuk::FileIndexerConfig::self()
 {
-    K_GLOBAL_STATIC( FileIndexerConfig, _self );
-    return _self;
+    return s_self;
 }
 
 
