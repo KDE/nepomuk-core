@@ -21,6 +21,7 @@ Name[x-test]=xxNepomuk Data Storagexx
 Name[zh_TW]=Nepomuk 資料儲存
 Comment=The Core Nepomuk data storage service
 Comment[ca]=El servei d'emmagatzematge de dades del nucli del Nepomuk
+Comment[cs]=Jádro služby Datové úložiště Nepomuku
 Comment[de]=Der Nepomuk-Basisdienst zum Speichern der Daten
 Comment[es]=La base del servicio de almacenamiento de datos de Nepomuk
 Comment[eu]=Nepomuken datu biltegiratzeko zerbitzuaren nukleoa

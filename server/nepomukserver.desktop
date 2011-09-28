@@ -22,6 +22,7 @@ Name[x-test]=xxNepomuk Serverxx
 Name[zh_TW]=Nepomuk 伺服器
 Comment=The Nepomuk Server providing Storage services and strigi controlling
 Comment[ca]=El servidor Nepomuk proporciona serveis d'emmagatzematge i de control de l'Strigi
+Comment[cs]=Server Nepomuk poskytuje služby pro ukládání a pro ovládání Strigi
 Comment[de]=Der Nepomuk-Server stellt Speicherdienste und Strigi-Steuerung zur Verfügung
 Comment[es]=El servidor de Nepomuk, que proporciona servicios de almacenamiento y control de Strigi
 Comment[eu]=Biltegiratzeko zerbitzuak eta strigi kontrola hornitzen dituen Nepomuk zerbitzaria

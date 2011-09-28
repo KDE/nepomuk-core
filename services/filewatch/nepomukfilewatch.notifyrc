@@ -2,6 +2,7 @@
 IconName=nepomuk
 Comment=Nepomuk file watch service
 Comment[ca]=Servei de control de fitxers del Nepomuk
+Comment[cs]=Služba Nepomuku sledující soubory
 Comment[de]=Nepomuk-Dienst zur Dateiüberwachung
 Comment[es]=Servicio de vigilancia de archivos de Nepomuk
 Comment[eu]=Nepomuken fitxategiak zaintzeko zerbitzua
@@ -18,6 +19,7 @@ Comment[zh_TW]=Nepomuk 檔案監控服務
 [Event/nepomuk_new_removable_device]
 Name=New Removable Device
 Name[ca]=Dispositiu extraïble nou
+Name[cs]=Nové odpojitelné zařízení
 Name[de]=Neuer Wechseldatenträger
 Name[es]=Nuevo dispositivo extraíble
 Name[eu]=Gailu aldagarri berria
@@ -32,6 +34,7 @@ Name[x-test]=xxNew Removable Devicexx
 Name[zh_TW]=新的可移除裝置
 Comment=A new unknown removable device has been mounted
 Comment[ca]=S'ha muntat un dispositiu extraïble desconegut nou
+Comment[cs]=Bylo připojeno nové neznámé odpojitelné zařízeni
 Comment[de]=Ein neuer, unbekannter Wechseldatenträger ist eingebunden worden
 Comment[es]=Se ha montado un nuevo dispositivo extraíble desconocido
 Comment[eu]=Gailu aldagarri berri ezezagun bat muntatu da
