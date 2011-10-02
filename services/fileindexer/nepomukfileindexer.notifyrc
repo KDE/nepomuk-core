@@ -14,6 +14,7 @@ Comment[pt_BR]=Pesquisa na área de trabalho
 Comment[sv]=Skrivbordssökning
 Comment[uk]=Стільничний пошук
 Comment[x-test]=xxDesktop Searchxx
+Comment[zh_CN]=桌面搜索
 Comment[zh_TW]=桌面搜尋
 
 [Event/initialIndexingStarted]
@@ -97,6 +98,7 @@ Name[pt_BR]=Indexação suspensa
 Name[sv]=Indexering tillfälligt stoppad
 Name[uk]=Пауза індексування
 Name[x-test]=xxIndexing suspendedxx
+Name[zh_CN]=索引已挂起
 Name[zh_TW]=索引暫停
 Comment=File indexing has been suspended by the search service.
 Comment[ca]=El servei de cerca ha suspès la indexació de fitxers.
@@ -130,6 +132,7 @@ Name[pt_BR]=Indexação retomada
 Name[sv]=Indexering återupptagen
 Name[uk]=Продовження індексування
 Name[x-test]=xxIndexing resumedxx
+Name[zh_CN]=索引已恢复
 Name[zh_TW]=索引回復
 Comment=File indexing has been resumed by the search service.
 Comment[ca]=El servei de cerca ha reprès la indexació de fitxers.

@@ -14,6 +14,7 @@ Comment[pt_BR]=Serviço de inspeção de arquivos do Nepomuk
 Comment[sv]=Nepomuk-tjänst för filövervakning
 Comment[uk]=Служба нагляду за файлами Nepomuk
 Comment[x-test]=xxNepomuk file watch servicexx
+Comment[zh_CN]=Nepomuk 文件监视服务
 Comment[zh_TW]=Nepomuk 檔案監控服務
 
 [Event/nepomuk_new_removable_device]
