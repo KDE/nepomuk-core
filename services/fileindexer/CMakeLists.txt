@@ -51,4 +51,5 @@ install(
   DESTINATION ${PLUGIN_INSTALL_DIR})
 
 add_subdirectory(indexer)
+add_subdirectory(test)
 # -----------------------------
