@@ -114,6 +114,14 @@ namespace Nepomuk {
     Q_SIGNALS:
         void configChanged();
 
+    public Q_SLOTS:
+        /**
+         * Reread the config from disk and update the configuration cache.
+         * This is only required for testing as normally the config updates
+         * itself whenever the config file on disk changes.
+         */
+        void forceConfigUpdate();
+
     private Q_SLOTS:
         void slotConfigDirty();
 

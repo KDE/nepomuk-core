@@ -125,9 +125,7 @@ KIO::filesize_t Nepomuk::FileIndexerConfig::minDiskSpace() const
 
 void Nepomuk::FileIndexerConfig::slotConfigDirty()
 {
-    m_config.reparseConfiguration();
-    buildFolderCache();
-    buildExcludeFilterRegExpCache();
+    forceConfigUpdate();
     emit configChanged();
 }
 
@@ -279,6 +277,13 @@ void Nepomuk::FileIndexerConfig::buildExcludeFilterRegExpCache()
 {
     QMutexLocker lock( &m_folderCacheMutex );
     m_excludeFilterRegExpCache.rebuildCacheFromFilterList( excludeFilters() );
+}
+
+void Nepomuk::FileIndexerConfig::forceConfigUpdate()
+{
+    m_config.reparseConfiguration();
+    buildFolderCache();
+    buildExcludeFilterRegExpCache();
 }
 
 #include "fileindexerconfig.moc"
