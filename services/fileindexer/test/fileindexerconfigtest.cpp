@@ -95,6 +95,8 @@ FileIndexerConfigTest::FileIndexerConfigTest()
 {
 }
 
+// FIXME: how about in the config already excluding symlinks that point to indexed folders (compare the wine "My Documents" link)
+
 void FileIndexerConfigTest::testShouldFolderBeIndexed()
 {
     // create the full folder hierarchy
@@ -177,6 +179,45 @@ void FileIndexerConfigTest::testShouldFolderBeIndexed()
 
     // cleanup
     delete mainDir;
+}
+
+void FileIndexerConfigTest::testShouldFolderBeIndexed_symlink()
+{
+    // create the folder hierarchy
+    KTempDir* mainDir = createTmpFolders(QStringList()
+                                         << indexedRootDir
+                                         << indexedSubDir
+                                         << indexedSubSubDir
+                                         << ignoredRootDir);
+
+    const QString dirPrefix = mainDir->name();
+
+    // create links for us to test
+    const QString symlinkToIndexedSubDir = indexedRootDir + QLatin1String("/") + QString::fromLatin1("sl1");
+    const QString symlinkToIgnoredRootDir = indexedRootDir + QLatin1String("/") + QString::fromLatin1("sl2");
+    QVERIFY(QFile::link(dirPrefix + indexedSubDir, dirPrefix + symlinkToIndexedSubDir));
+    QVERIFY(QFile::link(dirPrefix + ignoredRootDir, dirPrefix + symlinkToIgnoredRootDir));
+
+    // write a basic config
+    writeIndexerConfig(QStringList()
+                       << dirPrefix + indexedRootDir,
+                       QStringList(),
+                       QStringList(),
+                       false);
+
+    // create our test config object
+    Nepomuk::FileIndexerConfig* cfg = Nepomuk::FileIndexerConfig::self();
+
+    // check that the symlink folder should not be indexed since its target is already indexed
+    QVERIFY(!cfg->shouldFolderBeIndexed(dirPrefix + symlinkToIndexedSubDir));
+
+    // check that sub-folders to the symlink folder are not indexed
+    QVERIFY(!cfg->shouldFolderBeIndexed(dirPrefix + symlinkToIndexedSubDir + QLatin1String("/") + indexedSubSubDir.mid(indexedSubDir.length())));
+
+    // check that the contents of the symlink which points to the ignored root dir is indexed
+    QVERIFY(cfg->shouldFolderBeIndexed(dirPrefix + symlinkToIgnoredRootDir));
+
+    // TODO: what about this situation: a link to a folder which has an excluded sub-folder. Should we then also exclude the sub-folder in the symlink path?
 }
 
 void FileIndexerConfigTest::testShouldBeIndexed()

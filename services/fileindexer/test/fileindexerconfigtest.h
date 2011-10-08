@@ -33,6 +33,7 @@ public:
 
 private slots:
     void testShouldFolderBeIndexed();
+    void testShouldFolderBeIndexed_symlink();
     void testShouldBeIndexed();
 
 private:
