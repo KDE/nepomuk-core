@@ -51,6 +51,16 @@ def abbreviateNs(uri):
     return Soprano.Node.resourceToN3(uri)
 
 
+def resolveAbbreviated(abbrev):
+    "Convert an abbreviated uri into the full one."
+    generatePrefixMap()
+    s = abbrev.partition(':')
+    if QtCore.QString(s[0]) in prefixMap:
+        return QtCore.QUrl(prefixMap[QtCore.QString(s[0])] + s[2])
+    else:
+        return abbrev
+
+
 def extractExistingResourcesFromVariant(v):
     "Extracts all existing resources from v and returns a set."
     rl = set()
@@ -146,6 +156,8 @@ def dumpRes(args):
     # build initial resource set
     allResources = set()
     for uri in args.resources:
+        if not '/' in uri:
+            uri = resolveAbbreviated(uri)
         res = Nepomuk.Resource(KUrl(uri))
         if not res.exists():
             print "Resource <%s> does not exist" % uri
