@@ -74,11 +74,23 @@ def variantToStringList(v):
     return sl
 
 
+def resourcesToStringList(v):
+    "Convert a list of resources to a list of strings"
+    r = []
+    for vv in v:
+        r.append(Soprano.Node.resourceToN3(vv))
+    return r
+
+
 def printResource(res):
     "Prints a single resource"
     print "Resource <%s>" % res.resourceUri().toString()
     properties = {}
     propLen = 1
+
+    # first add the types
+    properties[QtCore.QString('rdf:type')] = resourcesToStringList(res.types())
+
     # create a new dict with all prop labels and the values
     # this is mainly for getting the max len of the props
     for prop, value in res.properties().items():
@@ -89,7 +101,7 @@ def printResource(res):
 
     # actually print the values
     for prop, values in properties.items():
-        print '    %s:%s%s' % (prop, ' '.rjust(propLen-prop.length()+1), values[0])
+        print '    %s %s%s' % (prop, ' '.rjust(propLen-prop.length()+1), values[0])
         for prop in values[1:]:
             print '    %s%s' % (' '.rjust(propLen+2), prop)
 
@@ -110,6 +122,7 @@ def dumpRes(args):
     # finally dump all the resources
     for res in allResources:
         printResource(res)
+        print ''
 
 
 def main():
