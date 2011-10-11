@@ -30,6 +30,8 @@ from PyQt4 import QtCore
 
 # maps ontology namespaces to abbreviations
 prefixMap = {}
+verbose = False
+
 
 def generatePrefixMap():
     if len(prefixMap) == 0:
@@ -41,11 +43,12 @@ def generatePrefixMap():
 
 def abbreviateNs(uri):
     "Abbreviate the ns of the uri"
-    generatePrefixMap()
-    for abbr, ns in prefixMap.items():
-        if uri.toString().startsWith(ns):
-            return abbr + ':' + uri.toString().mid(len(ns))
-    return uri
+    if not verbose:
+        generatePrefixMap()
+        for abbr, ns in prefixMap.items():
+            if uri.toString().startsWith(ns):
+                return abbr + ':' + uri.toString().mid(len(ns))
+    return Soprano.Node.resourceToN3(uri)
 
 
 def extractExistingResourcesFromVariant(v):
@@ -137,6 +140,9 @@ def printResource(res):
 
     
 def dumpRes(args):
+    global verbose
+    verbose = args.verbose
+
     # build initial resource set
     allResources = set()
     for uri in args.resources:
@@ -162,6 +168,7 @@ def main():
     # command dump
     dumpParser = cmdParsers.add_parser('dump')
     dumpParser.add_argument('--depth', type=int, default=0, help='The graph-traversal depth. A depth higher than 1 will result in related resources to be dumped, too.')
+    dumpParser.add_argument('-v', action="store_true", dest="verbose", default=False, help='Be verbose, do not abbreviate namespaces.')
     dumpParser.add_argument("resources", type=str, nargs='+', metavar="resource", help="The resources to dump.")
     dumpParser.set_defaults(func=dumpRes)
     
