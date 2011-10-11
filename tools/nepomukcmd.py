@@ -28,6 +28,26 @@ from PyKDE4.nepomuk import Nepomuk
 from PyKDE4.kdecore import KUrl
 from PyQt4 import QtCore
 
+# maps ontology namespaces to abbreviations
+prefixMap = {}
+
+def generatePrefixMap():
+    if len(prefixMap) == 0:
+        nrlModel = Soprano.NRLModel(Nepomuk.ResourceManager.instance().mainModel())
+        nrlModel.setEnableQueryPrefixExpansion(True)
+        for abbrev, ns in nrlModel.queryPrefixes().items():
+            prefixMap[abbrev] = ns.toString()
+
+
+def abbreviateNs(uri):
+    "Abbreviate the ns of the uri"
+    generatePrefixMap()
+    for abbr, ns in prefixMap.items():
+        if uri.toString().startsWith(ns):
+            return abbr + ':' + uri.toString().mid(len(ns))
+    return uri
+
+
 def extractExistingResourcesFromVariant(v):
     "Extracts all existing resources from v and returns a set."
     rl = set()
@@ -67,35 +87,45 @@ def variantToStringList(v):
         for vv in v.toVariantList():
             sl.extend(variantToStringList(vv))
     elif v.isResource():
-        sl.append(Soprano.Node.resourceToN3(v.toUrl()))
+        sl.append(resourceToN3(v.toUrl()))
     else:
-        sl.append(Soprano.Node.literalToN3(Soprano.LiteralValue(v.variant())))
-        # todo: abbreviate xsd ns
+        literal = Soprano.Node.literalToN3(Soprano.LiteralValue(v.variant()))
+        if literal.endsWith('>'):
+            pos = literal.lastIndexOf('<')
+            length = len(literal)-pos-2
+            typeUri = QtCore.QUrl(literal.mid(pos+1, length))
+            literal.replace(pos, length+2, abbreviateNs(typeUri))
+        sl.append(literal)
     return sl
 
 
-def resourcesToStringList(v):
-    "Convert a list of resources to a list of strings"
-    r = []
+def resourceToN3(uri):
+    "Converts a QUrl into an N3 string"
+    r = abbreviateNs(uri)
+    if r == uri:
+        return Soprano.Node.resourceToN3(uri)
+    else:
+        return r
+
+
+def formatTypes(v):
+    "Convert a list of types into a string"
+    r = QtCore.QStringList()
     for vv in v:
-        r.append(Soprano.Node.resourceToN3(vv))
-    return r
+        r.append(resourceToN3(vv))
+    return r.join(', ')
 
 
 def printResource(res):
     "Prints a single resource"
-    print "Resource <%s>" % res.resourceUri().toString()
+    print "Resource <%s> (%s)" % (res.resourceUri().toString(), formatTypes(res.types()))
     properties = {}
     propLen = 1
-
-    # first add the types
-    properties[QtCore.QString('rdf:type')] = resourcesToStringList(res.types())
 
     # create a new dict with all prop labels and the values
     # this is mainly for getting the max len of the props
     for prop, value in res.properties().items():
-        label = prop.toString()
-        # todo: abbreviate prop ns
+        label = resourceToN3(prop)
         propLen = max(propLen, len(label))
         properties[label] = variantToStringList(value)
 
