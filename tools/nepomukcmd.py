@@ -121,7 +121,7 @@ def formatTypes(v):
 
 def printResource(res):
     "Prints a single resource"
-    print "Resource <%s> (%s)" % (res.resourceUri().toString(), formatTypes(res.types()))
+    print '%s (%s)' % (Soprano.Node.resourceToN3(res.resourceUri()), formatTypes(res.types()))
     properties = {}
     propLen = 1
 
@@ -133,9 +133,9 @@ def printResource(res):
         properties[label] = variantToStringList(value)
 
     # actually print the values
-    for prop, values in properties.items():
-        print '    %s %s%s' % (prop, ' '.rjust(propLen-prop.length()+1), values[0])
-        for prop in values[1:]:
+    for prop in sorted(properties.keys()):
+        print '    %s %s%s' % (prop, ' '.rjust(propLen-prop.length()+1), properties[prop][0])
+        for prop in properties[prop][1:]:
             print '    %s%s' % (' '.rjust(propLen+2), prop)
 
     
