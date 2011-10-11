@@ -346,6 +346,8 @@ void Nepomuk::IndexScheduler::doIndexing()
         m_currentMutex.unlock();
 
         setIndexingStarted( false );
+
+        emit indexingDone();
     }
 }
 
