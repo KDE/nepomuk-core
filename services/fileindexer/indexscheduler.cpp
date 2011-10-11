@@ -173,10 +173,6 @@ Nepomuk::IndexScheduler::IndexScheduler( QObject* parent )
 
     connect( FileIndexerConfig::self(), SIGNAL( configChanged() ),
              this, SLOT( slotConfigChanged() ) );
-
-    // start the initial indexing
-    queueAllFoldersForUpdate();
-    callDoIndexing();
 }
 
 

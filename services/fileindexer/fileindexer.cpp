@@ -72,6 +72,9 @@ Nepomuk::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     // this is done for KDE startup - to not slow that down too much
     m_indexScheduler->setIndexingSpeed( IndexScheduler::SnailPace );
 
+    // start initial indexing
+    m_indexScheduler->updateAll();
+
     // delayed init for the rest which uses IO and CPU
     // FIXME: do not use a random delay value but wait for KDE to be started completely (using the session manager)
     QTimer::singleShot( 2*60*1000, this, SLOT( finishInitialization() ) );
