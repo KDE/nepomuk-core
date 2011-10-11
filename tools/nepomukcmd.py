@@ -156,9 +156,13 @@ def dumpRes(args):
     allResources = allResources | getAllRelatedResources(allResources, args.depth)
 
     # finally dump all the resources
+    # Hack: python does not use the Nepomuk.Resource == operator. Thus, the set is rather useless
+    printedResourceUris = []
     for res in allResources:
-        printResource(res)
-        print ''
+        if not res.resourceUri() in printedResourceUris:
+            printedResourceUris.append(res.resourceUri())
+            printResource(res)
+            print ''
 
 
 def main():
