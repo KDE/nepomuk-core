@@ -39,7 +39,16 @@ namespace Nepomuk {
         Q_OBJECT
 
     public:
+        /**
+         * Create a new file indexr config. The first instance to be
+         * created will be accessible via self().
+         */
+        FileIndexerConfig(QObject* parent = 0);
         ~FileIndexerConfig();
+
+        /**
+         * Get the first created instance of FileIndexerConfig
+         */
         static FileIndexerConfig* self();
 
         /**
@@ -141,8 +150,6 @@ namespace Nepomuk {
         void slotConfigDirty();
 
     private:
-        FileIndexerConfig();
-
         /**
          * Check if \p path is in the list of folders to be indexed taking
          * include and exclude folders into account.
@@ -163,6 +170,8 @@ namespace Nepomuk {
         RegExpCache m_excludeFilterRegExpCache;
 
         mutable QMutex m_folderCacheMutex;
+
+        static FileIndexerConfig* s_self;
     };
 }
 
