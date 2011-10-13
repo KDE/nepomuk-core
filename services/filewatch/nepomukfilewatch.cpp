@@ -24,6 +24,7 @@
 #include "removabledeviceindexnotification.h"
 #include "removablemediacache.h"
 #include "fileindexerconfig.h"
+#include "activefilequeue.h"
 
 #ifdef BUILD_KINOTIFY
 #include "kinotify.h"
@@ -133,6 +134,10 @@ Nepomuk::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
              Qt::QueuedConnection );
     m_metadataMover->start();
 
+    m_fileModificationQueue = new ActiveFileQueue(this);
+    connect(m_fileModificationQueue, SIGNAL(urlTimeout(KUrl)),
+            this, SLOT(slotActiveFileQueueTimeout(KUrl)));
+
 #ifdef BUILD_KINOTIFY
     // monitor the file system for changes (restricted by the inotify limit)
     m_dirWatch = new IgnoringKInotify( m_pathExcludeRegExpCache, this );
@@ -237,14 +242,19 @@ void Nepomuk::FileWatch::slotFileDeleted( const QString& urlString, bool isDir )
 
 void Nepomuk::FileWatch::slotFileCreated( const QString& path )
 {
-    kDebug() << path;
-    updateFileViaFileIndexer( path );
+    if( FileIndexerConfig::self()->shouldBeIndexed(path) ) {
+        // we do not tell the file indexer right away but wait a short while in case it is a download
+        m_fileModificationQueue->enqueueUrl( path );
+    }
 }
 
 
 void Nepomuk::FileWatch::slotFileModified( const QString& path )
 {
-    updateFileViaFileIndexer( path );
+    if( FileIndexerConfig::self()->shouldBeIndexed(path) ) {
+        // we do not tell the file indexer right away but wait a short while in case it is a download
+        m_fileModificationQueue->enqueueUrl( path );
+    }
 }
 
 
@@ -380,6 +390,11 @@ void Nepomuk::FileWatch::slotDeviceMounted(const Nepomuk::RemovableMediaCache::E
 
     kDebug() << "Installing watch for removable storage at mount point" << entry->mountPath();
     watchFolder(entry->mountPath());
+}
+
+void Nepomuk::FileWatch::slotActiveFileQueueTimeout(const KUrl &url)
+{
+    updateFileViaFileIndexer(url.toLocalFile());
 }
 
 #include "nepomukfilewatch.moc"
