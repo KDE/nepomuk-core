@@ -72,6 +72,7 @@ namespace Nepomuk {
         void slotFilesDeleted( const QStringList& path );
         void slotFileCreated( const QString& );
         void slotFileModified( const QString& );
+        void slotFileClosedAfterWrite( const QString& );
         void slotMovedWithoutData( const QString& );
         void connectToKDirWatch();
 #ifdef BUILD_KINOTIFY
@@ -112,6 +113,9 @@ namespace Nepomuk {
 
         RegExpCache* m_pathExcludeRegExpCache;
         RemovableMediaCache* m_removableMediaCache;
+
+        /// stores all the file URLs that have been modified but not closed yet
+        QSet<KUrl> m_modifiedFilesCache;
     };
 }
 

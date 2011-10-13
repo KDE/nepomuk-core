@@ -98,10 +98,12 @@ namespace {
         if( Nepomuk::FileIndexerConfig::self()->shouldFolderBeIndexed( path ) ) {
             modes |= KInotify::EventCreate;
             modes |= KInotify::EventModify;
+            modes |= KInotify::EventCloseWrite;
         }
         else {
             modes &= (~KInotify::EventCreate);
             modes &= (~KInotify::EventModify);
+            modes &= (~KInotify::EventCloseWrite);
         }
 
         return true;
@@ -145,6 +147,8 @@ Nepomuk::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
              this, SLOT( slotFileCreated( QString ) ) );
     connect( m_dirWatch, SIGNAL( modified( QString ) ),
              this, SLOT( slotFileModified( QString ) ) );
+    connect( m_dirWatch, SIGNAL( closedWrite( QString ) ),
+             this, SLOT( slotFileClosedAfterWrite( QString ) ) );
     connect( m_dirWatch, SIGNAL( watchUserLimitReached() ),
              this, SLOT( slotInotifyWatchUserLimitReached() ) );
 
@@ -189,7 +193,7 @@ void Nepomuk::FileWatch::watchFolder( const QString& path )
 #ifdef BUILD_KINOTIFY
     if ( m_dirWatch && !m_dirWatch->watchingPath( path ) )
         m_dirWatch->addWatch( path,
-                              KInotify::WatchEvents( KInotify::EventMove|KInotify::EventDelete|KInotify::EventDeleteSelf|KInotify::EventCreate|KInotify::EventModify ),
+                              KInotify::WatchEvents( KInotify::EventMove|KInotify::EventDelete|KInotify::EventDeleteSelf|KInotify::EventCreate|KInotify::EventModify|KInotify::EventCloseWrite ),
                               KInotify::WatchFlags() );
 #endif
 }
@@ -237,16 +241,27 @@ void Nepomuk::FileWatch::slotFileDeleted( const QString& urlString, bool isDir )
 
 void Nepomuk::FileWatch::slotFileCreated( const QString& path )
 {
-    kDebug() << path;
-    updateFileViaFileIndexer( path );
+    // we only cache the file and wait until it has been closed, ie. the writing has been finished
+    m_modifiedFilesCache.insert(path);
 }
 
 
 void Nepomuk::FileWatch::slotFileModified( const QString& path )
 {
-    updateFileViaFileIndexer( path );
+    // we only cache the file and wait until it has been closed, ie. the writing has been finished
+    m_modifiedFilesCache.insert(path);
 }
 
+
+void Nepomuk::FileWatch::slotFileClosedAfterWrite( const QString& path )
+{
+    // we only need to update the file if it has actually been modified
+    QSet<KUrl>::iterator it = m_modifiedFilesCache.find(path);
+    if(it != m_modifiedFilesCache.end()) {
+        updateFileViaFileIndexer(path);
+        m_modifiedFilesCache.erase(it);
+    }
+}
 
 void Nepomuk::FileWatch::slotMovedWithoutData( const QString& path )
 {
