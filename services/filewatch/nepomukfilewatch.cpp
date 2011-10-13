@@ -206,7 +206,7 @@ void Nepomuk::FileWatch::watchFolder( const QString& path )
 
 void Nepomuk::FileWatch::slotFileMoved( const QString& urlFrom, const QString& urlTo )
 {
-    if( !ignorePath( urlFrom ) ) {
+    if( !ignorePath( urlFrom ) || !ignorePath( urlTo ) ) {
         KUrl from( urlFrom );
         KUrl to( urlTo );
 
