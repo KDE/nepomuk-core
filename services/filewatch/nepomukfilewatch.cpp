@@ -241,15 +241,19 @@ void Nepomuk::FileWatch::slotFileDeleted( const QString& urlString, bool isDir )
 
 void Nepomuk::FileWatch::slotFileCreated( const QString& path )
 {
-    // we only cache the file and wait until it has been closed, ie. the writing has been finished
-    m_modifiedFilesCache.insert(path);
+    if( FileIndexerConfig::self()->shouldBeIndexed(path) ) {
+        // we only cache the file and wait until it has been closed, ie. the writing has been finished
+        m_modifiedFilesCache.insert(path);
+    }
 }
 
 
 void Nepomuk::FileWatch::slotFileModified( const QString& path )
 {
-    // we only cache the file and wait until it has been closed, ie. the writing has been finished
-    m_modifiedFilesCache.insert(path);
+    if( FileIndexerConfig::self()->shouldBeIndexed(path) ) {
+        // we only cache the file and wait until it has been closed, ie. the writing has been finished
+        m_modifiedFilesCache.insert(path);
+    }
 }
 
 
