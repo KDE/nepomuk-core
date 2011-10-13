@@ -275,7 +275,7 @@ void Nepomuk::FileWatch::slotFileClosedAfterWrite( const QString& path )
 
 void Nepomuk::FileWatch::slotMovedWithoutData( const QString& path )
 {
-    updateFolderViaFileIndexer( path );
+    updateFileViaFileIndexer( path );
 }
 
 
