@@ -24,6 +24,7 @@
 #include "removabledeviceindexnotification.h"
 #include "removablemediacache.h"
 #include "fileindexerconfig.h"
+#include "activefilequeue.h"
 
 #ifdef BUILD_KINOTIFY
 #include "kinotify.h"
@@ -134,6 +135,10 @@ Nepomuk::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
              this, SLOT(slotMovedWithoutData(QString)),
              Qt::QueuedConnection );
     m_metadataMover->start();
+
+    m_fileModificationQueue = new ActiveFileQueue(this);
+    connect(m_fileModificationQueue, SIGNAL(urlTimeout(KUrl)),
+            this, SLOT(slotActiveFileQueueTimeout(KUrl)));
 
 #ifdef BUILD_KINOTIFY
     // monitor the file system for changes (restricted by the inotify limit)
@@ -262,7 +267,8 @@ void Nepomuk::FileWatch::slotFileClosedAfterWrite( const QString& path )
     // we only need to update the file if it has actually been modified
     QSet<KUrl>::iterator it = m_modifiedFilesCache.find(path);
     if(it != m_modifiedFilesCache.end()) {
-        updateFileViaFileIndexer(path);
+        // we do not tell the file indexer right away but wait a short while in case the file is modified very often (irc logs for example)
+        m_fileModificationQueue->enqueueUrl( path );
         m_modifiedFilesCache.erase(it);
     }
 }
@@ -399,6 +405,11 @@ void Nepomuk::FileWatch::slotDeviceMounted(const Nepomuk::RemovableMediaCache::E
 
     kDebug() << "Installing watch for removable storage at mount point" << entry->mountPath();
     watchFolder(entry->mountPath());
+}
+
+void Nepomuk::FileWatch::slotActiveFileQueueTimeout(const KUrl &url)
+{
+    updateFileViaFileIndexer(url.toLocalFile());
 }
 
 #include "nepomukfilewatch.moc"

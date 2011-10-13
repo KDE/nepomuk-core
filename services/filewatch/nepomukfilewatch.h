@@ -37,6 +37,7 @@ namespace Soprano {
 class KInotify;
 class KUrl;
 class RegExpCache;
+class ActiveFileQueue;
 
 namespace Nepomuk {
 
@@ -92,6 +93,8 @@ namespace Nepomuk {
          */
         void slotDeviceMounted( const Nepomuk::RemovableMediaCache::Entry* );
 
+        void slotActiveFileQueueTimeout(const KUrl& url);
+
     private:
         /**
          * Adds watches for all mounted removable media.
@@ -116,6 +119,9 @@ namespace Nepomuk {
 
         /// stores all the file URLs that have been modified but not closed yet
         QSet<KUrl> m_modifiedFilesCache;
+
+        /// queue used to "compress" constant file modifications like downloads
+        ActiveFileQueue* m_fileModificationQueue;
     };
 }
 
