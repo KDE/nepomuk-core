@@ -57,8 +57,8 @@ void Nepomuk::Indexer::start()
     connect( m_process, SIGNAL(finished(int)), this, SLOT(slotIndexedFile(int)) );
     m_process->start();
 
-    // start the timer which will kill the process if it does not terminate after 2 minutes
-    m_processTimer->start(2*60*1000);
+    // start the timer which will kill the process if it does not terminate after 5 minutes
+    m_processTimer->start(5*60*1000);
 }
 
 
