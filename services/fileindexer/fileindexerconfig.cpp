@@ -25,12 +25,36 @@
 #include <KDirWatch>
 #include <KStandardDirs>
 #include <KConfigGroup>
+#include <KDebug>
 
 
-Nepomuk::FileIndexerConfig::FileIndexerConfig()
-    : QObject(),
+namespace {
+    /// recursively check if a folder is hidden
+    bool isDirHidden( QDir& dir ) {
+        if ( QFileInfo( dir.path() ).isHidden() )
+            return true;
+        else if ( dir.cdUp() )
+            return isDirHidden( dir );
+        else
+            return false;
+    }
+
+    bool isDirHidden(const QString& path) {
+        QDir dir(path);
+        return isDirHidden(dir);
+    }
+}
+
+Nepomuk::FileIndexerConfig* Nepomuk::FileIndexerConfig::s_self = 0;
+
+Nepomuk::FileIndexerConfig::FileIndexerConfig(QObject* parent)
+    : QObject(parent),
       m_config( "nepomukstrigirc" )
 {
+    if(!s_self) {
+        s_self = this;
+    }
+
     KDirWatch* dirWatch = KDirWatch::self();
     connect( dirWatch, SIGNAL( dirty( const QString& ) ),
              this, SLOT( slotConfigDirty() ) );
@@ -45,14 +69,12 @@ Nepomuk::FileIndexerConfig::FileIndexerConfig()
 
 Nepomuk::FileIndexerConfig::~FileIndexerConfig()
 {
-    m_config.group( "General" ).writeEntry( "first run", false );
 }
 
 
 Nepomuk::FileIndexerConfig* Nepomuk::FileIndexerConfig::self()
 {
-    K_GLOBAL_STATIC( FileIndexerConfig, _self );
-    return _self;
+    return s_self;
 }
 
 
@@ -86,7 +108,24 @@ QStringList Nepomuk::FileIndexerConfig::excludeFolders() const
 
 QStringList Nepomuk::FileIndexerConfig::excludeFilters() const
 {
-    return m_config.group( "General" ).readEntry( "exclude filters", defaultExcludeFilterList() );
+    KConfigGroup cfg = m_config.group( "General" );
+
+    // read configured exclude filters
+    QSet<QString> filters = cfg.readEntry( "exclude filters", defaultExcludeFilterList() ).toSet();
+
+    // make sure we always keep the latest default exclude filters
+    // TODO: there is one problem here. What if the user removed some of the default filters?
+    if(cfg.readEntry("exclude filters version", 0) < defaultExcludeFilterListVersion()) {
+        filters += defaultExcludeFilterList().toSet();
+
+        // write the config directly since the KCM does not have support for the version yet
+        // TODO: make this class public and use it in the KCM
+        cfg.writeEntry("exclude filters", QStringList::fromSet(filters));
+        cfg.writeEntry("exclude filters version", defaultExcludeFilterListVersion());
+    }
+
+    // remove duplicates
+    return QStringList::fromSet(filters);
 }
 
 
@@ -105,9 +144,7 @@ KIO::filesize_t Nepomuk::FileIndexerConfig::minDiskSpace() const
 
 void Nepomuk::FileIndexerConfig::slotConfigDirty()
 {
-    m_config.reparseConfiguration();
-    buildFolderCache();
-    buildExcludeFilterRegExpCache();
+    forceConfigUpdate();
     emit configChanged();
 }
 
@@ -131,18 +168,6 @@ bool Nepomuk::FileIndexerConfig::shouldBeIndexed( const QString& path ) const
     }
 }
 
-
-namespace {
-    /// recursively check if a folder is hidden
-    bool isDirHidden( QDir& dir ) {
-        if ( QFileInfo( dir.path() ).isHidden() )
-            return true;
-        else if ( dir.cdUp() )
-            return isDirHidden( dir );
-        else
-            return false;
-    }
-}
 
 bool Nepomuk::FileIndexerConfig::shouldFolderBeIndexed( const QString& path ) const
 {
@@ -202,15 +227,19 @@ bool Nepomuk::FileIndexerConfig::folderInFolderList( const QString& path, bool& 
 namespace {
     /**
      * Returns true if the specified folder f would already be included or excluded using the list
-     * folders
+     * folders. Hidden folders are a special case because of the index hidden files setting.
+     * We always keep hidden folders in the list if they are forced to be indexed.
      */
     bool alreadyInList( const QList<QPair<QString, bool> >& folders, const QString& f, bool include )
     {
         bool included = false;
+        const bool hidden = isDirHidden(f);
         for ( int i = 0; i < folders.count(); ++i ) {
             if ( f != folders[i].first &&
-                 f.startsWith( KUrl( folders[i].first ).path( KUrl::AddTrailingSlash ) ) )
+                 f.startsWith( KUrl( folders[i].first ).path( KUrl::AddTrailingSlash ) ) &&
+                 !hidden ) {
                 included = folders[i].second;
+            }
         }
         return included == include;
     }
@@ -267,6 +296,28 @@ void Nepomuk::FileIndexerConfig::buildExcludeFilterRegExpCache()
 {
     QMutexLocker lock( &m_folderCacheMutex );
     m_excludeFilterRegExpCache.rebuildCacheFromFilterList( excludeFilters() );
+}
+
+void Nepomuk::FileIndexerConfig::forceConfigUpdate()
+{
+    m_config.reparseConfiguration();
+    buildFolderCache();
+    buildExcludeFilterRegExpCache();
+}
+
+void Nepomuk::FileIndexerConfig::setInitialRun(bool isInitialRun)
+{
+    m_config.group( "General" ).writeEntry( "first run", isInitialRun );
+}
+
+bool Nepomuk::FileIndexerConfig::initialUpdateDisabled() const
+{
+    return m_config.group( "General" ).readEntry( "disable initial update", false );
+}
+
+bool Nepomuk::FileIndexerConfig::suspendOnPowerSaveDisabled() const
+{
+    return m_config.group( "General" ).readEntry( "disable suspend on powersave", false );
 }
 
 #include "fileindexerconfig.moc"
