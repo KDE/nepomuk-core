@@ -1439,8 +1439,7 @@ QHash<QUrl, QUrl> Nepomuk::DataManagementModel::storeResources(const Nepomuk::Si
 
     ResourceIdentifier resIdent( identificationMode, this );
     QList<Soprano::Statement> allStatements;
-    QList<Sync::SyncResource> extraResources;
-
+    QList<Sync::SyncResource> syncResources;
 
     //
     // Resolve URLs in property values and prepare the resource identifier
@@ -1527,7 +1526,7 @@ QHash<QUrl, QUrl> Nepomuk::DataManagementModel::storeResources(const Nepomuk::Si
                         }
 
                         newRes.setUri( resolvedUri );
-                        extraResources.append( newRes );
+                        syncResources << newRes;
 
                         resolvedNodes.insert( nieUrl, resolvedUri );
                         it.setValue( convertIfBlankUri(resolvedUri) );
@@ -1546,7 +1545,62 @@ QHash<QUrl, QUrl> Nepomuk::DataManagementModel::storeResources(const Nepomuk::Si
         } // while( it.hasNext() )
 
         // The resource is now ready.
-        // Push it into the Resource Identifier
+        syncResources << syncRes;
+    }
+
+    // Look for duplicates in the syncResources and merge them
+    QList<Sync::SyncResource> finalList;
+    QHash< uint, const Sync::SyncResource* > syncResHash;
+    QHash<Soprano::Node, Soprano::Node> duplicateResources;
+    foreach( const Sync::SyncResource& syncRes, syncResources ) {
+
+        //WARNING: The SyncResource qHash function does not use the uri while preparing the hash.
+        // If it did, then this would fail miserably.
+        uint hash = qHash( syncRes );
+        QHash< uint, const Sync::SyncResource* >::iterator it = syncResHash.find( hash );
+        if( it != syncResHash.end() ) {
+            // hash collision : Check the entire contents
+            const Sync::SyncResource r = *it.value();
+
+            // We can't use SyncResource::operator== cause that would check the uri as well
+            // and we don't care about the uri
+            if( r.QHash<KUrl,Soprano::Node>::operator==(syncRes) ) {
+                kDebug() << "Adding: " << syncRes.uri() << " " << it.value()->uri();
+                duplicateResources.insert( convertIfBlankUri( syncRes.uri() ),
+                                           convertIfBlankUri( it.value()->uri() ) );
+                continue;
+            }
+        }
+
+        syncResHash.insert( hash, &syncRes );
+        finalList << syncRes;
+    }
+
+    // Resolve all duplicates in the finalList
+    QMutableListIterator<Sync::SyncResource> it( finalList );
+    while( it.hasNext() ) {
+        it.next();
+
+        QMutableHashIterator<KUrl, Soprano::Node> iter( it.value() );
+        while( iter.hasNext() ) {
+            iter.next();
+
+            const Soprano::Node node = iter.value();
+            if( node.isLiteral() || node.isEmpty() )
+                continue;
+            QHash< Soprano::Node, Soprano::Node >::const_iterator fit = duplicateResources.constFind( node );
+            if( fit != duplicateResources.constEnd() ) {
+                iter.setValue( fit.value() );
+            }
+        }
+    }
+
+    // Free up some memory
+    duplicateResources.clear();
+    syncResHash.clear();
+
+    // Push it into the Resource Identifier
+    foreach( const Sync::SyncResource& syncRes, finalList ) {
         QList< Soprano::Statement > stList = syncRes.toStatementList();
         allStatements << stList;
 
@@ -1562,7 +1616,6 @@ QHash<QUrl, QUrl> Nepomuk::DataManagementModel::storeResources(const Nepomuk::Si
         resIdent.addSyncResource( syncRes );
     }
 
-
     //
     // Check the created statements
     //
@@ -1577,12 +1630,12 @@ QHash<QUrl, QUrl> Nepomuk::DataManagementModel::storeResources(const Nepomuk::Si
     //
     // For better identification add rdf:type and nie:url to resolvedNodes
     //
-    QHashIterator<QUrl, QUrl> it( resolvedNodes );
-    while( it.hasNext() ) {
-        it.next();
+    QHashIterator<QUrl, QUrl> it2( resolvedNodes );
+    while( it2.hasNext() ) {
+        it2.next();
 
-        const QUrl fileUrl = it.key();
-        const QUrl uri = it.value();
+        const QUrl fileUrl = it2.key();
+        const QUrl uri = it2.value();
 
         const Sync::SyncResource existingRes = resIdent.simpleResource( uri );
 
@@ -1611,10 +1664,6 @@ QHash<QUrl, QUrl> Nepomuk::DataManagementModel::storeResources(const Nepomuk::Si
 
     if( resIdent.mappings().empty() ) {
         kDebug() << "Nothing was mapped merging everything as it is.";
-    }
-
-    foreach( const Sync::SyncResource & res, extraResources ) {
-        allStatements << res.toStatementList();
     }
 
     ResourceMerger merger( this, app, additionalMetadata, flags );
