@@ -82,6 +82,7 @@ set(nepomuk_datamanagement_SRCS
   datamanagement/describeresourcesjob.cpp
   datamanagement/resourcewatcher.cpp
   datamanagement/simpleresourcegraph.cpp
+  datamanagement/storeresourcesjob.cpp
 )
 
 qt4_add_dbus_interface(nepomuk_datamanagement_SRCS
@@ -177,6 +178,7 @@ install(FILES
   datamanagement/createresourcejob.h
   datamanagement/describeresourcesjob.h
   datamanagement/resourcewatcher.h
+  datamanagement/storeresourcesjob.h
   # Vocabularies
   ${CMAKE_CURRENT_BINARY_DIR}/nie.h
   ${CMAKE_CURRENT_BINARY_DIR}/nfo.h
