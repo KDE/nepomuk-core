@@ -7,6 +7,8 @@ include_directories(
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
+configure_file(misc/nepomukversion.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/nepomukversion.h)
+
 set(nepomuk_resource_SRCS
   resource/variant.cpp
   resource/resourcedata.cpp
@@ -69,6 +71,7 @@ qt4_add_dbus_interface(nepomuk_query_SRCS
 
 set(nepomuk_misc_SRCS
   misc/utils.cpp
+  misc/nepomukversion.cpp
 )
 
 set(nepomuk_datamanagement_SRCS
@@ -179,6 +182,8 @@ install(FILES
   datamanagement/describeresourcesjob.h
   datamanagement/resourcewatcher.h
   datamanagement/storeresourcesjob.h
+  ${CMAKE_CURRENT_BINARY_DIR}/nepomukversion.h
+
   # Vocabularies
   ${CMAKE_CURRENT_BINARY_DIR}/nie.h
   ${CMAKE_CURRENT_BINARY_DIR}/nfo.h
