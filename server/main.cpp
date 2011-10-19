@@ -19,6 +19,8 @@
 #include "nepomukserver.h"
 #include "nepomukserver_export.h"
 
+#include "nepomukversion.h"
+
 #include <kuniqueapplication.h>
 #include <kapplication.h>
 #include <kcmdlineargs.h>
@@ -98,7 +100,7 @@ extern "C" NEPOMUK_SERVER_EXPORT int kdemain( int argc, char** argv )
 {
     KAboutData aboutData( "NepomukServer", "nepomukserver",
                           ki18n("Nepomuk Server"),
-                          "0.2",
+                          NEPOMUK_VERSION_STRING,
                           ki18n("Nepomuk Server - Manages Nepomuk storage and services"),
                           KAboutData::License_GPL,
                           ki18n("(c) 2008-2011, Sebastian Trüg"),

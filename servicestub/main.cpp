@@ -34,6 +34,8 @@
 #include <signal.h>
 #include <stdio.h>
 
+#include "nepomukversion.h"
+
 #include "servicecontrol.h"
 #include "priority.h"
 
@@ -71,7 +73,7 @@ int main( int argc, char** argv )
     KAboutData aboutData( "nepomukservicestub",
                           "nepomukservicestub",
                           ki18n("Nepomuk Service Stub"),
-                          "0.2",
+                          NEPOMUK_VERSION_STRING,
                           ki18n("Nepomuk Service Stub"),
                           KAboutData::License_GPL,
                           ki18n("(c) 2008, Sebastian Trüg"),
