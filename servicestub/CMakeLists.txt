@@ -36,8 +36,8 @@ target_link_libraries(nepomukservicestub
   ${QT_QTDBUS_LIBRARY}
   ${KDE4_KDECORE_LIBS}
   ${KDE4_KDEUI_LIBS}
-  ${NEPOMUK_LIBRARIES}
   ${SOPRANO_LIBRARIES}
+  nepomukcore
   )
 
 install(
