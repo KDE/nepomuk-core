@@ -397,7 +397,6 @@ QString Nepomuk::RemovableMediaModel::convertFileUrls(const QString &query) cons
 
         //
         // Find the end of a regex.
-        // FIXME: this is a bit tricky. There might be additional brackets in a regex. not sure.
         //
         else if(inRegEx && !quoteCnt && c == ')') {
             inRegEx = false;
