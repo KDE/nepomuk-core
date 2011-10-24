@@ -23,6 +23,7 @@
 #include "indexer.h"
 #include "../util.h"
 #include "../../../servicestub/priority.h"
+#include "nepomukversion.h"
 
 #include <KAboutData>
 #include <KCmdLineArgs>
@@ -42,7 +43,7 @@ int main(int argc, char *argv[])
     lowerPriority();
 
     KAboutData aboutData("nepomukindexer", 0, ki18n("NepomukIndexer"),
-                         "1.0",
+                         NEPOMUK_VERSION_STRING,
                          ki18n("NepomukIndexer indexes the contents of a file and saves the results in Nepomuk"),
                          KAboutData::License_LGPL_V2,
                          ki18n("(C) 2011, Vishesh Handa"));
