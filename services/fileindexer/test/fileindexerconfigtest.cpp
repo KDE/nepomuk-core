@@ -127,11 +127,11 @@ void FileIndexerConfigTest::testShouldFolderBeIndexed()
 void FileIndexerConfigTest::testShouldFolderBeIndexed_symlink()
 {
     // create the folder hierarchy
-    KTempDir* mainDir = createTmpFolders(QStringList()
-                                         << indexedRootDir
-                                         << indexedSubDir
-                                         << indexedSubSubDir
-                                         << ignoredRootDir);
+    QScopedPointer<KTempDir> mainDir(createTmpFolders(QStringList()
+                                                      << indexedRootDir
+                                                      << indexedSubDir
+                                                      << indexedSubSubDir
+                                                      << ignoredRootDir));
 
     const QString dirPrefix = mainDir->name();
 
@@ -149,7 +149,7 @@ void FileIndexerConfigTest::testShouldFolderBeIndexed_symlink()
                        false);
 
     // create our test config object
-    Nepomuk::FileIndexerConfig* cfg = Nepomuk::FileIndexerConfig::self();
+    QScopedPointer<Nepomuk::FileIndexerConfig> cfg(new Nepomuk::FileIndexerConfig());
 
     // check that the symlink folder should not be indexed since its target is already indexed
     QVERIFY(!cfg->shouldFolderBeIndexed(dirPrefix + symlinkToIndexedSubDir));
@@ -166,19 +166,19 @@ void FileIndexerConfigTest::testShouldFolderBeIndexed_symlink()
 void FileIndexerConfigTest::testShouldBeIndexed()
 {
     // create the full folder hierarchy
-    KTempDir* mainDir = createTmpFolders(QStringList()
-                                         << indexedRootDir
-                                         << indexedSubDir
-                                         << indexedSubSubDir
-                                         << excludedSubSubDir
-                                         << hiddenSubSubDir
-                                         << ignoredSubFolderToIndexedHidden
-                                         << indexedSubFolderToIndexedHidden
-                                         << excludedRootDir
-                                         << hiddenSubDir
-                                         << indexedHiddenSubDir
-                                         << ignoredRootDir
-                                         << excludedRootDir);
+    QScopedPointer<KTempDir> mainDir(createTmpFolders(QStringList()
+                                                      << indexedRootDir
+                                                      << indexedSubDir
+                                                      << indexedSubSubDir
+                                                      << excludedSubSubDir
+                                                      << hiddenSubSubDir
+                                                      << ignoredSubFolderToIndexedHidden
+                                                      << indexedSubFolderToIndexedHidden
+                                                      << excludedRootDir
+                                                      << hiddenSubDir
+                                                      << indexedHiddenSubDir
+                                                      << ignoredRootDir
+                                                      << excludedRootDir));
 
     const QString dirPrefix = mainDir->name();
 
@@ -273,9 +273,6 @@ void FileIndexerConfigTest::testShouldBeIndexed()
     QVERIFY(cfg->shouldBeIndexed(dirPrefix + indexedHiddenSubDir + fileName));
     QVERIFY(!cfg->shouldBeIndexed(dirPrefix + ignoredRootDir + fileName));
     QVERIFY(!cfg->shouldBeIndexed(dirPrefix + excludedRootDir + fileName));
-
-    // cleanup
-    delete mainDir;
 }
 
 void FileIndexerConfigTest::testExcludeFilterOnFolders()
