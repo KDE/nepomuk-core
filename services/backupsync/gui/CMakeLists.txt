@@ -76,8 +76,8 @@ kde4_add_executable(nepomukbackup ${NepomukBackup_GUI_SRCS})
 target_link_libraries(nepomukbackup
   ${KDE4_KDEUI_LIBS}
   ${KDE4_KIO_LIBS}
-  ${NEPOMUK_LIBRARIES}
   ${SOPRANO_LIBRARIES}
+  nepomukcore
   nepomuksync
   )
 

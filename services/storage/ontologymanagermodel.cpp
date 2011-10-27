@@ -220,11 +220,7 @@ namespace {
             tmpModel->addStatement( Soprano::Statement( dataGraphUri, Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::NRL::Ontology(), metaDataGraphUri ) );
             tmpModel->addStatement( Soprano::Statement( dataGraphUri, Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::NRL::InstanceBase(), metaDataGraphUri ) );
         }
-#if SOPRANO_IS_VERSION( 2, 2, 67 )
         tmpModel->addStatement( Soprano::Statement( dataGraphUri, Soprano::Vocabulary::NAO::hasDefaultNamespace(), LiteralValue::createPlainLiteral( ns.toString() ), metaDataGraphUri ) );
-#else
-        tmpModel->addStatement( Soprano::Statement( dataGraphUri, Soprano::Vocabulary::NAO::hasDefaultNamespace(), LiteralValue( ns.toString() ), metaDataGraphUri ) );
-#endif
     }
 }
 

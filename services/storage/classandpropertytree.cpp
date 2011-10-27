@@ -29,7 +29,6 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QMutexLocker>
 
-#include <Soprano/Version>
 #include <Soprano/Node>
 #include <Soprano/LiteralValue>
 #include <Soprano/QueryResultIterator>
@@ -294,11 +293,7 @@ QSet<Soprano::Node> Nepomuk::ClassAndPropertyTree::variantListToNodeSet(const QV
                     int y = 0;
                     if ( sscanf( value.toString().toLatin1().data(), "%d/%d", &x, &y ) == 2 && y != 0 ) {
                         const double v = double( x )/double( y );
-#if SOPRANO_IS_VERSION(2, 6, 51)
                         nodes.insert(LiteralValue::fromVariant(v, range));
-#else
-                        nodes.insert(LiteralValue::fromString(QString::number(v), range));
-#endif
                         continue;
                     }
                 }
@@ -317,7 +312,6 @@ QSet<Soprano::Node> Nepomuk::ClassAndPropertyTree::variantListToNodeSet(const QV
                     }
                 }
 
-#if SOPRANO_IS_VERSION(2, 6, 51)
                 Soprano::LiteralValue v = Soprano::LiteralValue::fromVariant(value, range);
                 if(v.isValid()) {
                     nodes.insert(v);
@@ -327,47 +321,6 @@ QSet<Soprano::Node> Nepomuk::ClassAndPropertyTree::variantListToNodeSet(const QV
                     setError(QString::fromLatin1("Failed to convert '%1' to literal of type '%2'.").arg(value.toString(), range.toString()), Soprano::Error::ErrorInvalidArgument);
                     return QSet<Soprano::Node>();
                 }
-#else
-                //
-                // We handle a few special cases here.
-                //
-                // Special Case 1: support conversion from time_t to QDateTime
-                //
-                if(range == XMLSchema::dateTime() &&
-                        value.canConvert(QVariant::UInt)) {
-                    bool ok = false;
-                    int v = value.toUInt(&ok);
-                    if(ok) {
-                        nodes.insert(Soprano::LiteralValue(QDateTime::fromTime_t(v)));
-                        continue;
-                    }
-                }
-
-                //
-                // if the types differ we try to convert
-                // (We need to treat int and friends as a special case since xsd defines more than one
-                // type mapping to them.)
-                //
-                if(value.type() != literalType
-                        || ((value.type() == QVariant::Int ||
-                             value.type() == QVariant::UInt ||
-                             value.type() == QVariant::Double)
-                            && range != Soprano::LiteralValue::dataTypeUriFromType(value.type()))) {
-                    Soprano::LiteralValue v = Soprano::LiteralValue::fromString(value.toString(), range);
-                    if(v.isValid()) {
-                        nodes.insert(v);
-                    }
-                    else {
-                        // failed literal conversion
-                        setError(QString::fromLatin1("Failed to convert '%1' to literal of type '%2'.").arg(value.toString(), range.toString()), Soprano::Error::ErrorInvalidArgument);
-                        return QSet<Soprano::Node>();
-                    }
-                }
-                else {
-                    // we already have the correct type
-                    nodes.insert(Soprano::LiteralValue(value));
-                }
-#endif
             }
         }
     }
