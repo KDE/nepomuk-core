@@ -21,6 +21,7 @@ Name[pt_BR]=Inspeção de arquivos do Nepomuk
 Name[sv]=Nepomuk-filövervakning
 Name[uk]=NepomukFileWatch
 Name[x-test]=xxNepomukFileWatchxx
+Name[zh_CN]=Nepomuk 文件监视
 Name[zh_TW]=Nepomuk 檔案監控
 Comment=The Nepomuk file watch service for monitoring file changes
 Comment[ca]=El servei de control de fitxers del Nepomuk per fer un seguiment dels canvis en fitxers
