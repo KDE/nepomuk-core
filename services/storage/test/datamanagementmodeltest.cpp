@@ -4532,6 +4532,80 @@ void DataManagementModelTest::testStoreResources_duplicates()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
+void DataManagementModelTest::testStoreResources_duplicateHierarchy()
+{
+    SimpleResource contact1;
+    contact1.addType( NCO::Contact() );
+    contact1.addProperty( NCO::fullname(), QLatin1String("Spiderman") );
+    contact1.addProperty( NAO::prefLabel(), QLatin1String("test") );
+
+    SimpleResource email1;
+    email1.addType(NCO::EmailAddress());
+    email1.addProperty(NCO::emailAddress(), QLatin1String("email@foo.com"));
+    contact1.addProperty(NCO::hasEmailAddress(), email1.uri());
+
+    SimpleResource contact2;
+    contact2.addType( NCO::Contact() );
+    contact2.addProperty( NCO::fullname(), QLatin1String("Spiderman") );
+    contact2.addProperty( NAO::prefLabel(), QLatin1String("test") );
+
+    SimpleResource email2;
+    email2.addType(NCO::EmailAddress());
+    email2.addProperty(NCO::emailAddress(), QLatin1String("email@foo.com"));
+    contact2.addProperty(NCO::hasEmailAddress(), email2.uri());
+
+    SimpleResourceGraph graph;
+    graph << email1 << contact1 << email2 << contact2;
+
+    m_dmModel->storeResources( graph, "appA" );
+    QVERIFY(!m_dmModel->lastError());
+
+    int contactCount = m_model->listStatements( Node(), RDF::type(),
+                                                NCO::Contact() ).allStatements().size();
+    QCOMPARE( contactCount, 1 );
+
+    int emailCount = m_model->listStatements( Node(), RDF::type(),
+                                              NCO::EmailAddress() ).allStatements().size();
+    QCOMPARE( emailCount, 1 );
+
+    QCOMPARE( m_model->listStatements( Node(), NCO::fullname(), Node()
+                                       ).allStatements().size(), 1 );
+    QCOMPARE( m_model->listStatements( Node(), NAO::prefLabel(), Node()
+                                       ).allStatements().size(), 1 );
+
+    QVERIFY(!haveTrailingGraphs());
+}
+
+void DataManagementModelTest::testStoreResources_duplicates2()
+{
+    SimpleResourceGraph graph;
+
+    for( int i=0; i<2; i++ ) {
+        SimpleResource contact;
+        contact.addType( NCO::Contact() );
+        contact.setProperty( NCO::fullname(), QLatin1String("Peter") );
+
+        SimpleResource email;
+        email.addType( NCO::EmailAddress() );
+        email.addProperty( NCO::emailAddress(), QUrl("peter@parker.com") );
+
+        contact.addProperty( NCO::hasEmailAddress(), email );
+
+        graph << contact << email;
+    }
+
+    m_dmModel->storeResources( graph, QLatin1String("appA") );
+    QVERIFY(!m_dmModel->lastError());
+
+    // There should only be one email and one contact
+    int contactCount = m_model->listStatements( Node(), RDF::type(), NCO::Contact() ).allStatements().size();
+    QCOMPARE( contactCount, 1 );
+
+    int emailCount = m_model->listStatements( Node(), RDF::type(), NCO::EmailAddress() ).allStatements().size();
+    QCOMPARE( emailCount, 1 );
+}
+
+
 void DataManagementModelTest::testStoreResources_overwriteProperties()
 {
     SimpleResource contact;

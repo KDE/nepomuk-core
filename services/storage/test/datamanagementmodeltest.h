@@ -140,6 +140,8 @@ private Q_SLOTS:
     void testStoreResources_itemUris();
     void testStoreResources_kioProtocols();
     void testStoreResources_duplicates();
+    void testStoreResources_duplicateHierarchy();
+    void testStoreResources_duplicates2();
     void testStoreResources_overwriteProperties();
     void testStoreResources_correctDomainInStore();
     void testStoreResources_correctDomainInStore2();
