@@ -19,19 +19,19 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef FILEINDEXERCONFIGTEST_H
-#define FILEINDEXERCONFIGTEST_H
+#ifndef INDEXCLEANERTEST_H
+#define INDEXCLEANERTEST_H
 
 #include <QObject>
 
-class FileIndexerConfigTest : public QObject
+class IndexCleanerTest : public QObject
 {
     Q_OBJECT
 
 private slots:
-    void testShouldFolderBeIndexed();
-    void testShouldBeIndexed();
-    void testExcludeFilterOnFolders();
+    void testConstructExcludeFolderFilter();
+    void testConstructExcludeFiltersFolderFilter1();
+    void testConstructExcludeFiltersFolderFilter2();
 };
 
-#endif // FILEINDEXERCONFIGTEST_H
+#endif // INDEXCLEANERTEST_H

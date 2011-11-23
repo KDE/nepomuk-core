@@ -6,6 +6,7 @@ include_directories(
   ${NEPOMUK_INCLUDE_DIR}
   ${CMAKE_CURRENT_BINARY_DIR}/..
   ${CMAKE_CURRENT_SOURCE_DIR}/..
+  ${libnepomukcore_BINARY_DIR}
   )
 
 kde4_add_unit_test(crappyinferencer2test

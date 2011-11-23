@@ -96,9 +96,11 @@ namespace Nepomuk {
 
     Q_SIGNALS:
         void opened( Repository*, bool success );
+        void closed( Repository* );
 
     private Q_SLOTS:
         void copyFinished( KJob* job );
+        void slotVirtuosoStopped( bool normalExit );
 
     private:
         Soprano::BackendSettings readVirtuosoSettings() const;

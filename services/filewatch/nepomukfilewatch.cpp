@@ -1,5 +1,5 @@
 /* This file is part of the KDE Project
-   Copyright (c) 2007-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2007-2011 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -97,14 +97,12 @@ namespace {
 
         // Only watch the index folders for file creation and change.
         if( Nepomuk::FileIndexerConfig::self()->shouldFolderBeIndexed( path ) ) {
-            modes |= KInotify::EventCreate;
-            modes |= KInotify::EventModify;
             modes |= KInotify::EventCloseWrite;
+            modes |= KInotify::EventCreate;
         }
         else {
-            modes &= (~KInotify::EventCreate);
-            modes &= (~KInotify::EventModify);
             modes &= (~KInotify::EventCloseWrite);
+            modes &= (~KInotify::EventCreate);
         }
 
         return true;
@@ -130,11 +128,13 @@ Nepomuk::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
     m_pathExcludeRegExpCache->rebuildCacheFromFilterList( defaultExcludeFilterList() );
 
     // start the mover thread
-    m_metadataMover = new MetadataMover( mainModel(), this );
+    m_metadataMoverThread = new QThread(this);
+    m_metadataMoverThread->start();
+    m_metadataMover = new MetadataMover( mainModel() );
     connect( m_metadataMover, SIGNAL(movedWithoutData(QString)),
              this, SLOT(slotMovedWithoutData(QString)),
              Qt::QueuedConnection );
-    m_metadataMover->start();
+    m_metadataMover->moveToThread(m_metadataMoverThread);
 
     m_fileModificationQueue = new ActiveFileQueue(this);
     connect(m_fileModificationQueue, SIGNAL(urlTimeout(KUrl)),
@@ -148,10 +148,8 @@ Nepomuk::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
              this, SLOT( slotFileMoved( QString, QString ) ) );
     connect( m_dirWatch, SIGNAL( deleted( QString, bool ) ),
              this, SLOT( slotFileDeleted( QString, bool ) ) );
-    connect( m_dirWatch, SIGNAL( created( QString ) ),
-             this, SLOT( slotFileCreated( QString ) ) );
-    connect( m_dirWatch, SIGNAL( modified( QString ) ),
-             this, SLOT( slotFileModified( QString ) ) );
+    connect( m_dirWatch, SIGNAL( created( QString, bool ) ),
+             this, SLOT( slotFileCreated( QString, bool ) ) );
     connect( m_dirWatch, SIGNAL( closedWrite( QString ) ),
              this, SLOT( slotFileClosedAfterWrite( QString ) ) );
     connect( m_dirWatch, SIGNAL( watchUserLimitReached() ),
@@ -187,18 +185,19 @@ Nepomuk::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
 Nepomuk::FileWatch::~FileWatch()
 {
     kDebug();
-    m_metadataMover->stop();
-    m_metadataMover->wait();
+    m_metadataMoverThread->quit();
+    m_metadataMoverThread->wait();
 }
 
 
+// FIXME: listen to Create for folders!
 void Nepomuk::FileWatch::watchFolder( const QString& path )
 {
     kDebug() << path;
 #ifdef BUILD_KINOTIFY
     if ( m_dirWatch && !m_dirWatch->watchingPath( path ) )
         m_dirWatch->addWatch( path,
-                              KInotify::WatchEvents( KInotify::EventMove|KInotify::EventDelete|KInotify::EventDeleteSelf|KInotify::EventCreate|KInotify::EventModify|KInotify::EventCloseWrite ),
+                              KInotify::WatchEvents( KInotify::EventMove|KInotify::EventDelete|KInotify::EventDeleteSelf|KInotify::EventCloseWrite|KInotify::EventCreate ),
                               KInotify::WatchFlags() );
 #endif
 }
@@ -207,11 +206,8 @@ void Nepomuk::FileWatch::watchFolder( const QString& path )
 void Nepomuk::FileWatch::slotFileMoved( const QString& urlFrom, const QString& urlTo )
 {
     if( !ignorePath( urlFrom ) || !ignorePath( urlTo ) ) {
-        KUrl from( urlFrom );
-        KUrl to( urlTo );
-
-        kDebug() << from << to;
-
+        const KUrl from( urlFrom );
+        const KUrl to( urlTo );
         m_metadataMover->moveFileMetadata( from, to );
     }
 }
@@ -244,32 +240,21 @@ void Nepomuk::FileWatch::slotFileDeleted( const QString& urlString, bool isDir )
 }
 
 
-void Nepomuk::FileWatch::slotFileCreated( const QString& path )
+void Nepomuk::FileWatch::slotFileCreated( const QString& path, bool isDir )
 {
-    if( FileIndexerConfig::self()->shouldBeIndexed(path) ) {
-        // we only cache the file and wait until it has been closed, ie. the writing has been finished
-        m_modifiedFilesCache.insert(path);
-    }
-}
-
-
-void Nepomuk::FileWatch::slotFileModified( const QString& path )
-{
-    if( FileIndexerConfig::self()->shouldBeIndexed(path) ) {
-        // we only cache the file and wait until it has been closed, ie. the writing has been finished
-        m_modifiedFilesCache.insert(path);
+    // we only need the file creation event for folders
+    // file creation is always followed by a CloseAfterWrite event
+    if(isDir) {
+        updateFileViaFileIndexer(path);
     }
 }
 
 
 void Nepomuk::FileWatch::slotFileClosedAfterWrite( const QString& path )
 {
-    // we only need to update the file if it has actually been modified
-    QSet<KUrl>::iterator it = m_modifiedFilesCache.find(path);
-    if(it != m_modifiedFilesCache.end()) {
+    if(FileIndexerConfig::self()->shouldBeIndexed(path)) {
         // we do not tell the file indexer right away but wait a short while in case the file is modified very often (irc logs for example)
         m_fileModificationQueue->enqueueUrl( path );
-        m_modifiedFilesCache.erase(it);
     }
 }
 
