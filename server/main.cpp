@@ -21,19 +21,22 @@
 
 #include "nepomukversion.h"
 
-#include <kuniqueapplication.h>
-#include <kapplication.h>
 #include <kcmdlineargs.h>
 #include <kaboutdata.h>
 #include <klocale.h>
-#include <kglobal.h>
-#include <kconfig.h>
-#include <kconfiggroup.h>
+#include <kcomponentdata.h>
 #include <kdebug.h>
+
+#include <QtCore/QCoreApplication>
+#include <QtDBus/QDBusConnection>
+#include <QtDBus/QDBusConnectionInterface>
 
 #include <signal.h>
 
+
 namespace {
+    Nepomuk::Server* s_server = 0;
+
 #ifndef Q_OS_WIN
     void signalHandler( int signal )
     {
@@ -42,15 +45,13 @@ namespace {
         case SIGQUIT:
         case SIGTERM:
         case SIGINT:
-            if ( qApp ) {
-                qApp->quit();
+            if ( s_server ) {
+                s_server->quit();
             }
         }
     }
-#endif
 
     void installSignalHandler() {
-#ifndef Q_OS_WIN
         struct sigaction sa;
         ::memset( &sa, 0, sizeof( sa ) );
         sa.sa_handler = signalHandler;
@@ -58,30 +59,8 @@ namespace {
         sigaction( SIGINT, &sa, 0 );
         sigaction( SIGQUIT, &sa, 0 );
         sigaction( SIGTERM, &sa, 0 );
-#endif
     }
-}
-
-
-namespace Nepomuk {
-    class ServerApplication : public KUniqueApplication
-    {
-    public:
-        ServerApplication()
-            : KUniqueApplication(false /* no gui */),
-              m_server( 0 ) {
-        }
-
-        int newInstance() {
-            if ( !m_server ) {
-                m_server = new Server( this );
-            }
-            return 0;
-        }
-
-    private:
-        Server* m_server;
-    };
+#endif
 }
 
 
@@ -92,26 +71,24 @@ extern "C" NEPOMUK_SERVER_EXPORT int kdemain( int argc, char** argv )
                           NEPOMUK_VERSION_STRING,
                           ki18n("Nepomuk Server - Manages Nepomuk storage and services"),
                           KAboutData::License_GPL,
-                          ki18n("(c) 2008, Sebastian Trüg"),
+                          ki18n("(c) 2008-2011, Sebastian Trüg"),
                           KLocalizedString(),
                           "http://nepomuk.kde.org" );
     aboutData.addAuthor(ki18n("Sebastian Trüg"),ki18n("Maintainer"), "trueg@kde.org");
 
     KCmdLineArgs::init( argc, argv, &aboutData );
-
-    KUniqueApplication::addCmdLineOptions();
-
     KComponentData componentData( &aboutData );
 
-    if ( !KUniqueApplication::start() ) {
+    if ( QDBusConnection::sessionBus().interface()->isServiceRegistered(QLatin1String("org.kde.NepomukServer")) ) {
         fprintf( stderr, "Nepomuk server already running.\n" );
         return 0;
     }
 
+#ifndef Q_OS_WIN
     installSignalHandler();
+#endif
 
-    Nepomuk::ServerApplication app;
-    app.disableSessionManagement();
-    app.setQuitOnLastWindowClosed( false );
+    QCoreApplication app(argc, argv);
+    s_server = new Nepomuk::Server(&app);
     return app.exec();
 }
