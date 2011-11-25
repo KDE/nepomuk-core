@@ -38,6 +38,7 @@
 #include <QtCore/QStringList>
 #include <QtCore/QVariant>
 #include <QtCore/QThreadPool>
+#include <QtDBus/QDBusMetaType>
 
 #define USING_SOPRANO_NRLMODEL_UNSTABLE_API
 #include <Soprano/NRLModel>
@@ -49,6 +50,10 @@ Nepomuk::DataManagementAdaptor::DataManagementAdaptor(Nepomuk::DataManagementMod
       m_namespacePrefixRx(QLatin1String("(\\w+)\\:(\\w+)"))
 {
     DBus::registerDBusTypes();
+
+    // FIXME: it is not sufficient to put this register call in DBus::registerDBusTypes()
+    //        might have to do with the latter being part of libnepomukcore.
+    qDBusRegisterMetaType<__nepomuk_QHashQStringQString>();
 
     m_threadPool = new QThreadPool(this);
 
