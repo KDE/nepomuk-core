@@ -10,18 +10,22 @@ include_directories(
 
 kde4_add_unit_test(fileindexerconfigtest
   fileindexerconfigtest.cpp
+  ${nepomukcommon_SOURCE_DIR}/regexpcache.cpp
+  ${nepomukcommon_SOURCE_DIR}/fileexcludefilters.cpp
   ../fileindexerconfig.cpp)
 target_link_libraries(fileindexerconfigtest
   ${QT_QTTEST_LIBRARY}
-  ${KDE4_KDECORE_LIBS}
-  nepomukcommon)
+  ${KDE4_KDECORE_LIBS})
 
 kde4_add_unit_test(indexcleanertest
   indexcleanertest.cpp
+  ${nepomukcommon_SOURCE_DIR}/regexpcache.cpp
+  ${nepomukcommon_SOURCE_DIR}/fileexcludefilters.cpp
   ../fileindexerconfig.cpp
   ../indexcleaner.cpp
   ../util.cpp)
 target_link_libraries(indexcleanertest
   ${QT_QTTEST_LIBRARY}
+  ${SOPRANO_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
-  nepomukcommon)
+  nepomuktestcore)

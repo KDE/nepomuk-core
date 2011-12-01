@@ -10,49 +10,49 @@ include_directories(
 configure_file(misc/nepomukversion.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/nepomukversion.h)
 
 set(nepomuk_resource_SRCS
-  resource/variant.cpp
-  resource/resourcedata.cpp
-  resource/resourcemanager.cpp
-  resource/resourcefiltermodel.cpp
-  resource/nepomukmainmodel.cpp
-  resource/resource.cpp
-  resource/thing.cpp
-  resource/file.cpp
-  resource/tag.cpp
-  resource/nepomukservice.cpp
-  resource/graphwrapper.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/variant.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/resourcedata.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/resourcemanager.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/resourcefiltermodel.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/nepomukmainmodel.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/resource.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/thing.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/file.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/tag.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/nepomukservice.cpp
+  ${libnepomukcore_SOURCE_DIR}/resource/graphwrapper.cpp
 )
 
 set(nepomuk_types_SRCS
-  types/entity.cpp
-  types/ontology.cpp
-  types/class.cpp
-  types/property.cpp
-  types/literal.cpp
-  types/entitymanager.cpp
+  ${libnepomukcore_SOURCE_DIR}/types/entity.cpp
+  ${libnepomukcore_SOURCE_DIR}/types/ontology.cpp
+  ${libnepomukcore_SOURCE_DIR}/types/class.cpp
+  ${libnepomukcore_SOURCE_DIR}/types/property.cpp
+  ${libnepomukcore_SOURCE_DIR}/types/literal.cpp
+  ${libnepomukcore_SOURCE_DIR}/types/entitymanager.cpp
 )
 
 set(nepomuk_query_SRCS
-  query/term.cpp
-  query/negationterm.cpp
-  query/orterm.cpp
-  query/andterm.cpp
-  query/comparisonterm.cpp
-  query/simpleterm.cpp
-  query/groupterm.cpp
-  query/resourceterm.cpp
-  query/literalterm.cpp
-  query/resourcetypeterm.cpp
-  query/optionalterm.cpp
-  query/query.cpp
-  query/filequery.cpp
-  query/queryparser.cpp
-  query/dateparser.cpp
-  query/result.cpp
-  query/queryserviceclient.cpp
-  query/dbusoperators.cpp
-  query/queryserializer.cpp
-  query/standardqueries.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/term.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/negationterm.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/orterm.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/andterm.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/comparisonterm.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/simpleterm.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/groupterm.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/resourceterm.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/literalterm.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/resourcetypeterm.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/optionalterm.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/query.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/filequery.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/queryparser.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/dateparser.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/result.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/queryserviceclient.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/dbusoperators.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/queryserializer.cpp
+  ${libnepomukcore_SOURCE_DIR}/query/standardqueries.cpp
 )
 
 set_source_files_properties(
@@ -70,22 +70,22 @@ qt4_add_dbus_interface(nepomuk_query_SRCS
   queryinterface)
 
 set(nepomuk_misc_SRCS
-  misc/utils.cpp
-  misc/nepomukversion.cpp
+  ${libnepomukcore_SOURCE_DIR}/misc/utils.cpp
+  ${libnepomukcore_SOURCE_DIR}/misc/nepomukversion.cpp
 )
 
 set(nepomuk_datamanagement_SRCS
-  datamanagement/abstracttimeoutdbusinterface.cpp
-  datamanagement/datamanagement.cpp
-  datamanagement/dbustypes.cpp
-  datamanagement/genericdatamanagementjob.cpp
-  datamanagement/simpleresource.cpp
-  datamanagement/createresourcejob.cpp
-  datamanagement/datamanagementinterface.cpp
-  datamanagement/describeresourcesjob.cpp
-  datamanagement/resourcewatcher.cpp
-  datamanagement/simpleresourcegraph.cpp
-  datamanagement/storeresourcesjob.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/abstracttimeoutdbusinterface.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/datamanagement.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/genericdatamanagementjob.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/simpleresource.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/createresourcejob.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/datamanagementinterface.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/describeresourcesjob.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/resourcewatcher.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/simpleresourcegraph.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/storeresourcesjob.cpp
 )
 
 qt4_add_dbus_interface(nepomuk_datamanagement_SRCS
@@ -102,7 +102,7 @@ set(nepomuk_LIB_SRCS
   ${nepomuk_types_SRCS}
   ${nepomuk_query_SRCS}
   ${nepomuk_datamanagement_SRCS}
-  stuff-to-remove-for-kdelibs-5.0/kdbusconnectionpool.cpp
+  ${libnepomukcore_SOURCE_DIR}/stuff-to-remove-for-kdelibs-5.0/kdbusconnectionpool.cpp
 )
 
 soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nie.trig" "NIE" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")

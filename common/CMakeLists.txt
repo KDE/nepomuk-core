@@ -1,4 +1,4 @@
-project(nepomuk_common)
+project(nepomukcommon)
 
 set(nepomukcommon_SRCS
   fileexcludefilters.cpp

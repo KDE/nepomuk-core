@@ -17,11 +17,12 @@ target_link_libraries(crappyinferencer2test
   ${QT_QTTEST_LIBRARY}
   ${SOPRANO_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
-  nepomukcore)
+  nepomuktestcore)
 
 kde4_add_unit_test(removablemediamodeltest
   removablemediamodeltest.cpp
   ../removablemediamodel.cpp
+  ${nepomukcommon_SOURCE_DIR}/removablemediacache.cpp
 )
 add_definitions(-DFAKE_COMPUTER_XML="\\"${CMAKE_CURRENT_SOURCE_DIR}/solid/fakecomputer.xml\\"")
 target_link_libraries(removablemediamodeltest
@@ -29,8 +30,7 @@ target_link_libraries(removablemediamodeltest
   ${SOPRANO_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
   ${KDE4_SOLID_LIBS}
-  nepomukcore
-  nepomukcommon
+  nepomuktestcore
 )
 
 set( DMTEST
@@ -43,8 +43,17 @@ set( DMTEST
   ../resourcemerger.cpp
   ../resourceidentifier.cpp
   ../crappyinferencer.cpp
+  ${CMAKE_SOURCE_DIR}/services/backupsync/lib/syncresource.cpp
+  ${CMAKE_SOURCE_DIR}/services/backupsync/lib/resourceidentifier.cpp
+  ${CMAKE_SOURCE_DIR}/services/backupsync/lib/identificationsetgenerator.cpp
   qtest_dms.cpp
 )
+
+soprano_add_ontology(DMTEST
+   ${CMAKE_SOURCE_DIR}/ontologies/nrio.trig
+  "NRIO"
+  "Nepomuk::Vocabulary"
+  "trig")
 
 qt4_add_dbus_adaptor(DMTEST
   ../../../interfaces/org.kde.nepomuk.ResourceWatcherConnection.xml
@@ -58,8 +67,7 @@ target_link_libraries( datamanagementtestlib
   ${SOPRANO_LIBRARIES}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  nepomukcore
-  nepomuksync
+  nepomuktestcore
 )
 
 kde4_add_unit_test(classandpropertytreetest
@@ -81,8 +89,7 @@ target_link_libraries(datamanagementmodeltest
   ${SOPRANO_LIBRARIES}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  nepomukcore
-  nepomuksync
+  nepomuktestcore
   datamanagementtestlib
 )
 
@@ -97,8 +104,7 @@ target_link_libraries(datamanagementadaptortest
   ${KDE4_KDECORE_LIBS}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  nepomukcore
-  nepomuksync
+  nepomuktestcore
   datamanagementtestlib
 )
 
@@ -116,8 +122,7 @@ target_link_libraries(fakedms
   ${KDE4_KDECORE_LIBS}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  nepomukcore
-  nepomuksync
+  nepomuktestcore
   datamanagementtestlib
 )
 
@@ -133,7 +138,7 @@ target_link_libraries(asyncclientapitest
   ${SOPRANO_LIBRARIES}
   ${SOPRANO_CLIENT_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
-  nepomukcore
+  nepomuktestcore
 )
 
 kde4_add_executable(resourcewatchertest
@@ -147,9 +152,7 @@ target_link_libraries(resourcewatchertest
   ${KDE4_KDECORE_LIBS}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
-  nepomukcore
-  nepomuksync
-
+  nepomuktestcore
   datamanagementtestlib
 )
 
@@ -157,7 +160,7 @@ kde4_add_unit_test(simpleresourceclassestest
   simpleresourceclassestest.cpp
 )
 target_link_libraries(simpleresourceclassestest
-  nepomukcore
+  nepomuktestcore
   ${QT_QTTEST_LIBRARY}
   ${QT_QTCORE_LIBRARY}
 )
