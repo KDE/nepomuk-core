@@ -54,6 +54,11 @@ soprano_add_ontology(DMTEST
   "NRIO"
   "Nepomuk::Vocabulary"
   "trig")
+soprano_add_ontology(DMTEST
+   ${nepomuk_ontologies_SOURCE_DIR}/kext.trig
+   "KExt"
+   "Nepomuk::Vocabulary"
+   "trig")
 
 qt4_add_dbus_adaptor(DMTEST
   ../../../interfaces/org.kde.nepomuk.ResourceWatcherConnection.xml

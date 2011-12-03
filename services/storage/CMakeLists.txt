@@ -5,6 +5,7 @@ add_definitions(-DKDE_DEFAULT_DEBUG_AREA=300105)
 include_directories(
   ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
+  ${CMAKE_CURRENT_BINARY_DIR}
   )
 
 set(storage_SRCS
@@ -28,6 +29,8 @@ set(storage_SRCS
   resourcewatcherconnection.cpp
   graphmaintainer.cpp
   )
+
+soprano_add_ontology(storage_SRCS ${nepomuk_ontologies_SOURCE_DIR}/kext.trig "KExt" "Nepomuk::Vocabulary" "trig")
 
 qt4_add_dbus_adaptor(storage_SRCS
   ../../interfaces/org.kde.nepomuk.OntologyManager.xml
