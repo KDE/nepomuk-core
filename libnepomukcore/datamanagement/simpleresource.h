@@ -180,7 +180,6 @@ private:
     QSharedDataPointer<Private> d;
 };
 
-
 NEPOMUK_EXPORT QDataStream & operator<<(QDataStream &, const Nepomuk::SimpleResource& );
 NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk::SimpleResource& );
 NEPOMUK_EXPORT QDebug operator<<(QDebug dbg, const Nepomuk::SimpleResource& res);
@@ -189,5 +188,7 @@ NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk::SimpleResource& 
 
 NEPOMUK_EXPORT uint qHash(const SimpleResource& res);
 }
+
+Q_DECLARE_TYPEINFO(Nepomuk::SimpleResource, Q_MOVABLE_TYPE);
 
 #endif
