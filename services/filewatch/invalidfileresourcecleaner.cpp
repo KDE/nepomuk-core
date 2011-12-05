@@ -32,12 +32,15 @@
 #include "resourcemanager.h"
 #include "datamanagement.h"
 #include "nie.h"
+#include "kext.h"
 
 #include <KDebug>
 #include <KConfig>
 #include <KConfigGroup>
 #include <KUrl>
 #include <KJob>
+
+using namespace Nepomuk::Vocabulary;
 
 
 Nepomuk::InvalidFileResourceCleaner::InvalidFileResourceCleaner( QObject* parent )
@@ -71,7 +74,7 @@ void Nepomuk::InvalidFileResourceCleaner::run()
         basePathFilter = QString::fromLatin1("FILTER(REGEX(STR(?url), '^%1')) . ")
                 .arg(KUrl(m_basePath).url(KUrl::AddTrailingSlash));
     }
-    const QString query
+    QString query
             = QString::fromLatin1( "select distinct ?r ?url where { "
                                    "?r %1 ?url . %2}" )
             .arg( Soprano::Node::resourceToN3( Nepomuk::Vocabulary::NIE::url() ),
@@ -80,12 +83,28 @@ void Nepomuk::InvalidFileResourceCleaner::run()
             = Nepomuk::ResourceManager::instance()->mainModel()->executeQuery( query, Soprano::Query::QueryLanguageSparql );
 
     while( it.next() && !m_stopped ) {
-        QUrl url( it["url"].uri() );
-        QString file = url.toLocalFile();
+        const QUrl url( it["url"].uri() );
+        const QString file = url.toLocalFile();
 
         if( !file.isEmpty() && !QFile::exists(file) ) {
             kDebug() << "REMOVING " << file;
             m_resourcesToRemove << it["r"].uri();
+        }
+    }
+
+    // Step 2: remove kext:altUrl properties for non-existing files
+    query = QString::fromLatin1("select ?r ?url where { "
+                                "?r %1 ?url . %2}")
+            .arg( Soprano::Node::resourceToN3( Nepomuk::Vocabulary::KExt::altUrl() ),
+                  basePathFilter );
+    it = Nepomuk::ResourceManager::instance()->mainModel()->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    while( it.next() && !m_stopped ) {
+        const QUrl url( it["url"].uri() );
+        const QString file = url.toLocalFile();
+
+        if( !file.isEmpty() && !QFile::exists(file) ) {
+            kDebug() << "REMOVING ALTURL" << file;
+            m_altUrlsToRemove << qMakePair(it["r"].uri(), url);
         }
     }
 
@@ -102,14 +121,31 @@ void Nepomuk::InvalidFileResourceCleaner::start(const QString &basePath)
 
 void Nepomuk::InvalidFileResourceCleaner::removeResources()
 {
+    // grab max 10 resources from the list
     QList<QUrl> uris;
     for(int i = 0; i < 10 && !m_resourcesToRemove.isEmpty(); ++i) {
         uris << m_resourcesToRemove.takeFirst();
     }
-    if(!m_stopped && !uris.isEmpty()) {
-        kDebug() << uris;
-        connect(Nepomuk::removeResources(uris), SIGNAL(result(KJob*)),
-                this, SLOT(removeResources()));
+
+    // take the first altUrl removal if there are no more uris
+    QUrl res, altUrl;
+    if(uris.isEmpty() && !m_altUrlsToRemove.isEmpty()) {
+        res = m_altUrlsToRemove.first().first;
+        altUrl = m_altUrlsToRemove.first().second;
+        m_altUrlsToRemove.takeFirst();
+    }
+
+    if(!m_stopped && (!uris.isEmpty() || !res.isEmpty())) {
+        if(!uris.isEmpty()) {
+            kDebug() << uris;
+            connect(Nepomuk::removeResources(uris), SIGNAL(result(KJob*)),
+                    this, SLOT(removeResources()));
+        }
+        else {
+            kDebug() << res << altUrl;
+            connect(Nepomuk::removeProperty(QList<QUrl>() << res, KExt::altUrl(), QVariantList() << altUrl), SIGNAL(result(KJob*)),
+                    this, SLOT(removeResources()));
+        }
     }
     else {
     #ifndef NDEBUG
