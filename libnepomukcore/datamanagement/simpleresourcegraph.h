@@ -142,4 +142,6 @@ NEPOMUK_EXPORT QDataStream & operator<<(QDataStream &, const Nepomuk::SimpleReso
 NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk::SimpleResourceGraph& graph);
 }
 
+Q_DECLARE_TYPEINFO(Nepomuk::SimpleResourceGraph, Q_MOVABLE_TYPE);
+
 #endif
