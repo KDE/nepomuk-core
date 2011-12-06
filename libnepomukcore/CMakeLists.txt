@@ -200,7 +200,20 @@ install(FILES
   DESTINATION ${INCLUDE_INSTALL_DIR}/nepomuk COMPONENT Devel
 )
 
-add_subdirectory(test)
+if (KDE4_BUILD_TESTS)
+  # The static nepomukcore lib to avoid installation for testing
+  kde4_add_library(nepomuktestcore STATIC ${nepomuk_LIB_SRCS})
+  target_link_libraries(nepomuktestcore
+    ${SOPRANO_LIBRARIES}
+    ${SOPRANO_CLIENT_LIBRARIES}
+    ${QT_QTCORE_LIBRARY}
+    ${QT_QTGUI_LIBRARY}
+    ${QT_QTDBUS_LIBRARY}
+    kdecore
+    kdeui
+  )
+  add_subdirectory(test)
+endif()
 
 # API docs
 find_package(Doxygen)

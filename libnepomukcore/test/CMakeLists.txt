@@ -4,17 +4,6 @@ set( EXECUTABLE_OUTPUT_PATH ${CMAKE_CURRENT_BINARY_DIR} )
 
 add_definitions(-DBUILDING_NEPOMUK_TESTS)
 
-# The static nepomukcore lib to avoid installation for testing
-kde4_add_library(nepomuktestcore STATIC ${nepomuk_LIB_SRCS})
-target_link_libraries(nepomuktestcore
-  ${SOPRANO_LIBRARIES}
-  ${SOPRANO_CLIENT_LIBRARIES}
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTGUI_LIBRARY}
-  ${QT_QTDBUS_LIBRARY}
-  kdecore
-  kdeui
-)
 
 # Query tests
 # --------------------------------------------
