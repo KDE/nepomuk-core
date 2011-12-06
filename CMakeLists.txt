@@ -56,9 +56,9 @@ include_directories(
   ${nepomuk-core_BINARY_DIR}/libnepomukcore
 )
 
+add_subdirectory(ontologies)
 add_subdirectory(libnepomukcore)
 add_subdirectory(rcgen)
-add_subdirectory(ontologies)
 add_subdirectory(common)
 add_subdirectory(server)
 add_subdirectory(services)

@@ -116,6 +116,7 @@ soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/pimo/
 soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/pimo/tmo.trig" "TMO" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
 soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nepomuk/nuao.trig" "NUAO" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
 soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nepomuk/ndo.trig" "NDO" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${nepomuk_ontologies_SOURCE_DIR}/kext.trig" "KExt" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
 
 kde4_add_library(nepomukcore SHARED ${nepomuk_LIB_SRCS})
 
@@ -196,6 +197,7 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/tmo.h
   ${CMAKE_CURRENT_BINARY_DIR}/nuao.h
   ${CMAKE_CURRENT_BINARY_DIR}/ndo.h
+  ${CMAKE_CURRENT_BINARY_DIR}/kext.h
 
   DESTINATION ${INCLUDE_INSTALL_DIR}/nepomuk COMPONENT Devel
 )
