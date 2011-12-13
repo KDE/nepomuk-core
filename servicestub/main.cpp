@@ -1,5 +1,5 @@
 /* This file is part of the KDE Project
-   Copyright (c) 2008 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2008-2011 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -23,7 +23,6 @@
 #include <KService>
 #include <KServiceTypeTrader>
 #include <KDebug>
-#include <KApplication>
 
 #include <QtCore/QTextStream>
 #include <QtCore/QTimer>
@@ -76,7 +75,7 @@ int main( int argc, char** argv )
                           NEPOMUK_VERSION_STRING,
                           ki18n("Nepomuk Service Stub"),
                           KAboutData::License_GPL,
-                          ki18n("(c) 2008, Sebastian Trüg"),
+                          ki18n("(c) 2008-2011, Sebastian Trüg"),
                           KLocalizedString(),
                           "http://nepomuk.kde.org" );
     aboutData.setProgramIconName( "nepomuk" );
@@ -104,10 +103,9 @@ int main( int argc, char** argv )
     args->clear();
 
     aboutData.setAppName( serviceName.toLocal8Bit() );
-    KApplication app( true /* The strigi service actually needs a GUI at the moment */ );
-    app.disableSessionManagement();
+    KComponentData component(aboutData);
+    QApplication app( argc, argv );
     installSignalHandler();
-    QApplication::setQuitOnLastWindowClosed( false );
     KGlobal::locale()->insertCatalog( serviceName );
 
 
