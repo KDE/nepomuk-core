@@ -28,6 +28,7 @@
 #include <Soprano/QueryResultIterator>
 #include <Soprano/Vocabulary/RDF>
 #include <Soprano/Vocabulary/RDFS>
+#include <Soprano/Vocabulary/NRL>
 
 #include "resourcemanager.h"
 
@@ -46,9 +47,9 @@ Soprano::QueryResultIterator Nepomuk::Sync::IdentificationSetGenerator::performQ
                                         "UNION { ?p %1 %3. } "
                                         "FILTER( ?r in ( %4 ) ) . } ")
     .arg(Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::subPropertyOf()),
-            Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NRIO::identifyingProperty()),
-            Soprano::Node::resourceToN3(Soprano::Vocabulary::RDF::type()),
-            uris.join(", "));
+         Soprano::Node::resourceToN3(Soprano::Vocabulary::NRL::DefiningProperty()),
+         Soprano::Node::resourceToN3(Soprano::Vocabulary::RDF::type()),
+         uris.join(", "));
 
 
     return model->executeQuery(query, Soprano::Query::QueryLanguageSparql);
