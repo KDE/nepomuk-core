@@ -45,6 +45,7 @@ target_link_libraries(resourcetest
   nepomuk_testbase
   ${QT_QTDBUS_LIBRARY}
   ${QT_QTTEST_LIBRARY}
+  ${QT_QTGUI_LIBRARY}
   ${KDE4_KDECORE_LIBS}
   ${SOPRANO_LIBRARIES}
-  kdecore)
+)
