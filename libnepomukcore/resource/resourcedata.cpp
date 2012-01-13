@@ -22,7 +22,6 @@
 #include "resourcedata.h"
 #include "resourcemanager.h"
 #include "resourcemanager_p.h"
-#include "resourcefiltermodel.h"
 #include "resource.h"
 #include "tools.h"
 #include "nie.h"
@@ -30,6 +29,8 @@
 #include "pimo.h"
 #include "nepomukmainmodel.h"
 #include "class.h"
+#include "datamanagement.h"
+#include "createresourcejob.h"
 
 #include <Soprano/Statement>
 #include <Soprano/StatementIterator>
@@ -43,16 +44,14 @@
 #include <QtCore/QFile>
 #include <QtCore/QDateTime>
 #include <QtCore/QMutexLocker>
-#include <QtDBus/QDBusConnection>
-#include <QtDBus/QDBusInterface>
-#include <QtDBus/QDBusReply>
 
 #include <kdebug.h>
 #include <kurl.h>
+#include <kcomponentdata.h>
 
 using namespace Soprano;
 
-#define MAINMODEL static_cast<ResourceFilterModel*>(m_rm->m_manager->mainModel())
+#define MAINMODEL (m_rm->m_manager->mainModel())
 
 
 Nepomuk::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, const QUrl& type, ResourceManagerPrivate* rm )
@@ -140,7 +139,7 @@ void Nepomuk::ResourceData::setTypes( const QList<QUrl>& types )
     }
 
     // update the data store
-    MAINMODEL->updateProperty( m_uri, Soprano::Vocabulary::RDF::type(), nodes );
+    setProperty(Soprano::Vocabulary::RDF::type(), Nepomuk::Variant(types) );
 }
 
 
@@ -258,8 +257,25 @@ bool Nepomuk::ResourceData::store()
 
     if ( m_uri.isEmpty() ) {
         QMutexLocker rmlock(&m_rm->mutex);
-        // create a random URI and add us to the initialized data, i.e. make us "valid"
-        m_uri = m_rm->m_manager->generateUniqueUri( QString() );
+
+        if ( m_nieUrl.isValid() &&
+             m_nieUrl.isLocalFile() &&
+             m_mainType == Soprano::Vocabulary::RDFS::Resource() ) {
+            m_mainType = Nepomuk::Vocabulary::NFO::FileDataObject();
+            m_types << m_mainType;
+        }
+
+        Nepomuk::CreateResourceJob* job = Nepomuk::createResource(m_types, QString(), QString());
+        if( !job->exec() ) {
+            //TODO: Set the error somehow
+            kWarning() << job->errorString();
+            return false;
+        }
+        else {
+            m_uri = job->resourceUri();
+        }
+
+        // Add us to the initialized data, i.e. make us "valid"
         m_rm->m_initializedData.insert( m_uri, this );
 
         // each initialized resource has to be in a kickoff list
@@ -268,55 +284,23 @@ bool Nepomuk::ResourceData::store()
             m_kickoffUris.insert( m_uri );
             m_rm->addToKickOffList( this, m_kickoffUris );
         }
-    }
-
-    QList<Statement> statements;
-
-    if ( !exists() ) {
-        // save the creation date
-        statements.append( Statement( m_uri, Soprano::Vocabulary::NAO::created(), Soprano::LiteralValue( QDateTime::currentDateTime() ) ) );
-
-        // save the kickoff identifier (other identifiers are stored via setProperty)
-        Q_FOREACH ( const KUrl & url, m_kickoffUris ) {
-            if( url.scheme().isEmpty() ) {
-                statements.append( Statement( m_uri, Soprano::Vocabulary::NAO::identifier(), LiteralValue(url.url()) ) );
-                break;
-            }
-        }
-
-        // save the type (additional types are saved in setTypes)
-        statements.append( Statement( m_uri, Soprano::Vocabulary::RDF::type(), m_mainType ) );
-
-        // the only situation in which determineUri keeps the kickoff URI is for file URLs.
-        if ( m_nieUrl.isValid() ) {
-            statements.append( Statement( m_uri, Nepomuk::Vocabulary::NIE::url(), m_nieUrl ) );
-            if ( m_nieUrl.isLocalFile() &&
-                 m_mainType == Soprano::Vocabulary::RDFS::Resource() ) {
-                m_mainType = Nepomuk::Vocabulary::NFO::FileDataObject();
-            }
-        }
 
         // store our grounding occurrence in case we are a thing created by the pimoThing() method
         if( m_groundingOccurence ) {
             if( m_groundingOccurence != this )
                 m_groundingOccurence->store();
-            statements.append( Statement( m_uri, Vocabulary::PIMO::groundingOccurrence(), m_groundingOccurence->uri() ) );
+            setProperty(Vocabulary::PIMO::groundingOccurrence(), Variant(m_groundingOccurence->uri()) );
+        }
+
+        foreach( const KUrl& url, m_kickoffUris ) {
+            if( url.scheme().isEmpty() )
+                setProperty( Soprano::Vocabulary::NAO::identifier(), Variant(url.url()) );
+            else
+                setProperty( Nepomuk::Vocabulary::NIE::url(), Variant(url.url()) );
         }
     }
 
-    // save type (There should be no need to save all the types since there is only one way
-    // that m_types contains more than one element: if we loaded them)
-    // The first type, however, can be set at creation time to any value
-    else if ( !MAINMODEL->containsAnyStatement( m_uri, Soprano::Vocabulary::RDF::type(), m_mainType ) ) {
-        statements.append( Statement( m_uri, Soprano::Vocabulary::RDF::type(), m_mainType ) );
-    }
-
-    if ( !statements.isEmpty() ) {
-        return MAINMODEL->addStatements( statements ) == Soprano::Error::ErrorNone;
-    }
-    else {
-        return true;
-    }
+    return true;
 }
 
 
@@ -431,12 +415,24 @@ void Nepomuk::ResourceData::setProperty( const QUrl& uri, const Nepomuk::Variant
         // step 0: make sure this resource is in the store
         QMutexLocker lock(&m_modificationMutex);
 
-        // make sure resource values are in the store
-        if ( value.simpleType() == qMetaTypeId<Resource>() ) {
-            QList<Resource> l = value.toResourceList();
-            for( QList<Resource>::iterator resIt = l.begin(); resIt != l.end(); ++resIt ) {
-                resIt->m_data->store();
+        // update the store
+        QVariantList varList;
+        foreach( const Nepomuk::Variant var, value.toVariantList() ) {
+            // make sure resource values are in the store
+            if( var.simpleType() == qMetaTypeId<Resource>() ) {
+                var.toResource().m_data->store();
+                varList << var.toUrl();
             }
+            else {
+                varList << var.variant();
+            }
+        }
+
+        KJob* job = Nepomuk::setProperty(QList<QUrl>() << m_uri, uri, varList);
+        if( !job->exec() ) {
+            //TODO: Set the error somehow
+            kWarning() << job->errorString();
+            return;
         }
 
         // update the cache for now
@@ -444,9 +440,6 @@ void Nepomuk::ResourceData::setProperty( const QUrl& uri, const Nepomuk::Variant
             m_cache[uri] = value;
         else
             m_cache.remove(uri);
-
-        // update the store
-        MAINMODEL->updateProperty( m_uri, uri, value.toNodeList() );
 
         // update the kickofflists
         updateKickOffLists( uri, value );
@@ -460,8 +453,15 @@ void Nepomuk::ResourceData::removeProperty( const QUrl& uri )
     if( !m_uri.isEmpty() ) {
         QMutexLocker lock(&m_modificationMutex);
 
+        KJob* job = Nepomuk::removeProperties(QList<QUrl>() << m_uri, QList<QUrl>() << uri);
+        if( !job->exec() ) {
+            //TODO: Set the error somehow
+            kWarning() << job->errorString();
+            return;
+        }
+
+        // Update the cache
         m_cache.remove( uri );
-        MAINMODEL->removeProperty( m_uri, uri );
 
         // update the kickofflists
         updateKickOffLists( uri, Variant() );
@@ -471,12 +471,15 @@ void Nepomuk::ResourceData::removeProperty( const QUrl& uri )
 
 void Nepomuk::ResourceData::remove( bool recursive )
 {
+    Q_UNUSED(recursive)
     QMutexLocker lock(&m_modificationMutex);
 
     if( !m_uri.isEmpty() ) {
-        MAINMODEL->removeAllStatements( Statement( m_uri, Node(), Node() ) );
-        if ( recursive ) {
-            MAINMODEL->removeAllStatements( Statement( Node(), Node(), m_uri ) );
+        KJob* job = Nepomuk::removeResources(QList<QUrl>() << m_uri);
+        if( !job->exec() ) {
+            //TODO: Set the error somehow
+            kWarning() << job->errorString();
+            return;
         }
     }
 
@@ -487,7 +490,9 @@ void Nepomuk::ResourceData::remove( bool recursive )
 bool Nepomuk::ResourceData::exists()
 {
     if( m_uri.isValid() ) {
-        return MAINMODEL->containsAnyStatement( Statement( m_uri, Node(), Node() ) );
+        const QString query = QString::fromLatin1("ask { %1 ?p ?o . }")
+                              .arg( Soprano::Node::resourceToN3(m_uri) );
+        return MAINMODEL->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
     }
     else {
         return false;
