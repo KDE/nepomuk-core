@@ -467,10 +467,10 @@ void Nepomuk::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
         const QUrl p = it["p"].uri();
         const QUrl t = it["t"].uri();
 
-        if(t == QUrl(NRL::nrlNamespace().toString() + QLatin1String("DefiningProperty"))) {
+        if(t == NRL::DefiningProperty()) {
             m_tree[p]->defining = 1;
         }
-        else if(t == QUrl(NRL::nrlNamespace().toString() + QLatin1String("NonDefiningProperty"))) {
+        else if(t == NRL::NonDefiningProperty()) {
             m_tree[p]->defining = -1;
         }
     }

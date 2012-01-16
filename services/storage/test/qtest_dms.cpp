@@ -84,7 +84,7 @@ void Nepomuk::insertOntologies(Soprano::Model* _model, const QUrl& graph)
     model.addStatement( QUrl("prop:/res3"), RDFS::range(), RDFS::Resource(), graph );
 
     model.addStatement( QUrl("prop:/res_ident"), RDF::type(), RDF::Property(), graph );
-    model.addStatement( QUrl("prop:/res_ident"), RDF::type(), QUrl(NRL::nrlNamespace().toString() + QLatin1String("DefiningProperty")), graph );
+    model.addStatement( QUrl("prop:/res_ident"), RDF::type(), NRL::DefiningProperty(), graph );
     model.addStatement( QUrl("prop:/res_ident"), RDFS::range(), RDFS::Resource(), graph );
 
     model.addStatement( QUrl("prop:/res_c1"), RDF::type(), RDF::Property(), graph );
