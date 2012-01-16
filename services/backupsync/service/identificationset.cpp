@@ -39,6 +39,7 @@
 #include <Soprano/QueryResultIterator>
 #include <Soprano/Vocabulary/RDF>
 #include <Soprano/Vocabulary/RDFS>
+#include <Soprano/Vocabulary/NRL>
 #include <Soprano/Serializer>
 #include <Soprano/Parser>
 #include <Soprano/Util/SimpleStatementIterator>
@@ -90,7 +91,7 @@ namespace {
                                             "?p %1 %2 . "
                                             " FILTER( ?r in ( %4 ) ) . } ")
                         .arg(Soprano::Node::resourceToN3( RDFS::subPropertyOf() ),
-                             Soprano::Node::resourceToN3( NRIO::identifyingProperty() ),
+                             Soprano::Node::resourceToN3( NRL::DefiningProperty() ),
                              uris.join(", ") );
 
         return m_model->executeQuery(query, Soprano::Query::QueryLanguageSparql);
@@ -266,7 +267,7 @@ namespace {
         QString query = QString::fromLatin1( "ask { %1 %2 %3 }" )
         .arg( Soprano::Node::resourceToN3( prop ) )
         .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::subPropertyOf()) )
-        .arg( Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NRIO::identifyingProperty()) );
+        .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NRL::DefiningProperty()) );
         return model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
     }
 }
