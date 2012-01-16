@@ -102,16 +102,16 @@ void QueryTest::testToSparql_data()
                  Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::label()) );
     QTest::newRow( "simple literal query with wildcard 2" )
         << Query( LiteralTerm( "*Hello" ) )
-        << QString::fromLatin1( "select distinct ?r where { { ?r ?v1 ?v3 . FILTER(REGEX(?v3, \".*Hello\")) . } "
+        << QString::fromLatin1( "select distinct ?r where { { ?r ?v1 ?v3 . FILTER(REGEX(?v3, \".*Hello\", 'i')) . } "
                                 "UNION "
-                                "{ ?r ?v1 ?v4 . ?v4 ?v2 ?v3 . ?v2 %1 %2 . FILTER(REGEX(?v3, \".*Hello\")) . } . }" )
+                                "{ ?r ?v1 ?v4 . ?v4 ?v2 ?v3 . ?v2 %1 %2 . FILTER(REGEX(?v3, \".*Hello\", 'i')) . } . }" )
            .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::subPropertyOf()),
                  Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::label()) );
     QTest::newRow( "simple literal query with wildcard 3" )
         << Query( LiteralTerm( "Hel?o" ) )
-        << QString::fromLatin1( "select distinct ?r where { { ?r ?v1 ?v3 . FILTER(REGEX(?v3, \"Hel.o\")) . } "
+        << QString::fromLatin1( "select distinct ?r where { { ?r ?v1 ?v3 . FILTER(REGEX(?v3, \"Hel.o\", 'i')) . } "
                                 "UNION "
-                                "{ ?r ?v1 ?v4 . ?v4 ?v2 ?v3 . ?v2 %1 %2 . FILTER(REGEX(?v3, \"Hel.o\")) . } . }" )
+                                "{ ?r ?v1 ?v4 . ?v4 ?v2 ?v3 . ?v2 %1 %2 . FILTER(REGEX(?v3, \"Hel.o\", 'i')) . } . }" )
            .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::subPropertyOf()),
                  Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::label()) );
 
