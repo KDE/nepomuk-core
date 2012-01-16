@@ -27,6 +27,7 @@ set(storage_SRCS
   resourcewatchermanager.cpp
   resourcewatcherconnection.cpp
   graphmaintainer.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
   )
 
 qt4_add_dbus_adaptor(storage_SRCS
