@@ -4025,6 +4025,8 @@ void DataManagementModelTest::testStoreResources_missingMetadata()
     const QUrl g1 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg1);
     m_model->addStatement(g1, NAO::maintainedBy(), QUrl("app:/A"), mg1);
 
+    qDebug() << "Created graph" << g1 << mg1;
+
     const QDateTime now = QDateTime::currentDateTime();
     QUrl resA("nepomuk:/res/A");
     m_model->addStatement(resA, RDF::type(), NAO::Tag(), g1);
@@ -4070,6 +4072,9 @@ void DataManagementModelTest::testStoreResources_missingMetadata()
     QCOMPARE(m_model->listStatements(resA, NAO::lastModified(), Node()).allStatements().count(), 1);
     QDateTime newDt = m_model->listStatements(resA, NAO::lastModified(), Node()).iterateObjects().allNodes().first().literal().toDateTime();
     QVERIFY( newDt > now);
+
+    QVERIFY(!haveTrailingGraphs());
+
 
     //
     // Merge the resource again, but this time make sure it is identified as well
@@ -5558,15 +5563,42 @@ KTempDir * DataManagementModelTest::createNieUrlTestData()
 
 bool DataManagementModelTest::haveTrailingGraphs() const
 {
-    return m_model->executeQuery(QString::fromLatin1("ask where { "
-                                                     "?g a ?t . "
-                                                     "FILTER(!bif:exists( (select (1) where { graph ?g { ?s ?p ?o . } . }))) . "
-                                                     "FILTER(?t in (%1,%2,%3)) . "
-                                                     "}")
-                                 .arg(Node::resourceToN3(NRL::InstanceBase()),
-                                      Node::resourceToN3(NRL::DiscardableInstanceBase()),
-                                      Node::resourceToN3(NRL::GraphMetadata())),
-                                 Soprano::Query::QueryLanguageSparql).boolValue();
+    //
+    // 1. Check if there are any graphs which are not part of a graph/metadatagraph pair
+    //
+    if(m_model->executeQuery(QString::fromLatin1("ask where { "
+                                                 "?g a ?t . "
+                                                 "FILTER(!bif:exists( (select (1) where { ?mg %3 ?g . }))) . "
+                                                 "FILTER(?t in (%1,%2)) . "
+                                                 "}")
+                             .arg(Node::resourceToN3(NRL::InstanceBase()),
+                                  Node::resourceToN3(NRL::DiscardableInstanceBase()),
+                                  Node::resourceToN3(NRL::coreGraphMetadataFor())),
+                             Soprano::Query::QueryLanguageSparql).boolValue()) {
+        qDebug() << "Have dangling graph without metadatagraph";
+        return true;
+    }
+    else if(m_model->executeQuery(QString::fromLatin1("ask where { "
+                                                      "?g a %1 . "
+                                                      "FILTER(!bif:exists( (select (1) where { ?g %2 ?gg . }))) . "
+                                                      "}")
+                                  .arg(Node::resourceToN3(NRL::GraphMetadata()),
+                                       Node::resourceToN3(NRL::coreGraphMetadataFor())),
+                                  Soprano::Query::QueryLanguageSparql).boolValue()) {
+        qDebug() << "Have dangling metadatagraph without graph";
+        return true;
+    }
+    else {
+        return m_model->executeQuery(QString::fromLatin1("ask where { "
+                                                         "?g a ?t . "
+                                                         "FILTER(!bif:exists( (select (1) where { graph ?g { ?s ?p ?o . } . }))) . "
+                                                         "FILTER(?t in (%1,%2,%3)) . "
+                                                         "}")
+                                     .arg(Node::resourceToN3(NRL::InstanceBase()),
+                                          Node::resourceToN3(NRL::DiscardableInstanceBase()),
+                                          Node::resourceToN3(NRL::GraphMetadata())),
+                                     Soprano::Query::QueryLanguageSparql).boolValue();
+    }
 }
 
 bool DataManagementModelTest::haveDataInDefaultGraph() const
