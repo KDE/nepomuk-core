@@ -29,7 +29,6 @@ kde4_add_plugin(nepomukfileindexer ${nepomukfileindexer_SRCS})
 
 target_link_libraries(nepomukfileindexer
   nepomukcommon
-  nepomukdatamanagement
   ${KDE4_KDEUI_LIBS}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}

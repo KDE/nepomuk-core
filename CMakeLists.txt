@@ -19,7 +19,7 @@ include(MacroLibrary)
 
 set(SDO_MIN_VERSION "0.7")
 find_package(SharedDesktopOntologies)
-set(SOPRANO_MIN_VERSION "2.7.0")
+set(SOPRANO_MIN_VERSION "2.7.53")
 find_package(Soprano)
 set(STRIGI_MIN_VERSION "0.7.3")
 find_package(Strigi)

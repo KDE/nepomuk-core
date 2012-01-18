@@ -43,6 +43,7 @@ set( DMTEST
   ../resourcemerger.cpp
   ../resourceidentifier.cpp
   ../crappyinferencer.cpp
+  ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
   qtest_dms.cpp
 )
 

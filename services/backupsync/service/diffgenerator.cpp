@@ -67,7 +67,7 @@ Nepomuk::DiffGenerator::~DiffGenerator()
 
 
 namespace {
-    const Nepomuk::Types::Property identifyingProperty( Nepomuk::Vocabulary::NRIO::identifyingProperty() );
+    const Nepomuk::Types::Property identifyingProperty( Soprano::Vocabulary::NRL::DefiningProperty() );
 }
 
 bool Nepomuk::DiffGenerator::backupStatement(const Soprano::Statement& st)

@@ -123,13 +123,13 @@ target_link_libraries(nepomukcore
   ${QT_QTCORE_LIBRARY}
   ${QT_QTGUI_LIBRARY}
   ${QT_QTDBUS_LIBRARY}
-  kdecore
-  kdeui
+  ${KDE4_KDECORE_LIBS}
+  ${KDE4_KDEUI_LIBS}
 )
 
 target_link_libraries(nepomukcore
   LINK_INTERFACE_LIBRARIES
-  kdecore
+  ${KDE4_KDECORE_LIBS}
   ${SOPRANO_LIBRARIES})
 
 

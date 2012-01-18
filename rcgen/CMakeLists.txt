@@ -19,7 +19,7 @@ target_link_libraries(nepomuk-rcgen
   ${QT_QTCORE_LIBRARY}
   ${QT_QTDBUS_LIBRARY}
   ${SOPRANO_LIBRARIES}
-  kdecore
+  ${KDE4_KDECORE_LIBS}
 )
 
 install(TARGETS nepomuk-rcgen ${INSTALL_TARGETS_DEFAULT_ARGS} )
