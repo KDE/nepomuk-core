@@ -991,6 +991,29 @@ void DataManagementModelTest::testSetProperty_legacyData()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
+void DataManagementModelTest::testSetProperty_removeDataObjectType()
+{
+    QTemporaryFile file;
+    file.open();
+    const KUrl url(file.fileName());
+
+    m_dmModel->setProperty(QList<QUrl>() << url, NAO::numericRating(), QVariantList() << 2, QLatin1String("testApp") );
+
+    QList<Soprano::Statement> stList = m_model->listStatements(Node(), NAO::numericRating(), Node()).allStatements();
+    QCOMPARE(stList.size(), 1);
+    QUrl uri = stList.first().subject().uri();
+
+    // Make sure it has the NFO::FileDataObject type
+    QVERIFY(m_model->containsAnyStatement(uri, RDF::type(), NFO::FileDataObject()));
+
+    m_dmModel->setProperty(QList<QUrl>() << uri, RDF::type(), QVariantList() << NCO::Contact(), QLatin1String("testApp") );
+
+    // Check for new type
+    QVERIFY(m_model->containsAnyStatement(uri, RDF::type(), NCO::Contact()));
+    QVERIFY(m_model->containsAnyStatement(uri, RDF::type(), NFO::FileDataObject()));
+}
+
+
 void DataManagementModelTest::testRemoveProperty()
 {
     const int cleanCount = m_model->statementCount();

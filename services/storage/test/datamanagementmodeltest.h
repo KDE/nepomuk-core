@@ -64,6 +64,7 @@ private Q_SLOTS:
     void testSetProperty_nieUrl6();
     void testSetProperty_protectedTypes();
     void testSetProperty_legacyData();
+    void testSetProperty_removeDataObjectType();
 
     void testRemoveProperty();
     void testRemoveProperty_file();
