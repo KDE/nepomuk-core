@@ -31,6 +31,7 @@
 #include "class.h"
 #include "datamanagement.h"
 #include "createresourcejob.h"
+#include "resourcewatcher.h"
 
 #include <Soprano/Statement>
 #include <Soprano/StatementIterator>
@@ -639,13 +640,16 @@ Nepomuk::ResourceData* Nepomuk::ResourceData::determineUri()
             m_rm->m_initializedData.insert( m_uri, this );
             if(!m_rm->m_watcher) {
                 m_rm->m_watcher = new ResourceWatcher(m_rm->m_manager);
-                QObject::connect( m_watcher, SIGNAL(propertyAdded(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)),
-                                  m_rm->m_manager, SLOT(propertyAdded(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)) );
-                QObject::connect( m_watcher, SIGNAL(propertyRemoved(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)),
-                                  m_rm->m_manager, SLOT(propertyRemoved(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)) );
+                QObject::connect( m_rm->m_watcher, SIGNAL(propertyAdded(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)),
+                                  m_rm->m_manager, SLOT(slotPropertyAdded(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)) );
+                QObject::connect( m_rm->m_watcher, SIGNAL(propertyRemoved(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)),
+                                  m_rm->m_manager, SLOT(slotPropertyRemoved(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)) );
+                m_rm->m_watcher->addResource( Nepomuk::Resource::fromResourceUri(m_uri) );
                 m_rm->m_watcher->start();
             }
-            m_rm->m_watcher->addResource( Nepomuk::Resource::fromResourceUri(m_uri) );
+            else {
+                m_rm->m_watcher->addResource( Nepomuk::Resource::fromResourceUri(m_uri) );
+            }
         }
         else {
             return it.value();
