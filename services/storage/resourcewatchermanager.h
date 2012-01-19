@@ -43,8 +43,10 @@ namespace Nepomuk {
         ~ResourceWatcherManager();
 
         void addStatement(const Soprano::Statement &st);
-        void addProperty(const Soprano::Node res, const QUrl& property, const Soprano::Node& value);
-        void removeProperty(const Soprano::Node res, const QUrl& property, const Soprano::Node& value);
+        void addProperty(const Soprano::Node& res, const QUrl& property, const QList<Soprano::Node>& values);
+        void removeProperty(const Soprano::Node& res, const QUrl& property, const QList<Soprano::Node>& values);
+        void setProperty(const QMultiHash<QUrl, Soprano::Node>& oldValues, const QUrl& property,
+                         const QList<Soprano::Node>& nodes);
         void createResource(const QUrl& uri, const QList<QUrl>& types);
         void removeResource(const QUrl& uri, const QList<QUrl>& types);
 
@@ -66,6 +68,16 @@ namespace Nepomuk {
     private:
         /// called by ResourceWatcherConnection destructor
         void removeConnection(ResourceWatcherConnection*);
+
+        void setResources(ResourceWatcherConnection* conn, const QStringList& resources);
+        void addResource(ResourceWatcherConnection* conn, const QString& resource);
+        void removeResource(ResourceWatcherConnection* conn, const QString& resource);
+        void setProperties(ResourceWatcherConnection* conn, const QStringList& propertys);
+        void addProperty(ResourceWatcherConnection* conn, const QString& property);
+        void removeProperty(ResourceWatcherConnection* conn, const QString& property);
+        void setTypes(ResourceWatcherConnection* conn, const QStringList& types);
+        void addType(ResourceWatcherConnection* conn, const QString& type);
+        void removeType(ResourceWatcherConnection* conn, const QString& type);
 
         QMultiHash<QUrl, ResourceWatcherConnection*> m_resHash;
         QMultiHash<QUrl, ResourceWatcherConnection*> m_propHash;

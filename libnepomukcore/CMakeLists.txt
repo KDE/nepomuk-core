@@ -13,14 +13,12 @@ set(nepomuk_resource_SRCS
   resource/variant.cpp
   resource/resourcedata.cpp
   resource/resourcemanager.cpp
-  resource/resourcefiltermodel.cpp
   resource/nepomukmainmodel.cpp
   resource/resource.cpp
   resource/thing.cpp
   resource/file.cpp
   resource/tag.cpp
   resource/nepomukservice.cpp
-  resource/graphwrapper.cpp
 )
 
 set(nepomuk_types_SRCS
