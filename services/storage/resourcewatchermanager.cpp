@@ -106,33 +106,27 @@ void Nepomuk::ResourceWatcherManager::addStatement(const Soprano::Statement& st)
 
 void Nepomuk::ResourceWatcherManager::addProperty(const Soprano::Node& res, const QUrl& property, const QList<Soprano::Node>& values)
 {
-    typedef ResourceWatcherConnection RWC;
-
     // FIXME: take care of duplicate signals!
 
     //
-    // Emit signals for all the connections that are only watching specific resources
+    // Emit signals for all the connections that are watching specific resources
+    // without any properties or with the property we have here.
     //
-    QSet<RWC*> resConnections;
-    QList<RWC*> connections = m_resHash.values( res.uri() );
-    foreach( RWC* con, connections ) {
-        if( !m_propHash.values().contains(con) ) {
+    foreach( ResourceWatcherConnection* con, m_resHash.values( res.uri() ) ) {
+        if( m_propHash.contains(property, con) ||
+            !m_propHash.values().contains(con) ) {
             emit con->propertyAdded( convertUri(res.uri()),
                                      convertUri(property),
                                      nodeListToVariantList(values) );
         }
-        else {
-            resConnections << con;
-        }
     }
 
     //
-    // Emit signals for the connections that are watching specific resources and properties
+    // Emit signals for the connections that are watching specific properties without resources
+    // any types
     //
-    QList<RWC*> propConnections = m_propHash.values( property );
-    foreach( RWC* con, propConnections ) {
-        QSet<RWC*>::const_iterator it = resConnections.constFind( con );
-        if( it != resConnections.constEnd() ) {
+    foreach( ResourceWatcherConnection* con, m_propHash.values( property ) ) {
+        if( !m_resHash.values().contains(con) ) {
             emit con->propertyAdded( convertUri(res.uri()),
                                      convertUri(property),
                                      nodeListToVariantList(values) );
@@ -147,31 +141,24 @@ void Nepomuk::ResourceWatcherManager::addProperty(const Soprano::Node& res, cons
 
 void Nepomuk::ResourceWatcherManager::removeProperty(const Soprano::Node& res, const QUrl& property, const QList<Soprano::Node>& values)
 {
-    typedef ResourceWatcherConnection RWC;
-
     //
     // Emit signals for all the connections that are only watching specific resources
     //
-    QSet<RWC*> resConnections;
-    QList<RWC*> connections = m_resHash.values( res.uri() );
-    foreach( RWC* con, connections ) {
-        if( !m_propHash.values().contains(con) ) {
+    foreach( ResourceWatcherConnection* con, m_resHash.values( res.uri() ) ) {
+        if( m_propHash.contains(property, con) ||
+            !m_propHash.values().contains(con) ) {
             emit con->propertyRemoved( convertUri(res.uri()),
                                        convertUri(property),
                                        nodeListToVariantList(values) );
         }
-        else {
-            resConnections << con;
-        }
     }
 
     //
-    // Emit signals for the conn2ections that are watching specific resources and properties
+    // Emit signals for the connections that are watching specific properties without resources
+    // any types
     //
-    QList<RWC*> propConnections = m_propHash.values( property );
-    foreach( RWC* con, propConnections ) {
-        QSet<RWC*>::const_iterator it = resConnections.constFind( con );
-        if( it != resConnections.constEnd() ) {
+    foreach( ResourceWatcherConnection* con, m_resHash.values( res.uri() ) ) {
+        if( !m_resHash.values().contains(con) ) {
             emit con->propertyRemoved( convertUri(res.uri()),
                                        convertUri(property),
                                        nodeListToVariantList(values) );
