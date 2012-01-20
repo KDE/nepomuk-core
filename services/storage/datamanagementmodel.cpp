@@ -662,8 +662,11 @@ void Nepomuk::DataManagementModel::removeProperty(const QList<QUrl> &resources, 
             }
             oldValues << v;
         }
-        d->m_watchManager->removeProperty( res, property, removedValues.toList() );
-        d->m_watchManager->changeProperty( res, property, oldValues.toList(), (oldValues - removedValues).toList() );
+
+        if(!removedValues.isEmpty()) {
+            d->m_watchManager->removeProperty( res, property, removedValues.toList() );
+            d->m_watchManager->changeProperty( res, property, oldValues.toList(), (oldValues - removedValues).toList() );
+        }
 
         // we only update the mtime in case we actually remove anything
         if(!valueGraphs.isEmpty()) {
@@ -780,6 +783,7 @@ void Nepomuk::DataManagementModel::removeProperties(const QList<QUrl> &resources
             }
 
             d->m_watchManager->removeProperty(res, property, values);
+            d->m_watchManager->changeProperty(res, property, values, QList<Soprano::Node>());
         }
 
         // we only update the mtime in case we actually remove anything

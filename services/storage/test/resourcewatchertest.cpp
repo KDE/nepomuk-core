@@ -453,6 +453,32 @@ void ResourceWatcherTest::testSetProperty()
     QCOMPARE(typePropWpChSpy.takeFirst(), pChArgs);
 
 
+    // set the already existing values
+    // ===============================================================
+    m_dmModel->setProperty(QList<QUrl>() << resA, QUrl("prop:/int"), QVariantList() << 12, QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+
+    QCOMPARE(resWpAddSpy.count(), 0);
+    QCOMPARE(resWpChSpy.count(), 0);
+    QCOMPARE(resWpRemSpy.count(), 0);
+
+    QCOMPARE(propWpAddSpy.count(), 0);
+    QCOMPARE(propWpChSpy.count(), 0);
+    QCOMPARE(propWpRemSpy.count(), 0);
+
+    QCOMPARE(resPropWpAddSpy.count(), 0);
+    QCOMPARE(resPropWpChSpy.count(), 0);
+    QCOMPARE(resPropWpRemSpy.count(), 0);
+
+    QCOMPARE(typeWpAddSpy.count(), 0);
+    QCOMPARE(typeWpChSpy.count(), 0);
+    QCOMPARE(typeWpRemSpy.count(), 0);
+
+    QCOMPARE(typePropWpAddSpy.count(), 0);
+    QCOMPARE(typePropWpChSpy.count(), 0);
+    QCOMPARE(typePropWpRemSpy.count(), 0);
+
+
     // cleanup
     delete resW;
     delete propW;
@@ -537,7 +563,7 @@ void ResourceWatcherTest::testAddProperty()
     QCOMPARE( typePropWpChSpy.takeFirst(), pChArgs );
 
 
-    // add an existing property
+    // add another value to an existing property
     // ===============================================================
     m_dmModel->addProperty(QList<QUrl>() << resA, QUrl("prop:/int"), QVariantList() << 12, QLatin1String("A"));
     QVERIFY(!m_dmModel->lastError());
@@ -578,6 +604,23 @@ void ResourceWatcherTest::testAddProperty()
     QCOMPARE(typePropWpAddSpy.takeFirst(), pAddArgs);
     QCOMPARE(typePropWpChSpy.count(), 1);
     QCOMPARE(typePropWpChSpy.takeFirst(), pChArgs);
+
+
+    // add an already existing value
+    // ===============================================================
+    m_dmModel->addProperty(QList<QUrl>() << resA, QUrl("prop:/int"), QVariantList() << 12, QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+
+    QCOMPARE( resWpAddSpy.count(), 0 );
+    QCOMPARE( resWpChSpy.count(), 0 );
+    QCOMPARE(propWpAddSpy.count(), 0);
+    QCOMPARE(propWpChSpy.count(), 0);
+    QCOMPARE(resPropWpAddSpy.count(), 0);
+    QCOMPARE(resPropWpChSpy.count(), 0);
+    QCOMPARE(typeWpAddSpy.count(), 0);
+    QCOMPARE(typeWpChSpy.count(), 0);
+    QCOMPARE(typePropWpAddSpy.count(), 0);
+    QCOMPARE(typePropWpChSpy.count(), 0);
 
 
     // cleanup
@@ -706,6 +749,39 @@ void ResourceWatcherTest::testRemoveProperty()
     QCOMPARE(typePropWpChSpy.takeFirst(), pChArgs);
 
 
+    // remove non-existing property values
+    // ===============================================================
+    m_dmModel->setProperty(QList<QUrl>() << resA, QUrl("prop:/int"), QVariantList() << 42 << 12, QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+    resWpChSpy.clear();
+    resWpRemSpy.clear();
+    propWpChSpy.clear();
+    propWpRemSpy.clear();
+    resPropWpChSpy.clear();
+    resPropWpRemSpy.clear();
+    typeWpChSpy.clear();
+    typeWpRemSpy.clear();
+    typePropWpChSpy.clear();
+    typePropWpRemSpy.clear();
+    m_dmModel->removeProperty(QList<QUrl>() << resA, QUrl("prop:/int"), QVariantList() << 2, QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+
+    QCOMPARE(resWpChSpy.count(), 0);
+    QCOMPARE(resWpRemSpy.count(), 0);
+
+    QCOMPARE(propWpChSpy.count(), 0);
+    QCOMPARE(propWpRemSpy.count(), 0);
+
+    QCOMPARE(resPropWpChSpy.count(), 0);
+    QCOMPARE(resPropWpRemSpy.count(), 0);
+
+    QCOMPARE(typeWpChSpy.count(), 0);
+    QCOMPARE(typeWpRemSpy.count(), 0);
+
+    QCOMPARE(typePropWpChSpy.count(), 0);
+    QCOMPARE(typePropWpRemSpy.count(), 0);
+
+
     // cleanup
     delete resW;
     delete propW;
@@ -763,24 +839,55 @@ void ResourceWatcherTest::testRemoveProperties()
     QVERIFY(pRemArgs[2].value<QVariantList>().first() == QVariant(12) || *(++pRemArgs[2].value<QVariantList>().constBegin()) == QVariant(12) );
     QVERIFY(pRemArgs[2].value<QVariantList>().first() == QVariant(42) || *(++pRemArgs[2].value<QVariantList>().constBegin()) == QVariant(42) );
 
-    QCOMPARE( resWpChSpy.count(), 0 );
+    QCOMPARE( resWpChSpy.count(), 1 );
+    QVariantList pChArgs = resWpChSpy.takeFirst();
+    QCOMPARE(pChArgs[1].toString(), QLatin1String("prop:/int"));
+    QCOMPARE(pChArgs[2].value<QVariantList>().count(), 2);
+    QVERIFY(pChArgs[2].value<QVariantList>().first() == QVariant(12) || *(++pChArgs[2].value<QVariantList>().constBegin()) == QVariant(12) );
+    QVERIFY(pChArgs[2].value<QVariantList>().first() == QVariant(42) || *(++pChArgs[2].value<QVariantList>().constBegin()) == QVariant(42) );
+    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList());
 
     QCOMPARE(propWpRemSpy.count(), 1);
-    QVERIFY(propWpRemSpy[0] == pRemArgs);
-    QCOMPARE(propWpChSpy.count(), 0);
+    QVERIFY(propWpRemSpy.takeFirst() == pRemArgs);
+    QCOMPARE(propWpChSpy.count(), 1);
+    QCOMPARE(propWpChSpy.takeFirst(), pChArgs);
 
     QCOMPARE(resPropWpRemSpy.count(), 1);
-    QVERIFY(resPropWpRemSpy[0] == pRemArgs);
-    QCOMPARE(resPropWpChSpy.count(), 0);
+    QVERIFY(resPropWpRemSpy.takeFirst() == pRemArgs);
+    QCOMPARE(resPropWpChSpy.count(), 1);
+    QCOMPARE(resPropWpChSpy.takeFirst(), pChArgs);
 
     QEXPECT_FAIL("", "The DMS does not handle watching property changes by res type", Continue);
     QCOMPARE(typeWpRemSpy.count(), 1);
 //    QVERIFY(typeWpRemSpy[0] == pRemArgs);
-//    QCOMPARE(typeWpChSpy.count(), 0);
+//    QCOMPARE(typeWpChSpy.count(), 1);
+//    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
 
     QCOMPARE(typePropWpRemSpy.count(), 1);
-    QVERIFY(typePropWpRemSpy[0] == pRemArgs);
+    QVERIFY(typePropWpRemSpy.takeFirst() == pRemArgs);
+    QCOMPARE(typePropWpChSpy.count(), 1);
+    QCOMPARE(typePropWpChSpy.takeFirst(), pChArgs);
+
+
+    // remove non-existing property values
+    // ===============================================================
+    m_dmModel->removeProperties(QList<QUrl>() << resA, QList<QUrl>() << QUrl("prop:/int"), QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+
+    QCOMPARE(resWpChSpy.count(), 0);
+    QCOMPARE(resWpRemSpy.count(), 0);
+
+    QCOMPARE(propWpChSpy.count(), 0);
+    QCOMPARE(propWpRemSpy.count(), 0);
+
+    QCOMPARE(resPropWpChSpy.count(), 0);
+    QCOMPARE(resPropWpRemSpy.count(), 0);
+
+    QCOMPARE(typeWpChSpy.count(), 0);
+    QCOMPARE(typeWpRemSpy.count(), 0);
+
     QCOMPARE(typePropWpChSpy.count(), 0);
+    QCOMPARE(typePropWpRemSpy.count(), 0);
 
 
     // cleanup

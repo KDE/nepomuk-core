@@ -141,6 +141,7 @@ void Nepomuk::ResourceWatcherManager::addProperty(const Soprano::Node& res, cons
 
 void Nepomuk::ResourceWatcherManager::removeProperty(const Soprano::Node& res, const QUrl& property, const QList<Soprano::Node>& values)
 {
+    kDebug() << res << property << values;
     //
     // Emit signals for all the connections that are only watching specific resources
     //
