@@ -250,9 +250,9 @@ private:
      *              this hash might contain empty values which refer to non-existing file resources. This cannot be empty.
      * \param app The calling application.
      *
-     * \return list of all the resolved nodes
+     * \return A mapping from changed resources to actually newly added values.
      */
-    QList<Soprano::Node> addProperty(const QHash<QUrl, QUrl>& resources, const QUrl& property, const QHash<Soprano::Node, Soprano::Node>& nodes, const QString& app);
+    QHash<QUrl, QList<Soprano::Node> > addProperty(const QHash<QUrl, QUrl>& resources, const QUrl& property, const QHash<Soprano::Node, Soprano::Node>& nodes, const QString& app);
 
     /**
      * Removes the given resources without any additional checks. The provided list needs to contain already resolved valid resource URIs.

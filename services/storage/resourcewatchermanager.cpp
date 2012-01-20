@@ -157,7 +157,7 @@ void Nepomuk::ResourceWatcherManager::removeProperty(const Soprano::Node& res, c
     // Emit signals for the connections that are watching specific properties without resources
     // any types
     //
-    foreach( ResourceWatcherConnection* con, m_resHash.values( res.uri() ) ) {
+    foreach( ResourceWatcherConnection* con, m_propHash.values( property ) ) {
         if( !m_resHash.values().contains(con) ) {
             emit con->propertyRemoved( convertUri(res.uri()),
                                        convertUri(property),
@@ -166,51 +166,48 @@ void Nepomuk::ResourceWatcherManager::removeProperty(const Soprano::Node& res, c
     }
 }
 
-void Nepomuk::ResourceWatcherManager::setProperty(const QMultiHash< QUrl, Soprano::Node >& oldValues,
+void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &oldValues, const QList<Soprano::Node> &newValues)
+{
+    kDebug() << res << property << oldValues << newValues;
+    //
+    // Emit signals for all the connections that are only watching specific resources
+    //
+    foreach( ResourceWatcherConnection* con, m_resHash.values( res ) ) {
+        if( m_propHash.contains(property, con) ||
+            !m_propHash.values().contains(con) ) {
+            emit con->propertyChanged( convertUri(res),
+                                       convertUri(property),
+                                       nodeListToVariantList(oldValues),
+                                       nodeListToVariantList(newValues) );
+        }
+    }
+
+    //
+    // Emit signals for the connections that are watching specific resources and properties
+    //
+    foreach( ResourceWatcherConnection* con, m_propHash.values( property ) ) {
+        if( !m_resHash.values().contains(con) ) {
+            emit con->propertyChanged( convertUri(res),
+                                       convertUri(property),
+                                       nodeListToVariantList(oldValues),
+                                       nodeListToVariantList(newValues) );
+        }
+    }
+
+    //
+    // Emit type + property signals
+    //
+    //TODO: Implement me! ( How? )
+}
+
+void Nepomuk::ResourceWatcherManager::changeProperty(const QMultiHash< QUrl, Soprano::Node >& oldValues,
                                                   const QUrl& property,
                                                   const QList<Soprano::Node>& nodes)
 {
-    typedef ResourceWatcherConnection RWC;
-
     QList<QUrl> uniqueKeys = oldValues.keys();
     foreach( const QUrl resUri, uniqueKeys ) {
-        QList<Soprano::Node> old = oldValues.values( resUri );
-
-        //
-        // Emit signals for all the connections that are only watching specific resources
-        //
-        QSet<RWC*> resConnections;
-        QList<RWC*> connections = m_resHash.values( resUri );
-        foreach( RWC* con, connections ) {
-            if( !m_propHash.values().contains(con) ) {
-                emit con->propertyChanged( convertUri(resUri),
-                                           convertUri(property),
-                                           nodeListToVariantList(old),
-                                           nodeListToVariantList(nodes) );
-            }
-            else {
-                resConnections << con;
-            }
-        }
-
-        //
-        // Emit signals for the connections that are watching specific resources and properties
-        //
-        QList<RWC*> propConnections = m_propHash.values( property );
-        foreach( RWC* con, propConnections ) {
-            QSet<RWC*>::const_iterator it = resConnections.constFind( con );
-            if( it != resConnections.constEnd() ) {
-                emit con->propertyChanged( convertUri(resUri),
-                                           convertUri(property),
-                                           nodeListToVariantList(old),
-                                           nodeListToVariantList(nodes) );
-            }
-        }
-
-        //
-        // Emit type + property signals
-        //
-        //TODO: Implement me! ( How? )
+        const QList<Soprano::Node> old = oldValues.values( resUri );
+        changeProperty(resUri, property, old, nodes);
     }
 }
 
