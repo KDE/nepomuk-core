@@ -395,7 +395,7 @@ void Nepomuk::DataManagementModel::addProperty(const QList<QUrl> &resources, con
     //
     // Do the actual work
     //
-    addProperty(uriHash, property, resolvedNodes, app);
+    addProperty(uriHash, property, resolvedNodes, app, true /* signal propertyChanged */);
 }
 
 
@@ -2290,7 +2290,7 @@ QUrl Nepomuk::DataManagementModel::createUri(Nepomuk::DataManagementModel::UriTy
 
 
 // TODO: emit resource watcher resource creation signals
-QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(const QHash<QUrl, QUrl> &resources, const QUrl &property, const QHash<Soprano::Node, Soprano::Node> &nodes, const QString &app)
+QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(const QHash<QUrl, QUrl> &resources, const QUrl &property, const QHash<Soprano::Node, Soprano::Node> &nodes, const QString &app, bool signalPropertyChanged)
 {
     kDebug() << resources << property << nodes << app;
     Q_ASSERT(!resources.isEmpty());
@@ -2370,23 +2370,25 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(con
     const QUrl appRes = findApplicationResource(app);
 
 
+    // remember the existing values in addition to the ones we actually add for the propertyChanged signals in the main addProperty
+    QHash<QUrl, QList<Soprano::Node> > oldValues;
+
     //
     // Check if values already exist. If so remove the resources from the resourceSet and only add the application
     // as maintainedBy in a new graph (except if its the only statement in the graph)
     //
     if(!knownResources.isEmpty()) {
         const QString existingValuesQuery = QString::fromLatin1("select distinct ?r ?v ?g ?m "
-                                                                "(select count(*) where { graph ?g { ?s ?p ?o . } . FILTER(%5) . }) as ?cnt "
+                                                                "(select count(*) where { graph ?g { ?s ?p ?o . } . FILTER(%4) . }) as ?cnt "
                                                                 "where { "
                                                                 "graph ?g { ?r %2 ?v . } . "
                                                                 "?m %1 ?g . "
-                                                                "FILTER(?r in (%3)) . "
-                                                                "FILTER(?v in (%4)) . }")
+                                                                "FILTER(?r in (%3)) . %5}")
                 .arg(Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor()),
                      Soprano::Node::resourceToN3(property),
                      resourcesToN3(knownResources).join(QLatin1String(",")),
-                     nodesToN3(resolvedNodes).join(QLatin1String(",")),
-                     createResourceMetadataPropertyFilter(QLatin1String("?p")));
+                     createResourceMetadataPropertyFilter(QLatin1String("?p")),
+                     (!signalPropertyChanged ? QString::fromLatin1("FILTER(?v in (%1)) . ").arg(nodesToN3(resolvedNodes).join(QLatin1String(","))) : QString()));
         QList<Soprano::BindingSet> existingValueBindings = executeQuery(existingValuesQuery, Soprano::Query::QueryLanguageSparql).allBindings();
         Q_FOREACH(const Soprano::BindingSet& binding, existingValueBindings) {
             kDebug() << "Existing value" << binding;
@@ -2396,25 +2398,30 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(con
             const QUrl m = binding["m"].uri();
             const int cnt = binding["cnt"].literal().toInt();
 
-            // we handle this property here - thus, no need to handle it below
-            finalProperties.remove(qMakePair(r, v));
+            oldValues[r].append(v);
 
-            // in case the app is the same there is no need to do anything
-            if(containsStatement(g, NAO::maintainedBy(), appRes, m)) {
-                continue;
-            }
-            else if(cnt == 1) {
-                // we can reuse the graph
-                addStatement(g, NAO::maintainedBy(), appRes, m);
-            }
-            else {
-                // we need to split the graph
-                // FIXME: do not split the same graph again and again. Check if the graph in question already is the one we created.
-                const QUrl newGraph = splitGraph(g, m, appRes);
+            // in case we do not signal the changes we restrict the values already in the query
+            if(!signalPropertyChanged || resolvedNodes.contains(v)) {
+                // we handle this property here - thus, no need to handle it below
+                finalProperties.remove(qMakePair(r, v));
 
-                // and finally move the actual property over to the new graph
-                removeStatement(r, property, v, g);
-                addStatement(r, property, v, newGraph);
+                // in case the app is the same there is no need to do anything
+                if(containsStatement(g, NAO::maintainedBy(), appRes, m)) {
+                    continue;
+                }
+                else if(cnt == 1) {
+                    // we can reuse the graph
+                    addStatement(g, NAO::maintainedBy(), appRes, m);
+                }
+                else {
+                    // we need to split the graph
+                    // FIXME: do not split the same graph again and again. Check if the graph in question already is the one we created.
+                    const QUrl newGraph = splitGraph(g, m, appRes);
+
+                    // and finally move the actual property over to the new graph
+                    removeStatement(r, property, v, g);
+                    addStatement(r, property, v, newGraph);
+                }
             }
         }
     }
@@ -2446,6 +2453,9 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(con
         // inform interested parties
         for(QHash<QUrl, QList<Soprano::Node> >::const_iterator it = finalValuesPerResource.constBegin(); it != finalValuesPerResource.constEnd(); ++it) {
             d->m_watchManager->addProperty(it.key(), property, it.value());
+            if(signalPropertyChanged) {
+                d->m_watchManager->changeProperty(it.key(), property, oldValues[it.key()], oldValues[it.key()] + it.value());
+            }
         }
 
         // update modification date
