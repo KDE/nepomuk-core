@@ -39,17 +39,17 @@ set( NepomukBackup_GUI_SRCS
 #----- DBus interfaces --------
 
 set_source_files_properties(
-  ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
+  ../../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
   PROPERTIES INCLUDE "QtCore/QList")
 set_source_files_properties(
-  ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
+  ../../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
   PROPERTIES INCLUDE "QtCore/QString")
 
 qt4_add_dbus_interface( NepomukBackup_GUI_SRCS
-                        ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.syncmanager.xml
+                        ../../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.syncmanager.xml
                         syncmanagerinterface )
 qt4_add_dbus_interface( NepomukBackup_GUI_SRCS
-                        ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
+                        ../../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
                         backupmanagerinterface )
 
 #------UI Interface files ------
@@ -66,7 +66,7 @@ kde4_add_ui_files( NepomukBackup_GUI_SRCS
 
 #--------- Ontologies -------#
 soprano_add_ontology(NepomukBackup_GUI_SRCS
-   ${CMAKE_CURRENT_SOURCE_DIR}/../../../ontologies/nrio.trig
+   ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ontologies/nrio.trig
   "NRIO"
   "Nepomuk::Vocabulary"
   "trig")

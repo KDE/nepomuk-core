@@ -44,15 +44,15 @@ set( BackupSyncService_SRCS
 #                       ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.merger.xml
 #                       merger.h Nepomuk::Merger )
 qt4_add_dbus_adaptor( BackupSyncService_SRCS
-                      ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
+                      ../../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
                       backupmanager.h Nepomuk::BackupManager )
 qt4_add_dbus_adaptor( BackupSyncService_SRCS
-                      ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.syncmanager.xml
+                      ../../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.syncmanager.xml
                       syncmanager.h Nepomuk::SyncManager )
 
 #--------- Ontologies -------#
 soprano_add_ontology(BackupSyncService_SRCS
-   ${CMAKE_CURRENT_SOURCE_DIR}/../../../ontologies/nrio.trig
+   ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ontologies/nrio.trig
   "NRIO"
   "Nepomuk::Vocabulary"
   "trig")

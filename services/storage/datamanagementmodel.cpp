@@ -27,7 +27,7 @@
 #include "simpleresourcegraph.h"
 #include "simpleresource.h"
 #include "resourcewatchermanager.h"
-#include "../backupsync/lib/syncresource.h"
+#include "backupsync/lib/syncresource.h"
 #include "nepomuktools.h"
 
 #include <Soprano/Vocabulary/NRL>
