@@ -31,13 +31,9 @@
 
 #include <KDebug>
 
-#include <kpluginfactory.h>
-#include <kpluginloader.h>
-
-NEPOMUK_EXPORT_SERVICE( Nepomuk::BackupSyncService, "nepomukbackupsync" )
 
 Nepomuk::BackupSyncService::BackupSyncService( QObject* parent, const QList< QVariant >& )
-	: Service(parent)
+	: QObject(parent)
 {
     kDebug();
 

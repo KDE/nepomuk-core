@@ -23,7 +23,7 @@
 #ifndef BACKUPSYNCSERVICE_H
 #define BACKUPSYNCSERVICE_H
 
-#include "nepomukservice.h"
+#include <QtCore/QObject>
 
 namespace Nepomuk {
 
@@ -32,7 +32,7 @@ namespace Nepomuk {
     class SyncManager;
     class BackupManager;
 
-    class BackupSyncService : public Service
+    class BackupSyncService : public QObject
     {
         Q_OBJECT
         Q_CLASSINFO("D-Bus Interface", "org.kde.BackupSync")
