@@ -36,7 +36,7 @@
 #include "identificationset.h"
 
 
-int Nepomuk::saveBackupChangeLog(const QUrl& url, QSet<QUrl> & uniqueUris )
+int Nepomuk::saveBackupChangeLog(Soprano::Model* model, const QUrl& url, QSet< QUrl >& uniqueUris )
 {
     const int step = 1000;
     const QString query = QString::fromLatin1("select ?r ?p ?o ?g where { "
@@ -46,7 +46,6 @@ int Nepomuk::saveBackupChangeLog(const QUrl& url, QSet<QUrl> & uniqueUris )
                                               "FILTER(regex(str(?r), '^nepomuk:/res/')). "
                                               "}");
 
-    Soprano::Model * model = Nepomuk::ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator iter= model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
 
     int totalNumRecords = 0;
@@ -75,19 +74,19 @@ int Nepomuk::saveBackupChangeLog(const QUrl& url, QSet<QUrl> & uniqueUris )
     return totalNumRecords;
 }
 
-bool Nepomuk::saveBackupSyncFile(const QUrl& url)
+bool Nepomuk::saveBackupSyncFile(Soprano::Model *model, const QUrl& url)
 {
     kDebug() << url;
     KTemporaryFile logFile;
     logFile.open();
 
     QSet<QUrl> uniqueUris;
-    saveBackupChangeLog( logFile.fileName(), uniqueUris );
+    saveBackupChangeLog( model, logFile.fileName(), uniqueUris );
 
     KTemporaryFile identificationFile;
     identificationFile.open();
     const QUrl identUrl( identificationFile.fileName() );
 
-    IdentificationSet::createIdentificationSet( uniqueUris, identUrl );
+    IdentificationSet::createIdentificationSet( model, uniqueUris, identUrl );
     return SyncFile::createSyncFile( logFile.fileName(), identUrl, url );
 }

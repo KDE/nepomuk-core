@@ -27,6 +27,8 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
 
+#include <Soprano/Model>
+
 #include <KConfig>
 #include <KJob>
 
@@ -38,7 +40,7 @@ namespace Nepomuk {
         Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.services.nepomukbackupsync.BackupManager")
 
     public:
-        BackupManager(QObject* parent = 0);
+        BackupManager(Soprano::Model *model, QObject* parent);
         virtual ~BackupManager();
 
     public slots:
@@ -59,6 +61,8 @@ namespace Nepomuk {
         QTimer m_timer;
         void resetTimer();
         void removeOldBackups();
+
+        Soprano::Model* m_model;
 
     private slots:
         void slotConfigDirty();

@@ -71,7 +71,7 @@ void Nepomuk::Storage::slotNepomukCoreInitialized( bool success )
         QFile::remove( socketPath ); // in case we crashed
         m_core->start( socketPath );
 
-        BackupSyncService* backupSync = new BackupSyncService( this );
+        BackupSyncService* backupSync = new BackupSyncService( m_core->model(), this );
     }
     else {
         kDebug() << "Failed to initialize nepomuk core";

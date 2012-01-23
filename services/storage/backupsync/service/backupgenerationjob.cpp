@@ -24,8 +24,9 @@
 
 #include <QtCore/QTimer>
 
-Nepomuk::BackupGenerationJob::BackupGenerationJob(const QUrl& url, QObject* parent)
+Nepomuk::BackupGenerationJob::BackupGenerationJob(Soprano::Model *model, const QUrl& url, QObject* parent)
     : KJob(parent),
+      m_model(model),
       m_url( url )
 {
 }
@@ -37,7 +38,7 @@ void Nepomuk::BackupGenerationJob::start()
 
 void Nepomuk::BackupGenerationJob::doWork()
 {
-    Nepomuk::saveBackupSyncFile( m_url );
+    Nepomuk::saveBackupSyncFile( m_model, m_url );
     emitResult();
 }
 

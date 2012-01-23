@@ -24,6 +24,7 @@
 #define BACKUPSYNCSERVICE_H
 
 #include <QtCore/QObject>
+#include <Soprano/Model>
 
 namespace Nepomuk {
 
@@ -37,7 +38,7 @@ namespace Nepomuk {
         Q_OBJECT
         Q_CLASSINFO("D-Bus Interface", "org.kde.BackupSync")
     public:
-        BackupSyncService( QObject * parent = 0, const QList<QVariant>& args = QList<QVariant>() );
+        BackupSyncService( Soprano::Model *model, QObject *parent );
         ~BackupSyncService();
 
     public Q_SLOTS:

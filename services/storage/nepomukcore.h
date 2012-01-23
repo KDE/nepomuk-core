@@ -40,6 +40,8 @@ namespace Nepomuk {
          */
         Soprano::Model* model( const QString& name );
 
+        Soprano::Model* model();
+
         /**
          * Open all repositories.
          */

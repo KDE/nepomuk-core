@@ -116,6 +116,11 @@ Soprano::Model* Nepomuk::Core::model( const QString& name )
     }
 }
 
+Soprano::Model* Nepomuk::Core::model()
+{
+    return model(s_repositoryName);
+}
+
 
 Soprano::Model* Nepomuk::Core::createModel( const Soprano::BackendSettings& )
 {

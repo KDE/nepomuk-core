@@ -32,15 +32,15 @@
 #include <KDebug>
 
 
-Nepomuk::BackupSyncService::BackupSyncService( QObject* parent, const QList< QVariant >& )
+Nepomuk::BackupSyncService::BackupSyncService( Soprano::Model* model, QObject* parent )
 	: QObject(parent)
 {
     kDebug();
 
-    m_diffGenerator = new DiffGenerator( this );
+    //m_diffGenerator = new DiffGenerator( this );
 
-    m_syncManager = new SyncManager( this );
-    m_backupManager = new BackupManager( this );
+    //m_syncManager = new SyncManager( this );
+    m_backupManager = new BackupManager( model, this );
 }
 
 Nepomuk::BackupSyncService::~BackupSyncService()

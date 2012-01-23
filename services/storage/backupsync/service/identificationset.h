@@ -35,9 +35,9 @@ namespace Soprano {
 }
 
 namespace Nepomuk {
-        
+
         class ChangeLog;
-        
+
         class IdentificationSet
         {
         public :
@@ -78,7 +78,7 @@ namespace Nepomuk {
              * Creates an IdentificationSet for all the resources present in \p resList
              */
             static IdentificationSet fromResourceList( const QList<QUrl> resList, Soprano::Model* model = Nepomuk::ResourceManager::instance()->mainModel() );
-            
+
             /**
              * Creates an IdentificationSet which contains all the identification properties
              * of all the resources present in the \p log. No model is queried to get these
@@ -96,11 +96,11 @@ namespace Nepomuk {
 
             void clear();
             void mergeWith(const IdentificationSet & rhs);
-            
+
             IdentificationSet & operator=( const IdentificationSet & rhs );
             IdentificationSet& operator<<(const IdentificationSet & rhs);
 
-            static void createIdentificationSet( const QSet< QUrl >& uniqueUris, const QUrl& outputUrl );
+            static void createIdentificationSet( Soprano::Model *model, const QSet< QUrl >& uniqueUris, const QUrl& outputUrl );
         private :
             class Private;
             QSharedDataPointer<Private> d;

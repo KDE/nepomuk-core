@@ -23,6 +23,7 @@
 
 #include <KJob>
 #include <QtCore/QUrl>
+#include <Soprano/Model>
 
 namespace Nepomuk {
 
@@ -30,13 +31,14 @@ namespace Nepomuk {
     {
         Q_OBJECT
     public:
-        BackupGenerationJob(const QUrl& url, QObject* parent = 0);
+        BackupGenerationJob(Soprano::Model *model, const QUrl& url, QObject* parent = 0);
         virtual void start();
 
     private slots:
         void doWork();
 
     private:
+        Soprano::Model* m_model;
         QUrl m_url;
     };
 }

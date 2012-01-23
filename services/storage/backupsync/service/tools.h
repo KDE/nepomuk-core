@@ -38,12 +38,12 @@ namespace Nepomuk {
      * It's useful in when doing a first sync or first backup.
      *
      * \param uniqueUris After execution, it will contain a list of unique uris
-     * 
+     *
      * Returns the numbers of records in the changelog
      */
-    int saveBackupChangeLog( const QUrl& url, QSet<QUrl> & uniqueUris );
+    int saveBackupChangeLog( Soprano::Model *model, const QUrl& url, QSet<QUrl> & uniqueUris );
 
-    bool saveBackupSyncFile( const QUrl& url );
+    bool saveBackupSyncFile( Soprano::Model *model, const QUrl& url );
 }
 
 #endif // TOOLS_H
