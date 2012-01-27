@@ -282,21 +282,23 @@ namespace Nepomuk {
         /**
          * \brief This signal is emitted when a property value is changed.
          *
-         * This signal cannot be emitted for all changes. It doesn't work if a property is first
-         * removed and then set, cause the Data Mangement Service does not maintain an internal
-         * cache for the purpose of emitting the propertyChanged signal.
+         * This signal is essentially a combination of the propertyAdded and propertyRemoved signals.
+         *
+         * Be aware that removing and then adding a property will result in two separate
+         * propertyChanged signals. They are never combined.
          *
          * Specially, since one could theoretically take forever between the removal and the
          * setting of the property.
          *
          * \param resource The changed resource.
          * \param property The property which was changed.
-         * \param oldValue The removed property value.
+         * \param addedValues The values that have been added.
+         * \param removedValues The values that have been removed.
          */
         void propertyChanged( const Nepomuk::Resource & resource,
                               const Nepomuk::Types::Property & property,
-                              const QVariantList & oldValue,
-                              const QVariantList & newValue );
+                              const QVariantList & addedValues,
+                              const QVariantList & removedValues );
 
     private Q_SLOTS:
         void slotResourceCreated(const QString& res, const QStringList& types);

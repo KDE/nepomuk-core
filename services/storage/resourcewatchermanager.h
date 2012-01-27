@@ -47,8 +47,8 @@ namespace Nepomuk {
         // IDEA: would it be more efficient to have three lists/sets: keptValues, newValues, removedValues?
         void changeProperty(const QUrl& res,
                             const QUrl& property,
-                            const QList<Soprano::Node>& oldValues,
-                            const QList<Soprano::Node>& newValues);
+                            const QList<Soprano::Node>& addedValues,
+                            const QList<Soprano::Node>& removedValues);
         void changeProperty(const QMultiHash<QUrl, Soprano::Node>& oldValues, const QUrl& property,
                             const QList<Soprano::Node>& nodes);
         void createResource(const QUrl& uri, const QList<QUrl>& types);

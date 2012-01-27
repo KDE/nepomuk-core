@@ -269,8 +269,8 @@ void ResourceWatcherTest::testSetProperty()
     QList<QVariant> pChArgs = resWpChSpy.takeFirst();
     QCOMPARE(pChArgs[0].toString(), resA.toString());
     QCOMPARE(pChArgs[1].toString(), QLatin1String("prop:/int"));
-    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList());
-    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList() << QVariant(42));
+    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList() << QVariant(42));
+    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList());
 
 
     QCOMPARE( propWpAddSpy.count(), 1 );
@@ -321,8 +321,8 @@ void ResourceWatcherTest::testSetProperty()
     pChArgs = resWpChSpy.takeFirst();
     QCOMPARE(pChArgs[0].toString(), resA.toString());
     QCOMPARE(pChArgs[1].toString(), QLatin1String("prop:/int"));
-    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList() << QVariant(42));
-    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList() << QVariant(12));
+    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList() << QVariant(12));
+    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList() << QVariant(42));
 
     QCOMPARE(propWpAddSpy.count(), 1);
     QCOMPARE(propWpAddSpy.takeFirst(), pAddArgs);
@@ -371,10 +371,8 @@ void ResourceWatcherTest::testSetProperty()
     pChArgs = resWpChSpy.takeFirst();
     QCOMPARE(pChArgs[0].toString(), resA.toString());
     QCOMPARE(pChArgs[1].toString(), QLatin1String("prop:/int"));
-    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList() << QVariant(12));
-    QCOMPARE(pChArgs[3].value<QVariantList>().count(), 2);
-    QVERIFY(pChArgs[3].value<QVariantList>().contains(QVariant(12)));
-    QVERIFY(pChArgs[3].value<QVariantList>().contains(QVariant(42)));
+    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList() << QVariant(42));
+    QCOMPARE(pChArgs[3].value<QVariantList>().count(), 0);
 
     QCOMPARE(propWpAddSpy.count(), 1);
     QCOMPARE(propWpAddSpy.takeFirst(), pAddArgs);
@@ -419,10 +417,8 @@ void ResourceWatcherTest::testSetProperty()
     pChArgs = resWpChSpy.takeFirst();
     QCOMPARE(pChArgs[0].toString(), resA.toString());
     QCOMPARE(pChArgs[1].toString(), QLatin1String("prop:/int"));
-    QCOMPARE(pChArgs[2].value<QVariantList>().count(), 2);
-    QVERIFY(pChArgs[2].value<QVariantList>().contains(QVariant(12)));
-    QVERIFY(pChArgs[2].value<QVariantList>().contains(QVariant(42)));
-    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList() << QVariant(12));
+    QCOMPARE(pChArgs[2].value<QVariantList>().count(), 0);
+    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList() << QVariant(42));
 
     QCOMPARE(propWpAddSpy.count(), 0);
     QCOMPARE(propWpRemSpy.count(), 1);
@@ -534,8 +530,8 @@ void ResourceWatcherTest::testAddProperty()
     QVariantList pChArgs = resWpChSpy.takeFirst();
     QCOMPARE(pChArgs[0].toString(), resA.toString());
     QCOMPARE(pChArgs[1].toString(), QLatin1String("prop:/int"));
-    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList());
-    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList() << QVariant(42));
+    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList() << QVariant(42));
+    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList());
 
     QCOMPARE( propWpAddSpy.count(), 1 );
     QCOMPARE( propWpAddSpy.takeFirst(), pAddArgs );
@@ -574,10 +570,8 @@ void ResourceWatcherTest::testAddProperty()
     pChArgs = resWpChSpy.takeFirst();
     QCOMPARE(pChArgs[0].toString(), resA.toString());
     QCOMPARE(pChArgs[1].toString(), QLatin1String("prop:/int"));
-    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList() << QVariant(42));
-    QCOMPARE(pChArgs[3].value<QVariantList>().count(), 2);
-    QVERIFY(pChArgs[3].value<QVariantList>().contains(QVariant(12)));
-    QVERIFY(pChArgs[3].value<QVariantList>().contains(QVariant(42)));
+    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList() << QVariant(12));
+    QCOMPARE(pChArgs[3].value<QVariantList>().count(), 0);
 
     QCOMPARE(propWpAddSpy.count(), 1);
     QCOMPARE(propWpAddSpy.takeFirst(), pAddArgs);
@@ -677,8 +671,8 @@ void ResourceWatcherTest::testRemoveProperty()
     QVariantList pChArgs = resWpChSpy.takeFirst();
     QCOMPARE(pChArgs[0].toString(), resA.toString());
     QCOMPARE(pChArgs[1].toString(), QLatin1String("prop:/int"));
-    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList() << QVariant(12) << QVariant(42));
-    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList() << QVariant(12));
+    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList());
+    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList() << QVariant(42));
 
     QCOMPARE(propWpRemSpy.count(), 1);
     QCOMPARE(propWpRemSpy.takeFirst(), pRemArgs);
@@ -717,8 +711,8 @@ void ResourceWatcherTest::testRemoveProperty()
     pChArgs = resWpChSpy.takeFirst();
     QCOMPARE(pChArgs[0].toString(), resA.toString());
     QCOMPARE(pChArgs[1].toString(), QLatin1String("prop:/int"));
-    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList() << QVariant(12));
-    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList());
+    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList());
+    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList() << QVariant(12));
 
     QCOMPARE(propWpRemSpy.count(), 1);
     QCOMPARE(propWpRemSpy.takeFirst(), pRemArgs);
@@ -834,10 +828,10 @@ void ResourceWatcherTest::testRemoveProperties()
     QCOMPARE( resWpChSpy.count(), 1 );
     QVariantList pChArgs = resWpChSpy.takeFirst();
     QCOMPARE(pChArgs[1].toString(), QLatin1String("prop:/int"));
-    QCOMPARE(pChArgs[2].value<QVariantList>().count(), 2);
-    QVERIFY(pChArgs[2].value<QVariantList>().first() == QVariant(12) || *(++pChArgs[2].value<QVariantList>().constBegin()) == QVariant(12) );
-    QVERIFY(pChArgs[2].value<QVariantList>().first() == QVariant(42) || *(++pChArgs[2].value<QVariantList>().constBegin()) == QVariant(42) );
-    QCOMPARE(pChArgs[3].value<QVariantList>(), QVariantList());
+    QCOMPARE(pChArgs[2].value<QVariantList>(), QVariantList());
+    QCOMPARE(pChArgs[3].value<QVariantList>().count(), 2);
+    QVERIFY(pChArgs[3].value<QVariantList>().first() == QVariant(12) || *(++pChArgs[3].value<QVariantList>().constBegin()) == QVariant(12) );
+    QVERIFY(pChArgs[3].value<QVariantList>().first() == QVariant(42) || *(++pChArgs[3].value<QVariantList>().constBegin()) == QVariant(42) );
 
     QCOMPARE(propWpRemSpy.count(), 1);
     QVERIFY(propWpRemSpy.takeFirst() == pRemArgs);

@@ -513,7 +513,6 @@ void Nepomuk::DataManagementModel::setProperty(const QList<QUrl> &resources, con
     const QStringList uriHashN3 = resourceHashToN3(uriHash);
     if(!uriHashN3.isEmpty()) {
         QHash<QUrl, QList<Soprano::Node> > valuesToRemove;
-        QHash<QUrl, QList<Soprano::Node> > valuesToKeep;
         const QSet<Soprano::Node> setValues = QSet<Soprano::Node>::fromList(resolvedNodes.values());
         QSet<QUrl> graphs;
         QList<Soprano::BindingSet> existing
@@ -526,9 +525,6 @@ void Nepomuk::DataManagementModel::setProperty(const QList<QUrl> &resources, con
                 removeAllStatements(binding["r"], property, binding["v"]);
                 graphs.insert(binding["g"].uri());
                 valuesToRemove[binding["r"].uri()].append(binding["v"]);
-            }
-            else {
-                valuesToKeep[binding["r"].uri()].append(binding["v"]);
             }
         }
         removeTrailingGraphs(graphs);
@@ -551,12 +547,11 @@ void Nepomuk::DataManagementModel::setProperty(const QList<QUrl> &resources, con
         foreach(const QUrl& res, allChangedResources) {
             const QList<Soprano::Node> added = addedValues.value(res);
             const QList<Soprano::Node> removed = valuesToRemove.value(res);
-            kDebug() << res << "with the following lists:" << valuesToKeep.value(res) << valuesToRemove.value(res) << added << removed;
             if(!added.isEmpty() || !removed.isEmpty()) {
                 d->m_watchManager->changeProperty(res,
                                                   property,
-                                                  removed + valuesToKeep.value(res),
-                                                  added + valuesToKeep.value(res));
+                                                  added,
+                                                  removed);
             }
         }
     }
@@ -640,26 +635,22 @@ void Nepomuk::DataManagementModel::removeProperty(const QList<QUrl> &resources, 
     QSet<QUrl> graphs;
     foreach( const QUrl & res, resolvedResources ) {
         const QList<Soprano::BindingSet> valueGraphs
-                = executeQuery(QString::fromLatin1("select ?g ?v where { graph ?g { %1 %2 ?v . } . }")
+                = executeQuery(QString::fromLatin1("select ?g ?v where { graph ?g { %1 %2 ?v . } . FILTER(?v in (%3)) . }")
                                .arg(Soprano::Node::resourceToN3(res),
-                                    Soprano::Node::resourceToN3(property)),
+                                    Soprano::Node::resourceToN3(property),
+                                    nodesToN3(resolvedNodes).join(QLatin1String(","))),
                                Soprano::Query::QueryLanguageSparql).allBindings();
 
-        QSet<Soprano::Node> oldValues;
         QSet<Soprano::Node> removedValues;
-        oldValues.reserve( valueGraphs.size() );
         foreach(const Soprano::BindingSet& binding, valueGraphs) {
             const Soprano::Node v = binding["v"];
-            if(resolvedNodes.contains(v)) {
-                graphs.insert( binding["g"].uri() );
-                removeAllStatements( res, property, v );
-                removedValues << v;
-            }
-            oldValues << v;
+            graphs.insert( binding["g"].uri() );
+            removeAllStatements( res, property, v );
+            removedValues << v;
         }
 
         if(!removedValues.isEmpty()) {
-            d->m_watchManager->changeProperty( res, property, oldValues.toList(), (oldValues - removedValues).toList() );
+            d->m_watchManager->changeProperty( res, property, QList<Soprano::Node>(), removedValues.toList() );
         }
 
         // we only update the mtime in case we actually remove anything
@@ -776,7 +767,7 @@ void Nepomuk::DataManagementModel::removeProperties(const QList<QUrl> &resources
                 values << it.value();
             }
 
-            d->m_watchManager->changeProperty(res, property, values, QList<Soprano::Node>());
+            d->m_watchManager->changeProperty(res, property, QList<Soprano::Node>(), values);
         }
 
         // we only update the mtime in case we actually remove anything
@@ -2367,9 +2358,6 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(con
     const QUrl appRes = findApplicationResource(app);
 
 
-    // remember the existing values in addition to the ones we actually add for the propertyChanged signals in the main addProperty
-    QHash<QUrl, QList<Soprano::Node> > oldValues;
-
     //
     // Check if values already exist. If so remove the resources from the resourceSet and only add the application
     // as maintainedBy in a new graph (except if its the only statement in the graph)
@@ -2380,12 +2368,13 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(con
                                                                 "where { "
                                                                 "graph ?g { ?r %2 ?v . } . "
                                                                 "?m %1 ?g . "
-                                                                "FILTER(?r in (%3)) . %5}")
+                                                                "FILTER(?r in (%3)) . "
+                                                                "FILTER(?v in (%5)) . }")
                 .arg(Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor()),
                      Soprano::Node::resourceToN3(property),
                      resourcesToN3(knownResources).join(QLatin1String(",")),
                      createResourceMetadataPropertyFilter(QLatin1String("?p")),
-                     (!signalPropertyChanged ? QString::fromLatin1("FILTER(?v in (%1)) . ").arg(nodesToN3(resolvedNodes).join(QLatin1String(","))) : QString()));
+                     nodesToN3(resolvedNodes).join(QLatin1String(",")));
         QList<Soprano::BindingSet> existingValueBindings = executeQuery(existingValuesQuery, Soprano::Query::QueryLanguageSparql).allBindings();
         Q_FOREACH(const Soprano::BindingSet& binding, existingValueBindings) {
             kDebug() << "Existing value" << binding;
@@ -2395,10 +2384,8 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(con
             const QUrl m = binding["m"].uri();
             const int cnt = binding["cnt"].literal().toInt();
 
-            oldValues[r].append(v);
-
             // in case we do not signal the changes we restrict the values already in the query
-            if(!signalPropertyChanged || resolvedNodes.contains(v)) {
+            if(resolvedNodes.contains(v)) {
                 // we handle this property here - thus, no need to handle it below
                 finalProperties.remove(qMakePair(r, v));
 
@@ -2450,7 +2437,7 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(con
         // inform interested parties
         if(signalPropertyChanged) {
             for(QHash<QUrl, QList<Soprano::Node> >::const_iterator it = finalValuesPerResource.constBegin(); it != finalValuesPerResource.constEnd(); ++it) {
-                d->m_watchManager->changeProperty(it.key(), property, oldValues[it.key()], oldValues[it.key()] + it.value());
+                d->m_watchManager->changeProperty(it.key(), property, it.value(), QList<Soprano::Node>());
             }
         }
 

@@ -111,19 +111,9 @@ void Nepomuk::ResourceWatcherManager::addStatement(const Soprano::Statement& st)
 }
 
 
-void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &oldValues_, const QList<Soprano::Node> &newValues_)
+void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &addedValues, const QList<Soprano::Node> &removedValues)
 {
-    kDebug() << res << property << oldValues_ << newValues_;
-
-    const QSet<Soprano::Node> oldValues = QSet<Soprano::Node>::fromList(oldValues_);
-    const QSet<Soprano::Node> newValues = QSet<Soprano::Node>::fromList(newValues_);
-    const QSet<Soprano::Node> removedValues = oldValues - newValues;
-    const QSet<Soprano::Node> addedValues = newValues - oldValues;
-
-    if(oldValues == newValues) {
-        // nothing to do
-        return;
-    }
+    kDebug() << res << property << addedValues << removedValues;
 
     // first collect all the connections we need to emit the signals for
     QSet<ResourceWatcherConnection*> connections;
@@ -190,8 +180,8 @@ void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl
     foreach(ResourceWatcherConnection* con, connections) {
         emit con->propertyChanged( convertUri(res),
                                    convertUri(property),
-                                   nodeListToVariantList(oldValues),
-                                   nodeListToVariantList(newValues) );
+                                   nodeListToVariantList(addedValues),
+                                   nodeListToVariantList(removedValues) );
         if(!addedValues.isEmpty()) {
             emit con->propertyAdded(convertUri(res),
                                     convertUri(property),
