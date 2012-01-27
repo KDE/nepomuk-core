@@ -285,12 +285,11 @@ void ResourceWatcherTest::testSetProperty()
     QCOMPARE( resPropWpChSpy.count(), 1 );
     QCOMPARE( resPropWpChSpy.takeFirst(), pChArgs);
 
-    QEXPECT_FAIL("", "The DMS does not handle watching property changes by res type", Continue);
     QCOMPARE( typeWpAddSpy.count(), 1 );
-//    QCOMPARE( typeWpAddSpy.takeFirst(), pAddArgs);
-//    QCOMPARE( typeWpRemSpy.count(), 0 );
-//    QCOMPARE( typeWpChSpy.count(), 1 );
-//    QCOMPARE( typeWpChSpy.takeFirst(), pChArgs);
+    QCOMPARE( typeWpAddSpy.takeFirst(), pAddArgs);
+    QCOMPARE( typeWpRemSpy.count(), 0 );
+    QCOMPARE( typeWpChSpy.count(), 1 );
+    QCOMPARE( typeWpChSpy.takeFirst(), pChArgs);
 
     QCOMPARE( typePropWpAddSpy.count(), 1 );
     QCOMPARE( typePropWpAddSpy.takeFirst(), pAddArgs );
@@ -339,13 +338,12 @@ void ResourceWatcherTest::testSetProperty()
     QCOMPARE(resPropWpChSpy.count(), 1);
     QCOMPARE(resPropWpChSpy.takeFirst(), pChArgs);
 
-    QEXPECT_FAIL("", "The DMS does not handle watching property changes by res type", Continue);
     QCOMPARE(typeWpAddSpy.count(), 1);
-//    QCOMPARE(typeWpAddSpy.takeFirst(), pAddArgs);
-//    QCOMPARE(typeWpRemSpy.count(), 1);
-//    QCOMPARE(typeWpRemSpy.takeFirst(), pRemArgs);
-//    QCOMPARE(typeWpChSpy.count(), 1);
-//    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
+    QCOMPARE(typeWpAddSpy.takeFirst(), pAddArgs);
+    QCOMPARE(typeWpRemSpy.count(), 1);
+    QCOMPARE(typeWpRemSpy.takeFirst(), pRemArgs);
+    QCOMPARE(typeWpChSpy.count(), 1);
+    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
 
     QCOMPARE(typePropWpAddSpy.count(), 1);
     QCOMPARE(typePropWpAddSpy.takeFirst(), pAddArgs);
@@ -390,12 +388,11 @@ void ResourceWatcherTest::testSetProperty()
     QCOMPARE(resPropWpChSpy.count(), 1);
     QCOMPARE(resPropWpChSpy.takeFirst(), pChArgs);
 
-    QEXPECT_FAIL("", "The DMS does not handle watching property changes by res type", Continue);
     QCOMPARE(typeWpAddSpy.count(), 1);
-//    QCOMPARE(typeWpAddSpy.takeFirst(), pAddArgs);
-//    QCOMPARE(typeWpRemSpy.count(), 0);
-//    QCOMPARE(typeWpChSpy.count(), 1);
-//    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
+    QCOMPARE(typeWpAddSpy.takeFirst(), pAddArgs);
+    QCOMPARE(typeWpRemSpy.count(), 0);
+    QCOMPARE(typeWpChSpy.count(), 1);
+    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
 
     QCOMPARE(typePropWpAddSpy.count(), 1);
     QCOMPARE(typePropWpAddSpy.takeFirst(), pAddArgs);
@@ -439,12 +436,11 @@ void ResourceWatcherTest::testSetProperty()
     QCOMPARE(resPropWpChSpy.count(), 1);
     QCOMPARE(resPropWpChSpy.takeFirst(), pChArgs);
 
-    QEXPECT_FAIL("", "The DMS does not handle watching property changes by res type", Continue);
-    QCOMPARE(typeWpAddSpy.count(), 1);
-//    QCOMPARE(typeWpRemSpy.count(), 1);
-//    QCOMPARE(typeWpRemSpy.takeFirst(), pRemArgs);
-//    QCOMPARE(typeWpChSpy.count(), 1);
-//    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
+    QCOMPARE(typeWpAddSpy.count(), 0);
+    QCOMPARE(typeWpRemSpy.count(), 1);
+    QCOMPARE(typeWpRemSpy.takeFirst(), pRemArgs);
+    QCOMPARE(typeWpChSpy.count(), 1);
+    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
 
     QCOMPARE(typePropWpAddSpy.count(), 0);
     QCOMPARE(typePropWpRemSpy.count(), 1);
@@ -551,11 +547,10 @@ void ResourceWatcherTest::testAddProperty()
     QCOMPARE( resPropWpChSpy.count(), 1 );
     QCOMPARE( resPropWpChSpy.takeFirst(), pChArgs );
 
-    QEXPECT_FAIL("", "The DMS does not handle watching property changes by res type", Continue);
     QCOMPARE( typeWpAddSpy.count(), 1 );
-//    QCOMPARE( typeWpAddSpy.takeFirst(), pAddArgs);
-//    QCOMPARE( typeWpChSpy.count(), 1 );
-//    QCOMPARE( typeWpChSpy.takeFirst(), pChArgs );
+    QCOMPARE( typeWpAddSpy.takeFirst(), pAddArgs);
+    QCOMPARE( typeWpChSpy.count(), 1 );
+    QCOMPARE( typeWpChSpy.takeFirst(), pChArgs );
 
     QCOMPARE( typePropWpAddSpy.count(), 1 );
     QCOMPARE( typePropWpAddSpy.takeFirst(), pAddArgs );
@@ -594,11 +589,10 @@ void ResourceWatcherTest::testAddProperty()
     QCOMPARE(resPropWpChSpy.count(), 1);
     QCOMPARE(resPropWpChSpy.takeFirst(), pChArgs);
 
-    QEXPECT_FAIL("", "The DMS does not handle watching property changes by res type", Continue);
     QCOMPARE(typeWpAddSpy.count(), 1);
-//    QCOMPARE(typeWpAddSpy.takeFirst(), pAddArgs);
-//    QCOMPARE(typeWpChSpy.count(), 1);
-//    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
+    QCOMPARE(typeWpAddSpy.takeFirst(), pAddArgs);
+    QCOMPARE(typeWpChSpy.count(), 1);
+    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
 
     QCOMPARE(typePropWpAddSpy.count(), 1);
     QCOMPARE(typePropWpAddSpy.takeFirst(), pAddArgs);
@@ -696,11 +690,10 @@ void ResourceWatcherTest::testRemoveProperty()
     QCOMPARE(resPropWpChSpy.count(), 1);
     QCOMPARE(resPropWpChSpy.takeFirst(), pChArgs);
 
-    QEXPECT_FAIL("", "The DMS does not handle watching property changes by res type", Continue);
     QCOMPARE(typeWpRemSpy.count(), 1);
-//    QCOMPARE(typeWpRemSpy.takeFirst(), pRemArgs);
-//    QCOMPARE(typeWpChSpy.count(), 1);
-//    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
+    QCOMPARE(typeWpRemSpy.takeFirst(), pRemArgs);
+    QCOMPARE(typeWpChSpy.count(), 1);
+    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
 
     QCOMPARE(typePropWpRemSpy.count(), 1);
     QCOMPARE(typePropWpRemSpy.takeFirst(), pRemArgs);
@@ -737,11 +730,10 @@ void ResourceWatcherTest::testRemoveProperty()
     QCOMPARE(resPropWpChSpy.count(), 1);
     QCOMPARE(resPropWpChSpy.takeFirst(), pChArgs);
 
-    QEXPECT_FAIL("", "The DMS does not handle watching property changes by res type", Continue);
     QCOMPARE(typeWpRemSpy.count(), 1);
-//    QCOMPARE(typeWpRemSpy.takeFirst(), pRemArgs);
-//    QCOMPARE(typeWpChSpy.count(), 1);
-//    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
+    QCOMPARE(typeWpRemSpy.takeFirst(), pRemArgs);
+    QCOMPARE(typeWpChSpy.count(), 1);
+    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
 
     QCOMPARE(typePropWpRemSpy.count(), 1);
     QCOMPARE(typePropWpRemSpy.takeFirst(), pRemArgs);
@@ -857,11 +849,10 @@ void ResourceWatcherTest::testRemoveProperties()
     QCOMPARE(resPropWpChSpy.count(), 1);
     QCOMPARE(resPropWpChSpy.takeFirst(), pChArgs);
 
-    QEXPECT_FAIL("", "The DMS does not handle watching property changes by res type", Continue);
     QCOMPARE(typeWpRemSpy.count(), 1);
-//    QVERIFY(typeWpRemSpy[0] == pRemArgs);
-//    QCOMPARE(typeWpChSpy.count(), 1);
-//    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
+    QVERIFY(typeWpRemSpy.takeFirst() == pRemArgs);
+    QCOMPARE(typeWpChSpy.count(), 1);
+    QCOMPARE(typeWpChSpy.takeFirst(), pChArgs);
 
     QCOMPARE(typePropWpRemSpy.count(), 1);
     QVERIFY(typePropWpRemSpy.takeFirst() == pRemArgs);

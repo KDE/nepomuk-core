@@ -1,7 +1,7 @@
 /*
     This file is part of the Nepomuk KDE project.
     Copyright (C) 2011  Vishesh Handa <handa.vish@gmail.com>
-    Copyright (C) 2011 Sebastian Trueg <trueg@kde.org>
+    Copyright (C) 2011-2012 Sebastian Trueg <trueg@kde.org>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -21,8 +21,11 @@
 
 #include "resourcewatchermanager.h"
 #include "resourcewatcherconnection.h"
+#include "datamanagementmodel.h"
 
 #include <Soprano/Statement>
+#include <Soprano/StatementIterator>
+#include <Soprano/NodeIterator>
 #include <Soprano/Vocabulary/RDF>
 
 #include <QtDBus/QDBusConnection>
@@ -47,7 +50,7 @@ QDBusVariant nodeToVariant(const Soprano::Node& node) {
     }
 }
 
-QVariantList nodeListToVariantList(const QList<Soprano::Node> &nodes) {
+template<typename T> QVariantList nodeListToVariantList(const T &nodes) {
     QVariantList list;
     list.reserve(nodes.size());
     foreach( const Soprano::Node &n, nodes ) {
@@ -80,8 +83,9 @@ QList<QUrl> convertUris(const QStringList& uris) {
 }
 }
 
-Nepomuk::ResourceWatcherManager::ResourceWatcherManager(QObject* parent)
+Nepomuk::ResourceWatcherManager::ResourceWatcherManager(DataManagementModel* parent)
     : QObject(parent),
+      m_model(parent),
       m_connectionCount(0)
 {
     QDBusConnection::sessionBus().registerObject("/resourcewatcher", this, QDBusConnection::ExportScriptableSlots);
@@ -101,109 +105,109 @@ Nepomuk::ResourceWatcherManager::~ResourceWatcherManager()
 
 void Nepomuk::ResourceWatcherManager::addStatement(const Soprano::Statement& st)
 {
-    addProperty( st.subject(), st.predicate().uri(), QList<Soprano::Node>() << st.object() );
+    // FIXME!
+    kError() << "FIXME";
+    //addProperty( st.subject(), st.predicate().uri(), QList<Soprano::Node>() << st.object() );
 }
 
-void Nepomuk::ResourceWatcherManager::addProperty(const Soprano::Node& res, const QUrl& property, const QList<Soprano::Node>& values)
+
+void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &oldValues_, const QList<Soprano::Node> &newValues_)
 {
-    // FIXME: take care of duplicate signals!
+    kDebug() << res << property << oldValues_ << newValues_;
 
-    //
-    // Emit signals for all the connections that are watching specific resources
-    // without any properties or with the property we have here.
-    //
-    foreach( ResourceWatcherConnection* con, m_resHash.values( res.uri() ) ) {
-        if( m_propHash.contains(property, con) ||
-            !m_propHash.values().contains(con) ) {
-            emit con->propertyAdded( convertUri(res.uri()),
-                                     convertUri(property),
-                                     nodeListToVariantList(values) );
-        }
+    const QSet<Soprano::Node> oldValues = QSet<Soprano::Node>::fromList(oldValues_);
+    const QSet<Soprano::Node> newValues = QSet<Soprano::Node>::fromList(newValues_);
+    const QSet<Soprano::Node> removedValues = oldValues - newValues;
+    const QSet<Soprano::Node> addedValues = newValues - oldValues;
+
+    if(oldValues == newValues) {
+        // nothing to do
+        return;
     }
 
-    //
-    // Emit signals for the connections that are watching specific properties without resources
-    // any types
-    //
-    foreach( ResourceWatcherConnection* con, m_propHash.values( property ) ) {
-        if( !m_resHash.values().contains(con) ) {
-            emit con->propertyAdded( convertUri(res.uri()),
-                                     convertUri(property),
-                                     nodeListToVariantList(values) );
-        }
-    }
+    // first collect all the connections we need to emit the signals for
+    QSet<ResourceWatcherConnection*> connections;
 
-    //
-    // Emit type + property signals
-    //
-    //TODO: Implement me! ( How? )
-}
-
-void Nepomuk::ResourceWatcherManager::removeProperty(const Soprano::Node& res, const QUrl& property, const QList<Soprano::Node>& values)
-{
-    kDebug() << res << property << values;
-    //
-    // Emit signals for all the connections that are only watching specific resources
-    //
-    foreach( ResourceWatcherConnection* con, m_resHash.values( res.uri() ) ) {
-        if( m_propHash.contains(property, con) ||
-            !m_propHash.values().contains(con) ) {
-            emit con->propertyRemoved( convertUri(res.uri()),
-                                       convertUri(property),
-                                       nodeListToVariantList(values) );
-        }
-    }
-
-    //
-    // Emit signals for the connections that are watching specific properties without resources
-    // any types
-    //
-    foreach( ResourceWatcherConnection* con, m_propHash.values( property ) ) {
-        if( !m_resHash.values().contains(con) ) {
-            emit con->propertyRemoved( convertUri(res.uri()),
-                                       convertUri(property),
-                                       nodeListToVariantList(values) );
-        }
-    }
-}
-
-void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &oldValues, const QList<Soprano::Node> &newValues)
-{
-    kDebug() << res << property << oldValues << newValues;
     //
     // Emit signals for all the connections that are only watching specific resources
     //
     foreach( ResourceWatcherConnection* con, m_resHash.values( res ) ) {
         if( m_propHash.contains(property, con) ||
             !m_propHash.values().contains(con) ) {
-            emit con->propertyChanged( convertUri(res),
-                                       convertUri(property),
-                                       nodeListToVariantList(oldValues),
-                                       nodeListToVariantList(newValues) );
+            connections << con;
         }
     }
+
+    //
+    // We only need the resource types if any connections are watching types.
+    //
+    QSet<QUrl> types;
+    if(!m_typeHash.isEmpty()) {
+        types = getTypes(res);
+    }
+
 
     //
     // Emit signals for the connections that are watching specific resources and properties
     //
     foreach( ResourceWatcherConnection* con, m_propHash.values( property ) ) {
-        if( !m_resHash.values().contains(con) ) {
-            emit con->propertyChanged( convertUri(res),
-                                       convertUri(property),
-                                       nodeListToVariantList(oldValues),
-                                       nodeListToVariantList(newValues) );
+        //
+        // Emit for those connections which watch the property and either no
+        // type or once of the types of the resource.
+        // Only query the types if we have any type watching connections.
+        //
+        bool conIsWatchingResType = !m_typeHash.values().contains(con);
+        foreach(const QUrl& type, types) {
+            if(m_typeHash.contains(type, con)) {
+                conIsWatchingResType = true;
+                break;
+            }
+        }
+
+        if( !m_resHash.values().contains(con) && conIsWatchingResType ) {
+            connections << con;
         }
     }
 
+
+
     //
-    // Emit type + property signals
+    // Emit signals for all connections which watch one of the types of the resource
+    // but no properties (that is handled above).
     //
-    //TODO: Implement me! ( How? )
+    foreach(const QUrl& type, types) {
+        foreach(ResourceWatcherConnection* con, m_typeHash.values(type)) {
+            if(!m_propHash.values(property).contains(con)) {
+                connections << con;
+            }
+        }
+    }
+
+
+    //
+    // Finally emit the signals for all connections
+    //
+    foreach(ResourceWatcherConnection* con, connections) {
+        emit con->propertyChanged( convertUri(res),
+                                   convertUri(property),
+                                   nodeListToVariantList(oldValues),
+                                   nodeListToVariantList(newValues) );
+        if(!addedValues.isEmpty()) {
+            emit con->propertyAdded(convertUri(res),
+                                    convertUri(property),
+                                    nodeListToVariantList(addedValues));
+        }
+        if(!removedValues.isEmpty()) {
+            emit con->propertyRemoved(convertUri(res),
+                                      convertUri(property),
+                                      nodeListToVariantList(removedValues));
+        }
+    }
 }
 
 void Nepomuk::ResourceWatcherManager::changeProperty(const QMultiHash< QUrl, Soprano::Node >& oldValues,
-                                                  const QUrl& property,
-                                                  const QList<Soprano::Node>& nodes)
+                                                     const QUrl& property,
+                                                     const QList<Soprano::Node>& nodes)
 {
     QList<QUrl> uniqueKeys = oldValues.keys();
     foreach( const QUrl resUri, uniqueKeys ) {
@@ -369,6 +373,16 @@ void Nepomuk::ResourceWatcherManager::addType(Nepomuk::ResourceWatcherConnection
 void Nepomuk::ResourceWatcherManager::removeType(Nepomuk::ResourceWatcherConnection *conn, const QString &type)
 {
     m_typeHash.remove(convertUri(type), conn);
+}
+
+QSet<QUrl> Nepomuk::ResourceWatcherManager::getTypes(const Soprano::Node &res) const
+{
+    QSet<QUrl> types;
+    Soprano::StatementIterator it = m_model->listStatements(res, RDF::type(), Soprano::Node());
+    while(it.next()) {
+        types.insert(it.current().object().uri());
+    }
+    return types;
 }
 
 #include "resourcewatchermanager.moc"

@@ -533,11 +533,6 @@ void Nepomuk::DataManagementModel::setProperty(const QList<QUrl> &resources, con
         }
         removeTrailingGraphs(graphs);
 
-        // inform interested parties about the removed values
-        for(QHash<QUrl, QList<Soprano::Node> >::const_iterator it = valuesToRemove.constBegin(); it != valuesToRemove.constEnd(); ++it) {
-            d->m_watchManager->removeProperty(it.key(), property, it.value());
-        }
-
         // construct the lists of old and new values
         QHash<QUrl, QList<Soprano::Node> > addedValues;
 
@@ -559,9 +554,9 @@ void Nepomuk::DataManagementModel::setProperty(const QList<QUrl> &resources, con
             kDebug() << res << "with the following lists:" << valuesToKeep.value(res) << valuesToRemove.value(res) << added << removed;
             if(!added.isEmpty() || !removed.isEmpty()) {
                 d->m_watchManager->changeProperty(res,
-                                               property,
-                                               removed + valuesToKeep.value(res),
-                                               added + valuesToKeep.value(res));
+                                                  property,
+                                                  removed + valuesToKeep.value(res),
+                                                  added + valuesToKeep.value(res));
             }
         }
     }
@@ -664,7 +659,6 @@ void Nepomuk::DataManagementModel::removeProperty(const QList<QUrl> &resources, 
         }
 
         if(!removedValues.isEmpty()) {
-            d->m_watchManager->removeProperty( res, property, removedValues.toList() );
             d->m_watchManager->changeProperty( res, property, oldValues.toList(), (oldValues - removedValues).toList() );
         }
 
@@ -782,7 +776,6 @@ void Nepomuk::DataManagementModel::removeProperties(const QList<QUrl> &resources
                 values << it.value();
             }
 
-            d->m_watchManager->removeProperty(res, property, values);
             d->m_watchManager->changeProperty(res, property, values, QList<Soprano::Node>());
         }
 
@@ -2455,9 +2448,8 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(con
         }
 
         // inform interested parties
-        for(QHash<QUrl, QList<Soprano::Node> >::const_iterator it = finalValuesPerResource.constBegin(); it != finalValuesPerResource.constEnd(); ++it) {
-            d->m_watchManager->addProperty(it.key(), property, it.value());
-            if(signalPropertyChanged) {
+        if(signalPropertyChanged) {
+            for(QHash<QUrl, QList<Soprano::Node> >::const_iterator it = finalValuesPerResource.constBegin(); it != finalValuesPerResource.constEnd(); ++it) {
                 d->m_watchManager->changeProperty(it.key(), property, oldValues[it.key()], oldValues[it.key()] + it.value());
             }
         }
