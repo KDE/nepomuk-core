@@ -60,6 +60,7 @@ private Q_SLOTS:
     void testRemoveDataByApplication();
     void testRemoveAllDataByApplication();
     void testStoreResources_resourceCreated();
+    void testStoreResources_propertyChanged();
     void testMergeResources();
 
 private:

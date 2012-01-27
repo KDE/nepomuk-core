@@ -945,6 +945,116 @@ void ResourceWatcherTest::testStoreResources_resourceCreated()
     QCOMPARE(typeWrCreateSpy.count(), 0);
 }
 
+void ResourceWatcherTest::testStoreResources_propertyChanged()
+{
+    // create one resource for testing
+    const QUrl resAUri = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA"), QString(), QString(), QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+
+
+    // a watcher for the resource
+    Nepomuk::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>(), QList<QUrl>());
+    QSignalSpy resWpAddSpy(resW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
+    QSignalSpy resWpChSpy(resW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
+
+    // a watcher for the property
+    Nepomuk::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    QSignalSpy propWpAddSpy(propW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
+    QSignalSpy propWpChSpy(propW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
+
+    // a watcher for the resource and the property
+    Nepomuk::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    QSignalSpy resPropWpAddSpy(resPropW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
+    QSignalSpy resPropWpChSpy(resPropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
+
+    // a watcher for the type
+    Nepomuk::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
+    QSignalSpy typeWpAddSpy(typeW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
+    QSignalSpy typeWpChSpy(typeW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
+
+    // a watcher for the type and the property
+    Nepomuk::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
+    QSignalSpy typePropWpAddSpy(typePropW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
+    QSignalSpy typePropWpChSpy(typePropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
+
+
+    // now add some new information to the existing resource
+    SimpleResource resA(resAUri);
+    resA.addProperty(QUrl("prop:/int"), 12);
+    resA.addProperty(QUrl("prop:/int"), 42);
+    resA.addProperty(QUrl("prop:/string"), QLatin1String("Hello World"));
+    m_dmModel->storeResources(SimpleResourceGraph() << resA, QLatin1String("A"));
+
+
+    // check the signals
+    QCOMPARE( resWpAddSpy.count(), 2 );
+    QVariantList pAddArgs1;
+    QVariantList pAddArgs2;
+    if(resWpAddSpy[0][1].toString() == QLatin1String("prop:/int")) {
+        pAddArgs1 = resWpAddSpy[0];
+        pAddArgs2 = resWpAddSpy[1];
+    }
+    else {
+        pAddArgs1 = resWpAddSpy[1];
+        pAddArgs2 = resWpAddSpy[2];
+    }
+    resWpAddSpy.clear();
+    QCOMPARE(pAddArgs1[0].toString(), resAUri.toString());
+    QCOMPARE(pAddArgs1[1].toString(), QLatin1String("prop:/int"));
+    QCOMPARE(pAddArgs1[2].value<QVariantList>().count(), 2);
+    QVERIFY(pAddArgs1[2].value<QVariantList>().contains(QVariant(12)));
+    QVERIFY(pAddArgs1[2].value<QVariantList>().contains(QVariant(42)));
+    QCOMPARE(pAddArgs2[0].toString(), resAUri.toString());
+    QCOMPARE(pAddArgs2[1].toString(), QLatin1String("prop:/string"));
+    QCOMPARE(pAddArgs2[2].value<QVariantList>(), QVariantList() << QVariant(QLatin1String("Hello World")));
+
+    QCOMPARE( resWpChSpy.count(), 2 );
+    QVariantList pChArgs1, pChArgs2;
+    if(resWpChSpy[0][1].toString() == QLatin1String("prop:/int")) {
+        pChArgs1 = resWpChSpy[0];
+        pChArgs2 = resWpChSpy[1];
+    }
+    else {
+        pChArgs1 = resWpChSpy[1];
+        pChArgs2 = resWpChSpy[2];
+    }
+    QCOMPARE(pChArgs1[0].toString(), resAUri.toString());
+    QCOMPARE(pChArgs1[1].toString(), QLatin1String("prop:/int"));
+    QCOMPARE(pChArgs1[2].value<QVariantList>().count(), 2);
+    QVERIFY(pChArgs1[2].value<QVariantList>().contains(QVariant(12)));
+    QVERIFY(pChArgs1[2].value<QVariantList>().contains(QVariant(42)));
+    QCOMPARE(pChArgs1[3].value<QVariantList>().count(), 0);
+    QCOMPARE(pChArgs2[0].toString(), resAUri.toString());
+    QCOMPARE(pChArgs2[1].toString(), QLatin1String("prop:/string"));
+    QCOMPARE(pChArgs2[2].value<QVariantList>().count(), 1);
+    QVERIFY(pChArgs2[2].value<QVariantList>().contains(QVariant(QLatin1String("Hello World"))));
+    QCOMPARE(pChArgs2[3].value<QVariantList>().count(), 0);
+
+    QCOMPARE(propWpAddSpy.count(), 1);
+    QCOMPARE(propWpAddSpy.takeFirst(), pAddArgs1);
+    QCOMPARE(propWpChSpy.count(), 1);
+    QCOMPARE(propWpChSpy.takeFirst(), pChArgs1);
+
+    QCOMPARE(resPropWpAddSpy.count(), 1);
+    QCOMPARE(resPropWpAddSpy.takeFirst(), pAddArgs1);
+    QCOMPARE(resPropWpChSpy.count(), 1);
+    QCOMPARE(resPropWpChSpy.takeFirst(), pChArgs1);
+
+    QCOMPARE(typeWpAddSpy.count(), 2);
+    QVERIFY(typeWpAddSpy.contains(pAddArgs1));
+    QVERIFY(typeWpAddSpy.contains(pAddArgs2));
+    QCOMPARE(typeWpChSpy.count(), 2);
+    QVERIFY(typeWpChSpy.contains(pChArgs1));
+    QVERIFY(typeWpChSpy.contains(pChArgs2));
+
+    QCOMPARE(typePropWpAddSpy.count(), 2);
+    QVERIFY(typePropWpAddSpy.contains(pAddArgs1));
+    QVERIFY(typePropWpAddSpy.contains(pAddArgs2));
+    QCOMPARE(typePropWpChSpy.count(), 2);
+    QVERIFY(typePropWpChSpy.contains(pChArgs1));
+    QVERIFY(typePropWpChSpy.contains(pChArgs2));
+}
+
 void ResourceWatcherTest::testMergeResources()
 {
 }
