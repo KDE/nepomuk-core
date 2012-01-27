@@ -891,6 +891,18 @@ void ResourceWatcherTest::testRemoveProperties()
 
 void ResourceWatcherTest::testRemoveResources()
 {
+    // create some resources for testing
+    const QUrl resA = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA"), QString(), QString(), QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+    const QUrl resB = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA"), QString(), QString(), QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+    const QUrl resC = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeC"), QString(), QString(), QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+
+
+    // create a watcher by resource
+    Nepomuk::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA << resC, QList<QUrl>(), QList<QUrl>());
+    QSignalSpy resWpRemSpy(resW, SIGNAL(resourceRemoved(QString, QString, QVariantList)));
 }
 
 void ResourceWatcherTest::testCreateResources()
@@ -899,14 +911,44 @@ void ResourceWatcherTest::testCreateResources()
 
 void ResourceWatcherTest::testRemoveDataByApplication()
 {
+    // TODO: if a resource is removed completely no property change signals should be emitted but the resourceRemoved signal!
 }
 
 void ResourceWatcherTest::testRemoveAllDataByApplication()
 {
 }
 
-void ResourceWatcherTest::testStoreResources()
+void ResourceWatcherTest::testStoreResources_resourceCreated()
 {
+    // create one resource for testing
+    const QUrl resAUri = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA"), QString(), QString(), QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+
+    // a watcher for the type
+    Nepomuk::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
+    QSignalSpy typeWrCreateSpy(typeW, SIGNAL(resourceCreated(QString,QStringList)));
+
+
+    // now create a resource via storeResources
+    SimpleResource resB;
+    resB.addType(QUrl("class:/typeA"));
+    resB.addProperty(QUrl("prop:/int"), 42);
+    m_dmModel->storeResources(SimpleResourceGraph() << resB, QLatin1String("A"));
+
+    // test that we got the resourceCreated signal
+    QCOMPARE(typeWrCreateSpy.count(), 1);
+    QVariantList args = typeWrCreateSpy.takeFirst();
+    QCOMPARE(args[1].toStringList().count(), 1);
+    QCOMPARE(args[1].toStringList().first(), QString::fromLatin1("class:/typeA"));
+
+
+    // now add some new information to an existing resource
+    SimpleResource resA(resAUri);
+    resA.addProperty(QUrl("prop:/int"), 2);
+    m_dmModel->storeResources(SimpleResourceGraph() << resA, QLatin1String("A"));
+
+    // test that we did not get any resourceCreated signal
+    QCOMPARE(typeWrCreateSpy.count(), 0);
 }
 
 void ResourceWatcherTest::testMergeResources()
