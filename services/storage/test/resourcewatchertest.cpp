@@ -901,6 +901,7 @@ void ResourceWatcherTest::testRemoveResources()
 
 void ResourceWatcherTest::testCreateResources()
 {
+    // TODO: do we want the propertyChanged signal for the label and description here?
 }
 
 void ResourceWatcherTest::testRemoveDataByApplication()
