@@ -250,3 +250,8 @@ uint Nepomuk::Sync::qHash(const Nepomuk::Sync::SyncResource& res)
 
     return hash;
 }
+
+QDebug Nepomuk::Sync::operator<<(QDebug dbg, const Nepomuk::Sync::SyncResource& res)
+{
+    return dbg << res.uri() << QMultiHash<KUrl, Soprano::Node>(res);
+}
