@@ -3823,6 +3823,36 @@ void DataManagementModelTest::testStoreResources_file4()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
+// make sure resources are identified properly via their nie:url value
+void DataManagementModelTest::testStoreResources_file5()
+{
+    // create a file resource
+    QTemporaryFile fileA;
+    fileA.open();
+    const QUrl fileUrl = QUrl::fromLocalFile(fileA.fileName());
+
+    SimpleResource res(fileUrl);
+    res.addProperty( RDF::type(), QUrl("class:/typeA") );
+
+    m_dmModel->storeResources( SimpleResourceGraph() << res, QLatin1String("A") );
+    QVERIFY( !m_dmModel->lastError() );
+
+
+    // add information by identifying the file via its nie:url as a property
+    SimpleResource res2;
+    res2.addProperty(NIE::url(), fileUrl);
+    res2.addProperty(QUrl("prop:/int"), 42);
+
+    m_dmModel->storeResources( SimpleResourceGraph() << res2, QLatin1String("A") );
+    QVERIFY( !m_dmModel->lastError() );
+
+
+    // make sure the information was added to the correct resource
+    QCOMPARE(m_model->listStatements(Node(), RDF::type(), QUrl("class:/typeA")).allElements().count(), 1);
+    const Node fileUri = m_model->listStatements(Node(), RDF::type(), QUrl("class:/typeA")).allElements().first().subject();
+    QVERIFY(m_model->containsAnyStatement(fileUri, QUrl("prop:/int"), LiteralValue(42)));
+}
+
 
 void DataManagementModelTest::testStoreResources_folder()
 {
