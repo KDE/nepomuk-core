@@ -22,8 +22,8 @@
 #ifndef RESOURCEWATCHER_H
 #define RESOURCEWATCHER_H
 
-#include "types/class.h"
-#include "types/property.h"
+#include "class.h"
+#include "property.h"
 #include "resource.h"
 
 #include <QtDBus/QDBusVariant>
