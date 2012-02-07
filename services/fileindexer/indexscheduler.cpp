@@ -444,7 +444,6 @@ void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexSch
         if ( indexFile &&
                 recursive &&
                 fileInfo.isDir() &&
-                !fileInfo.isSymLink() &&
                 (!(flags & AutoUpdateFolder) || FileIndexerConfig::self()->shouldFolderBeIndexed( path )) ) {
             QMutexLocker lock( &m_dirsToUpdateMutex );
             m_dirsToUpdate.prependDir( path, flags );
