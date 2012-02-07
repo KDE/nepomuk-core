@@ -64,6 +64,10 @@ class RemovableMediaCache;
  * a file that is not accessible at that time and act accordingly (show a message
  * box, hide the query results, etc.).
  *
+ * In addition the model resolves any symbolic links so that the underlying model
+ * never sees a local file URL which contains a link. Thus, as far as Nepomuk is
+ * concerned there are no symbolic links.
+ *
  * \author Sebastian Trueg <trueg@kde.org>
  */
 class RemovableMediaModel : public Soprano::FilterModel

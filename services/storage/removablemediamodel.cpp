@@ -36,6 +36,7 @@
 #include <KDebug>
 
 #include <QtCore/QFile>
+#include <QFileInfo>
 
 
 using namespace Nepomuk::Vocabulary;
@@ -198,16 +199,23 @@ Soprano::Node Nepomuk::RemovableMediaModel::convertFileUrl(const Soprano::Node &
     if(node.isResource()) {
         const QUrl url = node.uri();
         if(url.scheme() == QLatin1String("file")) {
-            const QString localFilePath = url.toLocalFile();
+            // step 1: resolve the local path to eliminate any symbolic links
+            const QString localFilePath = QFileInfo(url.toLocalFile()).canonicalFilePath();
+
+            // step 2: check if it is a file on a removable medium
             if(const RemovableMediaCache::Entry* entry = m_removableMediaCache->findEntryByFilePath(localFilePath)) {
                 if(entry->isMounted() &&
                    (!forRegEx || entry->mountPath().length() < localFilePath.length())) {
                     return entry->constructRelativeUrl(localFilePath);
                 }
             }
+
+            // step 3: return the resolved local path
+            return QUrl::fromLocalFile(localFilePath);
         }
     }
 
+    // fallback: return the original node
     return node;
 }
 
