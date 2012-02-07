@@ -439,11 +439,13 @@ void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexSch
             filesInStore.erase( filesInStoreIt );
 
         // prepend sub folders to the dir queue
+        // sub-dirs of auto-update folders are only addded if they are configured as such
+        // all others (manually added ones) are always indexed
         if ( indexFile &&
                 recursive &&
                 fileInfo.isDir() &&
                 !fileInfo.isSymLink() &&
-                FileIndexerConfig::self()->shouldFolderBeIndexed( path ) ) {
+                (!(flags & AutoUpdateFolder) || FileIndexerConfig::self()->shouldFolderBeIndexed( path )) ) {
             QMutexLocker lock( &m_dirsToUpdateMutex );
             m_dirsToUpdate.prependDir( path, flags );
         }
