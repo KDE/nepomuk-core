@@ -241,6 +241,8 @@ public:
 
     // Some services may need to force a specific resource uri
     QUrl resourceUri;
+
+    QString lastError;
 };
 
 
@@ -556,7 +558,10 @@ void Nepomuk::StrigiIndexWriter::finishAnalysis( const AnalysisResult* idx )
     job->setAutoDelete(false);
     job->exec();
     if( job->error() ) {
-        kDebug() << job->errorString();
+        d->lastError = job->errorString();
+    }
+    else {
+        d->lastError.clear();
     }
 
     // cleanup
@@ -593,6 +598,7 @@ void Nepomuk::StrigiIndexWriter::forceUri(const QUrl& uri)
     d->resourceUri = uri;
 }
 
+
 // static
 QString Nepomuk::StrigiIndexWriter::extractTextFromPdf(const QString &path)
 {
@@ -610,4 +616,10 @@ QString Nepomuk::StrigiIndexWriter::extractTextFromPdf(const QString &path)
     else {
         return QString();
     }
+}
+
+
+QString Nepomuk::StrigiIndexWriter::lastError() const
+{
+    return d->lastError;
 }

@@ -21,6 +21,7 @@
 
 #include "nepomukindexer.h"
 #include "util.h"
+#include "fileindexerconfig.h"
 
 #include "resource.h"
 
@@ -31,12 +32,13 @@
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QTimer>
+#include <QtCore/QFile>
+#include <QtCore/QTextStream>
 
 
 Nepomuk::Indexer::Indexer(const QFileInfo& info, QObject* parent)
     : KJob(parent),
-      m_url( info.absoluteFilePath() ),
-      m_exitCode( -1 )
+      m_url( info.absoluteFilePath() )
 {
     // setup the timer used to kill the indexer process if it seems to get stuck
     m_processTimer = new QTimer(this);
@@ -49,11 +51,12 @@ void Nepomuk::Indexer::start()
 {
     // setup the external process which does the actual indexing
     const QString exe = KStandardDirs::findExe(QLatin1String("nepomukindexer"));
+
+    kDebug() << "Running" << exe << m_url.toLocalFile();
+
     m_process = new KProcess( this );
     m_process->setProgram( exe, QStringList() << m_url.toLocalFile() );
-
-    // start the process
-    kDebug() << "Running" << exe << m_url.toLocalFile();
+    m_process->setOutputChannelMode(KProcess::OnlyStdoutChannel);
     connect( m_process, SIGNAL(finished(int)), this, SLOT(slotIndexedFile(int)) );
     m_process->start();
 
@@ -68,8 +71,13 @@ void Nepomuk::Indexer::slotIndexedFile(int exitCode)
     m_processTimer->stop();
 
     kDebug() << "Indexing of " << m_url.toLocalFile() << "finished with exit code" << exitCode;
-    m_exitCode = exitCode;
-
+    if(exitCode == 1 && FileIndexerConfig::self()->isDebugModeEnabled()) {
+        QFile errorLogFile(KStandardDirs::locateLocal("data", QLatin1String("nepomuk/file-indexer-error-log"), true));
+        if(errorLogFile.open(QIODevice::Append)) {
+            QTextStream s(&errorLogFile);
+            s << m_url.toLocalFile() << ": " << QString::fromLocal8Bit(m_process->readAllStandardOutput()) << endl;
+        }
+    }
     emitResult();
 }
 

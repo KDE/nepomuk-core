@@ -38,6 +38,7 @@
 #include <KDebug>
 #include <KTemporaryFile>
 #include <KUrl>
+#include <KStandardDirs>
 
 #include "resource.h"
 #include "resourcemanager.h"
@@ -167,6 +168,11 @@ Nepomuk::IndexScheduler::IndexScheduler( QObject* parent )
       m_indexingDelay( 0 ),
       m_currentIndexerJob( 0 )
 {
+    // remove old indexing error log
+    if(FileIndexerConfig::self()->isDebugModeEnabled()) {
+        QFile::remove(KStandardDirs::locateLocal("data", QLatin1String("nepomuk/file-indexer-error-log")));
+    }
+
     m_cleaner = new IndexCleaner(this);
     connect( m_cleaner, SIGNAL(finished(KJob*)), this, SLOT(slotCleaningDone()) );
     m_cleaner->start();

@@ -304,6 +304,7 @@ void Nepomuk::FileIndexerConfig::buildExcludeFilterRegExpCache()
     m_excludeFilterRegExpCache.rebuildCacheFromFilterList( excludeFilters() );
 }
 
+
 void Nepomuk::FileIndexerConfig::forceConfigUpdate()
 {
     m_config.reparseConfiguration();
@@ -324,6 +325,11 @@ bool Nepomuk::FileIndexerConfig::initialUpdateDisabled() const
 bool Nepomuk::FileIndexerConfig::suspendOnPowerSaveDisabled() const
 {
     return m_config.group( "General" ).readEntry( "disable suspend on powersave", false );
+}
+
+bool Nepomuk::FileIndexerConfig::isDebugModeEnabled() const
+{
+    return m_config.group( "General" ).readEntry( "debug mode", false );
 }
 
 #include "fileindexerconfig.moc"
