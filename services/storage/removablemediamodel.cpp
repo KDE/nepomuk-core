@@ -200,7 +200,26 @@ Soprano::Node Nepomuk::RemovableMediaModel::convertFileUrl(const Soprano::Node &
         const QUrl url = node.uri();
         if(url.scheme() == QLatin1String("file")) {
             // step 1: resolve the local path to eliminate any symbolic links
-            const QString localFilePath = QFileInfo(url.toLocalFile()).canonicalFilePath();
+            QString localFilePath = url.toLocalFile();
+            QFileInfo fi(localFilePath);
+            // we might have a partial file name due to a reg ex
+            QString suffix;
+            if(!fi.exists() && !localFilePath.endsWith(QLatin1Char('/'))) {
+                const int pos = localFilePath.lastIndexOf(QLatin1Char('/'))+1;
+                suffix = localFilePath.mid(pos);
+                localFilePath.truncate(pos);
+                fi = localFilePath;
+            }
+            if(!fi.canonicalFilePath().isEmpty()) {
+                const bool endsWithSlash = localFilePath.endsWith(QLatin1Char('/'));
+                localFilePath = fi.canonicalFilePath();
+                if(endsWithSlash &&
+                   !localFilePath.endsWith(QLatin1Char('/'))) {
+                    localFilePath.append(QLatin1Char('/'));
+                }
+            }
+            // append the partial file-name which we extracted above
+            localFilePath.append(suffix);
 
             // step 2: check if it is a file on a removable medium
             if(const RemovableMediaCache::Entry* entry = m_removableMediaCache->findEntryByFilePath(localFilePath)) {
