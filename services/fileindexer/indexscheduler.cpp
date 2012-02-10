@@ -102,13 +102,16 @@ namespace {
         }
     }
 
-    bool compareIndexedMTime(const KUrl& url, const QDateTime& mtime)
+    /**
+     * Returns 0 if the timestamps are equal, 1 if they are not, and -1 if the file does not exist in the DB.
+     */
+    int compareIndexedMTime(const KUrl& url, const QDateTime& mtime)
     {
         const QDateTime indexedMTime = indexedMTimeForUrl(url);
         if(indexedMTime.isNull())
-            return false;
+            return -1;
         else
-            return indexedMTime == mtime;
+            return (indexedMTime == mtime ? 0 : 1);
     }
 }
 
@@ -382,7 +385,7 @@ void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexSch
     // we start by updating the folder itself
     QFileInfo dirInfo( dir );
     KUrl dirUrl( dir );
-    if ( !compareIndexedMTime(dirUrl, dirInfo.lastModified()) ) {
+    if ( compareIndexedMTime(dirUrl, dirInfo.lastModified()) != 0 ) {
         KJob * indexer = new Indexer( dirInfo );
         connect( indexer, SIGNAL(finished(KJob*)), this, SLOT(slotIndexingDone(KJob*)) );
         indexer->start();
@@ -406,21 +409,43 @@ void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexSch
         // need to use another approach than the getChildren one.
         QFileInfo fileInfo = dirIt.fileInfo();//.canonialFilePath();
 
-        // We ignore all symlinks as Nepomuk will resolve them all anyway
-        bool indexFile = !fileInfo.isSymLink() && Nepomuk::FileIndexerConfig::self()->shouldFileBeIndexed( fileInfo.fileName() );
+        const bool indexFile = Nepomuk::FileIndexerConfig::self()->shouldFileBeIndexed( fileInfo.fileName() );
 
         // check if this file is new by looking it up in the store
-        QHash<QString, QDateTime>::iterator filesInStoreIt = filesInStore.find( path );
-        bool newFile = ( filesInStoreIt == filesInStoreEnd );
-        if ( newFile && indexFile )
-            kDebug() << "NEW    :" << path;
+        // for symlinks we need to check manually since they are resolved by Nepomuk which
+        // will in most cases change their parent folder. That in turn means that they
+        // will not be found in the getChildren() call.
+        bool newFile = false;
+        bool fileChanged = false;
+        if(fileInfo.isSymLink()) {
+            const QString resolvedPath = fileInfo.canonicalFilePath();
+            if(!resolvedPath.isEmpty()) {
+                switch(compareIndexedMTime(path, QFileInfo(resolvedPath).lastModified())) {
+                case -1:
+                    newFile = true;
+                    break;
+                case 1:
+                    fileChanged = true;
+                    break;
+                }
+            }
+        }
+        else {
+            QHash<QString, QDateTime>::iterator filesInStoreIt = filesInStore.find( path );
+            newFile = ( filesInStoreIt == filesInStoreEnd );
+            fileChanged = !newFile && fileInfo.lastModified() != filesInStoreIt.value();
+            // remove the file we handled
+            if ( !newFile ) {
+                filesInStore.erase( filesInStoreIt );
+            }
+        }
 
-        // do we need to update? Did the file change?
-        bool fileChanged = !newFile && fileInfo.lastModified() != filesInStoreIt.value();
         //TODO: At some point make these "NEW", "CHANGED", and "FORCED" strings public
         //      so that they can be used to create a better status message.
-        if ( fileChanged )
-            kDebug() << "CHANGED:" << path << fileInfo.lastModified() << filesInStoreIt.value();
+        if ( newFile && indexFile )
+            kDebug() << "NEW    :" << path;
+        else if ( fileChanged )
+            kDebug() << "CHANGED:" << path;
         else if( forceUpdate )
             kDebug() << "UPDATE FORCED:" << path;
 
@@ -430,11 +455,7 @@ void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexSch
         // we do not delete files to update here. We do that in the IndexWriter to make
         // sure we keep the resource URI
         else if ( !newFile && !indexFile )
-            filesToDelete.append( filesInStoreIt.key() );
-
-        // cleanup a bit for faster lookups
-        if ( !newFile )
-            filesInStore.erase( filesInStoreIt );
+            filesToDelete.append( path );
 
         // prepend sub folders to the dir queue
         // sub-dirs of auto-update folders are only added if they are configured as such
