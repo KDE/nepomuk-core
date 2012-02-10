@@ -1,6 +1,6 @@
 /* This file is part of the KDE Project
-   Copyright (c) 2008-2010 Sebastian Trueg <trueg@kde.org>
-   Copyright (c) 2010-11 Vishesh Handa <handa.vish@gmail.com>
+   Copyright (c) 2008-2012 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2010-2011 Vishesh Handa <handa.vish@gmail.com>
 
    Parts of this file are based on code from Strigi
    Copyright (C) 2006-2007 Jos van den Oever <jos@vandenoever.info>
@@ -349,7 +349,6 @@ void Nepomuk::IndexScheduler::doIndexing()
 
 void Nepomuk::IndexScheduler::slotIndexingDone(KJob* job)
 {
-    kDebug() << job;
     Q_UNUSED( job );
 
     m_currentIndexerJob = 0;
@@ -364,8 +363,6 @@ void Nepomuk::IndexScheduler::slotIndexingDone(KJob* job)
 
 void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexScheduler::UpdateDirFlags flags )
 {
-    kDebug() << dir_;
-
     // normalize the dir name, otherwise things might break below
     QString dir( dir_ );
     if( dir.endsWith(QLatin1String("/")) ) {
@@ -409,7 +406,8 @@ void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexSch
         // need to use another approach than the getChildren one.
         QFileInfo fileInfo = dirIt.fileInfo();//.canonialFilePath();
 
-        bool indexFile = Nepomuk::FileIndexerConfig::self()->shouldFileBeIndexed( fileInfo.fileName() );
+        // We ignore all symlinks as Nepomuk will resolve them all anyway
+        bool indexFile = !fileInfo.isSymLink() && Nepomuk::FileIndexerConfig::self()->shouldFileBeIndexed( fileInfo.fileName() );
 
         // check if this file is new by looking it up in the store
         QHash<QString, QDateTime>::iterator filesInStoreIt = filesInStore.find( path );
@@ -439,14 +437,16 @@ void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexSch
             filesInStore.erase( filesInStoreIt );
 
         // prepend sub folders to the dir queue
-        // sub-dirs of auto-update folders are only addded if they are configured as such
+        // sub-dirs of auto-update folders are only added if they are configured as such
         // all others (manually added ones) are always indexed
+        const QString resolvedPath = fileInfo.canonicalFilePath();
         if ( indexFile &&
-                recursive &&
-                fileInfo.isDir() &&
-                (!(flags & AutoUpdateFolder) || FileIndexerConfig::self()->shouldFolderBeIndexed( path )) ) {
+             recursive &&
+             fileInfo.isDir() &&
+             !resolvedPath.isEmpty() &&
+             (!(flags & AutoUpdateFolder) || FileIndexerConfig::self()->shouldFolderBeIndexed( resolvedPath )) ) {
             QMutexLocker lock( &m_dirsToUpdateMutex );
-            m_dirsToUpdate.prependDir( path, flags );
+            m_dirsToUpdate.prependDir( resolvedPath, flags );
         }
     }
 
@@ -481,11 +481,14 @@ void Nepomuk::IndexScheduler::callDoIndexing(bool noDelay)
 void Nepomuk::IndexScheduler::updateDir( const QString& path, UpdateDirFlags flags )
 {
     QMutexLocker dirLock( &m_dirsToUpdateMutex );
-    m_dirsToUpdate.prependDir( path, flags & ~AutoUpdateFolder );
+    const QString resolved = QFileInfo(path).canonicalFilePath();
+    if(!resolved.isEmpty()) {
+        m_dirsToUpdate.prependDir( resolved, flags & ~AutoUpdateFolder );
 
-    QMutexLocker statusLock( &m_indexingMutex );
-    if( !m_indexing )
-        callDoIndexing();
+        QMutexLocker statusLock( &m_indexingMutex );
+        if( !m_indexing )
+            callDoIndexing();
+    }
 }
 
 
@@ -503,7 +506,7 @@ void Nepomuk::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
 {
     QMutexLocker lock( &m_dirsToUpdateMutex );
 
-    // remove previously added folders to not index stuff we are not supposed to
+    // remove previously added folders to not i ndex stuff we are not supposed to
     m_dirsToUpdate.clearByFlags( AutoUpdateFolder );
 
     UpdateDirFlags flags = UpdateRecursive|AutoUpdateFolder;

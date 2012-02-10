@@ -1,5 +1,5 @@
 /* This file is part of the KDE Project
-   Copyright (c) 2008-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2008-2012 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -169,8 +169,10 @@ bool Nepomuk::FileIndexerConfig::shouldBeIndexed( const QString& path ) const
 }
 
 
-bool Nepomuk::FileIndexerConfig::shouldFolderBeIndexed( const QString& path ) const
+bool Nepomuk::FileIndexerConfig::shouldFolderBeIndexed( const QString& path_ ) const
 {
+    // we resolve all paths since we simply pretend that symlinks to not exist in Nepomuk
+    const QString path = QFileInfo(path_).canonicalFilePath();
     QString folder;
     if ( folderInFolderList( path, folder ) ) {
         // we always index the folders in the list
@@ -281,6 +283,21 @@ namespace {
                 ++i;
         }
     }
+
+    /**
+     * Resolve all paths and silently drop the non-existing ones.
+     */
+    QStringList resolveAllPaths(const QStringList& paths) {
+        QStringList resolved;
+        foreach(const QString& path, paths) {
+            QFileInfo fi(path);
+            const QString cp = fi.canonicalFilePath();
+            if(fi.isDir() && !cp.isEmpty()) {
+                resolved << cp;
+            }
+        }
+        return resolved;
+    }
 }
 
 
@@ -288,8 +305,11 @@ void Nepomuk::FileIndexerConfig::buildFolderCache()
 {
     QMutexLocker lock( &m_folderCacheMutex );
 
-    QStringList includeFoldersPlain = m_config.group( "General" ).readPathEntry( "folders", QStringList() << QDir::homePath() );
-    QStringList excludeFoldersPlain = m_config.group( "General" ).readPathEntry( "exclude folders", QStringList() );
+    // We simply resolve all paths pretending that symlinks do not exist. This goes well with Nepomuk resolving any local file
+    // paths in queries. Of course a user might create a new hierarchy from others through symlinks and then the inclusion/exclusion
+    // is not correct anymore. But we simply ignore this very rare case here.
+    QStringList includeFoldersPlain = resolveAllPaths(m_config.group( "General" ).readPathEntry( "folders", QStringList() << QDir::homePath() ));
+    QStringList excludeFoldersPlain = resolveAllPaths(m_config.group( "General" ).readPathEntry( "exclude folders", QStringList() ));
 
     m_folderCache.clear();
     insertSortFolders( includeFoldersPlain, true, m_folderCache );
