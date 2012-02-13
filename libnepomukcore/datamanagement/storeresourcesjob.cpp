@@ -85,7 +85,7 @@ void Nepomuk::StoreResourcesJob::Private::_k_slotDBusCallFinished(QDBusPendingCa
     QDBusPendingReply< QHash<QString,QString> > reply = *watcher;
     if (reply.isError()) {
         QDBusError error = reply.error();
-        q->setError(1);
+        q->setError(int(error.type()));
         q->setErrorText(error.message());
     }
     else {

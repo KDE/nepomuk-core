@@ -264,10 +264,10 @@ void Nepomuk::ServiceController::slotServiceRegistered( const QString& serviceNa
     if( serviceName == dbusServiceName( name() ) ) {
         d->currentState = StateRunning;
         kDebug() << serviceName;
-        createServiceControlInterface();
         if( !d->processControl || !d->processControl->isRunning() ) {
             d->attached = true;
         }
+        createServiceControlInterface();
     }
 }
 
