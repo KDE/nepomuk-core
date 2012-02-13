@@ -560,7 +560,7 @@ namespace {
         return QUrl( Soprano::Vocabulary::XMLSchema::xsdNamespace().toString() + QLatin1String("duration") );
     }
 
-    QStringList nodesToN3( const QList<Soprano::Node> &nodes ) {
+    template<typename T> QStringList nodesToN3( const T &nodes ) {
         QStringList list;
         foreach( const Soprano::Node& node, nodes ) {
             list << node.toN3();
@@ -687,7 +687,7 @@ bool Nepomuk::ResourceMerger::merge( const Soprano::Graph& stGraph )
     QMultiHash<QPair<QUrl,QUrl>, Soprano::Node>::const_iterator cIterEnd = cardinality.constEnd();
     for( ; cIter != cIterEnd; ) {
         const QPair<QUrl,QUrl> subPredPair = cIter.key();
-        QList<Soprano::Node> objectValues;
+        QSet<Soprano::Node> objectValues;
         for( ; cIter != cIterEnd && cIter.key() == subPredPair ; cIter++ ) {
             objectValues << cIter.value();
         }
