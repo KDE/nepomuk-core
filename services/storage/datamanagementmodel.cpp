@@ -1513,7 +1513,7 @@ QHash<QUrl, QUrl> Nepomuk::DataManagementModel::storeResources(const Nepomuk::Si
 
             const Soprano::Error::Error error = d->m_classAndPropertyTree->lastError();
             if( error ) {
-                setError( error.message(), error.code() );
+                setError( error );
                 return QHash<QUrl, QUrl>();
             }
             syncRes.insert( hit.key(), n );
@@ -1567,6 +1567,9 @@ QHash<QUrl, QUrl> Nepomuk::DataManagementModel::storeResources(const Nepomuk::Si
                         // It doesn't exist, create it
                         QUrl resolvedUri = resolveUrl( nieUrl );
                         if( resolvedUri.isEmpty() ) {
+                            if(lastError()) {
+                                return QHash<QUrl, QUrl>();
+                            }
                             resolvedUri = SimpleResource().uri(); // HACK: improveme
 
                             newRes.insert( NIE::url(), nieUrl );
@@ -2581,7 +2584,11 @@ QHash<Soprano::Node, Soprano::Node> Nepomuk::DataManagementModel::resolveNodes(c
     QHash<Soprano::Node, Soprano::Node> resolvedNodes;
     Q_FOREACH(const Soprano::Node& node, nodes) {
         if(node.isResource()) {
-            resolvedNodes.insert(node, resolveUrl(node.uri(), true));
+            const QUrl resolved = resolveUrl(node.uri(), true);
+            if(resolved.isEmpty() && lastError()) {
+                break;
+            }
+            resolvedNodes.insert(node, resolved);
         }
         else {
             resolvedNodes.insert(node, node);
