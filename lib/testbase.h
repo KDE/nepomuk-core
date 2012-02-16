@@ -36,7 +36,6 @@ namespace Nepomuk {
      *
      * By default only these services are started -
      *  - nepomukstorage
-     *  - nepomukontologyloader
      *  - nepomukqueryservice
      *
      * This class aditionally provides a mechanism to reeset the nepomuk

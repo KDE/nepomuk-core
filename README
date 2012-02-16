@@ -10,7 +10,6 @@ should be derived from the Nepomuk::TestBase class.
 
 By default only 3 services are started -
 * Storage
-* Ontology Loader
 * Query Service
  
 This code is based on the Telepathy Testlib which can be found - https://projects.kde.org/projects/playground/network/telepathy/telepathy-testlib

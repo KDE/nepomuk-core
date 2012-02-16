@@ -27,9 +27,6 @@ autostart=false
 [Service-nepomukstorage]
 autostart=true
 
-[Service-nepomukontologyloader]
-autostart=true
-
 [Service-nepomukfileannotationservice]
 autostart=false
 

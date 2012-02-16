@@ -58,7 +58,6 @@ Nepomuk::TestBase::TestBase(QObject* parent)
     QSet<QString> services = runningServices().toSet();
     kDebug() << "Running Services : " << services;
     services.remove( "nepomukstorage" );
-    services.remove( "nepomukontologyloader" );
     services.remove( "nepomukqueryservice" );
 
     Q_FOREACH( const QString & service, services )
