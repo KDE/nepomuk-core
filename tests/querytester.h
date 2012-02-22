@@ -25,7 +25,9 @@
 #include <QTextBrowser>
 #include <QLineEdit>
 
-class QueryTester : public QWidget
+#include "ui_querytester.h"
+
+class QueryTester : public QWidget, private Ui::QueryTesterWidget
 {
     Q_OBJECT
 
@@ -35,10 +37,6 @@ public:
 
 private Q_SLOTS:
     void slotConvert();
-
-private:
-    QLineEdit* m_queryEdit;
-    QTextBrowser* m_sparqlView;
 };
 
 #endif

@@ -29,6 +29,7 @@
 #include <QtGui/QFontMetrics>
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QTextBrowser>
+#include <QtGui/QCheckBox>
 
 #include <KApplication>
 #include <KDebug>
@@ -65,14 +66,11 @@ int main( int argc, char **argv )
 QueryTester::QueryTester(QWidget *parent)
     : QWidget(parent)
 {
-    m_queryEdit = new QLineEdit(this);
-    m_sparqlView = new QTextBrowser(this);
-
-    QVBoxLayout* layout = new QVBoxLayout(this);
-    layout->addWidget(m_queryEdit);
-    layout->addWidget(m_sparqlView);
+    setupUi(this);
 
     connect(m_queryEdit, SIGNAL(textEdited(QString)), this, SLOT(slotConvert()));
+    connect(m_checkTermGlobbing, SIGNAL(toggled(bool)), this, SLOT(slotConvert()));
+    connect(m_checkFilenamePattern, SIGNAL(toggled(bool)), this, SLOT(slotConvert()));
 }
 
 QueryTester::~QueryTester()
@@ -81,7 +79,15 @@ QueryTester::~QueryTester()
 
 void QueryTester::slotConvert()
 {
-    QString query = Nepomuk::Query::QueryParser::parseQuery(m_queryEdit->text()).toSparqlQuery();
+    Nepomuk::Query::QueryParser::ParserFlags flags;
+    if(m_checkTermGlobbing->isChecked()) {
+        flags |= Nepomuk::Query::QueryParser::QueryTermGlobbing;
+    }
+    if(m_checkFilenamePattern->isChecked()) {
+        flags |= Nepomuk::Query::QueryParser::DetectFilenamePattern;
+    }
+
+    QString query = Nepomuk::Query::QueryParser::parseQuery(m_queryEdit->text(), flags).toSparqlQuery();
     query= query.simplified();
     QString newQuery;
     int i = 0;
