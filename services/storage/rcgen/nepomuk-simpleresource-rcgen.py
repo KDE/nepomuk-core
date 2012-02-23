@@ -31,6 +31,9 @@ from PyQt4 import QtCore
 output_path = os.getcwd()
 verbose = True
 
+# A list of C++ reserved keywords which we need to handle
+cppKeywords = ['class', 'int', 'float', 'double']
+
 def normalizeName(name):
     "Normalize a class or property name to be used as a C++ entity."
     name.replace('-', '_')
@@ -240,7 +243,10 @@ class OntologyParser():
         theFile.write("*/\n")
 
     def writeGetter(self, theFile, prop, name, propRange, cardinality):
-        theFile.write('    %s %s() const {\n' % (typeString(propRange, cardinality), makeFancy(name, cardinality)))
+        fancyName = makeFancy(name, cardinality)
+        if fancyName in cppKeywords:
+            fancyName = 'get' + fancyName[0].toUpper() + fancyName.mid(1)
+        theFile.write('    %s %s() const {\n' % (typeString(propRange, cardinality), fancyName))
         theFile.write('        %s value;\n' % typeString(propRange, cardinality))
         if cardinality == 1:
             theFile.write('        if(contains(QUrl::fromEncoded("%s", QUrl::StrictMode)))\n' % prop.toString())
