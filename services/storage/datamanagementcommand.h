@@ -384,6 +384,35 @@ private:
     PropertyHash m_additionalProperties;
     QString m_app;
 };
+
+class ExportResourcesCommand : public DataManagementCommand
+{
+public:
+    ExportResourcesCommand(const QList<QUrl>& res,
+                           Soprano::RdfSerialization serialization,
+                           const QString& userSerialization,
+                           Nepomuk::DescribeResourcesFlags flags,
+                           const QList<QUrl>& targetParties,
+                           Nepomuk::DataManagementModel* model,
+                           const QDBusMessage& msg)
+        : DataManagementCommand(model, msg),
+          m_resources(res),
+          m_serialization(serialization),
+          m_userSerialization(userSerialization),
+          m_flags(flags),
+          m_targetParties(targetParties) {}
+
+private:
+    QVariant runCommand() {
+        return QVariant::fromValue(model()->exportResources(m_resources, m_serialization, m_userSerialization, m_flags, m_targetParties));
+    }
+
+    QList<QUrl> m_resources;
+    Soprano::RdfSerialization m_serialization;
+    QString m_userSerialization;
+    Nepomuk::DescribeResourcesFlags m_flags;
+    QList<QUrl> m_targetParties;
+};
 }
 
 #endif

@@ -231,4 +231,13 @@ void Nepomuk::DataManagementAdaptor::importResources(const QString &url, const Q
     enqueueCommand(new ImportResourcesCommand(decodeUri(url), Soprano::mimeTypeToSerialization(serialization), serialization, identificationMode, flags, additionalMetadata, app, m_model, message()));
 }
 
+QString Nepomuk::DataManagementAdaptor::exportResources(const QStringList &resources, const QString &mimeType, int flags, const QStringList &targetParties)
+{
+    Q_ASSERT(calledFromDBus());
+    setDelayedReply(true);
+    enqueueCommand(new ExportResourcesCommand(decodeUris(resources), Soprano::mimeTypeToSerialization(mimeType), mimeType, Nepomuk::DescribeResourcesFlags(flags), decodeUris(targetParties), m_model, message()));
+    // QtDBus will ignore this return value
+    return QString();
+}
+
 #include "datamanagementadaptor.moc"
