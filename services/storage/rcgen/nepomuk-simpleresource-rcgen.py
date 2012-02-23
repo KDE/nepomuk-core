@@ -50,11 +50,11 @@ def makeFancy(name, cardinality):
         name = name[3].toLower() + name.mid(4)
     if cardinality != 1:
         if name.endsWith('s'):
-            return name + 'es'
+            name = name + 'es'
         else:
-            return name + 's'
-    else:
-        return name
+            name = name + 's'
+
+    return normalizeName(name)
 
 def extractOntologyName(uri):
     "The name of the ontology is typically the section before the name of the entity"
