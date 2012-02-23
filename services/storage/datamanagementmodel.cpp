@@ -1,6 +1,6 @@
 /*
    This file is part of the Nepomuk KDE project.
-   Copyright (C) 2010-2011 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2010-2012 Sebastian Trueg <trueg@kde.org>
    Copyright (C) 2011 Vishesh Handa <handa.vish@gmail.com>
 
    This library is free software; you can redistribute it and/or
@@ -41,7 +41,9 @@
 #include <Soprano/NodeIterator>
 #include <Soprano/Error/ErrorCode>
 #include <Soprano/Parser>
+#include <Soprano/Serializer>
 #include <Soprano/PluginManager>
+#include <Soprano/Util/SimpleStatementIterator>
 
 #include <QtCore/QHash>
 #include <QtCore/QUrl>
@@ -2105,6 +2107,39 @@ Nepomuk::SimpleResourceGraph Nepomuk::DataManagementModel::describeResources(con
 
 
     return graph;
+}
+
+QString Nepomuk::DataManagementModel::exportResources(const QList<QUrl> &resources,
+                                                      Soprano::RdfSerialization serialization,
+                                                      const QString &userSerialization,
+                                                      Nepomuk::DescribeResourcesFlags flags,
+                                                      const QList<QUrl> &targetParties) const
+{
+    // try to get a serializer. Without it there is no point in doing any other work
+    const Soprano::Serializer* serializer = Soprano::PluginManager::instance()->discoverSerializerForSerialization(serialization, userSerialization);
+    if(!serializer) {
+        setError(QString::fromLatin1("Could not find serializer plugin for serialization '%1'").arg(Soprano::serializationMimeType(serialization, userSerialization)));
+        return QString();
+    }
+
+    // fetch the actual data
+    SimpleResourceGraph graph = describeResources(resources, flags, targetParties);
+    if(lastError()) {
+        return QString();
+    }
+
+    // serialilze the statements
+    Soprano::Util::SimpleStatementIterator it(graph.toStatementGraph().toList());
+    QString result;
+    QTextStream s(&result);
+    if(serializer->serialize(it, s, serialization, userSerialization)) {
+        clearError();
+        return result;
+    }
+    else {
+        setError(serializer->lastError());
+        return QString();
+    }
 }
 
 
