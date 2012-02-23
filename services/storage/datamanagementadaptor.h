@@ -82,6 +82,7 @@ public Q_SLOTS:
     Q_SCRIPTABLE void removeDataByApplication(int flags, const QString &app);
     Q_SCRIPTABLE void removeDataByApplication(const QStringList &resources, int flags, const QString &app);
     Q_SCRIPTABLE void importResources(const QString& url, const QString& serialization, int identificationMode, int flags, const Nepomuk::PropertyHash &additionalMetadata, const QString& app);
+    Q_SCRIPTABLE QString exportResources(const QStringList &resources, const QString& mimeType, int flags, const QStringList& targetParties);
 
     /// convinience overloads for scripts (no lists)
     Q_SCRIPTABLE void setProperty(const QString &resource, const QString &property, const QDBusVariant &value, const QString &app);
