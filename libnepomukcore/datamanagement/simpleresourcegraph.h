@@ -39,6 +39,7 @@ class KJob;
 namespace Soprano {
 class Statement;
 class Node;
+class Graph;
 }
 namespace Nepomuk {
 class SimpleResource;
@@ -112,6 +113,8 @@ public:
     void addStatement(const Soprano::Node & subject,
                       const Soprano::Node & predicate,
                       const Soprano::Node & object);
+
+    Soprano::Graph toStatementGraph() const;
 
     SimpleResourceGraph& operator+=( const SimpleResourceGraph & graph );
 
