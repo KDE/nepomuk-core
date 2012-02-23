@@ -209,7 +209,9 @@ QList<QUrl> Nepomuk::DataManagementAdaptor::decodeUris(const QStringList &urlStr
 {
     QList<QUrl> urls;
     Q_FOREACH(const QString& urlString, urlStrings) {
-        urls << decodeUri(urlString, namespaceAbbrExpansions);
+        if(!urlString.isEmpty()) {
+            urls << decodeUri(urlString, namespaceAbbrExpansions);
+        }
     }
     return urls;
 }
