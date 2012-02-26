@@ -920,7 +920,7 @@ bool Nepomuk::ResourceMerger::merge( const Soprano::Graph& stGraph )
     foreach(const Soprano::Statement& s, m_removedStatements) {
         removedProperties[s.subject().uri()][s.predicate().uri()].append(s.object());
     }
-    foreach(const Soprano::Statement& s, remainingStatements) {
+    foreach(const Soprano::Statement& s, remainingStatements + typeStatements) {
         addedProperties[s.subject().uri()][s.predicate().uri()].append(s.object());
     }
     foreach(const QUrl& res, addedProperties.keys().toSet() + removedProperties.keys().toSet()) {

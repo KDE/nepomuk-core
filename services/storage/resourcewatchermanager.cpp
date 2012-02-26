@@ -64,7 +64,7 @@ QString convertUri(const QUrl& uri) {
     return KUrl(uri).url();
 }
 
-QStringList convertUris(const QList<QUrl>& uris) {
+template<typename T> QStringList convertUris(const T& uris) {
     QStringList sl;
     foreach(const QUrl& uri, uris)
         sl << convertUri(uri);
@@ -81,7 +81,21 @@ QList<QUrl> convertUris(const QStringList& uris) {
         sl << convertUri(uri);
     return sl;
 }
+
+/**
+ * Returns true if the given hash contains at least one of the possible combinations of con and "c in candidates".
+ */
+bool hashContainsAtLeastOneOf(Nepomuk::ResourceWatcherConnection* con, const QSet<QUrl>& candidates, const QMultiHash<QUrl, Nepomuk::ResourceWatcherConnection*>& hash) {
+    for(QSet<QUrl>::const_iterator it = candidates.constBegin();
+        it != candidates.constEnd(); ++it) {
+        if(hash.contains(*it, con)) {
+            return true;
+        }
+    }
+    return false;
 }
+}
+
 
 Nepomuk::ResourceWatcherManager::ResourceWatcherManager(DataManagementModel* parent)
     : QObject(parent),
@@ -115,6 +129,32 @@ void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl
 {
     kDebug() << res << property << addedValues << removedValues;
 
+    //
+    // We only need the resource types if any connections are watching types.
+    //
+    QSet<QUrl> types;
+    if(!m_typeHash.isEmpty()) {
+        types = getTypes(res);
+    }
+
+
+    //
+    // special case: rdf:type
+    //
+    if(property == RDF::type()) {
+        QSet<QUrl> addedTypes, removedTypes;
+        for(QList<Soprano::Node>::const_iterator it = addedValues.constBegin();
+            it != addedValues.constEnd(); ++it) {
+            addedTypes << it->uri();
+        }
+        for(QList<Soprano::Node>::const_iterator it = removedValues.constBegin();
+            it != removedValues.constEnd(); ++it) {
+            removedTypes << it->uri();
+        }
+        changeTypes(res, types, addedTypes, removedTypes);
+    }
+
+
     // first collect all the connections we need to emit the signals for
     QSet<ResourceWatcherConnection*> connections;
 
@@ -126,14 +166,6 @@ void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl
             !m_propHash.values().contains(con) ) {
             connections << con;
         }
-    }
-
-    //
-    // We only need the resource types if any connections are watching types.
-    //
-    QSet<QUrl> types;
-    if(!m_typeHash.isEmpty()) {
-        types = getTypes(res);
     }
 
 
@@ -373,6 +405,82 @@ QSet<QUrl> Nepomuk::ResourceWatcherManager::getTypes(const Soprano::Node &res) c
         types.insert(it.current().object().uri());
     }
     return types;
+}
+
+// FIXME: also take super-classes into account
+void Nepomuk::ResourceWatcherManager::changeTypes(const QUrl &res, const QSet<QUrl>& resTypes, const QSet<QUrl> &addedTypes, const QSet<QUrl> &removedTypes)
+{
+    // first collect all the connections we need to emit the signals for
+    QSet<ResourceWatcherConnection*> addConnections, removeConnections;
+
+    // all connections watching the resource and not a special property
+    // and no special type or one of the changed types
+    foreach( ResourceWatcherConnection* con, m_resHash.values( res ) ) {
+        if( m_propHash.contains(RDF::type(), con) ||
+            !m_propHash.values().contains(con) ) {
+            if(!addedTypes.isEmpty() &&
+               connectionWatchesOneType(con, addedTypes)) {
+                addConnections << con;
+            }
+            if(!removedTypes.isEmpty() &&
+               connectionWatchesOneType(con, removedTypes)) {
+                removeConnections << con;
+            }
+        }
+    }
+
+    // all connections watching one of the types and no special resource or property
+    if(!addedTypes.isEmpty()) {
+        foreach(const QUrl& type, addedTypes + resTypes) {
+            foreach(ResourceWatcherConnection* con, m_typeHash.values(type)) {
+                if(!m_resHash.values().contains(con) &&
+                   !m_propHash.values().contains(con)) {
+                    addConnections << con;
+                }
+            }
+        }
+    }
+    if(!removedTypes.isEmpty()) {
+        foreach(const QUrl& type, removedTypes + resTypes) {
+            foreach(ResourceWatcherConnection* con, m_typeHash.values(type)) {
+                if(!m_resHash.values().contains(con) &&
+                   !m_propHash.values().contains(con)) {
+                    removeConnections << con;
+                }
+            }
+        }
+    }
+
+    // all connections watching rdf:type
+    foreach(ResourceWatcherConnection* con, m_propHash.values(RDF::type())) {
+        if(!m_resHash.values().contains(con) ) {
+            if(connectionWatchesOneType(con, addedTypes + resTypes)) {
+                addConnections << con;
+            }
+            if(connectionWatchesOneType(con, removedTypes + resTypes)) {
+                removeConnections << con;
+            }
+        }
+    }
+
+    // finally emit the actual signals
+    if(!addedTypes.isEmpty()) {
+        foreach(ResourceWatcherConnection* con, addConnections) {
+            emit con->resourceTypesAdded(convertUri(res),
+                                         convertUris(addedTypes));
+        }
+    }
+    if(!removedTypes.isEmpty()) {
+        foreach(ResourceWatcherConnection* con, removeConnections) {
+            emit con->resourceTypesRemoved(convertUri(res),
+                                           convertUris(removedTypes));
+        }
+    }
+}
+
+bool Nepomuk::ResourceWatcherManager::connectionWatchesOneType(Nepomuk::ResourceWatcherConnection *con, const QSet<QUrl> &types) const
+{
+    return !m_typeHash.values().contains(con) || hashContainsAtLeastOneOf(con, types, m_typeHash);
 }
 
 #include "resourcewatchermanager.moc"

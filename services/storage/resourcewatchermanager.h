@@ -73,6 +73,7 @@ namespace Nepomuk {
         /// called by ResourceWatcherConnection destructor
         void removeConnection(ResourceWatcherConnection*);
 
+        /// called by ResourceWatcherConnection
         void setResources(ResourceWatcherConnection* conn, const QStringList& resources);
         void addResource(ResourceWatcherConnection* conn, const QString& resource);
         void removeResource(ResourceWatcherConnection* conn, const QString& resource);
@@ -84,6 +85,12 @@ namespace Nepomuk {
         void removeType(ResourceWatcherConnection* conn, const QString& type);
 
         QSet<QUrl> getTypes(const Soprano::Node& res) const;
+
+        /// called by changeProperty
+        void changeTypes(const QUrl& res, const QSet<QUrl> &resTypes, const QSet<QUrl> &addedTypes, const QSet<QUrl> &removedTypes);
+
+        /// this checks if the connection watches one of the types or no types at all (wildcard)
+        bool connectionWatchesOneType(ResourceWatcherConnection* con, const QSet<QUrl> &types) const;
 
         DataManagementModel* m_model;
 

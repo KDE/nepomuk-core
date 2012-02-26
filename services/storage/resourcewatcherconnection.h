@@ -43,8 +43,8 @@ namespace Nepomuk {
     signals:
         Q_SCRIPTABLE void resourceCreated( const QString & uri, const QStringList& types );
         Q_SCRIPTABLE void resourceRemoved( const QString & uri, const QStringList& types );
-        Q_SCRIPTABLE void resourceTypeAdded( const QString & resUri, const QString & type );
-        Q_SCRIPTABLE void resourceTypeRemoved( const QString & resUri, const QString & type );
+        Q_SCRIPTABLE void resourceTypesAdded( const QString & resUri, const QStringList & type );
+        Q_SCRIPTABLE void resourceTypesRemoved( const QString & resUri, const QStringList & type );
         Q_SCRIPTABLE void propertyAdded( const QString & resource,
                                          const QString & property,
                                          const QVariantList & value );

@@ -108,10 +108,10 @@ bool Nepomuk::ResourceWatcher::start()
                  this, SLOT(slotPropertyChanged(QString,QString,QVariantList,QVariantList)) );
         connect( d->m_connectionInterface, SIGNAL(resourceRemoved(QString,QStringList)),
                  this, SLOT(slotResourceRemoved(QString,QStringList)) );
-        connect( d->m_connectionInterface, SIGNAL(resourceTypeAdded(QString,QString)),
-                 this, SLOT(slotResourceTypeAdded(QString,QString)) );
-        connect( d->m_connectionInterface, SIGNAL(resourceTypeRemoved(QString,QString)),
-                 this, SLOT(slotResourceTypeRemoved(QString,QString)) );
+        connect( d->m_connectionInterface, SIGNAL(resourceTypesAdded(QString,QStringList)),
+                 this, SLOT(slotResourceTypesAdded(QString,QStringList)) );
+        connect( d->m_connectionInterface, SIGNAL(resourceTypesRemoved(QString,QStringList)),
+                 this, SLOT(slotResourceTypesRemoved(QString,QStringList)) );
         return true;
     }
     else {
@@ -246,14 +246,18 @@ void Nepomuk::ResourceWatcher::slotResourceRemoved(const QString &res, const QSt
     emit resourceRemoved(KUrl(res), convertUris(types));
 }
 
-void Nepomuk::ResourceWatcher::slotResourceTypeAdded(const QString &res, const QString &type)
+void Nepomuk::ResourceWatcher::slotResourceTypesAdded(const QString &res, const QStringList &types)
 {
-    emit resourceTypeAdded(KUrl(res), KUrl(type));
+    foreach(const QString& type, types) {
+        emit resourceTypeAdded(KUrl(res), KUrl(type));
+    }
 }
 
-void Nepomuk::ResourceWatcher::slotResourceTypeRemoved(const QString &res, const QString &type)
+void Nepomuk::ResourceWatcher::slotResourceTypesRemoved(const QString &res, const QStringList &types)
 {
-    emit resourceTypeRemoved(KUrl(res), KUrl(type));
+    foreach(const QString& type, types) {
+        emit resourceTypeRemoved(KUrl(res), KUrl(type));
+    }
 }
 
 void Nepomuk::ResourceWatcher::slotPropertyAdded(const QString& res, const QString& prop, const QVariantList &objects)

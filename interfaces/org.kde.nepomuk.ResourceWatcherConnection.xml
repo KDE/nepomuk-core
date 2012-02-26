@@ -9,13 +9,13 @@
       <arg name="uri" type="s" direction="out"/>
       <arg name="types" type="as" direction="out"/>
     </signal>
-    <signal name="resourceTypeAdded">
+    <signal name="resourceTypesAdded">
       <arg name="resUri" type="s" direction="out"/>
-      <arg name="type" type="s" direction="out"/>
+      <arg name="types" type="as" direction="out"/>
     </signal>
-    <signal name="resourceTypeRemoved">
+    <signal name="resourceTypesRemoved">
       <arg name="resUri" type="s" direction="out"/>
-      <arg name="type" type="s" direction="out"/>
+      <arg name="types" type="as" direction="out"/>
     </signal>
     <signal name="propertyAdded">
       <arg name="resource" type="s" direction="out"/>
