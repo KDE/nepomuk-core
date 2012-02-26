@@ -141,7 +141,7 @@ Nepomuk::Query::RequestPropertyMap Nepomuk::Query::Folder::requestPropertyMap() 
 }
 
 
-// called from SearchRunnable in the search thread
+// called from SearchRunnable in the main thread
 void Nepomuk::Query::Folder::addResults( const QList<Nepomuk::Query::Result>& results )
 {
     QMutexLocker lock(&m_runnableMutex);
@@ -165,7 +165,7 @@ void Nepomuk::Query::Folder::addResults( const QList<Nepomuk::Query::Result>& re
 }
 
 
-// called from SearchRunnable in the search thread
+// called from SearchRunnable in the main thread
 void Nepomuk::Query::Folder::listingFinished()
 {
     QMutexLocker lock(&m_runnableMutex);
@@ -199,9 +199,7 @@ void Nepomuk::Query::Folder::listingFinished()
     }
 
     // make sure we do not update again right away
-    // but we need to do it from the main thread but this
-    // method is called sync from the SearchRunnable
-    QMetaObject::invokeMethod( &m_updateTimer, "start", Qt::QueuedConnection );
+    m_updateTimer.start();
 }
 
 
