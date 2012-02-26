@@ -49,6 +49,20 @@ private Q_SLOTS:
     void testResourceRemovedSignal();
 
     void testStoreResources_createResources();
+
+    // test that make sure each method results in the correct signals
+    void testSetProperty();
+    void testAddProperty();
+    void testRemoveProperty();
+    void testRemoveProperties();
+    void testRemoveResources();
+    void testCreateResources();
+    void testRemoveDataByApplication();
+    void testRemoveAllDataByApplication();
+    void testStoreResources_resourceCreated();
+    void testStoreResources_propertyChanged();
+    void testMergeResources();
+
 private:
     KTempDir* createNieUrlTestData();
 

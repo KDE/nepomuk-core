@@ -30,8 +30,8 @@
     <signal name="propertyChanged">
         <arg name="resource" type="s" direction="out"/>
         <arg name="property" type="s" direction="out"/>
-        <arg name="oldValues" type="av" direction="out"/>
-        <arg name="newValues" type="av" direction="out"/>
+        <arg name="addedValues" type="av" direction="out"/>
+        <arg name="removedValues" type="av" direction="out"/>
     </signal>
     <method name="setResources">
         <arg name="resources" type="as" direction="in"/>

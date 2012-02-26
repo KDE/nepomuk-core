@@ -1,7 +1,7 @@
 /*
     This file is part of the Nepomuk KDE project.
     Copyright (C) 2011 Vishesh Handa <handa.vish@gmail.com>
-    Copyright (C) 2011 Sebastian Trueg <trueg@kde.org>
+    Copyright (C) 2011-2012 Sebastian Trueg <trueg@kde.org>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 namespace Nepomuk {
 
     class ResourceWatcherConnection;
+    class DataManagementModel;
 
     class ResourceWatcherManager : public QObject, protected QDBusContext
     {
@@ -39,14 +40,17 @@ namespace Nepomuk {
         Q_CLASSINFO( "D-Bus Interface", "org.kde.nepomuk.ResourceWatcher" )
 
     public:
-        ResourceWatcherManager( QObject* parent = 0 );
+        ResourceWatcherManager( DataManagementModel* parent = 0 );
         ~ResourceWatcherManager();
 
         void addStatement(const Soprano::Statement &st);
-        void addProperty(const Soprano::Node& res, const QUrl& property, const QList<Soprano::Node>& values);
-        void removeProperty(const Soprano::Node& res, const QUrl& property, const QList<Soprano::Node>& values);
-        void setProperty(const QMultiHash<QUrl, Soprano::Node>& oldValues, const QUrl& property,
-                         const QList<Soprano::Node>& nodes);
+        // IDEA: would it be more efficient to have three lists/sets: keptValues, newValues, removedValues?
+        void changeProperty(const QUrl& res,
+                            const QUrl& property,
+                            const QList<Soprano::Node>& addedValues,
+                            const QList<Soprano::Node>& removedValues);
+        void changeProperty(const QMultiHash<QUrl, Soprano::Node>& oldValues, const QUrl& property,
+                            const QList<Soprano::Node>& nodes);
         void createResource(const QUrl& uri, const QList<QUrl>& types);
         void removeResource(const QUrl& uri, const QList<QUrl>& types);
 
@@ -78,6 +82,10 @@ namespace Nepomuk {
         void setTypes(ResourceWatcherConnection* conn, const QStringList& types);
         void addType(ResourceWatcherConnection* conn, const QString& type);
         void removeType(ResourceWatcherConnection* conn, const QString& type);
+
+        QSet<QUrl> getTypes(const Soprano::Node& res) const;
+
+        DataManagementModel* m_model;
 
         QMultiHash<QUrl, ResourceWatcherConnection*> m_resHash;
         QMultiHash<QUrl, ResourceWatcherConnection*> m_propHash;
