@@ -6,7 +6,7 @@ Start Nepomuk=true
 [Service-nepomukmigration1]
 autostart=false
 
-[Service-nepomukstrigiservice]
+[Service-nepomukfileindexer]
 autostart=false
 
 [Service-nepomukremovablestorageservice]
