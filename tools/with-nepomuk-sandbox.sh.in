@@ -15,7 +15,8 @@ export KDEHOME
 export HOME="$KDEHOME"
 export KDETMP=$KDEHOME/tmp
 export KDEVARTMP=$KDEHOME/vartmp
-export KDESYCOCA=$KDETMP/ksycoca-test
+export KDE_FULL_SESSION=false
+
 mkdir -p $KDEHOME
 mkdir -p $KDETMP
 mkdir -p $KDEVARTMP
