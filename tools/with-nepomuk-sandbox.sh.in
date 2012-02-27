@@ -10,6 +10,9 @@ while [ -e $KDEHOME ]
 done
 
 export KDEHOME
+# We're changing the $HOME dir cause kde unit tests use $HOME/.kde-unit-test
+# Yes, it's retarded!
+export HOME="$KDEHOME"
 export KDETMP=$KDEHOME/tmp
 export KDEVARTMP=$KDEHOME/vartmp
 export KDESYCOCA=$KDETMP/ksycoca-test
