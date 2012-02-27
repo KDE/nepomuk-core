@@ -42,6 +42,9 @@ autostart=false
 [Service-nepomuktelepathyservice]
 autostart=false
 
+[Service-nepomukbackupsync]
+autostart=false
+
 [main Settings]
 Maximum memory=50
 Storage Dir=
