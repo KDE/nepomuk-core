@@ -81,16 +81,19 @@ void Nepomuk::TestBase::cleanupTestCase()
 
 void Nepomuk::TestBase::resetRepository()
 {
-    kDebug() << "Reseting the repository ..";
-    QString query = "select ?r where { graph ?g { ?r ?p ?o. } . ?g a nrl:InstanceBase . }";
+    kDebug() << "Reseting the repository";
+    QTime timer;
+    timer.start();
+
+    QString query = "select ?r where { ?r ?p ?o. FILTER(regex(str(?r), '^nepomuk')) . }";
     Soprano::Model * model = Nepomuk::ResourceManager::instance()->mainModel();
     
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-    QList<Soprano::Node> resources = it.iterateBindings( 0 ).allNodes();
-
-    foreach( const Soprano::Node & node, resources ) {
-        model->removeAllStatements( node, Soprano::Node(), Soprano::Node() );
+    while( it.next() ) {
+        model->removeAllStatements( it[0], Soprano::Node(), Soprano::Node() );
     }
+
+    kDebug() << "Time Taken: " << timer.elapsed()/1000.0 << " seconds"; 
 }
 
 
