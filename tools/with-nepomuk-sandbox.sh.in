@@ -30,18 +30,16 @@ echo "Started..."
 
 # Start the nepomuk server (which will automatically start other nepomuk services
 echo "Starting nepomukserver"
-nepomukserver 2> /dev/null
+nepomukserver 2> $KDETMP/nepomuk-server.log & 
 
 function wait-for-nepomuk-service() {
-    echo "Waiting for $1 service to be initialized (this may take some time)..."
-    while [ ! `qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null` ]
-    do
-        sleep 1
-    done
+    echo "Waiting for $1 service to be initialized."
 
-    while [ false = `qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null` ]
+    qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null
+    while [ $? -ne 0 ]
     do
         sleep 1
+        qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null
     done
 }
 
@@ -68,4 +66,4 @@ echo "Shutting down KDE session..."
 kdeinit4_shutdown
 
 echo "Cleaning up temporary KDEHOME $KDEHOME"
-#rm -rf $KDEHOME
+rm -rf $KDEHOME
