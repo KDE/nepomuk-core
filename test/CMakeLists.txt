@@ -34,6 +34,7 @@ target_link_libraries(nepomuksynctest
   kdecore
   nepomuktest
   nepomuk
+  nepomukdatamanagement
 )
 
 

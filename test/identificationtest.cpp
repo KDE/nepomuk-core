@@ -20,36 +20,59 @@
 #include "identificationtest.h"
 
 #include <KDebug>
+#include <QtCore/QProcess>
 
 #include <kdebug.h>
-#include <ktemporaryfile.h>
 #include <qtest_kde.h>
 
 #include <KTempDir>
 #include <KTemporaryFile>
+#include <KJob>
+#include <KStandardDirs>
 
 #include <Nepomuk/Resource>
 #include <Nepomuk/ResourceManager>
 #include <Nepomuk/Tag>
+
 #include <Soprano/Model>
 #include <Soprano/StatementIterator>
+#include <Soprano/Vocabulary/NAO>
+#include <Nepomuk/Vocabulary/NIE>
+
+#include "nepomuk/datamanagement.h"
+
+using namespace Soprano::Vocabulary;
+using namespace Nepomuk::Vocabulary;
 
 void NepomukSyncTests::basicIdentification()
 {
+    Soprano::Model *model = Nepomuk::ResourceManager::instance()->mainModel();
+    kDebug() << "num: " << model->statementCount();
+
     KTemporaryFile file;
-    file.open();
-    
-    Nepomuk::Resource r( file.fileName() );
-    r.setRating( 5 );
-    kDebug() << "Exists : " << r.exists();
-    kDebug() << "Orig rating : " << r.rating();
+    QVERIFY(file.open());
+
+    QUrl fileUrl = KUrl(file.fileName());
+    kDebug() << "File Url: " << fileUrl;
+
+    Nepomuk::Resource res( fileUrl );
+    res.setRating( 5 );
+
+    QVERIFY( res.exists() );
+    QVERIFY( res.rating() == 5 );
+
+    KJob* job = Nepomuk::setProperty( QList<QUrl>() << fileUrl, NAO::numericRating(), QVariantList() << 2 );
+    job->exec();
+
+    if( job->error() ) {
+        kWarning() << job->errorString();
+    }
+
+    QVERIFY( res.rating() == 2 );
 
     resetRepository();
 
-    kDebug() << "Exists : " << r.exists();
-    kDebug() << "Orig rating : " << r.rating();
-
-    QVERIFY( !r.exists() );
+    QVERIFY( !res.exists() );
 }
 
 QTEST_KDEMAIN(NepomukSyncTests, NoGUI)
