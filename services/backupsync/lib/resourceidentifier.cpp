@@ -401,7 +401,7 @@ namespace {
 
 void Nepomuk::Sync::ResourceIdentifier::forceResource(const KUrl& oldUri, const Nepomuk::Resource& res)
 {
-    d->m_hash[ oldUri ] = res.uri();
+    d->m_hash[ oldUri ] = res.resourceUri();
     d->m_notIdentified.remove( oldUri );
 
     if( res.isFile() ) {

@@ -175,7 +175,7 @@ Nepomuk::Resource Nepomuk::SyncFileIdentifier::createNewResource(const Sync::Syn
         const QList<Soprano::Node> nodeList = simpleRes.values( prop );
         res.setProperty( prop, Nepomuk::Variant::fromNodeList( nodeList ) );
     }
-    return res.uri();
+    return res.resourceUri();
 }
 
 bool Nepomuk::SyncFileIdentifier::runIdentification(const KUrl& uri)

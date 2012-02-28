@@ -82,7 +82,7 @@ namespace Nepomuk {
      * \code
      * KUrl fileUrl("file:///home/foobar/example.txt");
      * Nepomuk::Resource fileRes(fileUrl);
-     * QUrl fileResUri = fileRes.uri();
+     * QUrl fileResUri = fileRes.resourceUri();
      * \endcode
      *
      * Here \p fileUrl and \p fileResUri are NOT equal. The latter is the resource URI
@@ -189,7 +189,7 @@ namespace Nepomuk {
          *
          * \sa getIdentifiers()
          */
-        QUrl uri() const;
+        QUrl resourceUri() const;
 
         /**
          * The main type of the resource. Nepomuk tries hard to make this
@@ -200,7 +200,7 @@ namespace Nepomuk {
          *
          * \sa name(), hasType(), types()
          */
-        QUrl type() const;
+        QUrl resourceType() const;
 
         /**
          * \return The list of all stored types for this resource. This may

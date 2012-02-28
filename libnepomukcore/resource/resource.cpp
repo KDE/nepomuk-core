@@ -124,7 +124,7 @@ Nepomuk::Resource& Nepomuk::Resource::operator=( const QUrl& res )
 }
 
 
-QUrl Nepomuk::Resource::uri() const
+QUrl Nepomuk::Resource::resourceUri() const
 {
     if ( m_data ) {
         determineFinalResourceData();
@@ -136,7 +136,7 @@ QUrl Nepomuk::Resource::uri() const
 }
 
 
-QUrl Nepomuk::Resource::type() const
+QUrl Nepomuk::Resource::resourceType() const
 {
     determineFinalResourceData();
     return m_data->type();
@@ -298,7 +298,7 @@ QString Nepomuk::Resource::genericLabel() const
     QList<Resource> go = property( Vocabulary::PIMO::groundingOccurrence() ).toResourceList();
     if( !go.isEmpty() ) {
         label = go.first().genericLabel();
-        if( label != KUrl(go.first().uri()).pathOrUrl() ) {
+        if( label != KUrl(go.first().resourceUri()).pathOrUrl() ) {
             return label;
         }
     }
@@ -308,7 +308,7 @@ QString Nepomuk::Resource::genericLabel() const
         return hashValue;
 
     // ugly fallback
-    return KUrl(uri()).pathOrUrl();
+    return KUrl(resourceUri()).pathOrUrl();
 }
 
 
@@ -380,7 +380,7 @@ bool Nepomuk::Resource::operator==( const Resource& other ) const
     if( m_data->uri().isEmpty() )
         return *m_data == *other.m_data;
     else
-        return uri() == other.uri();
+        return resourceUri() == other.resourceUri();
 }
 
 
@@ -613,5 +613,5 @@ void Nepomuk::Resource::determineFinalResourceData() const
 
 uint Nepomuk::qHash( const Resource& res )
 {
-    return qHash(res.uri());
+    return qHash(res.resourceUri());
 }

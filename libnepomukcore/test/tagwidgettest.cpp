@@ -42,7 +42,7 @@ TagWidgetTest::~TagWidgetTest()
 
 void TagWidgetTest::slotTagClicked(const Nepomuk::Tag& tag)
 {
-    kDebug() << "Tag clicked:" << tag.uri() << tag.genericLabel();
+    kDebug() << "Tag clicked:" << tag.resourceUri() << tag.genericLabel();
 }
 
 

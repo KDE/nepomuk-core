@@ -138,9 +138,9 @@ void Nepomuk::ResourceWatcher::addProperty(const Nepomuk::Types::Property& prope
 
 void Nepomuk::ResourceWatcher::addResource(const Nepomuk::Resource& res)
 {
-    d->m_resources << res.uri();
+    d->m_resources << res.resourceUri();
     if(d->m_connectionInterface) {
-        d->m_connectionInterface->addResource(convertUri(res.uri()));
+        d->m_connectionInterface->addResource(convertUri(res.resourceUri()));
     }
 }
 
@@ -162,9 +162,9 @@ void Nepomuk::ResourceWatcher::removeProperty(const Nepomuk::Types::Property& pr
 
 void Nepomuk::ResourceWatcher::removeResource(const Nepomuk::Resource& res)
 {
-    d->m_resources.removeAll(res.uri());
+    d->m_resources.removeAll(res.resourceUri());
     if(d->m_connectionInterface) {
-        d->m_connectionInterface->removeResource(convertUri(res.uri()));
+        d->m_connectionInterface->removeResource(convertUri(res.resourceUri()));
     }
 }
 
@@ -216,7 +216,7 @@ void Nepomuk::ResourceWatcher::setResources(const QList< Nepomuk::Resource >& re
 {
     d->m_resources.clear();
     foreach(const Nepomuk::Resource& res, resources_) {
-        d->m_resources << res.uri();
+        d->m_resources << res.resourceUri();
     }
 
     if(d->m_connectionInterface) {

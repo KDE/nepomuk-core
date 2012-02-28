@@ -139,16 +139,16 @@ void DynamicResourceFacetTest::initTestCase()
     // now some tags which will be our test resources
     tag1 = Nepomuk::Tag( QLatin1String("Tag 1") );
     tag1.setLabel( QLatin1String("Tag 1") );
-    kDebug() << tag1.uri() << tag1.label();
+    kDebug() << tag1.resourceUri() << tag1.label();
     tag2 = Nepomuk::Tag( QLatin1String("Tag 2") );
     tag2.setLabel( QLatin1String("Tag 2") );
-    kDebug() << tag2.uri() << tag2.label();
+    kDebug() << tag2.resourceUri() << tag2.label();
     tag3 = Nepomuk::Tag( QLatin1String("Tag 3") );
     tag3.setLabel( QLatin1String("Tag 3") );
-    kDebug() << tag3.uri() << tag3.label();
+    kDebug() << tag3.resourceUri() << tag3.label();
     tag4 = Nepomuk::Tag( QLatin1String("Tag 4") );
     tag4.setLabel( QLatin1String("Tag 4") );
-    kDebug() << tag4.uri() << tag4.label();
+    kDebug() << tag4.resourceUri() << tag4.label();
 
     // and some random resources that we will use for testing setClientQuery
     Resource res1;

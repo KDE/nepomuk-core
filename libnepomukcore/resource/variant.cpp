@@ -898,7 +898,7 @@ QUrl Nepomuk::Variant::toUrl() const
             return l.first();
     }
     else if(type() == qMetaTypeId<Resource>()) {
-        return toResource().uri();
+        return toResource().resourceUri();
     }
 
     return d->value.toUrl();
@@ -1140,7 +1140,7 @@ QList<QUrl> Nepomuk::Variant::toUrlList() const
         QList<QUrl> l;
         QList<Resource> rl = toResourceList();
         foreach(const Resource& r, rl)
-            l << r.uri();
+            l << r.resourceUri();
         return l;
     }
     else {
