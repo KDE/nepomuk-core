@@ -469,14 +469,17 @@ QString Nepomuk::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
     }
 
 
-    QString termGraphPattern;
-    if( term.isValid() ) {
-        termGraphPattern = term.d_ptr->toSparqlGraphPattern( QLatin1String( "?r" ), 0, &qbd );
-        if( termGraphPattern.isEmpty() ) {
-            kDebug() << "Got no valid SPARQL pattern from" << term;
-            return QString();
-        }
+    if(!term.isValid()) {
+        return QString();
     }
+
+    QString termGraphPattern;
+    termGraphPattern = term.d_ptr->toSparqlGraphPattern( QLatin1String( "?r" ), 0, &qbd );
+    if( termGraphPattern.isEmpty() ) {
+        kDebug() << "Got no valid SPARQL pattern from" << term;
+        return QString();
+    }
+
 
     // build the list of variables to select (in addition to the main result variable ?r)
     QStringList selectVariables = qbd.customVariables();
