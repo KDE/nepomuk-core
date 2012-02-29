@@ -407,7 +407,8 @@ void KInotify::slotEvent( int socket )
                 emit moved( QFile::decodeName(oldPath), QFile::decodeName(path) );
             }
             else {
-                kDebug() << "No cookie for move information of" << path;
+                kDebug() << "No cookie for move information of" << path << "simulating new file event";
+                emit created(path, event->mask & IN_ISDIR);
             }
         }
         if ( event->mask & EventOpen ) {
