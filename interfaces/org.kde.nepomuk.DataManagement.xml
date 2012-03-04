@@ -85,6 +85,13 @@
       <arg type="a(sa{sv})" direction="out"/>
       <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="QList&lt;Nepomuk::SimpleResource&gt;"/>
     </method>
+    <method name="exportResources">
+      <arg name="resources" type="as" direction="in"/>
+      <arg name="serialization" type="s" direction="in"/>
+      <arg name="flags" type="i" direction="in"/>
+      <arg name="targetGroups" type="as" direction="in"/>
+      <arg type="s" direction="out"/>
+    </method>
     <method name="setProperty">
       <arg name="resource" type="s" direction="in"/>
       <arg name="property" type="s" direction="in"/>

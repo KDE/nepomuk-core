@@ -201,6 +201,27 @@ public Q_SLOTS:
     SimpleResourceGraph describeResources(const QList<QUrl>& resources,
                                           DescribeResourcesFlags flags = NoDescribeResourcesFlags,
                                           const QList<QUrl>& targetParties = QList<QUrl>() ) const;
+
+    /**
+     * Export a set of resources, i.e. retrieve their properties.
+     * \param resources The resource URIs of the resources to describe. Non-existing resources are ignored.
+     * \param serialization The RDF serialization used for the result.
+     * \param userSerialization If \p serialization is Soprano::SerializationUser this value is used. See Soprano::Parser
+     * for details.
+     * \param flags Optional flags to modify the data which is returned.
+     * \param targetParties This optional list can be used to specify the parties (nao:Party) which should
+     * receive the returned data. This will result in a filtering of the result according to configured
+     * permissions. Only data which is set as being public or readable by the specified parties is returned.
+     *
+     * \return A serialized representation of the requested resources.
+     *
+     * \sa describeResources
+     */
+    QString exportResources(const QList<QUrl>& resources,
+                            Soprano::RdfSerialization serialization,
+                            const QString& userSerialization = QString(),
+                            DescribeResourcesFlags flags = NoDescribeResourcesFlags,
+                            const QList<QUrl>& targetParties = QList<QUrl>() ) const;
     //@}
 
 private:

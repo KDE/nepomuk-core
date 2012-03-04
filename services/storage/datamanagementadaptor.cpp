@@ -209,7 +209,9 @@ QList<QUrl> Nepomuk::DataManagementAdaptor::decodeUris(const QStringList &urlStr
 {
     QList<QUrl> urls;
     Q_FOREACH(const QString& urlString, urlStrings) {
-        urls << decodeUri(urlString, namespaceAbbrExpansions);
+        if(!urlString.isEmpty()) {
+            urls << decodeUri(urlString, namespaceAbbrExpansions);
+        }
     }
     return urls;
 }
@@ -229,6 +231,15 @@ void Nepomuk::DataManagementAdaptor::importResources(const QString &url, const Q
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
     enqueueCommand(new ImportResourcesCommand(decodeUri(url), Soprano::mimeTypeToSerialization(serialization), serialization, identificationMode, flags, additionalMetadata, app, m_model, message()));
+}
+
+QString Nepomuk::DataManagementAdaptor::exportResources(const QStringList &resources, const QString &mimeType, int flags, const QStringList &targetParties)
+{
+    Q_ASSERT(calledFromDBus());
+    setDelayedReply(true);
+    enqueueCommand(new ExportResourcesCommand(decodeUris(resources), Soprano::mimeTypeToSerialization(mimeType), mimeType, Nepomuk::DescribeResourcesFlags(flags), decodeUris(targetParties), m_model, message()));
+    // QtDBus will ignore this return value
+    return QString();
 }
 
 #include "datamanagementadaptor.moc"
