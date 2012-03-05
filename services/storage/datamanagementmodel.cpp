@@ -2109,6 +2109,20 @@ Nepomuk::SimpleResourceGraph Nepomuk::DataManagementModel::describeResources(con
     return graph;
 }
 
+namespace {
+    Soprano::Node anonymizeUri(const Soprano::Node& node, QHash<Soprano::Node, Soprano::Node>& blankNodes) {
+        QHash<Soprano::Node, Soprano::Node>::const_iterator it = blankNodes.constFind(node);
+        if(it == blankNodes.constEnd()) {
+            Soprano::Node blank(QString::fromLatin1("b%1").arg(blankNodes.count()));
+            blankNodes.insert(node, blank);
+            return blank;
+        }
+        else {
+            return it.value();
+        }
+    }
+}
+
 QString Nepomuk::DataManagementModel::exportResources(const QList<QUrl> &resources,
                                                       Soprano::RdfSerialization serialization,
                                                       const QString &userSerialization,
@@ -2128,8 +2142,23 @@ QString Nepomuk::DataManagementModel::exportResources(const QList<QUrl> &resourc
         return QString();
     }
 
+    QList<Soprano::Statement> statements =  graph.toStatementGraph().toList();
+
+    if(flags & AnonymizeNepomukUris) {
+        QHash<Soprano::Node, Soprano::Node> blankNodes;
+        for(QList<Soprano::Statement>::iterator it = statements.begin();
+            it != statements.end(); ++it) {
+            if(it->subject().uri().scheme() == QLatin1String("nepomuk")) {
+                it->setSubject(anonymizeUri(it->subject(), blankNodes));
+            }
+            if(it->object().isResource() && it->object().uri().scheme() == QLatin1String("nepomuk")) {
+                it->setObject(anonymizeUri(it->object(), blankNodes));
+            }
+        }
+    }
+
     // serialilze the statements
-    Soprano::Util::SimpleStatementIterator it(graph.toStatementGraph().toList());
+    Soprano::Util::SimpleStatementIterator it(statements);
     QString result;
     QTextStream s(&result);
     if(serializer->serialize(it, s, serialization, userSerialization)) {
