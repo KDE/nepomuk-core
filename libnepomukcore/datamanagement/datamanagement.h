@@ -389,7 +389,11 @@ namespace Nepomuk {
         ExcludeDiscardableData = 1,
 
         /// Exclude related resources, only include literal properties
-        ExcludeRelatedResources = 2
+        ExcludeRelatedResources = 2,
+
+        /// Replaces the resouce URIs which are specific to this instance of Nepomuk
+        /// with blank nodes. This only applies to exportResources()
+        AnonymizeNepomukUris = 4
     };
     Q_DECLARE_FLAGS(DescribeResourcesFlags, DescribeResourcesFlag)
 
