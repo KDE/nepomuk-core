@@ -253,17 +253,10 @@ bool Nepomuk::Sync::ResourceIdentifier::runIdentification(const KUrl& uri)
     }
 
     //
-    // Add the type requirements as filters. Experiments have shown this to mean a substantial
-    // performance boost.
+    // For performance reasons we add a limit even though this could mean that we
+    // miss a resource to identify since we check the types below.
     //
-    if(!requiredTypes.isEmpty()) {
-        query += QLatin1String("FILTER EXISTS { ");
-        foreach(const Soprano::Node& type, requiredTypes) {
-            query += QString::fromLatin1("?r a %1 . ").arg(type.toN3());
-        }
-        query += QLatin1String("} . ");
-    }
-    query += QLatin1String("} LIMIT 10");
+    query += QLatin1String("} LIMIT 100");
 
 
     //
@@ -275,6 +268,23 @@ bool Nepomuk::Sync::ResourceIdentifier::runIdentification(const KUrl& uri)
     Soprano::QueryResultIterator qit = d->m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
     while( qit.next() ) {
         const Soprano::Node r(qit["r"]);
+
+        //
+        // Check the type requirements. Experiments have shown this to mean a substantial
+        // performance boost as compared to doing it in the main query.
+        //
+        if(!requiredTypes.isEmpty() ) {
+            query = QLatin1String("ask where { ");
+            foreach(const Soprano::Node& type, requiredTypes) {
+                query += QString::fromLatin1("%1 a %2 . ").arg(r.toN3(), type.toN3());
+            }
+            query += QLatin1String("}");
+            if(!d->m_model->executeQuery(query, Soprano::Query::QueryLanguageSparql).boolValue()) {
+                continue;
+            }
+        }
+
+
         const int score = d->m_model->executeQuery(QString::fromLatin1("select count(?p) as ?cnt where { "
                                                                        "%1 ?p ?o. filter( ?p in (%2) ) . }")
                                                    .arg( r.toN3(),
