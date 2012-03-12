@@ -29,6 +29,7 @@ class NepomukSyncTests : public Nepomuk::TestBase
     
 private Q_SLOTS:
     void basicIdentification();
+    void pim();
 };
 
 #endif // IDENTIFICATIONTEST_H
