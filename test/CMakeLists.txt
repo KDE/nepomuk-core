@@ -3,7 +3,7 @@ project(nepomuksync_tests)
 find_package(KDE4 REQUIRED)
 find_package(Nepomuk REQUIRED)
 
-include( NepomukTestLibMacros )
+include(NepomukTestLibMacros)
 
 include_directories(
   ${QT_INCLUDES}
@@ -22,9 +22,7 @@ add_definitions(-DDISABLE_NEPOMUK_LEGACY=1)
 
 set(nepomuksynctests_SRCS identificationtest.cpp )
 
-kde4_add_executable( nepomuksynctest ${nepomuksynctests_SRCS} )
-add_nepomuk_test(nepomuksynctest ${CMAKE_CURRENT_BINARY_DIR}/nepomuksynctest)
-
+kde4_add_executable(nepomuksynctest ${nepomuksynctests_SRCS})
 target_link_libraries(nepomuksynctest
   ${QT_QTCORE_LIBRARY}
   ${QT_QTDBUS_LIBRARY}
@@ -36,6 +34,8 @@ target_link_libraries(nepomuksynctest
   nepomuk
   nepomukdatamanagement
 )
+
+add_nepomuk_test(NepomukSyncTest ${CMAKE_CURRENT_BINARY_DIR}/nepomuksynctest)
 
 
 

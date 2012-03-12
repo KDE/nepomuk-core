@@ -37,6 +37,7 @@
 #include <Soprano/Model>
 #include <Soprano/StatementIterator>
 #include <Soprano/Vocabulary/NAO>
+#include <Soprano/QueryResultIterator>
 #include <Nepomuk/Vocabulary/NIE>
 
 #include "nepomuk/datamanagement.h"
@@ -44,17 +45,24 @@
 using namespace Soprano::Vocabulary;
 using namespace Nepomuk::Vocabulary;
 
+void listResources() {
+    Soprano::Model *model = Nepomuk::ResourceManager::instance()->mainModel();
+    const QString query = QString::fromLatin1("select distinct ?r where { ?r ?p ?o . "
+                                              "FILTER(regex(str(?r), '^nepomuk:/res/')) . }");
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    while( it.next() ) {
+        kDebug() << it[0];
+    }
+}
+
 void NepomukSyncTests::basicIdentification()
 {
-    Soprano::Model *model = Nepomuk::ResourceManager::instance()->mainModel();
-    kDebug() << "num: " << model->statementCount();
+    listResources();
 
     KTemporaryFile file;
     QVERIFY(file.open());
 
     QUrl fileUrl = KUrl(file.fileName());
-    kDebug() << "File Url: " << fileUrl;
-
     Nepomuk::Resource res( fileUrl );
     res.setRating( 5 );
 
@@ -67,11 +75,15 @@ void NepomukSyncTests::basicIdentification()
     if( job->error() ) {
         kWarning() << job->errorString();
     }
-
+    QVERIFY(!job->error());
     QVERIFY( res.rating() == 2 );
 
+    listResources();
     resetRepository();
+    listResources();
 
+    // This is required as resetRepository works on a the models
+    Nepomuk::ResourceManager::instance()->clearCache();
     QVERIFY( !res.exists() );
 }
 
