@@ -85,7 +85,7 @@ void Nepomuk::TestBase::resetRepository()
     QTime timer;
     timer.start();
 
-    QString query = "select ?r where { ?r ?p ?o. FILTER(regex(str(?r), '^nepomuk')) . }";
+    QString query = "select distinct ?r where { ?r ?p ?o. FILTER(regex(str(?r), '^nepomuk')) . }";
     Soprano::Model * model = Nepomuk::ResourceManager::instance()->mainModel();
     
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
