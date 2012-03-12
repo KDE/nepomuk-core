@@ -8,9 +8,10 @@ When running Nepomuk unit tests please make sure the services you require are ru
 are not running they can be started via the Nepomuk::TestBase::startService function. All tests
 should be derived from the Nepomuk::TestBase class.
 
-By default only 3 services are started -
+By default only 2 services are started -
 * Storage
 * Query Service
- 
-This code is based on the Telepathy Testlib which can be found - https://projects.kde.org/projects/playground/network/telepathy/telepathy-testlib
 
+This code is based on the Telepathy Testlib which can be found - https://projects.kde.org/projects/playground/network/telepathy/ktp-testlib
+
+The tests should be run via ctest or make tests.

@@ -1,14 +1,13 @@
 project (nepomuktestlib)
 
 # Set minimum versions of packages we need
-set (KDE_MIN_VERSION "4.4.75")
-set (SDO_MIN_VERSION "0.3.60")
+set (KDE_MIN_VERSION "4.8.0")
 
 # Find all the required packages
 find_package (KDE4 ${KDE_MIN_VERSION} REQUIRED)
 find_package (Nepomuk REQUIRED)
 find_package (Soprano REQUIRED)
-find_package (SharedDesktopOntologies ${SDO_MIN_VERSION} REQUIRED)
+find_package (SharedDesktopOntologies  REQUIRED)
 
 # Include some stuff
 include (KDE4Defaults)
@@ -17,9 +16,6 @@ include (MacroLibrary)
 # Add some misc definitions
 add_definitions (${KDE4_DEFINITIONS}
                  -DDISABLE_NEPOMUK_LEGACY
-                # -DQT_NO_CAST_FROM_ASCII
-                # -DQT_NO_KEYWORDS
-                # -fPIC
 )
 
 # Set the basic include directories

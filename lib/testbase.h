@@ -1,7 +1,7 @@
 /*
  * This file is part of nepomuk-testlib
  *
- * Copyright (C) 2010 Vishesh Handa <handa.vish@gmail.com>
+ * Copyright (C) 2010-12 Vishesh Handa <me@vhanda.in>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -40,7 +40,7 @@ namespace Nepomuk {
      *
      * This class aditionally provides a mechanism to reeset the nepomuk
      * repository to its original form.
-     * 
+     *
      * \author Vishesh Handa <handa.vish@gmail.com>
      */
     class NEPOMUKTEST_EXPORT TestBase : public QObject
@@ -58,11 +58,11 @@ namespace Nepomuk {
 
     protected:
         void resetRepository();
-        
+
     public Q_SLOTS:
         QStringList availableServices();
         QStringList runningServices();
-        
+
         bool isServiceAutostarted(const QString &service);
         bool isServiceInitialized(const QString &name);
         bool isServiceRunning(const QString &name);
@@ -74,7 +74,7 @@ namespace Nepomuk {
         void waitForServiceInitialization( const QString & service );
         void startServiceAndWait( const QString & service );
 
-    Q_SIGNALS: 
+    Q_SIGNALS:
         void serviceInitialized(const QString &name);
 
     private:

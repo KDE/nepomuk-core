@@ -1,7 +1,7 @@
 /*
  * This file is part of nepomuk-testlib
  *
- * Copyright (C) 2010 Vishesh Handa <handa.vish@gmail.com>
+ * Copyright (C) 2010-12 Vishesh Handa <me@vhanda.in>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -87,13 +87,13 @@ void Nepomuk::TestBase::resetRepository()
 
     QString query = "select distinct ?r where { ?r ?p ?o. FILTER(regex(str(?r), '^nepomuk')) . }";
     Soprano::Model * model = Nepomuk::ResourceManager::instance()->mainModel();
-    
+
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
     while( it.next() ) {
         model->removeAllStatements( it[0], Soprano::Node(), Soprano::Node() );
     }
 
-    kDebug() << "Time Taken: " << timer.elapsed()/1000.0 << " seconds"; 
+    kDebug() << "Time Taken: " << timer.elapsed()/1000.0 << " seconds";
 }
 
 
@@ -102,7 +102,7 @@ void Nepomuk::TestBase::waitForServiceInitialization(const QString& service)
     while( !isServiceRunning( service ) ) {
         QTest::qSleep( 100 );
     }
-    
+
     while( !isServiceInitialized( service ) ) {
         QTest::qSleep( 200 );
         kDebug() << runningServices();
@@ -139,7 +139,7 @@ bool Nepomuk::TestBase::isServiceAutostarted(const QString& service)
     QDBusPendingReply< bool > reply = d->m_serviceManager->isServiceAutostarted( service );
     reply.waitForFinished();
     return reply.value();
-    
+
 }
 
 bool Nepomuk::TestBase::isServiceInitialized(const QString& name)

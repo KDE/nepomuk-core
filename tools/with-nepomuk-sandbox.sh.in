@@ -34,7 +34,7 @@ echo "Started..."
 
 # Start the nepomuk server (which will automatically start other nepomuk services
 echo "Starting nepomukserver"
-nepomukserver 2> $KDETMP/nepomuk-server.log & 
+nepomukserver 2> $KDETMP/nepomuk-server.log &
 
 function wait-for-nepomuk-service() {
     echo "Waiting for $1 service to be initialized."
@@ -47,8 +47,8 @@ function wait-for-nepomuk-service() {
     done
 }
 
-wait-for-nepomuk-service "org.kde.NepomukStorage" 
-wait-for-nepomuk-service "org.kde.nepomuk.services.nepomukqueryservice" 
+wait-for-nepomuk-service "org.kde.NepomukStorage"
+wait-for-nepomuk-service "org.kde.nepomuk.services.nepomukqueryservice"
 # If you need to wait for other services to be ready before starting the test case, do that here.
 
 # start the actual test
@@ -60,7 +60,7 @@ echo "Telling nepomukserver to quit (this may take some time)"
 qdbus org.kde.NepomukServer /nepomukserver org.kde.NepomukServer.quit > /dev/null
 
 # Wait for the nepomuk server to finish shutting down
-while [ `qdbus org.kde.NepomukServer /nepomukserver org.kde.nepomuk.NepomukServer.isNepomukEnabled 2> /dev/null` ]
+while [ `qdbus org.kde.NepomukServer /nepomukserver org.kde.nepomuk.NepomukServer.isNepomukEnabled > /dev/null` ]
 do
   sleep 1
 done
