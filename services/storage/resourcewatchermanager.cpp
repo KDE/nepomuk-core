@@ -305,6 +305,7 @@ QDBusObjectPath Nepomuk::ResourceWatcherManager::watch(const QStringList& resour
         return con->registerDBusObject(message().service(), ++m_connectionCount);
     }
     else {
+        QDBusConnection::sessionBus().send(message().createErrorReply(QDBusError::InvalidArgs, QLatin1String("Failed to create watch for given arguments.")));
         return QDBusObjectPath();
     }
 }
