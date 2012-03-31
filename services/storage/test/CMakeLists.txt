@@ -9,16 +9,6 @@ include_directories(
   ${libnepomukcore_BINARY_DIR}
   )
 
-kde4_add_unit_test(crappyinferencer2test
-  crappyinferencer2test.cpp
-  ../crappyinferencer2.cpp
-  ../classandpropertytree.cpp)
-target_link_libraries(crappyinferencer2test
-  ${QT_QTTEST_LIBRARY}
-  ${SOPRANO_LIBRARIES}
-  ${KDE4_KDECORE_LIBS}
-  nepomukcore)
-
 kde4_add_unit_test(removablemediamodeltest
   removablemediamodeltest.cpp
   ../removablemediamodel.cpp
