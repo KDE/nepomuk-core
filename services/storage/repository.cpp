@@ -206,6 +206,12 @@ void Nepomuk::Repository::open()
 
     kDebug() << "Successfully created new model for repository" << name();
 
+    //
+    // =================================
+    // Remove the old crappy inference data
+    m_model->removeContext(QUrl::fromEncoded("urn:crappyinference:inferredtriples"));
+    m_model->removeContext(QUrl::fromEncoded("urn:crappyinference2:inferredtriples"));
+
     // Fire up the graph maintainer on the pure data model.
     // =================================
     m_graphMaintainer = new GraphMaintainer(m_model);
