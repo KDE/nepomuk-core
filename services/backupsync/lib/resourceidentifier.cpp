@@ -265,7 +265,7 @@ bool Nepomuk::Sync::ResourceIdentifier::runIdentification(const KUrl& uri)
     //
     QMultiHash<int, KUrl> resultsScoreHash;
     int maxScore = -1;
-    Soprano::QueryResultIterator qit = d->m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    Soprano::QueryResultIterator qit = d->m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
     while( qit.next() ) {
         const Soprano::Node r(qit["r"]);
 
@@ -289,7 +289,7 @@ bool Nepomuk::Sync::ResourceIdentifier::runIdentification(const KUrl& uri)
                                                                        "%1 ?p ?o. filter( ?p in (%2) ) . }")
                                                    .arg( r.toN3(),
                                                          identifyingProperties.join(",") ),
-                                                   Soprano::Query::QueryLanguageSparql)
+                                                   Soprano::Query::QueryLanguageSparqlNoInference)
                           .allBindings().first()["cnt"].literal().toInt();
 
         if( maxScore < score ) {
