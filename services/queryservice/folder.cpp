@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2008-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2008-2012 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -31,6 +31,7 @@
 
 #include <QtCore/QThreadPool>
 #include <QtCore/QMutexLocker>
+#include <QtDBus/QDBusConnection>
 
 
 Nepomuk::Query::Folder::Folder( const Query& query, QObject* parent )
@@ -67,10 +68,12 @@ void Nepomuk::Query::Folder::init()
     m_updateTimer.setSingleShot( true );
     m_updateTimer.setInterval( 2000 );
 
-    connect( ResourceManager::instance()->mainModel(), SIGNAL( statementsAdded() ),
-             this, SLOT( slotStorageChanged() ) );
-    connect( ResourceManager::instance()->mainModel(), SIGNAL( statementsRemoved() ),
-             this, SLOT( slotStorageChanged() ) );
+    // use the special signal from the ResourceWatcher which is not exposed in the public API (yet)
+    QDBusConnection::sessionBus().connect(QLatin1String("org.kde.NepomukStorage"),
+                                          QLatin1String("/resourcewatcher"),
+                                          QLatin1String("org.kde.nepomuk.ResourceWatcher"),
+                                          QLatin1String("somethingChanged"),
+                                          this, SLOT( slotStorageChanged() ) );
     connect( &m_updateTimer, SIGNAL( timeout() ),
              this, SLOT( slotUpdateTimeout() ) );
 }
