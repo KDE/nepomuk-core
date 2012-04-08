@@ -269,6 +269,11 @@ void Nepomuk::ResourceWatcherManager::removeResource(const QUrl &res, const QLis
     }
 }
 
+void Nepomuk::ResourceWatcherManager::changeSomething()
+{
+    emit somethingChanged();
+}
+
 Nepomuk::ResourceWatcherConnection* Nepomuk::ResourceWatcherManager::createConnection(const QList<QUrl> &resources,
                                                                                       const QList<QUrl> &properties,
                                                                                       const QList<QUrl> &types)
