@@ -40,6 +40,8 @@ namespace Nepomuk {
          */
         void setParentModel(Model *model);
 
+        // FIXME: the list methods will never use inference since they result in executeQuery methods down the stack
+
         /**
          * Reimplemented to add Virtuoso SPARQL extensions for inference to each query and suppeor for Soprano::Query::QueryLanguageSparqlNoInference.
          */
