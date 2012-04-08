@@ -52,8 +52,6 @@ namespace Nepomuk {
      *     purpose it is exported via DBus.
      * \li The Soprano::NRLModel provides query prefix expansion and graph cleanup features
      *     that are required by the DMM.
-     * \li The Soprano::Utils::SignalCacheModel is used to compact the several statementsAdded()
-     *     and statementsRemoved() signals.
      * \li RemovableMediaModel is used to automatically convert the URLs of files
      *     on USB keys, network shares, and so on from and into mount-point independant URLs
      *     like nfs://<HOST>/<HOST-PATH>/local/path.ext.

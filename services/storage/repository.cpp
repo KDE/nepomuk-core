@@ -28,7 +28,6 @@
 #include <Soprano/StorageModel>
 #include <Soprano/Error/Error>
 #include <Soprano/Vocabulary/RDF>
-#include <Soprano/Util/SignalCacheModel>
 #define USING_SOPRANO_NRLMODEL_UNSTABLE_API
 #include <Soprano/NRLModel>
 
@@ -221,15 +220,10 @@ void Nepomuk::Repository::open()
     // =================================
     m_removableStorageModel = new Nepomuk::RemovableMediaModel(m_inferencer);
 
-    // create a SignalCacheModel to make sure no client slows us down by listening to the stupid signals
-    // =================================
-    Soprano::Util::SignalCacheModel* scm = new Soprano::Util::SignalCacheModel( m_removableStorageModel );
-    scm->setParent(m_removableStorageModel); // memory management
-
     // Create the NRLModel which is required by the DMM below
     // =================================
-    m_nrlModel = new Soprano::NRLModel(scm);
-    m_nrlModel->setParent(scm); // memory management
+    m_nrlModel = new Soprano::NRLModel(m_removableStorageModel);
+    m_nrlModel->setParent(m_removableStorageModel); // memory management
 
     // create the DataManagementModel on top of everything
     // =================================
@@ -406,6 +400,9 @@ Soprano::BackendSettings Nepomuk::Repository::readVirtuosoSettings() const
     // 100 server threads is hopefully enough - at some point the problem of maximum server threads == max client
     // needs to be addressed as well
     settings << Soprano::BackendSetting( "ServerThreads", 100 );
+
+    // we have our own notifications through the ResourceWatcher. Thus, we disable the statement signals
+    settings << Soprano::BackendSetting( "noStatementSignals", true );
 
     // Never take more than 5 minutes to answer a query (this is to filter out broken queries and bugs in Virtuoso's query optimizer)
     // trueg: We cannot activate this yet. 1. Virtuoso < 6.3 crashes and 2. even open cursors are subject to the timeout which is really
