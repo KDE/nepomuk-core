@@ -34,12 +34,6 @@ namespace Nepomuk {
         VirtuosoInferenceModel(Soprano::Model* model);
         ~VirtuosoInferenceModel();
         
-        /**
-         * Will already create the graph group to ensure that no errors will be thrown if
-         * it is used in executeQuery before a call to updateOntololgyGraphs
-         */
-        void setParentModel(Model *model);
-
         // FIXME: the list methods will never use inference since they result in executeQuery methods down the stack
 
         /**
@@ -57,7 +51,8 @@ namespace Nepomuk {
 
     private:
         void updateTypeVisibility();
-        void createOntologyGraphGroup();
+
+        bool m_haveInferenceRule;
     };
 }
 

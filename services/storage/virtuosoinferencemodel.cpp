@@ -34,27 +34,18 @@ using namespace Soprano::Vocabulary;
 
 namespace {
     const char* s_typeVisibilityGraph = "nepomuk:/ctx/typevisibility";
+    const char* s_nepomukInferenceRuleSetName = "nepomukinference";
 }
 
 
 Nepomuk::VirtuosoInferenceModel::VirtuosoInferenceModel(Model *model)
-    : Soprano::FilterModel(model)
+    : Soprano::FilterModel(model),
+      m_haveInferenceRule(false)
 {
-    if(model) {
-        createOntologyGraphGroup();
-    }
 }
 
 Nepomuk::VirtuosoInferenceModel::~VirtuosoInferenceModel()
 {
-}
-
-void Nepomuk::VirtuosoInferenceModel::setParentModel(Soprano::Model *model)
-{
-    FilterModel::setParentModel(model);
-    if(model) {
-        createOntologyGraphGroup();
-    }
 }
 
 Soprano::QueryResultIterator Nepomuk::VirtuosoInferenceModel::executeQuery(const QString &query, Soprano::Query::QueryLanguage language, const QString &userQueryLanguage) const
@@ -62,8 +53,9 @@ Soprano::QueryResultIterator Nepomuk::VirtuosoInferenceModel::executeQuery(const
     if(language == Soprano::Query::QueryLanguageSparqlNoInference) {
         return FilterModel::executeQuery(query, Soprano::Query::QueryLanguageSparql);
     }
-    else if(language == Soprano::Query::QueryLanguageSparql) {
-        return FilterModel::executeQuery(QLatin1String("DEFINE input:inference <nepomuk:/ontographgroup> ") + query, language);
+    else if(language == Soprano::Query::QueryLanguageSparql && m_haveInferenceRule) {
+        return FilterModel::executeQuery(QString::fromLatin1("DEFINE input:inference <%1> ")
+                                         .arg(QLatin1String(s_nepomukInferenceRuleSetName)) + query, language);
     }
     else {
         return FilterModel::executeQuery(query, language, userQueryLanguage);
@@ -72,29 +64,27 @@ Soprano::QueryResultIterator Nepomuk::VirtuosoInferenceModel::executeQuery(const
 
 void Nepomuk::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
 {
-    int graphGroupMemberCount = 0;
-    Soprano::QueryResultIterator it
-            = executeQuery(QString::fromLatin1("select count(RGGM_MEMBER_IID) from RDF_GRAPH_GROUP_MEMBER as x, RDF_GRAPH_GROUP as y "
-                                               "where x.RGGM_GROUP_IID=y.RGG_IID and y.RGG_IRI='nepomuk:/ontographgroup'"),
-                           Soprano::Query::QueryLanguageUser,
-                           QLatin1String("sql"));
-    if(it.next()) {
-        graphGroupMemberCount = it[0].literal().toInt();
-    }
+    int ontologyCount= 0;
 
     // update the ontology graph group only if something changed (forced) or if it is empty
-    if(forced || graphGroupMemberCount <= 0) {
+    if(forced || ontologyCount <= 0) {
         kDebug() << "Need to update ontology graph group";
         // fetch all nrl:Ontology graphs and add them to the graph group
         Soprano::QueryResultIterator it
-                = executeQuery(QString::fromLatin1("select distinct ?r where { ?r a %1 . }").arg(Soprano::Node::resourceToN3(Soprano::Vocabulary::NRL::Ontology())),
+                = executeQuery(QString::fromLatin1("select distinct ?r where { ?r a %1 . }")
+                               .arg(Soprano::Node::resourceToN3(Soprano::Vocabulary::NRL::Ontology())),
                                Soprano::Query::QueryLanguageSparql);
         while(it.next()) {
-            executeQuery(QString::fromLatin1("DB.DBA.RDF_GRAPH_GROUP_INS('nepomuk:/ontographgroup', '%1')").arg(it[0].uri().toString()),
+            ++ontologyCount;
+            executeQuery(QString::fromLatin1("rdfs_rule_set('%1','%2')")
+                         .arg(QLatin1String(s_nepomukInferenceRuleSetName))
+                         .arg(it[0].uri().toString()),
                          Soprano::Query::QueryLanguageUser,
                          QLatin1String("sql"));
         }
     }
+
+    m_haveInferenceRule = (ontologyCount > 0);
 
     // update graph visibility if something has changed or if we never did it
     const QUrl visibilityGraph = QUrl::fromEncoded(s_typeVisibilityGraph);
@@ -105,25 +95,6 @@ void Nepomuk::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
         kDebug() << "Need to update type visibility.";
         updateTypeVisibility();
     }
-}
-
-void Nepomuk::VirtuosoInferenceModel::createOntologyGraphGroup()
-{
-    // Update ontology graph group
-    Soprano::QueryResultIterator it
-            = executeQuery(QString::fromLatin1("select RGG_IID from DB.DBA.RDF_GRAPH_GROUP where RGG_IRI='nepomuk:/ontographgroup'"),
-                           Soprano::Query::QueryLanguageUser,
-                           QLatin1String("sql"));
-    if(!it.next()) {
-        executeQuery(QLatin1String("DB.DBA.RDF_GRAPH_GROUP_CREATE('nepomuk:/ontographgroup', 1, null, 'The Nepomuk graph group which contains all nrl:Ontology graphs.')"),
-                     Soprano::Query::QueryLanguageUser,
-                     QLatin1String("sql"));
-    }
-
-    // create the rdfs rule graph on the graph group
-    executeQuery(QLatin1String("rdfs_rule_set('nepomuk:/ontographgroup','nepomuk:/ontographgroup')"),
-                 Soprano::Query::QueryLanguageUser,
-                 QLatin1String("sql"));
 }
 
 void Nepomuk::VirtuosoInferenceModel::updateTypeVisibility()
