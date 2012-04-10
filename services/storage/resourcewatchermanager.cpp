@@ -102,7 +102,7 @@ Nepomuk::ResourceWatcherManager::ResourceWatcherManager(DataManagementModel* par
       m_model(parent),
       m_connectionCount(0)
 {
-    QDBusConnection::sessionBus().registerObject("/resourcewatcher", this, QDBusConnection::ExportScriptableSlots);
+    QDBusConnection::sessionBus().registerObject("/resourcewatcher", this, QDBusConnection::ExportScriptableSlots|QDBusConnection::ExportScriptableSignals);
 }
 
 Nepomuk::ResourceWatcherManager::~ResourceWatcherManager()
