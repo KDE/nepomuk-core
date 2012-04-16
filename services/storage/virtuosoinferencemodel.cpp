@@ -104,22 +104,35 @@ void Nepomuk::VirtuosoInferenceModel::updateTypeVisibility()
     // 1. remove all visibility values we added ourselves
     removeContext(visibilityGraph);
 
-    // 2. make rdfs:Resource non-visible (this is required since with KDE 4.9 we introduced a new
-    //    way of visibility handling which relies on types alone rather than visibility values on
-    //    resources. Any visible type will make all sub-types visible, too. If rdfs:Resource were
-    //    visible everything would be.
-    removeAllStatements(RDFS::Resource(), NAO::userVisible(), Soprano::Node());
+    // 2. Set each type non-visible which has a parent type that is non-visible
+    executeQuery(QString::fromLatin1("insert into %1 { "
+                                     "?t %2 'false'^^%3 . "
+                                     "} where { "
+                                     "?t a rdfs:Class . "
+                                     "filter not exists { ?t %2 ?v . } . "
+                                     "filter exists { ?tt %2 'false'^^%3 .  ?t rdfs:subClassOf ?tt . } }")
+                 .arg(Soprano::Node::resourceToN3(visibilityGraph),
+                      Soprano::Node::resourceToN3(NAO::userVisible()),
+                      Soprano::Node::resourceToN3(XMLSchema::boolean())),
+                 Soprano::Query::QueryLanguageSparql);
 
     // 3. Set each type visible which is not rdfs:Resource and does not have a non-visible parent
     executeQuery(QString::fromLatin1("insert into %1 { "
                                      "?t %2 'true'^^%3 . "
                                      "} where { "
                                      "?t a rdfs:Class . "
+                                     "filter not exists { ?t %2 ?v . } . "
                                      "filter not exists { ?tt %2 'false'^^%3 .  ?t rdfs:subClassOf ?tt . } }")
                  .arg(Soprano::Node::resourceToN3(visibilityGraph),
                       Soprano::Node::resourceToN3(NAO::userVisible()),
                       Soprano::Node::resourceToN3(XMLSchema::boolean())),
                  Soprano::Query::QueryLanguageSparql);
+
+    // 4. make rdfs:Resource non-visible (this is required since with KDE 4.9 we introduced a new
+    //    way of visibility handling which relies on types alone rather than visibility values on
+    //    resources. Any visible type will make all sub-types visible, too. If rdfs:Resource were
+    //    visible everything would be.
+    removeAllStatements(RDFS::Resource(), NAO::userVisible(), Soprano::Node());
 }
 
 #include "virtuosoinferencemodel.moc"
