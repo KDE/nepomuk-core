@@ -409,6 +409,11 @@ void KInotify::slotEvent( int socket )
             else {
                 kDebug() << "No cookie for move information of" << path << "simulating new file event";
                 emit created(path, event->mask & IN_ISDIR);
+
+                // also simulate a closed write since that is what triggers indexing of files in the file watcher
+                if(!(event->mask & IN_ISDIR)) {
+                    emit closedWrite(path);
+                }
             }
         }
         if ( event->mask & EventOpen ) {
