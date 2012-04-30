@@ -202,7 +202,9 @@ void Nepomuk::Query::Folder::listingFinished()
     }
 
     // make sure we do not update again right away
-    m_updateTimer.start();
+    // but we need to do it from the main thread but this
+    // method is called sync from the SearchRunnable
+    QMetaObject::invokeMethod( &m_updateTimer, "start", Qt::QueuedConnection );
 }
 
 
