@@ -568,6 +568,9 @@ void Nepomuk::DataManagementModel::setProperty(const QList<QUrl> &resources, con
                                                   removed);
             }
         }
+        if(!allChangedResources.isEmpty()) {
+            d->m_watchManager->changeSomething();
+        }
     }
 }
 
@@ -647,6 +650,7 @@ void Nepomuk::DataManagementModel::removeProperty(const QList<QUrl> &resources, 
     //
     QUrl mtimeGraph;
     QSet<QUrl> graphs;
+    bool somethingChanged = false;
     foreach( const QUrl & res, resolvedResources ) {
         const QList<Soprano::BindingSet> valueGraphs
                 = executeQuery(QString::fromLatin1("select ?g ?v where { graph ?g { %1 %2 ?v . } . FILTER(?v in (%3)) . }")
@@ -664,6 +668,7 @@ void Nepomuk::DataManagementModel::removeProperty(const QList<QUrl> &resources, 
         }
 
         if(!removedValues.isEmpty()) {
+            somethingChanged = true;
             d->m_watchManager->changeProperty( res, property, QList<Soprano::Node>(), removedValues.toList() );
         }
 
@@ -683,6 +688,10 @@ void Nepomuk::DataManagementModel::removeProperty(const QList<QUrl> &resources, 
     }
 
     removeTrailingGraphs( graphs );
+
+    if(somethingChanged) {
+        d->m_watchManager->changeSomething();
+    }
 }
 
 void Nepomuk::DataManagementModel::removeProperties(const QList<QUrl> &resources, const QList<QUrl> &properties, const QString &app)
@@ -751,6 +760,7 @@ void Nepomuk::DataManagementModel::removeProperties(const QList<QUrl> &resources
     //
     QUrl mtimeGraph;
     QSet<QUrl> graphs;
+    bool somethingChanged = false;
     foreach( const QUrl & res, resolvedResources ) {
         QSet<Soprano::Node> propertiesToRemove;
         QMultiHash<QUrl, Soprano::Node> propertyValues;
@@ -782,6 +792,7 @@ void Nepomuk::DataManagementModel::removeProperties(const QList<QUrl> &resources
             }
 
             d->m_watchManager->changeProperty(res, property, QList<Soprano::Node>(), values);
+            somethingChanged = true;
         }
 
         // we only update the mtime in case we actually remove anything
@@ -800,6 +811,10 @@ void Nepomuk::DataManagementModel::removeProperties(const QList<QUrl> &resources
     }
 
     removeTrailingGraphs( graphs );
+
+    if(somethingChanged) {
+        d->m_watchManager->changeSomething();
+    }
 }
 
 
@@ -858,6 +873,7 @@ QUrl Nepomuk::DataManagementModel::createResource(const QList<QUrl> &types, cons
 
     // inform interested parties
     d->m_watchManager->createResource(resUri, types);
+    d->m_watchManager->changeSomething();
 
     return resUri;
 }
@@ -2582,6 +2598,9 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(con
             for(QHash<QUrl, QList<Soprano::Node> >::const_iterator it = finalValuesPerResource.constBegin(); it != finalValuesPerResource.constEnd(); ++it) {
                 d->m_watchManager->changeProperty(it.key(), property, it.value(), QList<Soprano::Node>());
             }
+            if(!finalValuesPerResource.isEmpty()) {
+                d->m_watchManager->changeSomething();
+            }
         }
 
         // update modification date
@@ -2971,6 +2990,9 @@ void Nepomuk::DataManagementModel::removeAllResources(const QSet<QUrl> &resource
     // TODO: ideally we should also report the types the removed resources had
     foreach(const Soprano::Node& res, actuallyRemovedResources) {
         d->m_watchManager->removeResource(res.uri(), QList<QUrl>());
+    }
+    if(!actuallyRemovedResources.isEmpty()) {
+        d->m_watchManager->changeSomething();
     }
 }
 

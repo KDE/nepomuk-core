@@ -102,7 +102,7 @@ Nepomuk::ResourceWatcherManager::ResourceWatcherManager(DataManagementModel* par
       m_model(parent),
       m_connectionCount(0)
 {
-    QDBusConnection::sessionBus().registerObject("/resourcewatcher", this, QDBusConnection::ExportScriptableSlots);
+    QDBusConnection::sessionBus().registerObject("/resourcewatcher", this, QDBusConnection::ExportScriptableSlots|QDBusConnection::ExportScriptableSignals);
 }
 
 Nepomuk::ResourceWatcherManager::~ResourceWatcherManager()
@@ -211,19 +211,26 @@ void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl
     // Finally emit the signals for all connections
     //
     foreach(ResourceWatcherConnection* con, connections) {
-        emit con->propertyChanged( convertUri(res),
-                                   convertUri(property),
-                                   nodeListToVariantList(addedValues),
-                                   nodeListToVariantList(removedValues) );
+        // make sure we emit from the correct thread through a queued connection
+        QMetaObject::invokeMethod(con,
+                                  "propertyChanged",
+                                  Q_ARG(QString, convertUri(res)),
+                                  Q_ARG(QString, convertUri(property)),
+                                  Q_ARG(QVariantList, nodeListToVariantList(addedValues)),
+                                  Q_ARG(QVariantList, nodeListToVariantList(removedValues)));
         if(!addedValues.isEmpty()) {
-            emit con->propertyAdded(convertUri(res),
-                                    convertUri(property),
-                                    nodeListToVariantList(addedValues));
+            QMetaObject::invokeMethod(con,
+                                      "propertyAdded",
+                                      Q_ARG(QString, convertUri(res)),
+                                      Q_ARG(QString, convertUri(property)),
+                                      Q_ARG(QVariantList, nodeListToVariantList(addedValues)));
         }
         if(!removedValues.isEmpty()) {
-            emit con->propertyRemoved(convertUri(res),
-                                      convertUri(property),
-                                      nodeListToVariantList(removedValues));
+            QMetaObject::invokeMethod(con,
+                                      "propertyRemoved",
+                                      Q_ARG(QString, convertUri(res)),
+                                      Q_ARG(QString, convertUri(property)),
+                                      Q_ARG(QVariantList, nodeListToVariantList(removedValues)));
         }
     }
 }
@@ -249,7 +256,11 @@ void Nepomuk::ResourceWatcherManager::createResource(const QUrl &uri, const QLis
     }
 
     foreach(ResourceWatcherConnection* con, connections) {
-        emit con->resourceCreated(convertUri(uri), convertUris(types));
+        // make sure we emit from the correct thread through a queued connection
+        QMetaObject::invokeMethod(con,
+                                  "resourceCreated",
+                                  Q_ARG(QString, convertUri(uri)),
+                                  Q_ARG(QStringList, convertUris(types)));
     }
 }
 
@@ -266,8 +277,18 @@ void Nepomuk::ResourceWatcherManager::removeResource(const QUrl &res, const QLis
     }
 
     foreach(ResourceWatcherConnection* con, connections) {
-        emit con->resourceRemoved(convertUri(res), convertUris(types));
+        // make sure we emit from the correct thread through a queued connection
+        QMetaObject::invokeMethod(con,
+                                  "resourceRemoved",
+                                  Q_ARG(QString, convertUri(res)),
+                                  Q_ARG(QStringList, convertUris(types)));
     }
+}
+
+void Nepomuk::ResourceWatcherManager::changeSomething()
+{
+    // make sure we emit from the correct thread through a queued connection
+    QMetaObject::invokeMethod(this, "somethingChanged");
 }
 
 Nepomuk::ResourceWatcherConnection* Nepomuk::ResourceWatcherManager::createConnection(const QList<QUrl> &resources,
@@ -517,14 +538,20 @@ void Nepomuk::ResourceWatcherManager::changeTypes(const QUrl &res, const QSet<QU
     // finally emit the actual signals
     if(!addedTypes.isEmpty()) {
         foreach(ResourceWatcherConnection* con, addConnections) {
-            emit con->resourceTypesAdded(convertUri(res),
-                                         convertUris(addedTypes));
+            // make sure we emit from the correct thread through a queued connection
+            QMetaObject::invokeMethod(con,
+                                      "resourceTypesAdded",
+                                      Q_ARG(QString, convertUri(res)),
+                                      Q_ARG(QStringList, convertUris(addedTypes)));
         }
     }
     if(!removedTypes.isEmpty()) {
         foreach(ResourceWatcherConnection* con, removeConnections) {
-            emit con->resourceTypesRemoved(convertUri(res),
-                                           convertUris(removedTypes));
+            // make sure we emit from the correct thread through a queued connection
+            QMetaObject::invokeMethod(con,
+                                      "resourceTypesRemoved",
+                                      Q_ARG(QString, convertUri(res)),
+                                      Q_ARG(QStringList, convertUris(removedTypes)));
         }
     }
 }

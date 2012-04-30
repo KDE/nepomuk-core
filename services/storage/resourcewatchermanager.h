@@ -54,6 +54,19 @@ namespace Nepomuk {
         void createResource(const QUrl& uri, const QList<QUrl>& types);
         void removeResource(const QUrl& uri, const QList<QUrl>& types);
 
+        /// to be called whenever something changes (preferably after calling any of the above)
+        void changeSomething();
+
+    signals:
+        /**
+         * A special signal which is emitted whenever something changes in the store.
+         * Normally specifying in detail what to watch for by creating a connection
+         * is recommended. However, if one really wants to watch for any changes at all
+         * this signal is more efficient than a connection since it wraps several changes
+         * done with one command into one notification.
+         */
+        Q_SCRIPTABLE void somethingChanged();
+
     public slots:
         /**
          * Used internally by watch() and by the unit tests to create watcher connections.
