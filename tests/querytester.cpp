@@ -37,8 +37,8 @@
 #include <KCmdLineArgs>
 #include <KAboutData>
 
-#include <Nepomuk2/Query/QueryParser>
-#include <Nepomuk2/Query/Query>
+#include "query.h"
+#include "queryparser.h"
 
 int main( int argc, char **argv )
 {
