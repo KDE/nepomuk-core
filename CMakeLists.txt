@@ -75,6 +75,7 @@ add_subdirectory(services)
 add_subdirectory(servicestub)
 add_subdirectory(interfaces)
 add_subdirectory(removed-services)
+add_subdirectory(includes)
 add_subdirectory(tests)
 
 macro_display_feature_log()

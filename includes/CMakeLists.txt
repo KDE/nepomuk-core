@@ -1,0 +1,53 @@
+install(FILES
+  File
+  Resource
+  ResourceManager
+  Service
+  Tag
+  Thing
+  Variant
+DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk COMPONENT Devel)
+
+
+install(FILES
+  Types/Class
+  Types/Literal
+  Types/Ontology
+  Types/Property
+DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk/Types COMPONENT Devel)
+
+
+install(FILES
+  Query/AndTerm
+  Query/ComparisonTerm
+  Query/FileQuery
+  Query/GroupTerm
+  Query/LiteralTerm
+  Query/NegationTerm
+  Query/OptionalTerm
+  Query/OrTerm
+  Query/Query
+  Query/QueryParser
+  Query/QueryServiceClient
+  Query/ResourceTerm
+  Query/ResourceTypeTerm
+  Query/Result
+  Query/SimpleTerm
+  Query/StandardQuery
+  Query/Term
+DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk/Query COMPONENT Devel)
+
+
+install(FILES
+  Vocabulary/NCAL
+  Vocabulary/NCO
+  Vocabulary/NDO
+  Vocabulary/NEXIF
+  Vocabulary/NFO
+  Vocabulary/NIE
+  Vocabulary/NMM
+  Vocabulary/NMO
+  Vocabulary/NUAO
+  Vocabulary/PIMO
+  Vocabulary/TMO
+DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk/Vocabulary COMPONENT Devel)
