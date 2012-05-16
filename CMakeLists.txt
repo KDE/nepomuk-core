@@ -1,12 +1,12 @@
 project(nepomuk-core)
 
 
-# set the version to be used by NepomukExtrasConfig.cmake and the lib version
+# set the version to be used by NepomukCoreConfig.cmake and the lib version
 # ===============================================================================================
-set(CMAKE_NEPOMUK_VERSION_MAJOR 0)
-set(CMAKE_NEPOMUK_VERSION_MINOR 1)
-set(CMAKE_NEPOMUK_VERSION_RELEASE 0)
-set(CMAKE_NEPOMUK_VERSION_STRING "${CMAKE_NEPOMUK_VERSION_MAJOR}.${CMAKE_NEPOMUK_VERSION_MINOR}.${CMAKE_NEPOMUK_VERSION_RELEASE}")
+set(CMAKE_NEPOMUK_CORE_VERSION_MAJOR 0)
+set(CMAKE_NEPOMUK_CORE_VERSION_MINOR 1)
+set(CMAKE_NEPOMUK_CORE_VERSION_RELEASE 0)
+set(CMAKE_NEPOMUK_CORE_VERSION_STRING "${CMAKE_NEPOMUK_CORE_VERSION_MAJOR}.${CMAKE_NEPOMUK_CORE_VERSION_MINOR}.${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}")
 
 
 # search required packages
@@ -30,6 +30,16 @@ macro_log_feature(SOPRANO_PLUGIN_RAPTORPARSER_FOUND "Soprano Raptor Parser" "RDF
 macro_log_feature(SOPRANO_PLUGIN_REDLANDBACKEND_FOUND "Soprano Redland Backend" "Redland storage backend for Soprano" "http://soprano.sourceforge.net" TRUE "" "The Soprano redland backend is required to build the Nepomuk semantic desktop system.")
 macro_log_feature(SHAREDDESKTOPONTOLOGIES_FOUND "Shared desktop ontologies" "Desktop ontologies" "http://oscaf.sourceforge.net" TRUE ${SDO_MIN_VERSION} "Ontologies necessary for the Nepomuk semantic desktop.")
 macro_log_feature(STRIGI_FOUND "Strigi" "Strigi is a fast and light-weight file indexing solution" "http://strigi.sourceforge.net" TRUE ${STRIGI_MIN_VERSION} "Required for file indexing (only libstreamanalyzer is required actually)")
+
+
+# generate NepomukCoreConfig.cmake for easy utilisation of the package by other cmake build systems
+# ===============================================================================================
+configure_file(NepomukCoreConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake @ONLY)
+configure_file(NepomukCoreConfigVersion.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfigVersion.cmake @ONLY)
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/cmake/NepomukCore)
 
 
 # Some definitions
