@@ -1167,7 +1167,7 @@ void Nepomuk::DataManagementModel::removeDataByApplication(const QList<QUrl> &re
     }
 
     //
-    // Remove the actual data. This has to be done using removeAllStatements. Otherwise the crappy inferencer cannot follow the changes.
+    // Remove the actual data. This has to be done using removeAllStatements. FIXME: We can use SPARUL now!
     //
     foreach(const QUrl& g, graphsToRemove) {
         foreach(const QUrl& res, resolvedResources) {
@@ -1201,9 +1201,6 @@ void Nepomuk::DataManagementModel::removeDataByApplication(const QList<QUrl> &re
             // we now have two graphs the the same metadata: g and newGraph.
             // we now move the resources we delete into the new graph and only
             // remove the app as maintainer from that graph.
-            // (we can use fancy queries since we do not actually change data. Thus
-            // the crappy inferencer and other models which act on statement commands
-            // are not really interested)
             //
             executeQuery(QString::fromLatin1("insert into %1 { ?r ?p ?o . } where { graph %2 { ?r ?p ?o . FILTER(?r in (%3) || ?o in (%3)) . } . }")
                          .arg(Soprano::Node::resourceToN3(newGraph),
@@ -1372,7 +1369,7 @@ void Nepomuk::DataManagementModel::removeDataByApplication(RemovalFlags flags, c
                     //
                     // We cannot remove the metadata if the resource is not removed completely
                     // Thus, we re-add them later on.
-                    // trueg: as soon as we have real inference and do not rely on the crappy inferencer to update types via the
+                    // trueg: FIXME: as soon as we have real inference and do not rely on the crappy inferencer to update types via the
                     //        Soprano statement manipulation methods we can use powerful queries like this one:
                     //                    executeQuery(QString::fromLatin1("delete from %1 { %2 ?p ?o . } where { %2 ?p ?o . FILTER(%3) . }")
                     //                                 .arg(Soprano::Node::resourceToN3(g),
@@ -1981,13 +1978,11 @@ Nepomuk::SimpleResourceGraph Nepomuk::DataManagementModel::describeResources(con
             foreach(const QUrl& res, tmp) {
                 Soprano::QueryResultIterator it
                         = executeQuery(QString::fromLatin1("select ?r where { "
-                                                           "graph ?g { ?parent ?p ?r . "
+                                                           "graph ?g { ?parent %2 ?r . "
                                                            "FILTER(?parent in (%1)) . } . "
-                                                           "?p %2 %3 . "
-                                                           "%4"
+                                                           "%3"
                                                            "}")
                                        .arg(/*resourcesToN3(subResources).join(QLatin1String(","))*/Soprano::Node::resourceToN3(res),
-                                            Soprano::Node::resourceToN3(RDFS::subPropertyOf()),
                                             Soprano::Node::resourceToN3(NAO::hasSubResource()),
                                             discardableDataExcludeFilter),
                                        Soprano::Query::QueryLanguageSparql);
@@ -2002,7 +1997,6 @@ Nepomuk::SimpleResourceGraph Nepomuk::DataManagementModel::describeResources(con
 
     //
     // Build the basic graph consisting of the requested resources and all sub-resources
-    // The query excludes all our inferred triples by excluding the crappy inferencer graphs.
     //
     SimpleResourceGraph graph;
     QSet<QUrl> relatedResourcesToFetch;
@@ -2011,14 +2005,13 @@ Nepomuk::SimpleResourceGraph Nepomuk::DataManagementModel::describeResources(con
     foreach(const QUrl& res, resolvedResources) {
         Soprano::QueryResultIterator it
                 = executeQuery(QString::fromLatin1("select distinct ?s ?p ?o where { "
-                                                   "graph ?g { ?s ?p ?o . "
-                                                   "FILTER(?s in (%1)) . } . "
-                                                   "FILTER(!(?g in (<urn:crappyinference:inferredtriples>,<urn:crappyinference2:inferredtriples>))) . "
+                                                   "?s ?p ?o . "
+                                                   "FILTER(?s in (%1)) . "
                                                    "%2"
                                                    "}")
                                .arg(/*resourcesToN3(resolvedResources).join(QLatin1String(","))*/Soprano::Node::resourceToN3(res),
                                     discardableDataExcludeFilter),
-                               Soprano::Query::QueryLanguageSparql);
+                               Soprano::Query::QueryLanguageSparqlNoInference);
         while(it.next()) {
             const Soprano::Node r = it["s"];
             const Soprano::Node p = it["p"];

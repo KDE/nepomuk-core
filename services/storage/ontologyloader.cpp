@@ -27,6 +27,7 @@
 #include <Soprano/PluginManager>
 #include <Soprano/StatementIterator>
 #include <Soprano/Parser>
+#include <Soprano/QueryResultIterator>
 
 #include <KConfig>
 #include <KConfigGroup>
@@ -45,11 +46,13 @@
 
 using namespace Soprano;
 
+
 class Nepomuk::OntologyLoader::Private
 {
 public:
     Private( OntologyLoader* p )
         : forceOntologyUpdate( false ),
+          someOntologyUpdated( false ),
           q( p ) {
     }
 
@@ -58,6 +61,9 @@ public:
     QTimer updateTimer;
     bool forceOntologyUpdate;
     QStringList desktopFilesToUpdate;
+
+    // true if at least one ontology has been updated
+    bool someOntologyUpdated;
 
     void updateOntology( const QString& filename );
 
@@ -110,6 +116,8 @@ void Nepomuk::OntologyLoader::Private::updateOntology( const QString& filename )
     }
 
     if( update ) {
+        someOntologyUpdated = true;
+
         QString mimeType = df.readEntry( "MimeType", QString() );
 
         const Soprano::Parser* parser
@@ -179,6 +187,7 @@ Nepomuk::OntologyLoader::~OntologyLoader()
 
 void Nepomuk::OntologyLoader::updateLocalOntologies()
 {
+    d->someOntologyUpdated = false;
     d->desktopFilesToUpdate = KGlobal::dirs()->findAllResources( "xdgdata-ontology", "*.ontology", KStandardDirs::Recursive|KStandardDirs::NoDuplicates );
     if(d->desktopFilesToUpdate.isEmpty())
         kError() << "No ontology files found! Make sure the shared-desktop-ontologies project is installed and XDG_DATA_DIRS is set properly.";
@@ -201,7 +210,7 @@ void Nepomuk::OntologyLoader::updateNextOntology()
     else {
         d->forceOntologyUpdate = false;
         d->updateTimer.stop();
-        emit ontologyLoadingFinished(this);
+        emit ontologyUpdateFinished(d->someOntologyUpdated);
     }
 }
 
@@ -230,6 +239,7 @@ void Nepomuk::OntologyLoader::slotGraphRetrieverResult( KJob* job )
         // is newer than the already installed one
         if ( d->model->updateOntology( graphRetriever->statements(), QUrl()/*graphRetriever->url()*/ ) ) {
             emit ontologyUpdated( QString::fromAscii( graphRetriever->url().toEncoded() ) );
+            emit ontologyUpdateFinished(true);
         }
         else {
             emit ontologyUpdateFailed( QString::fromAscii( graphRetriever->url().toEncoded() ), d->model->lastError().message() );

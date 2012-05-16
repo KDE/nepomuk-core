@@ -15,8 +15,6 @@ set(storage_SRCS
   ontologyloader.cpp
   ontologymanagermodel.cpp
   graphretriever.cpp
-  crappyinferencer.cpp
-  crappyinferencer2.cpp
   removablemediamodel.cpp
   datamanagementmodel.cpp
   datamanagementadaptor.cpp
@@ -27,6 +25,7 @@ set(storage_SRCS
   resourcewatchermanager.cpp
   resourcewatcherconnection.cpp
   graphmaintainer.cpp
+  virtuosoinferencemodel.cpp
   ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
   )
 
