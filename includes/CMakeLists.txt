@@ -6,7 +6,7 @@ install(FILES
   Tag
   Thing
   Variant
-DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk COMPONENT Devel)
+DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2 COMPONENT Devel)
 
 
 install(FILES
