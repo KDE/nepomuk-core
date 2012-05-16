@@ -33,7 +33,7 @@
 
 class QTextStream;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
 
         class Term;
@@ -44,7 +44,7 @@ namespace Nepomuk {
          * \brief Convinience definition for request property mappings as used in
          * QueryServiceClient::sparqlQuery() and QueryServiceClient::blockingSparqlQuery().
          */
-        typedef QHash<QString, Nepomuk::Types::Property> RequestPropertyMap;
+        typedef QHash<QString, Nepomuk2::Types::Property> RequestPropertyMap;
 
         /**
          * \class Query query.h Nepomuk2/Query/Query
@@ -293,7 +293,7 @@ namespace Nepomuk {
                  * \param optional if \p true the requested property will
                  * be %optional, ie. marked as OPTIONAL in SPARQL queries.
                  */
-                RequestProperty( const Nepomuk::Types::Property& property,
+                RequestProperty( const Nepomuk2::Types::Property& property,
                                  bool optional = true );
 
                 /**
@@ -321,7 +321,7 @@ namespace Nepomuk {
                 /**
                  * \return The property set in the constructor.
                  */
-                Nepomuk::Types::Property property() const;
+                Nepomuk2::Types::Property property() const;
 
                 /**
                  * \return The optional value set in the constructor.
@@ -596,13 +596,13 @@ namespace Nepomuk {
          */
         NEPOMUK_EXPORT Query operator!( const Query& query );
 
-        NEPOMUK_EXPORT uint qHash( const Nepomuk::Query::Query& );
+        NEPOMUK_EXPORT uint qHash( const Nepomuk2::Query::Query& );
     }
 }
 
-Q_DECLARE_OPERATORS_FOR_FLAGS( Nepomuk::Query::Query::SparqlFlags )
-Q_DECLARE_OPERATORS_FOR_FLAGS( Nepomuk::Query::Query::QueryFlags )
+Q_DECLARE_OPERATORS_FOR_FLAGS( Nepomuk2::Query::Query::SparqlFlags )
+Q_DECLARE_OPERATORS_FOR_FLAGS( Nepomuk2::Query::Query::QueryFlags )
 
-NEPOMUK_EXPORT QDebug operator<<( QDebug, const Nepomuk::Query::Query& );
+NEPOMUK_EXPORT QDebug operator<<( QDebug, const Nepomuk2::Query::Query& );
 
 #endif

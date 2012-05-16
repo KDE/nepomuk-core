@@ -40,24 +40,24 @@
 
 namespace {
 
-    QString varInAggregateFunction( Nepomuk::Query::ComparisonTerm::AggregateFunction f, const QString& varName )
+    QString varInAggregateFunction( Nepomuk2::Query::ComparisonTerm::AggregateFunction f, const QString& varName )
     {
         switch( f ) {
-        case Nepomuk::Query::ComparisonTerm::Count:
+        case Nepomuk2::Query::ComparisonTerm::Count:
             return QString::fromLatin1("count(%1)").arg(varName);
-        case Nepomuk::Query::ComparisonTerm::DistinctCount:
+        case Nepomuk2::Query::ComparisonTerm::DistinctCount:
             return QString::fromLatin1("count(distinct %1)").arg(varName);
-        case Nepomuk::Query::ComparisonTerm::Max:
+        case Nepomuk2::Query::ComparisonTerm::Max:
             return QString::fromLatin1("max(%1)").arg(varName);
-        case Nepomuk::Query::ComparisonTerm::Min:
+        case Nepomuk2::Query::ComparisonTerm::Min:
             return QString::fromLatin1("min(%1)").arg(varName);
-        case Nepomuk::Query::ComparisonTerm::Sum:
+        case Nepomuk2::Query::ComparisonTerm::Sum:
             return QString::fromLatin1("sum(%1)").arg(varName);
-        case Nepomuk::Query::ComparisonTerm::DistinctSum:
+        case Nepomuk2::Query::ComparisonTerm::DistinctSum:
             return QString::fromLatin1("sum(distinct %1)").arg(varName);
-        case Nepomuk::Query::ComparisonTerm::Average:
+        case Nepomuk2::Query::ComparisonTerm::Average:
             return QString::fromLatin1("avg(%1)").arg(varName);
-        case Nepomuk::Query::ComparisonTerm::DistinctAverage:
+        case Nepomuk2::Query::ComparisonTerm::DistinctAverage:
             return QString::fromLatin1("avg(distinct %1)").arg(varName);
         default:
             return QString();
@@ -65,22 +65,22 @@ namespace {
     }
 }
 
-QString Nepomuk::Query::comparatorToString( Nepomuk::Query::ComparisonTerm::Comparator c )
+QString Nepomuk2::Query::comparatorToString( Nepomuk2::Query::ComparisonTerm::Comparator c )
 {
     switch( c ) {
-    case Nepomuk::Query::ComparisonTerm::Contains:
+    case Nepomuk2::Query::ComparisonTerm::Contains:
         return QChar( ':' );
-    case Nepomuk::Query::ComparisonTerm::Equal:
+    case Nepomuk2::Query::ComparisonTerm::Equal:
         return QChar( '=' );
-    case Nepomuk::Query::ComparisonTerm::Regexp:
+    case Nepomuk2::Query::ComparisonTerm::Regexp:
         return QLatin1String( "regex" );
-    case Nepomuk::Query::ComparisonTerm::Greater:
+    case Nepomuk2::Query::ComparisonTerm::Greater:
         return QChar( '>' );
-    case Nepomuk::Query::ComparisonTerm::Smaller:
+    case Nepomuk2::Query::ComparisonTerm::Smaller:
         return QChar( '<' );
-    case Nepomuk::Query::ComparisonTerm::GreaterOrEqual:
+    case Nepomuk2::Query::ComparisonTerm::GreaterOrEqual:
         return QLatin1String( ">=" );
-    case Nepomuk::Query::ComparisonTerm::SmallerOrEqual:
+    case Nepomuk2::Query::ComparisonTerm::SmallerOrEqual:
         return QLatin1String( "<=" );
     default:
         return QString();
@@ -88,25 +88,25 @@ QString Nepomuk::Query::comparatorToString( Nepomuk::Query::ComparisonTerm::Comp
 }
 
 
-Nepomuk::Query::ComparisonTerm::Comparator Nepomuk::Query::stringToComparator( const QStringRef& c )
+Nepomuk2::Query::ComparisonTerm::Comparator Nepomuk2::Query::stringToComparator( const QStringRef& c )
 {
     if( c == QChar( '=' ) )
-        return Nepomuk::Query::ComparisonTerm::Equal;
+        return Nepomuk2::Query::ComparisonTerm::Equal;
     else if( c == QLatin1String( "regex" ) )
-        return Nepomuk::Query::ComparisonTerm::Regexp;
+        return Nepomuk2::Query::ComparisonTerm::Regexp;
     else if( c == QChar( '>' ) )
-        return Nepomuk::Query::ComparisonTerm::Greater;
+        return Nepomuk2::Query::ComparisonTerm::Greater;
     else if( c == QChar( '<' ) )
-        return Nepomuk::Query::ComparisonTerm::Smaller;
+        return Nepomuk2::Query::ComparisonTerm::Smaller;
     else if( c == QLatin1String( ">=" ) )
-        return Nepomuk::Query::ComparisonTerm::GreaterOrEqual;
+        return Nepomuk2::Query::ComparisonTerm::GreaterOrEqual;
     else if( c == QLatin1String( "<=" ) )
-        return Nepomuk::Query::ComparisonTerm::SmallerOrEqual;
+        return Nepomuk2::Query::ComparisonTerm::SmallerOrEqual;
     else
-        return Nepomuk::Query::ComparisonTerm::Contains;
+        return Nepomuk2::Query::ComparisonTerm::Contains;
 }
 
-QString Nepomuk::Query::ComparisonTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
+QString Nepomuk2::Query::ComparisonTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
 {
     Q_UNUSED(parentTerm);
 
@@ -305,7 +305,7 @@ QString Nepomuk::Query::ComparisonTermPrivate::toSparqlGraphPattern( const QStri
 
 
 
-bool Nepomuk::Query::ComparisonTermPrivate::equals( const TermPrivate* other ) const
+bool Nepomuk2::Query::ComparisonTermPrivate::equals( const TermPrivate* other ) const
 {
     if ( other->m_type == m_type ) {
         const ComparisonTermPrivate* ctp = static_cast<const ComparisonTermPrivate*>( other );
@@ -323,7 +323,7 @@ bool Nepomuk::Query::ComparisonTermPrivate::equals( const TermPrivate* other ) c
 }
 
 
-bool Nepomuk::Query::ComparisonTermPrivate::isValid() const
+bool Nepomuk2::Query::ComparisonTermPrivate::isValid() const
 {
     // an invalid property will simply match all properties
     // and an invalid subterm is a wildcard, too
@@ -367,7 +367,7 @@ bool Nepomuk::Query::ComparisonTermPrivate::isValid() const
 // 2.2.2 sorting weight set
 //       -> Do the same as above only also add the set variable name as sort variable via QueryBuilderData::addOrderVariable
 //
-QString Nepomuk::Query::ComparisonTermPrivate::getMainVariableName( QueryBuilderData* qbd, bool* firstUse ) const
+QString Nepomuk2::Query::ComparisonTermPrivate::getMainVariableName( QueryBuilderData* qbd, bool* firstUse ) const
 {
     QString v;
     QString sortVar;
@@ -412,7 +412,7 @@ QString Nepomuk::Query::ComparisonTermPrivate::getMainVariableName( QueryBuilder
 }
 
 
-QString Nepomuk::Query::ComparisonTermPrivate::propertyToString( QueryBuilderData* qbd ) const
+QString Nepomuk2::Query::ComparisonTermPrivate::propertyToString( QueryBuilderData* qbd ) const
 {
     if( m_property.isValid() )
         return Soprano::Node::resourceToN3( m_property.uri() );
@@ -421,19 +421,19 @@ QString Nepomuk::Query::ComparisonTermPrivate::propertyToString( QueryBuilderDat
 }
 
 
-Nepomuk::Query::ComparisonTerm::ComparisonTerm()
+Nepomuk2::Query::ComparisonTerm::ComparisonTerm()
     : SimpleTerm( new ComparisonTermPrivate() )
 {
 }
 
 
-Nepomuk::Query::ComparisonTerm::ComparisonTerm( const ComparisonTerm& term )
+Nepomuk2::Query::ComparisonTerm::ComparisonTerm( const ComparisonTerm& term )
     : SimpleTerm( term )
 {
 }
 
 
-Nepomuk::Query::ComparisonTerm::ComparisonTerm( const Types::Property& property, const Term& term, Comparator comparator )
+Nepomuk2::Query::ComparisonTerm::ComparisonTerm( const Types::Property& property, const Term& term, Comparator comparator )
     : SimpleTerm( new ComparisonTermPrivate() )
 {
     N_D( ComparisonTerm );
@@ -443,75 +443,75 @@ Nepomuk::Query::ComparisonTerm::ComparisonTerm( const Types::Property& property,
 }
 
 
-Nepomuk::Query::ComparisonTerm::~ComparisonTerm()
+Nepomuk2::Query::ComparisonTerm::~ComparisonTerm()
 {
 }
 
 
-Nepomuk::Query::ComparisonTerm& Nepomuk::Query::ComparisonTerm::operator=( const ComparisonTerm& term )
+Nepomuk2::Query::ComparisonTerm& Nepomuk2::Query::ComparisonTerm::operator=( const ComparisonTerm& term )
 {
     d_ptr = term.d_ptr;
     return *this;
 }
 
 
-Nepomuk::Query::ComparisonTerm::Comparator Nepomuk::Query::ComparisonTerm::comparator() const
+Nepomuk2::Query::ComparisonTerm::Comparator Nepomuk2::Query::ComparisonTerm::comparator() const
 {
     N_D_CONST( ComparisonTerm );
     return d->m_comparator;
 }
 
 
-Nepomuk::Types::Property Nepomuk::Query::ComparisonTerm::property() const
+Nepomuk2::Types::Property Nepomuk2::Query::ComparisonTerm::property() const
 {
     N_D_CONST( ComparisonTerm );
     return d->m_property;
 }
 
 
-void Nepomuk::Query::ComparisonTerm::setComparator( Comparator comparator )
+void Nepomuk2::Query::ComparisonTerm::setComparator( Comparator comparator )
 {
     N_D( ComparisonTerm );
     d->m_comparator = comparator;
 }
 
 
-void Nepomuk::Query::ComparisonTerm::setProperty( const Types::Property& property )
+void Nepomuk2::Query::ComparisonTerm::setProperty( const Types::Property& property )
 {
     N_D( ComparisonTerm );
     d->m_property = property;
 }
 
 
-void Nepomuk::Query::ComparisonTerm::setVariableName( const QString& name )
+void Nepomuk2::Query::ComparisonTerm::setVariableName( const QString& name )
 {
     N_D( ComparisonTerm );
     d->m_variableName = name;
 }
 
 
-QString Nepomuk::Query::ComparisonTerm::variableName() const
+QString Nepomuk2::Query::ComparisonTerm::variableName() const
 {
     N_D_CONST( ComparisonTerm );
     return d->m_variableName;
 }
 
 
-void Nepomuk::Query::ComparisonTerm::setAggregateFunction( AggregateFunction function )
+void Nepomuk2::Query::ComparisonTerm::setAggregateFunction( AggregateFunction function )
 {
     N_D( ComparisonTerm );
     d->m_aggregateFunction = function;
 }
 
 
-Nepomuk::Query::ComparisonTerm::AggregateFunction Nepomuk::Query::ComparisonTerm::aggregateFunction() const
+Nepomuk2::Query::ComparisonTerm::AggregateFunction Nepomuk2::Query::ComparisonTerm::aggregateFunction() const
 {
     N_D_CONST( ComparisonTerm );
     return d->m_aggregateFunction;
 }
 
 
-void Nepomuk::Query::ComparisonTerm::setSortWeight( int weight, Qt::SortOrder sortOrder )
+void Nepomuk2::Query::ComparisonTerm::setSortWeight( int weight, Qt::SortOrder sortOrder )
 {
     N_D( ComparisonTerm );
     d->m_sortWeight = weight;
@@ -519,35 +519,35 @@ void Nepomuk::Query::ComparisonTerm::setSortWeight( int weight, Qt::SortOrder so
 }
 
 
-int Nepomuk::Query::ComparisonTerm::sortWeight() const
+int Nepomuk2::Query::ComparisonTerm::sortWeight() const
 {
     N_D_CONST( ComparisonTerm );
     return d->m_sortWeight;
 }
 
 
-Qt::SortOrder Nepomuk::Query::ComparisonTerm::sortOrder() const
+Qt::SortOrder Nepomuk2::Query::ComparisonTerm::sortOrder() const
 {
     N_D_CONST( ComparisonTerm );
     return d->m_sortOrder;
 }
 
 
-bool Nepomuk::Query::ComparisonTerm::isInverted() const
+bool Nepomuk2::Query::ComparisonTerm::isInverted() const
 {
     N_D_CONST( ComparisonTerm );
     return d->m_inverted;
 }
 
 
-void Nepomuk::Query::ComparisonTerm::setInverted( bool invert )
+void Nepomuk2::Query::ComparisonTerm::setInverted( bool invert )
 {
     N_D( ComparisonTerm );
     d->m_inverted = invert;
 }
 
 
-Nepomuk::Query::ComparisonTerm Nepomuk::Query::ComparisonTerm::inverted() const
+Nepomuk2::Query::ComparisonTerm Nepomuk2::Query::ComparisonTerm::inverted() const
 {
     ComparisonTerm ct( *this );
     ct.setInverted( !isInverted() );

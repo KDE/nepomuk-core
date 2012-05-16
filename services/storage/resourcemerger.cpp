@@ -43,10 +43,10 @@
 #include "resourcewatchermanager.h"
 
 using namespace Soprano::Vocabulary;
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 
-Nepomuk::ResourceMerger::ResourceMerger(Nepomuk::DataManagementModel* model, const QString& app,
+Nepomuk2::ResourceMerger::ResourceMerger(Nepomuk2::DataManagementModel* model, const QString& app,
                                         const QHash< QUrl, QVariant >& additionalMetadata,
                                         const StoreResourcesFlags& flags )
 {
@@ -67,31 +67,31 @@ Nepomuk::ResourceMerger::ResourceMerger(Nepomuk::DataManagementModel* model, con
 }
 
 
-Nepomuk::ResourceMerger::~ResourceMerger()
+Nepomuk2::ResourceMerger::~ResourceMerger()
 {
 }
 
-void Nepomuk::ResourceMerger::setMappings(const QHash< QUrl, QUrl >& mappings)
+void Nepomuk2::ResourceMerger::setMappings(const QHash< QUrl, QUrl >& mappings)
 {
     m_mappings = mappings;
 }
 
-QHash< QUrl, QUrl > Nepomuk::ResourceMerger::mappings() const
+QHash< QUrl, QUrl > Nepomuk2::ResourceMerger::mappings() const
 {
     return m_mappings;
 }
 
-void Nepomuk::ResourceMerger::setAdditionalGraphMetadata(const QHash<QUrl, QVariant>& additionalMetadata)
+void Nepomuk2::ResourceMerger::setAdditionalGraphMetadata(const QHash<QUrl, QVariant>& additionalMetadata)
 {
     m_additionalMetadata = additionalMetadata;
 }
 
-QHash< QUrl, QVariant > Nepomuk::ResourceMerger::additionalMetadata() const
+QHash< QUrl, QVariant > Nepomuk2::ResourceMerger::additionalMetadata() const
 {
     return m_additionalMetadata;
 }
 
-Soprano::Statement Nepomuk::ResourceMerger::resolveStatement(const Soprano::Statement& st)
+Soprano::Statement Nepomuk2::ResourceMerger::resolveStatement(const Soprano::Statement& st)
 {
     if( !st.isValid() ) {
         QString error = QString::fromLatin1("Invalid statement encountered");
@@ -118,7 +118,7 @@ Soprano::Statement Nepomuk::ResourceMerger::resolveStatement(const Soprano::Stat
 }
 
 
-bool Nepomuk::ResourceMerger::push(const Soprano::Statement& st)
+bool Nepomuk2::ResourceMerger::push(const Soprano::Statement& st)
 {
     ClassAndPropertyTree *tree = ClassAndPropertyTree::self();
     if( tree->maxCardinality(  st.predicate().uri() ) == 1 ) {
@@ -145,12 +145,12 @@ bool Nepomuk::ResourceMerger::push(const Soprano::Statement& st)
 }
 
 
-QUrl Nepomuk::ResourceMerger::createGraph()
+QUrl Nepomuk2::ResourceMerger::createGraph()
 {
     return m_model->createGraph( m_app, m_additionalMetadata );
 }
 
-QMultiHash< QUrl, Soprano::Node > Nepomuk::ResourceMerger::getPropertyHashForGraph(const QUrl& graph) const
+QMultiHash< QUrl, Soprano::Node > Nepomuk2::ResourceMerger::getPropertyHashForGraph(const QUrl& graph) const
 {
     // trueg: this is more a hack than anything else: exclude the inference types
     // a real solution would either ignore supertypes of nrl:Graph in checkGraphMetadata()
@@ -168,7 +168,7 @@ QMultiHash< QUrl, Soprano::Node > Nepomuk::ResourceMerger::getPropertyHashForGra
 }
 
 
-bool Nepomuk::ResourceMerger::areEqual(const QMultiHash<QUrl, Soprano::Node>& oldPropHash,
+bool Nepomuk2::ResourceMerger::areEqual(const QMultiHash<QUrl, Soprano::Node>& oldPropHash,
                                        const QMultiHash<QUrl, Soprano::Node>& newPropHash)
 {
     //
@@ -235,7 +235,7 @@ bool Nepomuk::ResourceMerger::areEqual(const QMultiHash<QUrl, Soprano::Node>& ol
     return true;
 }
 
-bool Nepomuk::ResourceMerger::containsAllTypes(const QSet< QUrl >& types, const QSet< QUrl >& masterTypes)
+bool Nepomuk2::ResourceMerger::containsAllTypes(const QSet< QUrl >& types, const QSet< QUrl >& masterTypes)
 {
     ClassAndPropertyTree* tree = m_model->classAndPropertyTree();
     foreach( const QUrl & type, types ) {
@@ -258,7 +258,7 @@ bool Nepomuk::ResourceMerger::containsAllTypes(const QSet< QUrl >& types, const 
 // 2. Otherwsie
 //    -> Keep the old graph
 
-QUrl Nepomuk::ResourceMerger::mergeGraphs(const QUrl& oldGraph)
+QUrl Nepomuk2::ResourceMerger::mergeGraphs(const QUrl& oldGraph)
 {
     //
     // Check if mergeGraphs has already been called for oldGraph
@@ -311,7 +311,7 @@ QUrl Nepomuk::ResourceMerger::mergeGraphs(const QUrl& oldGraph)
     return graph;
 }
 
-QMultiHash< QUrl, Soprano::Node > Nepomuk::ResourceMerger::toNodeHash(const QHash< QUrl, QVariant >& hash)
+QMultiHash< QUrl, Soprano::Node > Nepomuk2::ResourceMerger::toNodeHash(const QHash< QUrl, QVariant >& hash)
 {
     QMultiHash<QUrl, Soprano::Node> propHash;
     ClassAndPropertyTree *tree = ClassAndPropertyTree::self();
@@ -331,7 +331,7 @@ QMultiHash< QUrl, Soprano::Node > Nepomuk::ResourceMerger::toNodeHash(const QHas
     return propHash;
 }
 
-bool Nepomuk::ResourceMerger::checkGraphMetadata(const QMultiHash< QUrl, Soprano::Node >& hash)
+bool Nepomuk2::ResourceMerger::checkGraphMetadata(const QMultiHash< QUrl, Soprano::Node >& hash)
 {
     ClassAndPropertyTree* tree = m_model->classAndPropertyTree();
 
@@ -418,17 +418,17 @@ bool Nepomuk::ResourceMerger::checkGraphMetadata(const QMultiHash< QUrl, Soprano
     return true;
 }
 
-QUrl Nepomuk::ResourceMerger::createResourceUri()
+QUrl Nepomuk2::ResourceMerger::createResourceUri()
 {
     return m_model->createUri( DataManagementModel::ResourceUri );
 }
 
-QUrl Nepomuk::ResourceMerger::createGraphUri()
+QUrl Nepomuk2::ResourceMerger::createGraphUri()
 {
     return m_model->createUri( DataManagementModel::GraphUri );
 }
 
-QList< QUrl > Nepomuk::ResourceMerger::existingTypes(const QUrl& uri) const
+QList< QUrl > Nepomuk2::ResourceMerger::existingTypes(const QUrl& uri) const
 {
     QList<QUrl> types;
     QList<Soprano::Node> existingTypes = m_model->listStatements( uri, RDF::type(), Soprano::Node() )
@@ -442,7 +442,7 @@ QList< QUrl > Nepomuk::ResourceMerger::existingTypes(const QUrl& uri) const
     return types;
 }
 
-bool Nepomuk::ResourceMerger::isOfType(const Soprano::Node & node, const QUrl& type, const QList<QUrl> & newTypes) const
+bool Nepomuk2::ResourceMerger::isOfType(const Soprano::Node & node, const QUrl& type, const QList<QUrl> & newTypes) const
 {
     //kDebug() << "Checking " << node << " for type " << type;
     ClassAndPropertyTree * tree = m_model->classAndPropertyTree();
@@ -467,7 +467,7 @@ bool Nepomuk::ResourceMerger::isOfType(const Soprano::Node & node, const QUrl& t
     return false;
 }
 
-Soprano::Node Nepomuk::ResourceMerger::resolveMappedNode(const Soprano::Node& node)
+Soprano::Node Nepomuk2::ResourceMerger::resolveMappedNode(const Soprano::Node& node)
 {
     // Find in mappings
     const QUrl uri = node.isBlank() ? node.toN3() : node.uri();
@@ -492,7 +492,7 @@ Soprano::Node Nepomuk::ResourceMerger::resolveMappedNode(const Soprano::Node& no
     return node;
 }
 
-Soprano::Node Nepomuk::ResourceMerger::resolveUnmappedNode(const Soprano::Node& node)
+Soprano::Node Nepomuk2::ResourceMerger::resolveUnmappedNode(const Soprano::Node& node)
 {
     if( !node.isBlank() )
         return node;
@@ -513,7 +513,7 @@ Soprano::Node Nepomuk::ResourceMerger::resolveUnmappedNode(const Soprano::Node& 
     return newUri;
 }
 
-void Nepomuk::ResourceMerger::resolveBlankNodesInSet(QSet<Soprano::Statement> *stList)
+void Nepomuk2::ResourceMerger::resolveBlankNodesInSet(QSet<Soprano::Statement> *stList)
 {
     QSet<Soprano::Statement> newSet;
 
@@ -530,7 +530,7 @@ void Nepomuk::ResourceMerger::resolveBlankNodesInSet(QSet<Soprano::Statement> *s
     *stList = newSet;
 }
 
-void Nepomuk::ResourceMerger::removeDuplicatesInList(QSet<Soprano::Statement> *stList)
+void Nepomuk2::ResourceMerger::removeDuplicatesInList(QSet<Soprano::Statement> *stList)
 {
     QMutableSetIterator<Soprano::Statement> it( *stList );
     while( it.hasNext() ) {
@@ -615,7 +615,7 @@ namespace {
  10. You're done!
 
  */
-bool Nepomuk::ResourceMerger::merge( const Soprano::Graph& stGraph )
+bool Nepomuk2::ResourceMerger::merge( const Soprano::Graph& stGraph )
 {
     //
     // Check if the additional metadata is valid
@@ -799,7 +799,7 @@ bool Nepomuk::ResourceMerger::merge( const Soprano::Graph& stGraph )
                             .arg( Soprano::Node::resourceToN3( propUri ),
                                   Soprano::Node::resourceToN3( domain ),
                                   Soprano::Node::resourceToN3( subUri ),
-                                  Nepomuk::resourcesToN3( allTypes ).join(", ") );
+                                  Nepomuk2::resourcesToN3( allTypes ).join(", ") );
             setError( error, Soprano::Error::ErrorInvalidArgument);
             return false;
         }
@@ -999,7 +999,7 @@ bool Nepomuk::ResourceMerger::merge( const Soprano::Graph& stGraph )
 }
 
 
-Soprano::Error::ErrorCode Nepomuk::ResourceMerger::addResMetadataStatement(const Soprano::Statement& st)
+Soprano::Error::ErrorCode Nepomuk2::ResourceMerger::addResMetadataStatement(const Soprano::Statement& st)
 {
     const QUrl & predicate = st.predicate().uri();
 

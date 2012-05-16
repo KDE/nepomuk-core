@@ -29,7 +29,7 @@
 #include <QtDBus/QDBusObjectPath>
 #include <QtDBus/QDBusContext>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class ResourceWatcherConnection;
     class DataManagementModel;

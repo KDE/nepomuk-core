@@ -36,7 +36,7 @@
 #include "identificationset.h"
 
 
-int Nepomuk::saveBackupChangeLog(const QUrl& url, QSet<QUrl> & uniqueUris )
+int Nepomuk2::saveBackupChangeLog(const QUrl& url, QSet<QUrl> & uniqueUris )
 {
     const int step = 1000;
     const QString query = QString::fromLatin1("select ?r ?p ?o ?g where { "
@@ -46,7 +46,7 @@ int Nepomuk::saveBackupChangeLog(const QUrl& url, QSet<QUrl> & uniqueUris )
                                               "FILTER(regex(str(?r), '^nepomuk:/res/')). "
                                               "}");
 
-    Soprano::Model * model = Nepomuk::ResourceManager::instance()->mainModel();
+    Soprano::Model * model = Nepomuk2::ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator iter= model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
 
     int totalNumRecords = 0;
@@ -75,7 +75,7 @@ int Nepomuk::saveBackupChangeLog(const QUrl& url, QSet<QUrl> & uniqueUris )
     return totalNumRecords;
 }
 
-bool Nepomuk::saveBackupSyncFile(const QUrl& url)
+bool Nepomuk2::saveBackupSyncFile(const QUrl& url)
 {
     kDebug() << url;
     KTemporaryFile logFile;

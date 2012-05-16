@@ -31,7 +31,7 @@ namespace Soprano {
     class Statement;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
         class ChangeLogRecord;
 

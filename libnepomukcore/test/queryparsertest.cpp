@@ -50,9 +50,9 @@
 #include "property.h"
 #include "resourcemanager.h"
 
-Q_DECLARE_METATYPE( Nepomuk::Query::Query )
+Q_DECLARE_METATYPE( Nepomuk2::Query::Query )
 
-using namespace Nepomuk::Query;
+using namespace Nepomuk2::Query;
 
 void QueryParserTest::initTestCase()
 {
@@ -86,13 +86,13 @@ void QueryParserTest::initTestCase()
     m_model->addStatement( QUrl("onto:/int"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("int value"), graph );
     m_model->addStatement( QUrl("onto:/int"), Soprano::Vocabulary::RDFS::range(), Soprano::Vocabulary::XMLSchema::integer(), graph );
 
-    Nepomuk::ResourceManager::instance()->setOverrideMainModel( m_model );
+    Nepomuk2::ResourceManager::instance()->setOverrideMainModel( m_model );
 }
 
 
 void QueryParserTest::cleanupTestCase()
 {
-    Nepomuk::ResourceManager::instance()->setOverrideMainModel( 0 );
+    Nepomuk2::ResourceManager::instance()->setOverrideMainModel( 0 );
     delete m_model;
     delete m_storageDir;
 }
@@ -101,7 +101,7 @@ void QueryParserTest::cleanupTestCase()
 void QueryParserTest::testQueryParser_data()
 {
     QTest::addColumn<QString>( "queryString" );
-    QTest::addColumn<Nepomuk::Query::Query>( "query" );
+    QTest::addColumn<Nepomuk2::Query::Query>( "query" );
 
     // the invalid query
     QTest::newRow( "empty query string" ) << QString() << Query();
@@ -146,7 +146,7 @@ void QueryParserTest::testQueryParser_data()
 void QueryParserTest::testQueryParser()
 {
     QFETCH( QString, queryString );
-    QFETCH( Nepomuk::Query::Query, query );
+    QFETCH( Nepomuk2::Query::Query, query );
 
     Query q = QueryParser::parseQuery( queryString );
 
@@ -157,7 +157,7 @@ void QueryParserTest::testQueryParser()
 void QueryParserTest::testQueryParserWithGlobbing_data()
 {
     QTest::addColumn<QString>( "queryString" );
-    QTest::addColumn<Nepomuk::Query::Query>( "query" );
+    QTest::addColumn<Nepomuk2::Query::Query>( "query" );
 
     // simple literal queries
     QTest::newRow( "simple literal query" ) << QString( "Hello" ) << Query( LiteralTerm( "Hello*" ) );
@@ -170,7 +170,7 @@ void QueryParserTest::testQueryParserWithGlobbing_data()
 void QueryParserTest::testQueryParserWithGlobbing()
 {
     QFETCH( QString, queryString );
-    QFETCH( Nepomuk::Query::Query, query );
+    QFETCH( Nepomuk2::Query::Query, query );
 
     QueryParser p;
     Query q = p.parse( queryString, QueryParser::QueryTermGlobbing );
@@ -182,15 +182,15 @@ void QueryParserTest::testQueryParserWithGlobbing()
 void QueryParserTest::testQueryParserDetectFilenamePattern_data()
 {
     QTest::addColumn<QString>( "queryString" );
-    QTest::addColumn<Nepomuk::Query::Query>( "query" );
+    QTest::addColumn<Nepomuk2::Query::Query>( "query" );
 
-    QTest::newRow( "DetectFilenamePattern1" ) << QString( "*.mp3" ) << Query( ComparisonTerm( Nepomuk::Vocabulary::NFO::fileName(),
+    QTest::newRow( "DetectFilenamePattern1" ) << QString( "*.mp3" ) << Query( ComparisonTerm( Nepomuk2::Vocabulary::NFO::fileName(),
                                                                                               LiteralTerm( "^.*\\\\.mp3$" ),
                                                                                               ComparisonTerm::Regexp ) );
-    QTest::newRow( "DetectFilenamePattern2" ) << QString( "hello?.txt" ) << Query( ComparisonTerm( Nepomuk::Vocabulary::NFO::fileName(),
+    QTest::newRow( "DetectFilenamePattern2" ) << QString( "hello?.txt" ) << Query( ComparisonTerm( Nepomuk2::Vocabulary::NFO::fileName(),
                                                                                               LiteralTerm( "^hello.\\\\.txt$" ),
                                                                                               ComparisonTerm::Regexp ) );
-    QTest::newRow( "DetectFilenamePattern3" ) << QString( "*.???" ) << Query( ComparisonTerm( Nepomuk::Vocabulary::NFO::fileName(),
+    QTest::newRow( "DetectFilenamePattern3" ) << QString( "*.???" ) << Query( ComparisonTerm( Nepomuk2::Vocabulary::NFO::fileName(),
                                                                                               LiteralTerm( "^.*\\\\....$" ),
                                                                                               ComparisonTerm::Regexp ) );
 }
@@ -199,7 +199,7 @@ void QueryParserTest::testQueryParserDetectFilenamePattern_data()
 void QueryParserTest::testQueryParserDetectFilenamePattern()
 {
     QFETCH( QString, queryString );
-    QFETCH( Nepomuk::Query::Query, query );
+    QFETCH( Nepomuk2::Query::Query, query );
 
     QueryParser p;
     Query q = p.parse( queryString, QueryParser::DetectFilenamePattern );

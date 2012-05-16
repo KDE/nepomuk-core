@@ -28,7 +28,7 @@ class KTempDir;
 namespace Soprano {
 class Model;
 }
-namespace Nepomuk {
+namespace Nepomuk2 {
 class ClassAndPropertyTree;
 }
 
@@ -48,7 +48,7 @@ private Q_SLOTS:
 private:
     KTempDir* m_storageDir;
     Soprano::Model* m_model;
-    Nepomuk::ClassAndPropertyTree* m_typeTree;
+    Nepomuk2::ClassAndPropertyTree* m_typeTree;
 };
 
 #endif

@@ -28,7 +28,7 @@ namespace Soprano {
 class Model;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
 /**
  * The graph maintainer takes care of cleaning up danging data like

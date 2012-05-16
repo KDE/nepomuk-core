@@ -30,7 +30,7 @@
 
 class QUrl;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
 
         class Result;
@@ -99,7 +99,7 @@ namespace Nepomuk {
              *
              * \since 4.5
              */
-            static QList<Nepomuk::Query::Result> syncQuery( const Query& query, bool *ok = 0 );
+            static QList<Nepomuk2::Query::Result> syncQuery( const Query& query, bool *ok = 0 );
 
             /**
              * \overload
@@ -115,8 +115,8 @@ namespace Nepomuk {
              *
              * \since 4.5
              */
-            static QList<Nepomuk::Query::Result> syncSparqlQuery( const QString& query,
-                            const Nepomuk::Query::RequestPropertyMap& requestPropertyMap = Nepomuk::Query::RequestPropertyMap(),
+            static QList<Nepomuk2::Query::Result> syncSparqlQuery( const QString& query,
+                            const Nepomuk2::Query::RequestPropertyMap& requestPropertyMap = Nepomuk2::Query::RequestPropertyMap(),
                             bool *ok = 0 );
 
             /**
@@ -131,7 +131,7 @@ namespace Nepomuk {
              *
              * \since 4.5
              */
-            static QList<Nepomuk::Query::Result> syncDesktopQuery( const QString& query, bool *ok = 0 );
+            static QList<Nepomuk2::Query::Result> syncDesktopQuery( const QString& query, bool *ok = 0 );
 
         public Q_SLOTS:
             /**
@@ -198,7 +198,7 @@ namespace Nepomuk {
              *
              * \sa Query::requestPropertyMap()
              */
-            bool sparqlQuery( const QString& query, const Nepomuk::Query::RequestPropertyMap& requestPropertyMap = Nepomuk::Query::RequestPropertyMap() );
+            bool sparqlQuery( const QString& query, const Nepomuk2::Query::RequestPropertyMap& requestPropertyMap = Nepomuk2::Query::RequestPropertyMap() );
 
             /**
              * \overload
@@ -236,7 +236,7 @@ namespace Nepomuk {
              *
              * \sa sparqlQuery(const Query&)
              */
-            bool blockingSparqlQuery( const QString& query, const Nepomuk::Query::RequestPropertyMap& requestPropertyMap = Nepomuk::Query::RequestPropertyMap() );
+            bool blockingSparqlQuery( const QString& query, const Nepomuk2::Query::RequestPropertyMap& requestPropertyMap = Nepomuk2::Query::RequestPropertyMap() );
 
             /**
              * \overload
@@ -277,7 +277,7 @@ namespace Nepomuk {
              * Emitted for new search results. This signal is emitted both
              * for the initial listing and for changes to the search.
              */
-            void newEntries( const QList<Nepomuk::Query::Result>& entries );
+            void newEntries( const QList<Nepomuk2::Query::Result>& entries );
 
             /**
              * Emitted if the search results changed when monitoring a query.

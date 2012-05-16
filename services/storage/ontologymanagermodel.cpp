@@ -224,7 +224,7 @@ namespace {
 }
 
 
-class Nepomuk::OntologyManagerModel::Private
+class Nepomuk2::OntologyManagerModel::Private
 {
 public:
     Private( OntologyManagerModel* p )
@@ -239,7 +239,7 @@ private:
 
 
 
-Nepomuk::OntologyManagerModel::OntologyManagerModel( Soprano::Model* parentModel, QObject* parent )
+Nepomuk2::OntologyManagerModel::OntologyManagerModel( Soprano::Model* parentModel, QObject* parent )
     : FilterModel(parentModel),
       d( new Private( this ) )
 {
@@ -247,13 +247,13 @@ Nepomuk::OntologyManagerModel::OntologyManagerModel( Soprano::Model* parentModel
 }
 
 
-Nepomuk::OntologyManagerModel::~OntologyManagerModel()
+Nepomuk2::OntologyManagerModel::~OntologyManagerModel()
 {
     delete d;
 }
 
 
-bool Nepomuk::OntologyManagerModel::updateOntology( Soprano::StatementIterator data, const QUrl& ns )
+bool Nepomuk2::OntologyManagerModel::updateOntology( Soprano::StatementIterator data, const QUrl& ns )
 {
     clearError();
 
@@ -363,7 +363,7 @@ bool Nepomuk::OntologyManagerModel::updateOntology( Soprano::StatementIterator d
 }
 
 
-bool Nepomuk::OntologyManagerModel::removeOntology( const QUrl& ns )
+bool Nepomuk2::OntologyManagerModel::removeOntology( const QUrl& ns )
 {
     clearError();
 
@@ -384,7 +384,7 @@ bool Nepomuk::OntologyManagerModel::removeOntology( const QUrl& ns )
 }
 
 
-QDateTime Nepomuk::OntologyManagerModel::ontoModificationDate( const QUrl& uri )
+QDateTime Nepomuk2::OntologyManagerModel::ontoModificationDate( const QUrl& uri )
 {
     // We use a FILTER(STR(?ns)...) to support both Soprano 2.3 (with plain literals) and earlier (with only typed ones)
     QString query = QString( "select ?date where { "
@@ -407,7 +407,7 @@ QDateTime Nepomuk::OntologyManagerModel::ontoModificationDate( const QUrl& uri )
 }
 
 
-QUrl Nepomuk::OntologyManagerModel::findOntologyContext( const QUrl& uri )
+QUrl Nepomuk2::OntologyManagerModel::findOntologyContext( const QUrl& uri )
 {
     QUrl dataGraphUri, metaDataGraphUri;
     if ( findGraphUris( parentModel(), uri, dataGraphUri, metaDataGraphUri ) ) {

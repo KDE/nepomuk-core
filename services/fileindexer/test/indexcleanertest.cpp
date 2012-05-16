@@ -37,7 +37,7 @@
 
 #include "qtest_kde.h"
 
-using namespace Nepomuk::Test;
+using namespace Nepomuk2::Test;
 
 
 void IndexCleanerTest::testConstructExcludeFolderFilter()
@@ -76,7 +76,7 @@ void IndexCleanerTest::testConstructExcludeFolderFilter()
                        false);
 
     // create our test config object
-    QScopedPointer<Nepomuk::FileIndexerConfig> cfg(new Nepomuk::FileIndexerConfig());
+    QScopedPointer<Nepomuk2::FileIndexerConfig> cfg(new Nepomuk2::FileIndexerConfig());
 
     const QString expectedFilter
             = QString::fromLatin1("FILTER("
@@ -91,7 +91,7 @@ void IndexCleanerTest::testConstructExcludeFolderFilter()
                                   "!REGEX(STR(?url),'^file://%1d1/sd2/.isde2/') && "
                                   "!REGEX(STR(?url),'^file://%1d1/sd2/isde1/')))) .")
               .arg(dirPrefix);
-    QCOMPARE(Nepomuk::IndexCleaner::constructExcludeFolderFilter(cfg.data()),
+    QCOMPARE(Nepomuk2::IndexCleaner::constructExcludeFolderFilter(cfg.data()),
              expectedFilter);
 }
 
@@ -112,10 +112,10 @@ void IndexCleanerTest::testConstructExcludeFiltersFolderFilter1()
                        false);
 
     // create our test config object
-    QScopedPointer<Nepomuk::FileIndexerConfig> cfg(new Nepomuk::FileIndexerConfig());
+    QScopedPointer<Nepomuk2::FileIndexerConfig> cfg(new Nepomuk2::FileIndexerConfig());
 
     QString expectedFilter = QLatin1String("((REGEX(STR(?url),'/x_y/')))");
-    QCOMPARE(Nepomuk::IndexCleaner::constructExcludeFiltersFolderFilter(cfg.data()),
+    QCOMPARE(Nepomuk2::IndexCleaner::constructExcludeFiltersFolderFilter(cfg.data()),
              expectedFilter);
 
 
@@ -132,7 +132,7 @@ void IndexCleanerTest::testConstructExcludeFiltersFolderFilter1()
     expectedFilter = QString::fromLatin1("(?url!=<file://%1root/x_y/sub>) && ((REGEX(STR(?url),'/x_y/') && (!REGEX(STR(?url),'^file://%1root/x_y/sub/') || REGEX(bif:substring(STR(?url),%2,10000),'/x_y/'))))")
                      .arg(dirPrefix)
                      .arg(dirPrefix.length() + 7 + 13);
-    QCOMPARE(Nepomuk::IndexCleaner::constructExcludeFiltersFolderFilter(cfg.data()),
+    QCOMPARE(Nepomuk2::IndexCleaner::constructExcludeFiltersFolderFilter(cfg.data()),
              expectedFilter);
 }
 
@@ -156,7 +156,7 @@ void IndexCleanerTest::testConstructExcludeFiltersFolderFilter2()
                        false);
 
     // create our test config object
-    QScopedPointer<Nepomuk::FileIndexerConfig> cfg(new Nepomuk::FileIndexerConfig());
+    QScopedPointer<Nepomuk2::FileIndexerConfig> cfg(new Nepomuk2::FileIndexerConfig());
 
     QString expectedFilter = QString::fromLatin1("(?url!=<file://%1root/x_y/sub1/x_z/sub2>) && (?url!=<file://%1root/x_y/sub1>) && "
                                                  "("
@@ -171,7 +171,7 @@ void IndexCleanerTest::testConstructExcludeFiltersFolderFilter2()
                              .arg(dirPrefix)
                              .arg(dirPrefix.length() + 7 + 23)
                              .arg(dirPrefix.length() + 7 + 14);
-    QCOMPARE(Nepomuk::IndexCleaner::constructExcludeFiltersFolderFilter(cfg.data()),
+    QCOMPARE(Nepomuk2::IndexCleaner::constructExcludeFiltersFolderFilter(cfg.data()),
              expectedFilter);
 }
 

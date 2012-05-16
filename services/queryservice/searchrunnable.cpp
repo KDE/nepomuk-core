@@ -52,19 +52,19 @@
 
 using namespace Soprano;
 
-Nepomuk::Query::SearchRunnable::SearchRunnable( Folder* folder )
+Nepomuk2::Query::SearchRunnable::SearchRunnable( Folder* folder )
     : QRunnable(),
       m_folder( folder )
 {
 }
 
 
-Nepomuk::Query::SearchRunnable::~SearchRunnable()
+Nepomuk2::Query::SearchRunnable::~SearchRunnable()
 {
 }
 
 
-void Nepomuk::Query::SearchRunnable::cancel()
+void Nepomuk2::Query::SearchRunnable::cancel()
 {
     // "detach" us from the folder which will most likely be deleted now
     QMutexLocker lock( &m_folderMutex );
@@ -72,7 +72,7 @@ void Nepomuk::Query::SearchRunnable::cancel()
 }
 
 
-void Nepomuk::Query::SearchRunnable::run()
+void Nepomuk2::Query::SearchRunnable::run()
 {
     QMutexLocker lock( &m_folderMutex );
     if( !m_folder )
@@ -95,9 +95,9 @@ void Nepomuk::Query::SearchRunnable::run()
 
         lock.relock();
         if( m_folder ) {
-            QList<Nepomuk::Query::Result> results;
+            QList<Nepomuk2::Query::Result> results;
             results << result;
-            QMetaObject::invokeMethod( m_folder, "addResults", Qt::QueuedConnection, Q_ARG( QList<Nepomuk::Query::Result>, results ) );
+            QMetaObject::invokeMethod( m_folder, "addResults", Qt::QueuedConnection, Q_ARG( QList<Nepomuk2::Query::Result>, results ) );
         }
         lock.unlock();
     }
@@ -113,7 +113,7 @@ void Nepomuk::Query::SearchRunnable::run()
 }
 
 
-Nepomuk::Query::Result Nepomuk::Query::SearchRunnable::extractResult( const Soprano::QueryResultIterator& it ) const
+Nepomuk2::Query::Result Nepomuk2::Query::SearchRunnable::extractResult( const Soprano::QueryResultIterator& it ) const
 {
     Result result( Resource::fromResourceUri( it[0].uri() ) );
 

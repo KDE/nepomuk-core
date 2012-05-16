@@ -325,7 +325,7 @@ class OntologyParser():
             header.write('\n')
 
         # write the class namespace
-        header.write('namespace Nepomuk {\n')
+        header.write('namespace Nepomuk2 {\n')
         header.write('namespace %s {\n' % nsAbbr.toUpper())
 
         # write the class + parent classes
@@ -340,7 +340,7 @@ class OntologyParser():
         header.write(' : ')
         header.write(', '.join(['public virtual %s' % (p) for p in parentClassNames]))
         if len(parentClassNames) == 0:
-            header.write('public virtual Nepomuk::SimpleResource');
+            header.write('public virtual Nepomuk2::SimpleResource');
         header.write('\n{\n')
         header.write('public:\n')
 
@@ -449,7 +449,7 @@ def main():
     global verbose
     
     usage = "Usage: %prog [options] ontologyfile1 ontologyfile2 ..."
-    optparser = argparse.ArgumentParser(description="Nepomuk SimpleResource code generator. It will generate a hierarchy of simple wrapper classes around Nepomuk::SimpleResource which provide convinience methods to get and set properties of those classes. Each wrapper class will be defined in its own header file and be written to a subdirectory named as the default ontology prefix. Example: the header file for nao:Tag would be written to nao/tag.h and be defined in the namespace Nepomuk::NAO.")
+    optparser = argparse.ArgumentParser(description="Nepomuk SimpleResource code generator. It will generate a hierarchy of simple wrapper classes around Nepomuk2::SimpleResource which provide convinience methods to get and set properties of those classes. Each wrapper class will be defined in its own header file and be written to a subdirectory named as the default ontology prefix. Example: the header file for nao:Tag would be written to nao/tag.h and be defined in the namespace Nepomuk2::NAO.")
     optparser.add_argument('--output', '-o', type=str, nargs=1, metavar='PATH', dest='output', help='The destination folder')
     optparser.add_argument('--quiet', '-q', action="store_false", dest="verbose", default=True, help="don't print status messages to stdout")
     optparser.add_argument("ontologies", type=str, nargs='+', metavar="ONTOLOGY", help="Ontology files to use")

@@ -72,7 +72,7 @@
 using namespace Soprano;
 using namespace Strigi;
 using namespace Soprano::Vocabulary;
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 
 uint qHash( const std::string& s )
@@ -163,7 +163,7 @@ namespace {
         FileMetaData( const Strigi::AnalysisResult* idx, const QUrl & resUri );
 
         /// convert the Strigi ids found in object values into the corresponding sub-resource URIs
-        Nepomuk::SimpleResource convertSubResourceIds(const Nepomuk::SimpleResource& res) const;
+        Nepomuk2::SimpleResource convertSubResourceIds(const Nepomuk2::SimpleResource& res) const;
 
         /// The resource URI
         QUrl resourceUri;
@@ -178,10 +178,10 @@ namespace {
         std::string content;
 
         /// The main file's metadata
-        Nepomuk::SimpleResource data;
+        Nepomuk2::SimpleResource data;
 
         /// The sub-resources, mapped by the identifier libstreamanalyzer provided
-        QHash<QString, Nepomuk::SimpleResource> subResources;
+        QHash<QString, Nepomuk2::SimpleResource> subResources;
 
     private:
         /// The Strigi result
@@ -203,20 +203,20 @@ namespace {
         }
     }
 
-    Nepomuk::SimpleResource FileMetaData::convertSubResourceIds(const Nepomuk::SimpleResource& res) const
+    Nepomuk2::SimpleResource FileMetaData::convertSubResourceIds(const Nepomuk2::SimpleResource& res) const
     {
-        Nepomuk::PropertyHash props = res.properties();
+        Nepomuk2::PropertyHash props = res.properties();
         QMutableHashIterator<QUrl, QVariant> it(props);
         while(it.hasNext()) {
             it.next();
             if(it.value().type() == QVariant::String) {
-                QHash<QString, Nepomuk::SimpleResource>::const_iterator subResIt = subResources.constFind(it.value().toString());
+                QHash<QString, Nepomuk2::SimpleResource>::const_iterator subResIt = subResources.constFind(it.value().toString());
                 if(subResIt != subResources.constEnd()) {
                     it.setValue(subResIt.value().uri());
                 }
             }
         }
-        Nepomuk::SimpleResource newRes(res);
+        Nepomuk2::SimpleResource newRes(res);
         newRes.setProperties(props);
         return newRes;
     }
@@ -228,7 +228,7 @@ namespace {
 }
 
 
-class Nepomuk::StrigiIndexWriter::Private
+class Nepomuk2::StrigiIndexWriter::Private
 {
 public:
     //
@@ -246,14 +246,14 @@ public:
 };
 
 
-Nepomuk::StrigiIndexWriter::StrigiIndexWriter()
+Nepomuk2::StrigiIndexWriter::StrigiIndexWriter()
     : Strigi::IndexWriter(),
     d( new Private() )
 {
 }
 
 
-Nepomuk::StrigiIndexWriter::~StrigiIndexWriter()
+Nepomuk2::StrigiIndexWriter::~StrigiIndexWriter()
 {
     kDebug();
     delete d;
@@ -261,7 +261,7 @@ Nepomuk::StrigiIndexWriter::~StrigiIndexWriter()
 
 
 // unused
-void Nepomuk::StrigiIndexWriter::commit()
+void Nepomuk2::StrigiIndexWriter::commit()
 {
     // do nothing
     Q_ASSERT(false);
@@ -269,7 +269,7 @@ void Nepomuk::StrigiIndexWriter::commit()
 
 
 // unused
-void Nepomuk::StrigiIndexWriter::deleteEntries( const std::vector<std::string>& entries )
+void Nepomuk2::StrigiIndexWriter::deleteEntries( const std::vector<std::string>& entries )
 {
     // do nothing
     Q_UNUSED(entries);
@@ -278,7 +278,7 @@ void Nepomuk::StrigiIndexWriter::deleteEntries( const std::vector<std::string>& 
 
 
 // unused
-void Nepomuk::StrigiIndexWriter::deleteAllEntries()
+void Nepomuk2::StrigiIndexWriter::deleteAllEntries()
 {
     // do nothing
     Q_ASSERT(false);
@@ -286,7 +286,7 @@ void Nepomuk::StrigiIndexWriter::deleteAllEntries()
 
 
 // called for each indexed file
-void Nepomuk::StrigiIndexWriter::startAnalysis( const AnalysisResult* idx )
+void Nepomuk2::StrigiIndexWriter::startAnalysis( const AnalysisResult* idx )
 {
     // we need to remember the AnalysisResult since addTriplet does not provide it
     d->currentResultStack.push(idx);
@@ -304,10 +304,10 @@ void Nepomuk::StrigiIndexWriter::startAnalysis( const AnalysisResult* idx )
     // nie:isPartOf links from the files.
     if(!data->fileInfo.isDir()) {
         if( !data->resourceUri.isEmpty() ) {
-            Nepomuk::clearIndexedData(data->resourceUri)->exec();
+            Nepomuk2::clearIndexedData(data->resourceUri)->exec();
         }
         else {
-            Nepomuk::clearIndexedData(data->fileUrl)->exec();
+            Nepomuk2::clearIndexedData(data->fileUrl)->exec();
         }
     }
 
@@ -316,7 +316,7 @@ void Nepomuk::StrigiIndexWriter::startAnalysis( const AnalysisResult* idx )
 }
 
 
-void Nepomuk::StrigiIndexWriter::addText( const AnalysisResult* idx, const char* text, int32_t length )
+void Nepomuk2::StrigiIndexWriter::addText( const AnalysisResult* idx, const char* text, int32_t length )
 {
     if ( idx->depth() > 0 ) {
         return;
@@ -333,7 +333,7 @@ void Nepomuk::StrigiIndexWriter::addText( const AnalysisResult* idx, const char*
 }
 
 
-void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult* idx,
+void Nepomuk2::StrigiIndexWriter::addValue( const AnalysisResult* idx,
                                            const RegisteredField* field,
                                            const std::string& value )
 {
@@ -360,7 +360,7 @@ void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult* idx,
 
 
 // the main addValue method
-void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult* idx,
+void Nepomuk2::StrigiIndexWriter::addValue( const AnalysisResult* idx,
                                            const RegisteredField* field,
                                            const unsigned char* data,
                                            uint32_t size )
@@ -369,14 +369,14 @@ void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult* idx,
 }
 
 
-void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult*, const RegisteredField*,
+void Nepomuk2::StrigiIndexWriter::addValue( const AnalysisResult*, const RegisteredField*,
                                            const std::string&, const std::string& )
 {
     // we do not support map types
 }
 
 
-void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult* idx,
+void Nepomuk2::StrigiIndexWriter::addValue( const AnalysisResult* idx,
                                            const RegisteredField* field,
                                            uint32_t value )
 {
@@ -391,7 +391,7 @@ void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult* idx,
 }
 
 
-void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult* idx,
+void Nepomuk2::StrigiIndexWriter::addValue( const AnalysisResult* idx,
                                            const RegisteredField* field,
                                            int32_t value )
 {
@@ -406,7 +406,7 @@ void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult* idx,
 }
 
 
-void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult* idx,
+void Nepomuk2::StrigiIndexWriter::addValue( const AnalysisResult* idx,
                                            const RegisteredField* field,
                                            double value )
 {
@@ -421,7 +421,7 @@ void Nepomuk::StrigiIndexWriter::addValue( const AnalysisResult* idx,
 }
 
 
-void Nepomuk::StrigiIndexWriter::addTriplet( const std::string& s,
+void Nepomuk2::StrigiIndexWriter::addTriplet( const std::string& s,
                                              const std::string& p,
                                              const std::string& o )
 {
@@ -442,9 +442,9 @@ void Nepomuk::StrigiIndexWriter::addTriplet( const std::string& s,
     }
     else {
         // Find the corresponding sub-resource
-        QHash<QString, Nepomuk::SimpleResource>::iterator it = md->subResources.find(subResId);
+        QHash<QString, Nepomuk2::SimpleResource>::iterator it = md->subResources.find(subResId);
         if(it == md->subResources.end()) {
-            Nepomuk::SimpleResource subRes;
+            Nepomuk2::SimpleResource subRes;
             subRes.addProperty(property, value);
             md->subResources.insert(subResId, subRes);
         }
@@ -456,7 +456,7 @@ void Nepomuk::StrigiIndexWriter::addTriplet( const std::string& s,
 
 
 // called after each indexed file
-void Nepomuk::StrigiIndexWriter::finishAnalysis( const AnalysisResult* idx )
+void Nepomuk2::StrigiIndexWriter::finishAnalysis( const AnalysisResult* idx )
 {
     d->currentResultStack.pop();
 
@@ -468,12 +468,12 @@ void Nepomuk::StrigiIndexWriter::finishAnalysis( const AnalysisResult* idx )
 
     // store the full text of the file
     if ( md->content.length() > 0 ) {
-        md->data.addProperty(Nepomuk::Vocabulary::NIE::plainTextContent(),
+        md->data.addProperty(Nepomuk2::Vocabulary::NIE::plainTextContent(),
                              QString::fromUtf8( md->content.c_str() ));
     }
 
     // store the nie:url in any case
-    md->data.addProperty(Nepomuk::Vocabulary::NIE::url(), md->fileUrl);
+    md->data.addProperty(Nepomuk2::Vocabulary::NIE::url(), md->fileUrl);
 
     if( md->fileInfo.exists() ) {
         //
@@ -484,26 +484,26 @@ void Nepomuk::StrigiIndexWriter::finishAnalysis( const AnalysisResult* idx )
         // and a nie:InformationElement, thus, at least providing the basic types to Nepomuk's
         // domain and range checking.
         //
-        md->data.addType(Nepomuk::Vocabulary::NFO::FileDataObject());
-        md->data.addType(Nepomuk::Vocabulary::NIE::InformationElement());
+        md->data.addType(Nepomuk2::Vocabulary::NFO::FileDataObject());
+        md->data.addType(Nepomuk2::Vocabulary::NIE::InformationElement());
         if ( md->fileInfo.isDir() ) {
-            md->data.addType(Nepomuk::Vocabulary::NFO::Folder());
+            md->data.addType(Nepomuk2::Vocabulary::NFO::Folder());
         }
 
         // write the mimetype for local files
-        md->data.addProperty( Nepomuk::Vocabulary::NIE::mimeType(),
+        md->data.addProperty( Nepomuk2::Vocabulary::NIE::mimeType(),
                               KMimeType::findByUrl(md->fileUrl)->name() );
 #ifdef Q_OS_UNIX
         KDE_struct_stat statBuf;
         if( KDE_stat( QFile::encodeName(md->fileInfo.absoluteFilePath()).data(), &statBuf ) == 0 ) {
-            md->data.addProperty( Nepomuk::Vocabulary::KExt::unixFileMode(),
+            md->data.addProperty( Nepomuk2::Vocabulary::KExt::unixFileMode(),
                                   int(statBuf.st_mode) );
         }
         if( !md->fileInfo.owner().isEmpty() )
-            md->data.addProperty( Nepomuk::Vocabulary::KExt::unixFileOwner(),
+            md->data.addProperty( Nepomuk2::Vocabulary::KExt::unixFileOwner(),
                                   md->fileInfo.owner() );
         if( !md->fileInfo.group().isEmpty() )
-            md->data.addProperty( Nepomuk::Vocabulary::KExt::unixFileGroup(),
+            md->data.addProperty( Nepomuk2::Vocabulary::KExt::unixFileGroup(),
                                   md->fileInfo.group() );
 #endif // Q_OS_UNIX
     }
@@ -537,10 +537,10 @@ void Nepomuk::StrigiIndexWriter::finishAnalysis( const AnalysisResult* idx )
     //
     // Finally push all the information to Nepomuk
     //
-    Nepomuk::SimpleResourceGraph graph;
+    Nepomuk2::SimpleResourceGraph graph;
 
     // Add all the sub-resources as sub-resources of the main resource
-    for(QHash<QString, Nepomuk::SimpleResource>::const_iterator it = md->subResources.constBegin();
+    for(QHash<QString, Nepomuk2::SimpleResource>::const_iterator it = md->subResources.constBegin();
         it != md->subResources.constEnd(); ++it) {
         md->data.addProperty(NAO::hasSubResource(), it.value());
         graph << md->convertSubResourceIds(it.value());
@@ -554,7 +554,7 @@ void Nepomuk::StrigiIndexWriter::finishAnalysis( const AnalysisResult* idx )
     additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
 
     // we do not have an event loop - thus, we need to delete the job ourselves
-    QScopedPointer<KJob> job( Nepomuk::storeResources( graph, Nepomuk::IdentifyNew, Nepomuk::LazyCardinalities|Nepomuk::OverwriteProperties, additionalMetadata ) );
+    QScopedPointer<KJob> job( Nepomuk2::storeResources( graph, Nepomuk2::IdentifyNew, Nepomuk2::LazyCardinalities|Nepomuk2::OverwriteProperties, additionalMetadata ) );
     job->setAutoDelete(false);
     job->exec();
     if( job->error() ) {
@@ -570,7 +570,7 @@ void Nepomuk::StrigiIndexWriter::finishAnalysis( const AnalysisResult* idx )
 }
 
 
-void Nepomuk::StrigiIndexWriter::initWriterData( const Strigi::FieldRegister& f )
+void Nepomuk2::StrigiIndexWriter::initWriterData( const Strigi::FieldRegister& f )
 {
     // cache type conversion for all strigi fields
     std::map<std::string, RegisteredField*>::const_iterator i;
@@ -582,7 +582,7 @@ void Nepomuk::StrigiIndexWriter::initWriterData( const Strigi::FieldRegister& f 
 }
 
 
-void Nepomuk::StrigiIndexWriter::releaseWriterData( const Strigi::FieldRegister& f )
+void Nepomuk2::StrigiIndexWriter::releaseWriterData( const Strigi::FieldRegister& f )
 {
     std::map<std::string, RegisteredField*>::const_iterator i;
     std::map<std::string, RegisteredField*>::const_iterator end = f.fields().end();
@@ -593,14 +593,14 @@ void Nepomuk::StrigiIndexWriter::releaseWriterData( const Strigi::FieldRegister&
 }
 
 
-void Nepomuk::StrigiIndexWriter::forceUri(const QUrl& uri)
+void Nepomuk2::StrigiIndexWriter::forceUri(const QUrl& uri)
 {
     d->resourceUri = uri;
 }
 
 
 // static
-QString Nepomuk::StrigiIndexWriter::extractTextFromPdf(const QString &path)
+QString Nepomuk2::StrigiIndexWriter::extractTextFromPdf(const QString &path)
 {
     const QString pdf2txtExe = KStandardDirs::findExe(QLatin1String("pdftotext"));
     if(!pdf2txtExe.isEmpty()) {
@@ -619,7 +619,7 @@ QString Nepomuk::StrigiIndexWriter::extractTextFromPdf(const QString &path)
 }
 
 
-QString Nepomuk::StrigiIndexWriter::lastError() const
+QString Nepomuk2::StrigiIndexWriter::lastError() const
 {
     return d->lastError;
 }

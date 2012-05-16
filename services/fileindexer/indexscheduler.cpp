@@ -58,7 +58,7 @@
 #include "indexcleaner.h"
 
 using namespace Soprano::Vocabulary;
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 namespace {
     const int s_reducedSpeedDelay = 500; // ms
@@ -72,13 +72,13 @@ namespace {
                                              "?r %4 ?mtime . "
                                              "?r %2 ?url . "
                                              "}" )
-                .arg( Soprano::Node::resourceToN3( Nepomuk::Vocabulary::NIE::isPartOf() ),
-                      Soprano::Node::resourceToN3( Nepomuk::Vocabulary::NIE::url() ),
+                .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::isPartOf() ),
+                      Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ),
                       Soprano::Node::resourceToN3( KUrl( dir ) ),
-                      Soprano::Node::resourceToN3( Nepomuk::Vocabulary::NIE::lastModified() ) );
+                      Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::lastModified() ) );
         //kDebug() << "running getChildren query:" << query;
 
-        Soprano::QueryResultIterator result = Nepomuk::ResourceManager::instance()->mainModel()->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        Soprano::QueryResultIterator result = Nepomuk2::ResourceManager::instance()->mainModel()->executeQuery( query, Soprano::Query::QueryLanguageSparql );
 
         while ( result.next() ) {
             children.insert( result["url"].uri().toLocalFile(), result["mtime"].literal().toDateTime() );
@@ -90,7 +90,7 @@ namespace {
     QDateTime indexedMTimeForUrl(const KUrl& url)
     {
         Soprano::QueryResultIterator it
-                = Nepomuk::ResourceManager::instance()->mainModel()->executeQuery(QString::fromLatin1("select ?mt where { ?r %1 %2 . ?r %3 ?mt . } LIMIT 1")
+                = Nepomuk2::ResourceManager::instance()->mainModel()->executeQuery(QString::fromLatin1("select ?mt where { ?r %1 %2 . ?r %3 ?mt . } LIMIT 1")
                                                                                   .arg(Soprano::Node::resourceToN3(NIE::url()),
                                                                                        Soprano::Node::resourceToN3(url),
                                                                                        Soprano::Node::resourceToN3(NIE::lastModified())),
@@ -114,7 +114,7 @@ namespace {
 }
 
 
-void Nepomuk::IndexScheduler::UpdateDirQueue::enqueueDir( const QString& dir, UpdateDirFlags flags )
+void Nepomuk2::IndexScheduler::UpdateDirQueue::enqueueDir( const QString& dir, UpdateDirFlags flags )
 {
     if( contains( qMakePair( dir, flags ) ) )
         return;
@@ -131,7 +131,7 @@ void Nepomuk::IndexScheduler::UpdateDirQueue::enqueueDir( const QString& dir, Up
 }
 
 
-void Nepomuk::IndexScheduler::UpdateDirQueue::prependDir( const QString& dir, UpdateDirFlags flags )
+void Nepomuk2::IndexScheduler::UpdateDirQueue::prependDir( const QString& dir, UpdateDirFlags flags )
 {
     if( contains( qMakePair( dir, flags ) ) )
         return;
@@ -148,7 +148,7 @@ void Nepomuk::IndexScheduler::UpdateDirQueue::prependDir( const QString& dir, Up
 }
 
 
-void Nepomuk::IndexScheduler::UpdateDirQueue::clearByFlags( UpdateDirFlags mask )
+void Nepomuk2::IndexScheduler::UpdateDirQueue::clearByFlags( UpdateDirFlags mask )
 {
     QQueue<QPair<QString, UpdateDirFlags> >::iterator it = begin();
     while ( it != end() ) {
@@ -161,7 +161,7 @@ void Nepomuk::IndexScheduler::UpdateDirQueue::clearByFlags( UpdateDirFlags mask 
 
 
 
-Nepomuk::IndexScheduler::IndexScheduler( QObject* parent )
+Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     : QObject( parent ),
       m_suspended( false ),
       m_indexing( false ),
@@ -182,12 +182,12 @@ Nepomuk::IndexScheduler::IndexScheduler( QObject* parent )
 }
 
 
-Nepomuk::IndexScheduler::~IndexScheduler()
+Nepomuk2::IndexScheduler::~IndexScheduler()
 {
 }
 
 
-void Nepomuk::IndexScheduler::suspend()
+void Nepomuk2::IndexScheduler::suspend()
 {
     QMutexLocker locker( &m_suspendMutex );
     if ( !m_suspended ) {
@@ -200,7 +200,7 @@ void Nepomuk::IndexScheduler::suspend()
 }
 
 
-void Nepomuk::IndexScheduler::resume()
+void Nepomuk2::IndexScheduler::resume()
 {
     QMutexLocker locker( &m_suspendMutex );
     if ( m_suspended ) {
@@ -217,7 +217,7 @@ void Nepomuk::IndexScheduler::resume()
 }
 
 
-void Nepomuk::IndexScheduler::setSuspended( bool suspended )
+void Nepomuk2::IndexScheduler::setSuspended( bool suspended )
 {
     if ( suspended )
         suspend();
@@ -226,7 +226,7 @@ void Nepomuk::IndexScheduler::setSuspended( bool suspended )
 }
 
 
-void Nepomuk::IndexScheduler::setIndexingSpeed( IndexingSpeed speed )
+void Nepomuk2::IndexScheduler::setIndexingSpeed( IndexingSpeed speed )
 {
     kDebug() << speed;
     m_indexingDelay = 0;
@@ -239,7 +239,7 @@ void Nepomuk::IndexScheduler::setIndexingSpeed( IndexingSpeed speed )
 }
 
 
-void Nepomuk::IndexScheduler::setReducedIndexingSpeed( bool reduced )
+void Nepomuk2::IndexScheduler::setReducedIndexingSpeed( bool reduced )
 {
     if ( reduced )
         setIndexingSpeed( ReducedSpeed );
@@ -248,42 +248,42 @@ void Nepomuk::IndexScheduler::setReducedIndexingSpeed( bool reduced )
 }
 
 
-bool Nepomuk::IndexScheduler::isSuspended() const
+bool Nepomuk2::IndexScheduler::isSuspended() const
 {
     QMutexLocker locker( &m_suspendMutex );
     return m_suspended;
 }
 
 
-bool Nepomuk::IndexScheduler::isIndexing() const
+bool Nepomuk2::IndexScheduler::isIndexing() const
 {
     QMutexLocker locker( &m_indexingMutex );
     return m_indexing;
 }
 
 
-QString Nepomuk::IndexScheduler::currentFolder() const
+QString Nepomuk2::IndexScheduler::currentFolder() const
 {
     QMutexLocker locker( &m_currentMutex );
     return m_currentUrl.directory();
 }
 
 
-QString Nepomuk::IndexScheduler::currentFile() const
+QString Nepomuk2::IndexScheduler::currentFile() const
 {
     QMutexLocker locker( &m_currentMutex );
     return m_currentUrl.toLocalFile();
 }
 
 
-Nepomuk::IndexScheduler::UpdateDirFlags Nepomuk::IndexScheduler::currentFlags() const
+Nepomuk2::IndexScheduler::UpdateDirFlags Nepomuk2::IndexScheduler::currentFlags() const
 {
     QMutexLocker locker( &m_currentMutex );
     return m_currentFlags;
 }
 
 
-void Nepomuk::IndexScheduler::setIndexingStarted( bool started )
+void Nepomuk2::IndexScheduler::setIndexingStarted( bool started )
 {
     QMutexLocker locker( &m_indexingMutex );
 
@@ -298,12 +298,12 @@ void Nepomuk::IndexScheduler::setIndexingStarted( bool started )
 }
 
 
-void Nepomuk::IndexScheduler::slotCleaningDone()
+void Nepomuk2::IndexScheduler::slotCleaningDone()
 {
     m_cleaner = 0;
 }
 
-void Nepomuk::IndexScheduler::doIndexing()
+void Nepomuk2::IndexScheduler::doIndexing()
 {
     setIndexingStarted( true );
 
@@ -353,7 +353,7 @@ void Nepomuk::IndexScheduler::doIndexing()
     }
 }
 
-void Nepomuk::IndexScheduler::slotIndexingDone(KJob* job)
+void Nepomuk2::IndexScheduler::slotIndexingDone(KJob* job)
 {
     kDebug() << job;
     Q_UNUSED( job );
@@ -368,7 +368,7 @@ void Nepomuk::IndexScheduler::slotIndexingDone(KJob* job)
     callDoIndexing();
 }
 
-void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexScheduler::UpdateDirFlags flags )
+void Nepomuk2::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk2::IndexScheduler::UpdateDirFlags flags )
 {
     kDebug() << dir_;
 
@@ -415,7 +415,7 @@ void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexSch
         // need to use another approach than the getChildren one.
         QFileInfo fileInfo = dirIt.fileInfo();//.canonialFilePath();
 
-        bool indexFile = Nepomuk::FileIndexerConfig::self()->shouldFileBeIndexed( fileInfo.fileName() );
+        bool indexFile = Nepomuk2::FileIndexerConfig::self()->shouldFileBeIndexed( fileInfo.fileName() );
 
         // check if this file is new by looking it up in the store
         QHash<QString, QDateTime>::iterator filesInStoreIt = filesInStore.find( path );
@@ -477,7 +477,7 @@ void Nepomuk::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk::IndexSch
 }
 
 
-void Nepomuk::IndexScheduler::callDoIndexing(bool noDelay)
+void Nepomuk2::IndexScheduler::callDoIndexing(bool noDelay)
 {
     if( !m_suspended ) {
         QTimer::singleShot( noDelay ? 0 : m_indexingDelay, this, SLOT(doIndexing()) );
@@ -485,7 +485,7 @@ void Nepomuk::IndexScheduler::callDoIndexing(bool noDelay)
 }
 
 
-void Nepomuk::IndexScheduler::updateDir( const QString& path, UpdateDirFlags flags )
+void Nepomuk2::IndexScheduler::updateDir( const QString& path, UpdateDirFlags flags )
 {
     QMutexLocker dirLock( &m_dirsToUpdateMutex );
     m_dirsToUpdate.prependDir( path, flags & ~AutoUpdateFolder );
@@ -496,7 +496,7 @@ void Nepomuk::IndexScheduler::updateDir( const QString& path, UpdateDirFlags fla
 }
 
 
-void Nepomuk::IndexScheduler::updateAll( bool forceUpdate )
+void Nepomuk2::IndexScheduler::updateAll( bool forceUpdate )
 {
     queueAllFoldersForUpdate( forceUpdate );
 
@@ -506,7 +506,7 @@ void Nepomuk::IndexScheduler::updateAll( bool forceUpdate )
 }
 
 
-void Nepomuk::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
+void Nepomuk2::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
 {
     QMutexLocker lock( &m_dirsToUpdateMutex );
 
@@ -524,7 +524,7 @@ void Nepomuk::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
 }
 
 
-void Nepomuk::IndexScheduler::slotConfigChanged()
+void Nepomuk2::IndexScheduler::slotConfigChanged()
 {
     // TODO: only update folders that were added in the config
     updateAll();
@@ -541,7 +541,7 @@ void Nepomuk::IndexScheduler::slotConfigChanged()
 }
 
 
-void Nepomuk::IndexScheduler::analyzeFile( const QString& path )
+void Nepomuk2::IndexScheduler::analyzeFile( const QString& path )
 {
     kDebug() << path;
     QMutexLocker fileLock(&m_filesToUpdateMutex);
@@ -568,18 +568,18 @@ void Nepomuk::IndexScheduler::analyzeFile( const QString& path )
 }
 
 
-void Nepomuk::IndexScheduler::deleteEntries( const QStringList& entries )
+void Nepomuk2::IndexScheduler::deleteEntries( const QStringList& entries )
 {
     // recurse into subdirs
     // TODO: use a less mem intensive method
     for ( int i = 0; i < entries.count(); ++i ) {
         deleteEntries( getChildren( entries[i] ).keys() );
     }
-    Nepomuk::clearIndexedData(KUrl::List(entries));
+    Nepomuk2::clearIndexedData(KUrl::List(entries));
 }
 
 
-QDebug Nepomuk::operator<<( QDebug dbg, IndexScheduler::IndexingSpeed speed )
+QDebug Nepomuk2::operator<<( QDebug dbg, IndexScheduler::IndexingSpeed speed )
 {
     dbg << ( int )speed;
     switch( speed ) {

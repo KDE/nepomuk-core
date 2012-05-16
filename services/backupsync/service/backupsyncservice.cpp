@@ -34,9 +34,9 @@
 #include <kpluginfactory.h>
 #include <kpluginloader.h>
 
-NEPOMUK_EXPORT_SERVICE( Nepomuk::BackupSyncService, "nepomukbackupsync" )
+NEPOMUK_EXPORT_SERVICE( Nepomuk2::BackupSyncService, "nepomukbackupsync" )
 
-Nepomuk::BackupSyncService::BackupSyncService( QObject* parent, const QList< QVariant >& )
+Nepomuk2::BackupSyncService::BackupSyncService( QObject* parent, const QList< QVariant >& )
 	: Service(parent)
 {
     kDebug();
@@ -47,11 +47,11 @@ Nepomuk::BackupSyncService::BackupSyncService( QObject* parent, const QList< QVa
     m_backupManager = new BackupManager( this );
 }
 
-Nepomuk::BackupSyncService::~BackupSyncService()
+Nepomuk2::BackupSyncService::~BackupSyncService()
 {
 }
 
-void Nepomuk::BackupSyncService::test()
+void Nepomuk2::BackupSyncService::test()
 {
     //QUrl url("/home/vishesh/syncnew");
 

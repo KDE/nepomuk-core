@@ -51,8 +51,8 @@
 
 using namespace Soprano;
 using namespace Soprano::Vocabulary;
-using namespace Nepomuk;
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2;
+using namespace Nepomuk2::Vocabulary;
 
 
 void ResourceWatcherTest::resetModel()
@@ -62,7 +62,7 @@ void ResourceWatcherTest::resetModel()
 
     // add some classes and properties
     QUrl graph("graph:/onto");
-    Nepomuk::insertOntologies( m_model, graph );
+    Nepomuk2::insertOntologies( m_model, graph );
 
     // rebuild the internals of the data management model
     m_classAndPropertyTree->rebuildTree(m_dmModel);
@@ -79,8 +79,8 @@ void ResourceWatcherTest::initTestCase()
 
     // DataManagementModel relies on the ussage of a NRLModel in the storage service
     m_nrlModel = new Soprano::NRLModel(m_model);
-    m_classAndPropertyTree = new Nepomuk::ClassAndPropertyTree(this);
-    m_dmModel = new Nepomuk::DataManagementModel(m_classAndPropertyTree, m_nrlModel);
+    m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
+    m_dmModel = new Nepomuk2::DataManagementModel(m_classAndPropertyTree, m_nrlModel);
 }
 
 void ResourceWatcherTest::cleanupTestCase()
@@ -106,7 +106,7 @@ void ResourceWatcherTest::testPropertyAddedSignal()
     QVERIFY(!m_dmModel->lastError());
 
     // create a connection which listens to changes in res:/A
-    Nepomuk::ResourceWatcherConnection* con = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* con = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
     QVERIFY(!m_dmModel->lastError());
 
     // spy for the propertyAdded signal
@@ -141,7 +141,7 @@ void ResourceWatcherTest::testPropertyRemovedSignal()
     const QUrl resA = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA"), QLatin1String("foobar"), QString(), QLatin1String("A"));
     QVERIFY(!m_dmModel->lastError());
 
-    Nepomuk::ResourceWatcherConnection* con = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* con = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
 
     QSignalSpy spy(con, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
 
@@ -165,12 +165,12 @@ void ResourceWatcherTest::testResourceRemovedSignal()
     const QUrl resA = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA"), QString(), QString(), QLatin1String("A"));
     QVERIFY(!m_dmModel->lastError());
 
-    Nepomuk::ResourceWatcherConnection* con = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* con = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
     QVERIFY(!m_dmModel->lastError());
 
     QSignalSpy spy(con, SIGNAL(resourceRemoved(QString, QStringList)));
 
-    m_dmModel->removeResources(QList<QUrl>() << resA, Nepomuk::RemovalFlags() , QLatin1String("A"));
+    m_dmModel->removeResources(QList<QUrl>() << resA, Nepomuk2::RemovalFlags() , QLatin1String("A"));
     QVERIFY(!m_dmModel->lastError());
 
     QCOMPARE( spy.count(), 1 );
@@ -222,31 +222,31 @@ void ResourceWatcherTest::testSetProperty()
 
 
     // a watcher for the resource
-    Nepomuk::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
     QSignalSpy resWpAddSpy(resW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy resWpRemSpy(resW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy resWpChSpy(resW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the property
-    Nepomuk::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
     QSignalSpy propWpAddSpy(propW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy propWpRemSpy(propW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy propWpChSpy(propW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the resource and the property
-    Nepomuk::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
     QSignalSpy resPropWpAddSpy(resPropW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy resPropWpRemSpy(resPropW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy resPropWpChSpy(resPropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the type
-    Nepomuk::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typeWpAddSpy(typeW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy typeWpRemSpy(typeW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy typeWpChSpy(typeW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the type and the property
-    Nepomuk::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typePropWpAddSpy(typePropW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy typePropWpRemSpy(typePropW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy typePropWpChSpy(typePropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
@@ -489,27 +489,27 @@ void ResourceWatcherTest::testAddProperty()
 
 
     // a watcher for the resource
-    Nepomuk::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
     QSignalSpy resWpAddSpy(resW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy resWpChSpy(resW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the property
-    Nepomuk::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
     QSignalSpy propWpAddSpy(propW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy propWpChSpy(propW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the resource and the property
-    Nepomuk::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
     QSignalSpy resPropWpAddSpy(resPropW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy resPropWpChSpy(resPropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the type
-    Nepomuk::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typeWpAddSpy(typeW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy typeWpChSpy(typeW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the type and the property
-    Nepomuk::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typePropWpAddSpy(typePropW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy typePropWpChSpy(typePropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
@@ -630,27 +630,27 @@ void ResourceWatcherTest::testRemoveProperty()
 
 
     // a watcher for the resource
-    Nepomuk::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
     QSignalSpy resWpRemSpy(resW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy resWpChSpy(resW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the property
-    Nepomuk::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
     QSignalSpy propWpRemSpy(propW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy propWpChSpy(propW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the resource and the property
-    Nepomuk::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
     QSignalSpy resPropWpRemSpy(resPropW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy resPropWpChSpy(resPropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the type
-    Nepomuk::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typeWpRemSpy(typeW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy typeWpChSpy(typeW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the type and the property
-    Nepomuk::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typePropWpRemSpy(typePropW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy typePropWpChSpy(typePropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
@@ -787,27 +787,27 @@ void ResourceWatcherTest::testRemoveProperties()
 
 
     // a watcher for the resource
-    Nepomuk::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>(), QList<QUrl>());
     QSignalSpy resWpRemSpy(resW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy resWpChSpy(resW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the property
-    Nepomuk::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
     QSignalSpy propWpRemSpy(propW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy propWpChSpy(propW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the resource and the property
-    Nepomuk::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
     QSignalSpy resPropWpRemSpy(resPropW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy resPropWpChSpy(resPropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the type
-    Nepomuk::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typeWpRemSpy(typeW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy typeWpChSpy(typeW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the type and the property
-    Nepomuk::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typePropWpRemSpy(typePropW, SIGNAL(propertyRemoved(QString, QString, QVariantList)));
     QSignalSpy typePropWpChSpy(typePropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
@@ -895,7 +895,7 @@ void ResourceWatcherTest::testRemoveResources()
 
 
     // create a watcher by resource
-    Nepomuk::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA << resC, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resA << resC, QList<QUrl>(), QList<QUrl>());
     QSignalSpy resWpRemSpy(resW, SIGNAL(resourceRemoved(QString, QString, QVariantList)));
 }
 
@@ -920,7 +920,7 @@ void ResourceWatcherTest::testStoreResources_resourceCreated()
     QVERIFY(!m_dmModel->lastError());
 
     // a watcher for the type
-    Nepomuk::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typeWrCreateSpy(typeW, SIGNAL(resourceCreated(QString,QStringList)));
 
 
@@ -954,27 +954,27 @@ void ResourceWatcherTest::testStoreResources_propertyChanged()
 
 
     // a watcher for the resource
-    Nepomuk::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>(), QList<QUrl>());
     QSignalSpy resWpAddSpy(resW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy resWpChSpy(resW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the property
-    Nepomuk::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
     QSignalSpy propWpAddSpy(propW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy propWpChSpy(propW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the resource and the property
-    Nepomuk::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>());
     QSignalSpy resPropWpAddSpy(resPropW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy resPropWpChSpy(resPropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the type
-    Nepomuk::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typeW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typeWpAddSpy(typeW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy typeWpChSpy(typeW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
     // a watcher for the type and the property
-    Nepomuk::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typePropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << QUrl("prop:/int"), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typePropWpAddSpy(typePropW, SIGNAL(propertyAdded(QString, QString, QVariantList)));
     QSignalSpy typePropWpChSpy(typePropW, SIGNAL(propertyChanged(QString, QString, QVariantList, QVariantList)));
 
@@ -1064,31 +1064,31 @@ void ResourceWatcherTest::testStoreResources_typeAdded()
 
 
     // a watcher for the resource
-    Nepomuk::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>(), QList<QUrl>());
     QSignalSpy resWpAddSpy(resW, SIGNAL(resourceTypesAdded(QString, QStringList)));
 
     // a watcher for the property
-    Nepomuk::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>());
     QSignalSpy propWpAddSpy(propW, SIGNAL(resourceTypesAdded(QString, QStringList)));
 
     // a watcher for the resource and the property
-    Nepomuk::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>() << RDF::type(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>() << RDF::type(), QList<QUrl>());
     QSignalSpy resPropWpAddSpy(resPropW, SIGNAL(resourceTypesAdded(QString, QStringList)));
 
     // a watcher for the resource type
-    Nepomuk::ResourceWatcherConnection* typeW1 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typeW1 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy type1WpAddSpy(typeW1, SIGNAL(resourceTypesAdded(QString, QStringList)));
 
     // a watcher for the added type
-    Nepomuk::ResourceWatcherConnection* typeW2 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeB"));
+    Nepomuk2::ResourceWatcherConnection* typeW2 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeB"));
     QSignalSpy type2WpAddSpy(typeW2, SIGNAL(resourceTypesAdded(QString, QStringList)));
 
     // a watcher for the resource type and the property
-    Nepomuk::ResourceWatcherConnection* typePropW1 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typePropW1 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typeProp1WpAddSpy(typePropW1, SIGNAL(resourceTypesAdded(QString, QStringList)));
 
     // a watcher for the added type and the property
-    Nepomuk::ResourceWatcherConnection* typePropW2 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>() << QUrl("class:/typeB"));
+    Nepomuk2::ResourceWatcherConnection* typePropW2 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>() << QUrl("class:/typeB"));
     QSignalSpy typeProp2WpAddSpy(typePropW2, SIGNAL(resourceTypesAdded(QString, QStringList)));
 
 
@@ -1133,31 +1133,31 @@ void ResourceWatcherTest::testRemoveProperty_typeRemoved()
 
 
     // a watcher for the resource
-    Nepomuk::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>(), QList<QUrl>());
     QSignalSpy resWpAddSpy(resW, SIGNAL(resourceTypesRemoved(QString, QStringList)));
 
     // a watcher for the property
-    Nepomuk::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* propW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>());
     QSignalSpy propWpAddSpy(propW, SIGNAL(resourceTypesRemoved(QString, QStringList)));
 
     // a watcher for the resource and the property
-    Nepomuk::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>() << RDF::type(), QList<QUrl>());
+    Nepomuk2::ResourceWatcherConnection* resPropW = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>() << resAUri, QList<QUrl>() << RDF::type(), QList<QUrl>());
     QSignalSpy resPropWpAddSpy(resPropW, SIGNAL(resourceTypesRemoved(QString, QStringList)));
 
     // a watcher for the resource type
-    Nepomuk::ResourceWatcherConnection* typeW1 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typeW1 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy type1WpAddSpy(typeW1, SIGNAL(resourceTypesRemoved(QString, QStringList)));
 
     // a watcher for the removed type
-    Nepomuk::ResourceWatcherConnection* typeW2 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeB"));
+    Nepomuk2::ResourceWatcherConnection* typeW2 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>(), QList<QUrl>() << QUrl("class:/typeB"));
     QSignalSpy type2WpAddSpy(typeW2, SIGNAL(resourceTypesRemoved(QString, QStringList)));
 
     // a watcher for the resource type and the property
-    Nepomuk::ResourceWatcherConnection* typePropW1 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>() << QUrl("class:/typeA"));
+    Nepomuk2::ResourceWatcherConnection* typePropW1 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>() << QUrl("class:/typeA"));
     QSignalSpy typeProp1WpAddSpy(typePropW1, SIGNAL(resourceTypesRemoved(QString, QStringList)));
 
     // a watcher for the removed type and the property
-    Nepomuk::ResourceWatcherConnection* typePropW2 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>() << QUrl("class:/typeB"));
+    Nepomuk2::ResourceWatcherConnection* typePropW2 = m_dmModel->resourceWatcherManager()->createConnection(QList<QUrl>(), QList<QUrl>() << RDF::type(), QList<QUrl>() << QUrl("class:/typeB"));
     QSignalSpy typeProp2WpAddSpy(typePropW2, SIGNAL(resourceTypesRemoved(QString, QStringList)));
 
 

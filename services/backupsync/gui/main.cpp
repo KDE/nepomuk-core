@@ -57,7 +57,7 @@ int main( int argc, char** argv )
 
     KUniqueApplication app;
 
-    Nepomuk::BackupWizard wizard;
+    Nepomuk2::BackupWizard wizard;
 
     if( QDBusConnection::sessionBus().interface()->isServiceRegistered("org.kde.nepomuk.services.nepomukbackupsync") ) {
         KCmdLineArgs *args = KCmdLineArgs::parsedArgs();

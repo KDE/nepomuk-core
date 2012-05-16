@@ -29,7 +29,7 @@
 #include <QtCore/QSharedData>
 #include <QtCore/QMutex>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Types {
         class EntityPrivate : public QSharedData
         {

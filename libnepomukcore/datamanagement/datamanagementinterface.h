@@ -72,7 +72,7 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QLatin1String("createResource"), argumentList, s_defaultTimeout);
     }
 
-    inline QDBusPendingReply<QList<Nepomuk::SimpleResource> > describeResources(const QStringList &resources, int flags, const QStringList &targetParties)
+    inline QDBusPendingReply<QList<Nepomuk2::SimpleResource> > describeResources(const QStringList &resources, int flags, const QStringList &targetParties)
     {
         QList<QVariant> argumentList;
         argumentList << qVariantFromValue(resources) << qVariantFromValue(flags) << qVariantFromValue(targetParties);
@@ -86,7 +86,7 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QLatin1String("importResources"), argumentList, s_defaultTimeout);
     }
 
-    inline QDBusPendingReply<> importResources(const QString &url, const QString &serialization, int identificationMode, int flags, Nepomuk::PropertyHash additionalMetadata, const QString &app)
+    inline QDBusPendingReply<> importResources(const QString &url, const QString &serialization, int identificationMode, int flags, Nepomuk2::PropertyHash additionalMetadata, const QString &app)
     {
         QList<QVariant> argumentList;
         argumentList << qVariantFromValue(url) << qVariantFromValue(serialization) << qVariantFromValue(identificationMode) << qVariantFromValue(flags) << qVariantFromValue(additionalMetadata) << qVariantFromValue(app);
@@ -170,7 +170,7 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QLatin1String("setProperty"), argumentList, s_defaultTimeout);
     }
 
-    inline QDBusPendingReply<> storeResources(const QList<Nepomuk::SimpleResource> &resources, int identificationMode, int flags, Nepomuk::PropertyHash additionalMetadata, const QString &app)
+    inline QDBusPendingReply<> storeResources(const QList<Nepomuk2::SimpleResource> &resources, int identificationMode, int flags, Nepomuk2::PropertyHash additionalMetadata, const QString &app)
     {
         QList<QVariant> argumentList;
         argumentList << qVariantFromValue(resources) << qVariantFromValue(identificationMode) << qVariantFromValue(flags) << qVariantFromValue(additionalMetadata) << qVariantFromValue(app);

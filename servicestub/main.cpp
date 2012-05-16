@@ -39,7 +39,7 @@
 #include "priority.h"
 
 namespace {
-    Nepomuk::ServiceControl* s_control = 0;
+    Nepomuk2::ServiceControl* s_control = 0;
 
 #ifndef Q_OS_WIN
     void signalHandler( int signal )
@@ -122,16 +122,16 @@ int main( int argc, char** argv )
     KService::List services = KServiceTypeTrader::self()->query( "NepomukService", "DesktopEntryName == '" + serviceName + '\'' );
     if( services.isEmpty() ) {
         s << i18n( "Unknown service name:") << " " <<  serviceName << endl;
-        return Nepomuk::ServiceControl::ErrorUnknownServiceName;
+        return Nepomuk2::ServiceControl::ErrorUnknownServiceName;
     }
     KService::Ptr service = services.first();
 
 
     // Check if this service is already running
     // ====================================
-    if( QDBusConnection::sessionBus().interface()->isServiceRegistered( Nepomuk::ServiceControl::dbusServiceName( serviceName ) ) ) {
+    if( QDBusConnection::sessionBus().interface()->isServiceRegistered( Nepomuk2::ServiceControl::dbusServiceName( serviceName ) ) ) {
         s << "Service " << serviceName << " already running." << endl;
-        return Nepomuk::ServiceControl::ErrorServiceAlreadyRunning;
+        return Nepomuk2::ServiceControl::ErrorServiceAlreadyRunning;
     }
 
 
@@ -139,9 +139,9 @@ int main( int argc, char** argv )
     // ====================================
     QStringList dependencies = service->property( "X-KDE-Nepomuk-dependencies", QVariant::StringList ).toStringList();
     foreach( const QString &dep, dependencies ) {
-        if( !QDBusConnection::sessionBus().interface()->isServiceRegistered( Nepomuk::ServiceControl::dbusServiceName( dep ) ) ) {
+        if( !QDBusConnection::sessionBus().interface()->isServiceRegistered( Nepomuk2::ServiceControl::dbusServiceName( dep ) ) ) {
             s << "Missing dependency " << dep << endl;
-            return Nepomuk::ServiceControl::ErrorMissingDependency;
+            return Nepomuk2::ServiceControl::ErrorMissingDependency;
         }
     }
 
@@ -160,7 +160,7 @@ int main( int argc, char** argv )
 
     // register the service control
     // ====================================
-    s_control = new Nepomuk::ServiceControl( serviceName, service, &app );
+    s_control = new Nepomuk2::ServiceControl( serviceName, service, &app );
 
 
     // start the service (queued since we need an event loop)

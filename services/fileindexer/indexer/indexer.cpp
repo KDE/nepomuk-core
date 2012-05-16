@@ -72,7 +72,7 @@ namespace {
 }
 
 
-class Nepomuk::Indexer::Private
+class Nepomuk2::Indexer::Private
 {
 public:
     StoppableConfiguration m_analyzerConfig;
@@ -82,7 +82,7 @@ public:
 };
 
 
-Nepomuk::Indexer::Indexer( QObject* parent )
+Nepomuk2::Indexer::Indexer( QObject* parent )
     : QObject( parent ),
       d( new Private() )
 {
@@ -92,7 +92,7 @@ Nepomuk::Indexer::Indexer( QObject* parent )
 }
 
 
-Nepomuk::Indexer::~Indexer()
+Nepomuk2::Indexer::~Indexer()
 {
     delete d->m_streamAnalyzer;
     delete d->m_indexWriter;
@@ -100,13 +100,13 @@ Nepomuk::Indexer::~Indexer()
 }
 
 
-bool Nepomuk::Indexer::indexFile( const KUrl& url, const KUrl resUri, uint mtime )
+bool Nepomuk2::Indexer::indexFile( const KUrl& url, const KUrl resUri, uint mtime )
 {
     return indexFile( QFileInfo( url.toLocalFile() ), resUri, mtime );
 }
 
 
-bool Nepomuk::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uint mtime )
+bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uint mtime )
 {
     if( !info.exists() ) {
         d->m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
@@ -146,7 +146,7 @@ bool Nepomuk::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uint
     return d->m_lastError.isEmpty();
 }
 
-bool Nepomuk::Indexer::indexStdin(const KUrl resUri, uint mtime)
+bool Nepomuk2::Indexer::indexStdin(const KUrl resUri, uint mtime)
 {
     d->m_analyzerConfig.setStop( false );
     d->m_indexWriter->forceUri( resUri );
@@ -162,7 +162,7 @@ bool Nepomuk::Indexer::indexStdin(const KUrl resUri, uint mtime)
     return d->m_lastError.isEmpty();
 }
 
-QString Nepomuk::Indexer::lastError() const
+QString Nepomuk2::Indexer::lastError() const
 {
     return d->m_lastError;
 }

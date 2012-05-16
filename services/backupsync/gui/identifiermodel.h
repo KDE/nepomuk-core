@@ -27,7 +27,7 @@
 #include <QtCore/QMap>
 #include <Soprano/Statement>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class IdentifierModelTree;
     class IdentifierModelTreeItem;

@@ -46,7 +46,7 @@ int main( int argc, char **argv )
                           0,
                           ki18n("Simple Query Tester"),
                           "1.0",
-                          ki18n("A Simple Test app for Nepomuk::Query::QueryParser"),
+                          ki18n("A Simple Test app for Nepomuk2::Query::QueryParser"),
                           KAboutData::License_GPL,
                           ki18n("(c) 2011, Sebastian Trüg"),
                           KLocalizedString(),
@@ -79,15 +79,15 @@ QueryTester::~QueryTester()
 
 void QueryTester::slotConvert()
 {
-    Nepomuk::Query::QueryParser::ParserFlags flags;
+    Nepomuk2::Query::QueryParser::ParserFlags flags;
     if(m_checkTermGlobbing->isChecked()) {
-        flags |= Nepomuk::Query::QueryParser::QueryTermGlobbing;
+        flags |= Nepomuk2::Query::QueryParser::QueryTermGlobbing;
     }
     if(m_checkFilenamePattern->isChecked()) {
-        flags |= Nepomuk::Query::QueryParser::DetectFilenamePattern;
+        flags |= Nepomuk2::Query::QueryParser::DetectFilenamePattern;
     }
 
-    QString query = Nepomuk::Query::QueryParser::parseQuery(m_queryEdit->text(), flags).toSparqlQuery();
+    QString query = Nepomuk2::Query::QueryParser::parseQuery(m_queryEdit->text(), flags).toSparqlQuery();
     query= query.simplified();
     QString newQuery;
     int i = 0;

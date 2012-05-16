@@ -53,7 +53,7 @@ namespace {
     }
 }
 
-class Nepomuk::ResourceWatcher::Private {
+class Nepomuk2::ResourceWatcher::Private {
 public:
     QList<QUrl> m_types;
     QList<QUrl> m_resources;
@@ -63,7 +63,7 @@ public:
     org::kde::nepomuk::ResourceWatcher * m_watchManagerInterface;
 };
 
-Nepomuk::ResourceWatcher::ResourceWatcher(QObject* parent)
+Nepomuk2::ResourceWatcher::ResourceWatcher(QObject* parent)
     : QObject(parent),
       d(new Private)
 {
@@ -74,13 +74,13 @@ Nepomuk::ResourceWatcher::ResourceWatcher(QObject* parent)
     d->m_connectionInterface = 0;
 }
 
-Nepomuk::ResourceWatcher::~ResourceWatcher()
+Nepomuk2::ResourceWatcher::~ResourceWatcher()
 {
     stop();
     delete d;
 }
 
-bool Nepomuk::ResourceWatcher::start()
+bool Nepomuk2::ResourceWatcher::start()
 {
     stop();
 
@@ -132,7 +132,7 @@ bool Nepomuk::ResourceWatcher::start()
     }
 }
 
-void Nepomuk::ResourceWatcher::stop()
+void Nepomuk2::ResourceWatcher::stop()
 {
     if (d->m_connectionInterface) {
         d->m_connectionInterface->close();
@@ -143,7 +143,7 @@ void Nepomuk::ResourceWatcher::stop()
     disconnect(ResourceManager::instance(), SIGNAL(nepomukSystemStarted()), this, SLOT(start()));
 }
 
-void Nepomuk::ResourceWatcher::addProperty(const Nepomuk::Types::Property& property)
+void Nepomuk2::ResourceWatcher::addProperty(const Nepomuk2::Types::Property& property)
 {
     d->m_properties << property.uri();
     if(d->m_connectionInterface) {
@@ -151,7 +151,7 @@ void Nepomuk::ResourceWatcher::addProperty(const Nepomuk::Types::Property& prope
     }
 }
 
-void Nepomuk::ResourceWatcher::addResource(const Nepomuk::Resource& res)
+void Nepomuk2::ResourceWatcher::addResource(const Nepomuk2::Resource& res)
 {
     d->m_resources << res.resourceUri();
     if(d->m_connectionInterface) {
@@ -159,7 +159,7 @@ void Nepomuk::ResourceWatcher::addResource(const Nepomuk::Resource& res)
     }
 }
 
-void Nepomuk::ResourceWatcher::addType(const Nepomuk::Types::Class& type)
+void Nepomuk2::ResourceWatcher::addType(const Nepomuk2::Types::Class& type)
 {
     d->m_types << type.uri();
     if(d->m_connectionInterface) {
@@ -167,7 +167,7 @@ void Nepomuk::ResourceWatcher::addType(const Nepomuk::Types::Class& type)
     }
 }
 
-void Nepomuk::ResourceWatcher::removeProperty(const Nepomuk::Types::Property& property)
+void Nepomuk2::ResourceWatcher::removeProperty(const Nepomuk2::Types::Property& property)
 {
     d->m_properties.removeAll(property.uri());
     if(d->m_connectionInterface) {
@@ -175,7 +175,7 @@ void Nepomuk::ResourceWatcher::removeProperty(const Nepomuk::Types::Property& pr
     }
 }
 
-void Nepomuk::ResourceWatcher::removeResource(const Nepomuk::Resource& res)
+void Nepomuk2::ResourceWatcher::removeResource(const Nepomuk2::Resource& res)
 {
     d->m_resources.removeAll(res.resourceUri());
     if(d->m_connectionInterface) {
@@ -183,7 +183,7 @@ void Nepomuk::ResourceWatcher::removeResource(const Nepomuk::Resource& res)
     }
 }
 
-void Nepomuk::ResourceWatcher::removeType(const Nepomuk::Types::Class& type)
+void Nepomuk2::ResourceWatcher::removeType(const Nepomuk2::Types::Class& type)
 {
     d->m_types.removeAll(type.uri());
     if(d->m_connectionInterface) {
@@ -191,34 +191,34 @@ void Nepomuk::ResourceWatcher::removeType(const Nepomuk::Types::Class& type)
     }
 }
 
-QList< Nepomuk::Types::Property > Nepomuk::ResourceWatcher::properties() const
+QList< Nepomuk2::Types::Property > Nepomuk2::ResourceWatcher::properties() const
 {
-    QList< Nepomuk::Types::Property > props;
+    QList< Nepomuk2::Types::Property > props;
     foreach(const QUrl& uri, d->m_properties)
         props << Types::Property(uri);
     return props;
 }
 
-QList<Nepomuk::Resource> Nepomuk::ResourceWatcher::resources() const
+QList<Nepomuk2::Resource> Nepomuk2::ResourceWatcher::resources() const
 {
-    QList<Nepomuk::Resource> resources;
+    QList<Nepomuk2::Resource> resources;
     foreach(const QUrl& uri, d->m_resources)
         resources << Resource::fromResourceUri(uri);
     return resources;
 }
 
-QList< Nepomuk::Types::Class > Nepomuk::ResourceWatcher::types() const
+QList< Nepomuk2::Types::Class > Nepomuk2::ResourceWatcher::types() const
 {
-    QList<Nepomuk::Types::Class> types;
+    QList<Nepomuk2::Types::Class> types;
     foreach(const QUrl& uri, d->m_types)
         types << Types::Class(uri);
     return types;
 }
 
-void Nepomuk::ResourceWatcher::setProperties(const QList< Nepomuk::Types::Property >& properties_)
+void Nepomuk2::ResourceWatcher::setProperties(const QList< Nepomuk2::Types::Property >& properties_)
 {
     d->m_properties.clear();
-    foreach(const Nepomuk::Types::Property& p, properties_) {
+    foreach(const Nepomuk2::Types::Property& p, properties_) {
         d->m_properties << p.uri();
     }
 
@@ -227,10 +227,10 @@ void Nepomuk::ResourceWatcher::setProperties(const QList< Nepomuk::Types::Proper
     }
 }
 
-void Nepomuk::ResourceWatcher::setResources(const QList< Nepomuk::Resource >& resources_)
+void Nepomuk2::ResourceWatcher::setResources(const QList< Nepomuk2::Resource >& resources_)
 {
     d->m_resources.clear();
-    foreach(const Nepomuk::Resource& res, resources_) {
+    foreach(const Nepomuk2::Resource& res, resources_) {
         d->m_resources << res.resourceUri();
     }
 
@@ -239,10 +239,10 @@ void Nepomuk::ResourceWatcher::setResources(const QList< Nepomuk::Resource >& re
     }
 }
 
-void Nepomuk::ResourceWatcher::setTypes(const QList< Nepomuk::Types::Class >& types_)
+void Nepomuk2::ResourceWatcher::setTypes(const QList< Nepomuk2::Types::Class >& types_)
 {
     d->m_types.clear();
-    foreach(const Nepomuk::Types::Class& t, types_) {
+    foreach(const Nepomuk2::Types::Class& t, types_) {
         d->m_types << t.uri();
     }
 
@@ -251,45 +251,45 @@ void Nepomuk::ResourceWatcher::setTypes(const QList< Nepomuk::Types::Class >& ty
     }
 }
 
-void Nepomuk::ResourceWatcher::slotResourceCreated(const QString &res, const QStringList &types)
+void Nepomuk2::ResourceWatcher::slotResourceCreated(const QString &res, const QStringList &types)
 {
-    emit resourceCreated(Nepomuk::Resource::fromResourceUri(KUrl(res)), convertUris(types));
+    emit resourceCreated(Nepomuk2::Resource::fromResourceUri(KUrl(res)), convertUris(types));
 }
 
-void Nepomuk::ResourceWatcher::slotResourceRemoved(const QString &res, const QStringList &types)
+void Nepomuk2::ResourceWatcher::slotResourceRemoved(const QString &res, const QStringList &types)
 {
     emit resourceRemoved(KUrl(res), convertUris(types));
 }
 
-void Nepomuk::ResourceWatcher::slotResourceTypesAdded(const QString &res, const QStringList &types)
+void Nepomuk2::ResourceWatcher::slotResourceTypesAdded(const QString &res, const QStringList &types)
 {
     foreach(const QString& type, types) {
         emit resourceTypeAdded(KUrl(res), KUrl(type));
     }
 }
 
-void Nepomuk::ResourceWatcher::slotResourceTypesRemoved(const QString &res, const QStringList &types)
+void Nepomuk2::ResourceWatcher::slotResourceTypesRemoved(const QString &res, const QStringList &types)
 {
     foreach(const QString& type, types) {
         emit resourceTypeRemoved(KUrl(res), KUrl(type));
     }
 }
 
-void Nepomuk::ResourceWatcher::slotPropertyAdded(const QString& res, const QString& prop, const QVariantList &objects)
+void Nepomuk2::ResourceWatcher::slotPropertyAdded(const QString& res, const QString& prop, const QVariantList &objects)
 {
     foreach(const QVariant& v, objects) {
         emit propertyAdded( Resource::fromResourceUri(KUrl(res)), Types::Property( KUrl(prop) ), v );
     }
 }
 
-void Nepomuk::ResourceWatcher::slotPropertyRemoved(const QString& res, const QString& prop, const QVariantList &objects)
+void Nepomuk2::ResourceWatcher::slotPropertyRemoved(const QString& res, const QString& prop, const QVariantList &objects)
 {
     foreach(const QVariant& v, objects) {
         emit propertyRemoved( Resource::fromResourceUri(KUrl(res)), Types::Property( KUrl(prop) ), v );
     }
 }
 
-void Nepomuk::ResourceWatcher::slotPropertyChanged(const QString& res, const QString& prop, const QVariantList& oldObjs, const QVariantList& newObjs)
+void Nepomuk2::ResourceWatcher::slotPropertyChanged(const QString& res, const QString& prop, const QVariantList& oldObjs, const QVariantList& newObjs)
 {
     emit propertyChanged( Resource::fromResourceUri(KUrl(res)), Types::Property( KUrl(prop) ),
                           oldObjs, newObjs );

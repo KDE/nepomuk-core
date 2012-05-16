@@ -59,7 +59,7 @@ namespace {
     };
 }
 
-class Nepomuk::Search::DateParser::Private
+class Nepomuk2::Search::DateParser::Private
 {
 public:
     Private(const QString& text, unsigned int flags) :
@@ -235,36 +235,36 @@ private:
 
 
 
-Nepomuk::Search::DateParser::DateParser(const QString& text, unsigned int flags) :
+Nepomuk2::Search::DateParser::DateParser(const QString& text, unsigned int flags) :
     d( new Private(text, flags) ) {
 }
 
 
-Nepomuk::Search::DateParser::~DateParser() {
+Nepomuk2::Search::DateParser::~DateParser() {
     delete d;
 }
 
-bool Nepomuk::Search::DateParser::hasDate() {
+bool Nepomuk2::Search::DateParser::hasDate() {
     return d->hasDate();
 }
 
-QDate Nepomuk::Search::DateParser::getDate() {
+QDate Nepomuk2::Search::DateParser::getDate() {
     return d->getDate();
 }
 
-void Nepomuk::Search::DateParser::next() {
+void Nepomuk2::Search::DateParser::next() {
     d->next();
 }
 
-unsigned int Nepomuk::Search::DateParser::pos() const {
+unsigned int Nepomuk2::Search::DateParser::pos() const {
     return d->pos();
 }
 
-unsigned int Nepomuk::Search::DateParser::length() const {
+unsigned int Nepomuk2::Search::DateParser::length() const {
     return d->length();
 }
 
-class Nepomuk::Search::TimeParser::Private
+class Nepomuk2::Search::TimeParser::Private
 {
 public:
     Private(const QString& text) : m_text(text), m_locale(QLocale::English) {
@@ -340,18 +340,18 @@ private:
 
 
 
-Nepomuk::Search::TimeParser::TimeParser(const QString& text) : d( new Private(text) ) {
+Nepomuk2::Search::TimeParser::TimeParser(const QString& text) : d( new Private(text) ) {
 }
 
 
-Nepomuk::Search::TimeParser::~TimeParser() {
+Nepomuk2::Search::TimeParser::~TimeParser() {
     delete d;
 }
 
-bool Nepomuk::Search::TimeParser::hasTime() {
+bool Nepomuk2::Search::TimeParser::hasTime() {
     return d->hasTime();
 }
 
-QTime Nepomuk::Search::TimeParser::next() {
+QTime Nepomuk2::Search::TimeParser::next() {
     return d->next();
 }

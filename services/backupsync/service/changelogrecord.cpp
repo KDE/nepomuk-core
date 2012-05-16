@@ -34,7 +34,7 @@
 
 #include <QtCore/QSharedData>
 
-class Nepomuk::ChangeLogRecord::Private : public QSharedData {
+class Nepomuk2::ChangeLogRecord::Private : public QSharedData {
 public:
     QDateTime dateTime;
     bool added;
@@ -46,29 +46,29 @@ public:
     const static QString s_dateTimeFormat;
 };
 
-const QString Nepomuk::ChangeLogRecord::Private::s_dateTimeFormat = QString::fromLatin1("yyyy-MM-ddThh:mm:ss.zzz");
+const QString Nepomuk2::ChangeLogRecord::Private::s_dateTimeFormat = QString::fromLatin1("yyyy-MM-ddThh:mm:ss.zzz");
 
 //
 // Create the serializer and parser
 //
-const Soprano::Parser* Nepomuk::ChangeLogRecord::Private::parser = Soprano::PluginManager::instance()->discoverParserForSerialization( Soprano::SerializationNQuads );
+const Soprano::Parser* Nepomuk2::ChangeLogRecord::Private::parser = Soprano::PluginManager::instance()->discoverParserForSerialization( Soprano::SerializationNQuads );
 
-const Soprano::Serializer* Nepomuk::ChangeLogRecord::Private::serializer = Soprano::PluginManager::instance()->discoverSerializerForSerialization( Soprano::SerializationNQuads );
+const Soprano::Serializer* Nepomuk2::ChangeLogRecord::Private::serializer = Soprano::PluginManager::instance()->discoverSerializerForSerialization( Soprano::SerializationNQuads );
 
 
-Nepomuk::ChangeLogRecord::ChangeLogRecord()
-    : d( new Nepomuk::ChangeLogRecord::Private )
+Nepomuk2::ChangeLogRecord::ChangeLogRecord()
+    : d( new Nepomuk2::ChangeLogRecord::Private )
 {
     //Nothing to do
 }
 
-Nepomuk::ChangeLogRecord::~ChangeLogRecord()
+Nepomuk2::ChangeLogRecord::~ChangeLogRecord()
 {
 }
 
 
-Nepomuk::ChangeLogRecord::ChangeLogRecord(const QDateTime& dt, bool add, const Soprano::Statement& statement)
-    : d( new Nepomuk::ChangeLogRecord::Private )
+Nepomuk2::ChangeLogRecord::ChangeLogRecord(const QDateTime& dt, bool add, const Soprano::Statement& statement)
+    : d( new Nepomuk2::ChangeLogRecord::Private )
 {
     d->dateTime = dt;
     d->added = add;
@@ -76,8 +76,8 @@ Nepomuk::ChangeLogRecord::ChangeLogRecord(const QDateTime& dt, bool add, const S
 }
 
 
-Nepomuk::ChangeLogRecord::ChangeLogRecord(const Soprano::Statement& statement)
-    : d( new Nepomuk::ChangeLogRecord::Private )
+Nepomuk2::ChangeLogRecord::ChangeLogRecord(const Soprano::Statement& statement)
+    : d( new Nepomuk2::ChangeLogRecord::Private )
 {
     d->dateTime = QDateTime::currentDateTime();
     d->added = true;
@@ -85,14 +85,14 @@ Nepomuk::ChangeLogRecord::ChangeLogRecord(const Soprano::Statement& statement)
 }
 
 
-Nepomuk::ChangeLogRecord::ChangeLogRecord(const Nepomuk::ChangeLogRecord& rhs)
+Nepomuk2::ChangeLogRecord::ChangeLogRecord(const Nepomuk2::ChangeLogRecord& rhs)
     : d( rhs.d )
 {
 }
 
 
-Nepomuk::ChangeLogRecord::ChangeLogRecord( QString& string )
-    : d( new Nepomuk::ChangeLogRecord::Private )
+Nepomuk2::ChangeLogRecord::ChangeLogRecord( QString& string )
+    : d( new Nepomuk2::ChangeLogRecord::Private )
 {
     QTextStream ts( &string );
 
@@ -109,14 +109,14 @@ Nepomuk::ChangeLogRecord::ChangeLogRecord( QString& string )
 }
 
 
-Nepomuk::ChangeLogRecord& Nepomuk::ChangeLogRecord::operator=(const Nepomuk::ChangeLogRecord& rhs)
+Nepomuk2::ChangeLogRecord& Nepomuk2::ChangeLogRecord::operator=(const Nepomuk2::ChangeLogRecord& rhs)
 {
     this->d = rhs.d;
     return *this;
 }
 
 
-QString Nepomuk::ChangeLogRecord::toString() const
+QString Nepomuk2::ChangeLogRecord::toString() const
 {
     QString s;
     s += d->dateTime.toString( Private::s_dateTimeFormat ) + ' ';
@@ -137,24 +137,24 @@ QString Nepomuk::ChangeLogRecord::toString() const
 }
 
 
-bool Nepomuk::ChangeLogRecord::operator < (const Nepomuk::ChangeLogRecord & rhs) const
+bool Nepomuk2::ChangeLogRecord::operator < (const Nepomuk2::ChangeLogRecord & rhs) const
 {
     return d->dateTime < rhs.d->dateTime;
 }
 
-bool Nepomuk::ChangeLogRecord::operator > (const Nepomuk::ChangeLogRecord & rhs) const
+bool Nepomuk2::ChangeLogRecord::operator > (const Nepomuk2::ChangeLogRecord & rhs) const
 {
     return d->dateTime > rhs.d->dateTime;
 }
 
-bool Nepomuk::ChangeLogRecord::operator==(const Nepomuk::ChangeLogRecord& rhs) const
+bool Nepomuk2::ChangeLogRecord::operator==(const Nepomuk2::ChangeLogRecord& rhs) const
 {
     return d->dateTime == rhs.d->dateTime && d->st == rhs.d->st && d->added == rhs.d->added;
 }
 
 
 //static
-QList<Nepomuk::ChangeLogRecord> Nepomuk::ChangeLogRecord::toRecordList(const QList<Soprano::Statement>& stList)
+QList<Nepomuk2::ChangeLogRecord> Nepomuk2::ChangeLogRecord::toRecordList(const QList<Soprano::Statement>& stList)
 {
     QList<ChangeLogRecord> list;
     foreach( const Soprano::Statement & st, stList ) {
@@ -165,7 +165,7 @@ QList<Nepomuk::ChangeLogRecord> Nepomuk::ChangeLogRecord::toRecordList(const QLi
 
 
 //static
-QList< Nepomuk::ChangeLogRecord> Nepomuk::ChangeLogRecord::toRecordList( const QUrl& contextUrl, Soprano::Model* model )
+QList< Nepomuk2::ChangeLogRecord> Nepomuk2::ChangeLogRecord::toRecordList( const QUrl& contextUrl, Soprano::Model* model )
 {
     QList<ChangeLogRecord> list;
     Soprano::StatementIterator it = model->listStatementsInContext(contextUrl);
@@ -177,7 +177,7 @@ QList< Nepomuk::ChangeLogRecord> Nepomuk::ChangeLogRecord::toRecordList( const Q
 
 
 //static
-QList< Nepomuk::ChangeLogRecord> Nepomuk::ChangeLogRecord::toRecordList( const QList< QUrl >& contextUrlList, Soprano::Model* model )
+QList< Nepomuk2::ChangeLogRecord> Nepomuk2::ChangeLogRecord::toRecordList( const QList< QUrl >& contextUrlList, Soprano::Model* model )
 {
     QList<ChangeLogRecord> list;
     foreach( const QUrl & contextUrl, contextUrlList) {
@@ -190,7 +190,7 @@ QList< Nepomuk::ChangeLogRecord> Nepomuk::ChangeLogRecord::toRecordList( const Q
 }
 
 // static
-bool Nepomuk::ChangeLogRecord::saveRecords(const QList<Nepomuk::ChangeLogRecord>& records, const QUrl & url)
+bool Nepomuk2::ChangeLogRecord::saveRecords(const QList<Nepomuk2::ChangeLogRecord>& records, const QUrl & url)
 {
     if( records.empty() )
         return false;
@@ -210,7 +210,7 @@ bool Nepomuk::ChangeLogRecord::saveRecords(const QList<Nepomuk::ChangeLogRecord>
 }
 
 // static
-QList< Nepomuk::ChangeLogRecord > Nepomuk::ChangeLogRecord::loadRecords(const QUrl& url, const QDateTime & min)
+QList< Nepomuk2::ChangeLogRecord > Nepomuk2::ChangeLogRecord::loadRecords(const QUrl& url, const QDateTime & min)
 {
     QFile file( url.path() );
     if ( !file.open( QIODevice::ReadOnly | QIODevice::Text) ) {
@@ -235,7 +235,7 @@ QList< Nepomuk::ChangeLogRecord > Nepomuk::ChangeLogRecord::loadRecords(const QU
 
 
 // static
-QList< Nepomuk::ChangeLogRecord > Nepomuk::ChangeLogRecord::loadRecords(const QUrl& url)
+QList< Nepomuk2::ChangeLogRecord > Nepomuk2::ChangeLogRecord::loadRecords(const QUrl& url)
 {
     QDateTime min;
     min.setTime_t( 0 );
@@ -243,79 +243,79 @@ QList< Nepomuk::ChangeLogRecord > Nepomuk::ChangeLogRecord::loadRecords(const QU
     return loadRecords( url, min );
 }
 
-bool Nepomuk::ChangeLogRecord::added() const
+bool Nepomuk2::ChangeLogRecord::added() const
 {
     return d->added;
 }
 
-QDateTime Nepomuk::ChangeLogRecord::dateTime() const
+QDateTime Nepomuk2::ChangeLogRecord::dateTime() const
 {
     return d->dateTime;
 }
 
-void Nepomuk::ChangeLogRecord::setAdded(bool add)
+void Nepomuk2::ChangeLogRecord::setAdded(bool add)
 {
     d->added = add;
 }
 
-void Nepomuk::ChangeLogRecord::setRemoved()
+void Nepomuk2::ChangeLogRecord::setRemoved()
 {
     d->added = false;
 }
 
-void Nepomuk::ChangeLogRecord::setDateTime(const QDateTime& dt)
+void Nepomuk2::ChangeLogRecord::setDateTime(const QDateTime& dt)
 {
     d->dateTime = dt;
 }
 
-const Soprano::Statement& Nepomuk::ChangeLogRecord::st() const
+const Soprano::Statement& Nepomuk2::ChangeLogRecord::st() const
 {
     return d->st;
 }
 
-void Nepomuk::ChangeLogRecord::setSubject(const Soprano::Node& subject)
+void Nepomuk2::ChangeLogRecord::setSubject(const Soprano::Node& subject)
 {
     d->st.setSubject( subject );
 }
 
 
-void Nepomuk::ChangeLogRecord::setPredicate(const Soprano::Node& predicate)
+void Nepomuk2::ChangeLogRecord::setPredicate(const Soprano::Node& predicate)
 {
     d->st.setPredicate( predicate );
 }
 
-void Nepomuk::ChangeLogRecord::setObject(const Soprano::Node& object)
+void Nepomuk2::ChangeLogRecord::setObject(const Soprano::Node& object)
 {
     d->st.setObject( object );
 }
 
 
-void Nepomuk::ChangeLogRecord::setContext(const Soprano::Node& context)
+void Nepomuk2::ChangeLogRecord::setContext(const Soprano::Node& context)
 {
     d->st.setContext( context );
 }
 
-Soprano::Node Nepomuk::ChangeLogRecord::subject() const
+Soprano::Node Nepomuk2::ChangeLogRecord::subject() const
 {
     return d->st.subject();
 }
 
-Soprano::Node Nepomuk::ChangeLogRecord::predicate() const
+Soprano::Node Nepomuk2::ChangeLogRecord::predicate() const
 {
     return d->st.predicate();
 }
 
-Soprano::Node Nepomuk::ChangeLogRecord::object() const
+Soprano::Node Nepomuk2::ChangeLogRecord::object() const
 {
     return d->st.object();
 }
 
-QTextStream& Nepomuk::operator<<(QTextStream& ts, const Nepomuk::ChangeLogRecord& record)
+QTextStream& Nepomuk2::operator<<(QTextStream& ts, const Nepomuk2::ChangeLogRecord& record)
 {
     return ts << record.toString();
 }
 
-QString Nepomuk::ChangeLogRecord::dateTimeFormat()
+QString Nepomuk2::ChangeLogRecord::dateTimeFormat()
 {
     return Private::s_dateTimeFormat;
 }

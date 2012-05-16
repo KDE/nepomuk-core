@@ -76,7 +76,7 @@ namespace {
 }
 
 
-class Nepomuk::OntologyUpdateJob::Private : public QThread
+class Nepomuk2::OntologyUpdateJob::Private : public QThread
 {
 public:
     Private( Soprano::Model* mainModel, OntologyUpdateJob* job )
@@ -103,13 +103,13 @@ private:
 };
 
 
-void Nepomuk::OntologyUpdateJob::Private::run()
+void Nepomuk2::OntologyUpdateJob::Private::run()
 {
     m_success = updateOntology();
 }
 
 
-bool Nepomuk::OntologyUpdateJob::Private::ensureDataLayout( Soprano::Model* tmpModel, const QUrl& ns )
+bool Nepomuk2::OntologyUpdateJob::Private::ensureDataLayout( Soprano::Model* tmpModel, const QUrl& ns )
 {
     // 1. all statements need to have a proper context set
     StatementIterator it = tmpModel->listStatements();
@@ -131,7 +131,7 @@ bool Nepomuk::OntologyUpdateJob::Private::ensureDataLayout( Soprano::Model* tmpM
 }
 
 
-void Nepomuk::OntologyUpdateJob::Private::createMetadata( Soprano::Model* tmpModel, const QUrl& ns )
+void Nepomuk2::OntologyUpdateJob::Private::createMetadata( Soprano::Model* tmpModel, const QUrl& ns )
 {
     Q_ASSERT( ns.isValid() );
     QUrl dataGraphUri( ns );
@@ -154,7 +154,7 @@ void Nepomuk::OntologyUpdateJob::Private::createMetadata( Soprano::Model* tmpMod
 }
 
 
-bool Nepomuk::OntologyUpdateJob::Private::updateOntology()
+bool Nepomuk2::OntologyUpdateJob::Private::updateOntology()
 {
     // Create temp memory model
     // ------------------------------------
@@ -243,7 +243,7 @@ bool Nepomuk::OntologyUpdateJob::Private::updateOntology()
 }
 
 
-bool Nepomuk::OntologyUpdateJob::Private::removeOntology( const QUrl& ns )
+bool Nepomuk2::OntologyUpdateJob::Private::removeOntology( const QUrl& ns )
 {
     QUrl dataGraphUri, metadataGraphUri;
     if ( findGraphUris( m_model, ns, dataGraphUri, metadataGraphUri ) ) {
@@ -259,7 +259,7 @@ bool Nepomuk::OntologyUpdateJob::Private::removeOntology( const QUrl& ns )
 }
 
 
-void Nepomuk::OntologyUpdateJob::Private::_k_slotFinished()
+void Nepomuk2::OntologyUpdateJob::Private::_k_slotFinished()
 {
     // FIXME: more detailed error code and message
     m_job->setError( m_success ? KJob::NoError : KJob::UserDefinedError );
@@ -267,7 +267,7 @@ void Nepomuk::OntologyUpdateJob::Private::_k_slotFinished()
 }
 
 
-Nepomuk::OntologyUpdateJob::OntologyUpdateJob( Soprano::Model* mainModel, QObject* parent )
+Nepomuk2::OntologyUpdateJob::OntologyUpdateJob( Soprano::Model* mainModel, QObject* parent )
     : KJob( parent ),
       d( new Private( mainModel, this ) )
 {
@@ -276,31 +276,31 @@ Nepomuk::OntologyUpdateJob::OntologyUpdateJob( Soprano::Model* mainModel, QObjec
 }
 
 
-Nepomuk::OntologyUpdateJob::~OntologyUpdateJob()
+Nepomuk2::OntologyUpdateJob::~OntologyUpdateJob()
 {
     delete d;
 }
 
 
-void Nepomuk::OntologyUpdateJob::start()
+void Nepomuk2::OntologyUpdateJob::start()
 {
     d->start();
 }
 
 
-void Nepomuk::OntologyUpdateJob::setBaseUri( const QUrl& uri )
+void Nepomuk2::OntologyUpdateJob::setBaseUri( const QUrl& uri )
 {
     d->baseUri = uri;
 }
 
 
-Soprano::Model* Nepomuk::OntologyUpdateJob::model() const
+Soprano::Model* Nepomuk2::OntologyUpdateJob::model() const
 {
     return d->m_model;
 }
 
 
-QDateTime Nepomuk::OntologyUpdateJob::ontoModificationDate( Soprano::Model* model, const QUrl& uri )
+QDateTime Nepomuk2::OntologyUpdateJob::ontoModificationDate( Soprano::Model* model, const QUrl& uri )
 {
     // We use a FILTER(STR(?ns)...) to support both Soprano 2.3 (with plain literals) and earlier (with only typed ones)
     QString query = QString( "select ?date where { "

@@ -27,7 +27,7 @@
 
 class QDBusServiceWatcher;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class ResourceWatcherManager;
 

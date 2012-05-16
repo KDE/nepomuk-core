@@ -36,16 +36,16 @@
 #include <Soprano/Vocabulary/OWL>
 
 #undef D
-#define D static_cast<Nepomuk::Types::ClassPrivate*>( d.data() )
+#define D static_cast<Nepomuk2::Types::ClassPrivate*>( d.data() )
 
-Nepomuk::Types::ClassPrivate::ClassPrivate( const QUrl& uri )
+Nepomuk2::Types::ClassPrivate::ClassPrivate( const QUrl& uri )
     : EntityPrivate( uri ),
       propertiesAvailable( uri.isValid() ? -1 : 0 )
 {
 }
 
 
-bool Nepomuk::Types::ClassPrivate::load()
+bool Nepomuk2::Types::ClassPrivate::load()
 {
     //
     // Nearly all here can be done in a very clean way. There is only
@@ -66,7 +66,7 @@ bool Nepomuk::Types::ClassPrivate::load()
 }
 
 
-bool Nepomuk::Types::ClassPrivate::loadAncestors()
+bool Nepomuk2::Types::ClassPrivate::loadAncestors()
 {
     //
     // Nearly all here can be done in a very clean way. There is only
@@ -102,7 +102,7 @@ bool Nepomuk::Types::ClassPrivate::loadAncestors()
 }
 
 
-bool Nepomuk::Types::ClassPrivate::addProperty( const QUrl& property, const Soprano::Node& value )
+bool Nepomuk2::Types::ClassPrivate::addProperty( const QUrl& property, const Soprano::Node& value )
 {
     // we avoid subclassing loops (as created for crappy inferencing) by checking for our own uri
     if( value.isResource() && value.uri() == uri ) {
@@ -118,7 +118,7 @@ bool Nepomuk::Types::ClassPrivate::addProperty( const QUrl& property, const Sopr
 }
 
 
-bool Nepomuk::Types::ClassPrivate::addAncestorProperty( const QUrl& ancestorResource, const QUrl& property )
+bool Nepomuk2::Types::ClassPrivate::addAncestorProperty( const QUrl& ancestorResource, const QUrl& property )
 {
     // we avoid subclassing loops (as created for crappy inferencing) by checking for our own uri
     if ( property == Soprano::Vocabulary::RDFS::subClassOf() &&
@@ -131,7 +131,7 @@ bool Nepomuk::Types::ClassPrivate::addAncestorProperty( const QUrl& ancestorReso
 }
 
 
-void Nepomuk::Types::ClassPrivate::initProperties()
+void Nepomuk2::Types::ClassPrivate::initProperties()
 {
     QMutexLocker lock( &mutex );
 
@@ -141,7 +141,7 @@ void Nepomuk::Types::ClassPrivate::initProperties()
 }
 
 
-bool Nepomuk::Types::ClassPrivate::loadProperties()
+bool Nepomuk2::Types::ClassPrivate::loadProperties()
 {
     // load domains with a hack to get at least a subset of properties that inherit their domain from parents
     Soprano::QueryResultIterator it
@@ -193,7 +193,7 @@ bool Nepomuk::Types::ClassPrivate::loadProperties()
 }
 
 
-void Nepomuk::Types::ClassPrivate::reset( bool recursive )
+void Nepomuk2::Types::ClassPrivate::reset( bool recursive )
 {
     kDebug();
 
@@ -238,12 +238,12 @@ void Nepomuk::Types::ClassPrivate::reset( bool recursive )
 }
 
 
-QSet<Nepomuk::Types::Class> Nepomuk::Types::ClassPrivate::findParentClasses( ClassPrivate* requestingClass )
+QSet<Nepomuk2::Types::Class> Nepomuk2::Types::ClassPrivate::findParentClasses( ClassPrivate* requestingClass )
 {
     QSet<Class> allParents;
 
     for ( QList<Class>::iterator it = parents.begin(); it != parents.end(); ++it ) {
-        ClassPrivate* p = static_cast<Nepomuk::Types::ClassPrivate*>( it->d.data() );
+        ClassPrivate* p = static_cast<Nepomuk2::Types::ClassPrivate*>( it->d.data() );
         if ( p != requestingClass ) {
             p->init();
             allParents += p->findParentClasses( requestingClass );
@@ -255,12 +255,12 @@ QSet<Nepomuk::Types::Class> Nepomuk::Types::ClassPrivate::findParentClasses( Cla
 }
 
 
-QSet<Nepomuk::Types::Class> Nepomuk::Types::ClassPrivate::findSubClasses( ClassPrivate* requestingClass )
+QSet<Nepomuk2::Types::Class> Nepomuk2::Types::ClassPrivate::findSubClasses( ClassPrivate* requestingClass )
 {
     QSet<Class> allChildren;
 
     for ( QList<Class>::iterator it = children.begin(); it != children.end(); ++it ) {
-        ClassPrivate* p = static_cast<Nepomuk::Types::ClassPrivate*>( it->d.data() );
+        ClassPrivate* p = static_cast<Nepomuk2::Types::ClassPrivate*>( it->d.data() );
         if ( p != requestingClass ) {
             p->initAncestors();
             allChildren += p->findSubClasses( requestingClass );
@@ -273,75 +273,75 @@ QSet<Nepomuk::Types::Class> Nepomuk::Types::ClassPrivate::findSubClasses( ClassP
 
 
 
-Nepomuk::Types::Class::Class()
+Nepomuk2::Types::Class::Class()
     : Entity()
 {
     d = 0;
 }
 
 
-Nepomuk::Types::Class::Class( const QUrl& uri )
+Nepomuk2::Types::Class::Class( const QUrl& uri )
     : Entity()
 {
     d = EntityManager::self()->getClass( uri );
 }
 
 
-Nepomuk::Types::Class::Class( const Class& other )
+Nepomuk2::Types::Class::Class( const Class& other )
     : Entity( other )
 {
 }
 
 
-Nepomuk::Types::Class::~Class()
+Nepomuk2::Types::Class::~Class()
 {
 }
 
 
-Nepomuk::Types::Class& Nepomuk::Types::Class::operator=( const Class& other )
+Nepomuk2::Types::Class& Nepomuk2::Types::Class::operator=( const Class& other )
 {
     d = other.d;
     return *this;
 }
 
 
-QList<Nepomuk::Types::Property> Nepomuk::Types::Class::rangeOf()
+QList<Nepomuk2::Types::Property> Nepomuk2::Types::Class::rangeOf()
 {
     if ( d ) {
         D->initProperties();
         return D->rangeOf;
     }
     else {
-        return QList<Nepomuk::Types::Property>();
+        return QList<Nepomuk2::Types::Property>();
     }
 }
 
 
-QList<Nepomuk::Types::Property> Nepomuk::Types::Class::rangeOf() const
+QList<Nepomuk2::Types::Property> Nepomuk2::Types::Class::rangeOf() const
 {
     return const_cast<Class*>(this)->rangeOf();
 }
 
 
-QList<Nepomuk::Types::Property> Nepomuk::Types::Class::domainOf()
+QList<Nepomuk2::Types::Property> Nepomuk2::Types::Class::domainOf()
 {
     if ( d ) {
         D->initProperties();
         return D->domainOf;
     }
     else {
-        return QList<Nepomuk::Types::Property>();
+        return QList<Nepomuk2::Types::Property>();
     }
 }
 
 
-QList<Nepomuk::Types::Property> Nepomuk::Types::Class::domainOf() const
+QList<Nepomuk2::Types::Property> Nepomuk2::Types::Class::domainOf() const
 {
     return const_cast<Class*>(this)->domainOf();
 }
 
 
-Nepomuk::Types::Property Nepomuk::Types::Class::findPropertyByName( const QString& name )
+Nepomuk2::Types::Property Nepomuk2::Types::Class::findPropertyByName( const QString& name )
 {
     if ( d ) {
         D->initProperties();
@@ -358,13 +358,13 @@ Nepomuk::Types::Property Nepomuk::Types::Class::findPropertyByName( const QStrin
 }
 
 
-Nepomuk::Types::Property Nepomuk::Types::Class::findPropertyByName( const QString& name ) const
+Nepomuk2::Types::Property Nepomuk2::Types::Class::findPropertyByName( const QString& name ) const
 {
     return const_cast<Class*>(this)->findPropertyByName(name);
 }
 
 
-Nepomuk::Types::Property Nepomuk::Types::Class::findPropertyByLabel( const QString& label, const QString& language )
+Nepomuk2::Types::Property Nepomuk2::Types::Class::findPropertyByLabel( const QString& label, const QString& language )
 {
     if ( d ) {
         D->initProperties();
@@ -381,85 +381,85 @@ Nepomuk::Types::Property Nepomuk::Types::Class::findPropertyByLabel( const QStri
 }
 
 
-Nepomuk::Types::Property Nepomuk::Types::Class::findPropertyByLabel( const QString& label, const QString& language ) const
+Nepomuk2::Types::Property Nepomuk2::Types::Class::findPropertyByLabel( const QString& label, const QString& language ) const
 {
     return const_cast<Class*>(this)->findPropertyByLabel( label, language );
 }
 
 
-QList<Nepomuk::Types::Class> Nepomuk::Types::Class::parentClasses()
+QList<Nepomuk2::Types::Class> Nepomuk2::Types::Class::parentClasses()
 {
     if ( d ) {
         D->init();
         return D->parents;
     }
     else {
-        return QList<Nepomuk::Types::Class>();
+        return QList<Nepomuk2::Types::Class>();
     }
 }
 
 
-QList<Nepomuk::Types::Class> Nepomuk::Types::Class::parentClasses() const
+QList<Nepomuk2::Types::Class> Nepomuk2::Types::Class::parentClasses() const
 {
     return const_cast<Class*>(this)->parentClasses();
 }
 
 
-QList<Nepomuk::Types::Class> Nepomuk::Types::Class::subClasses()
+QList<Nepomuk2::Types::Class> Nepomuk2::Types::Class::subClasses()
 {
     if ( d ) {
         D->initAncestors();
         return D->children;
     }
     else {
-        return QList<Nepomuk::Types::Class>();
+        return QList<Nepomuk2::Types::Class>();
     }
 }
 
 
-QList<Nepomuk::Types::Class> Nepomuk::Types::Class::subClasses() const
+QList<Nepomuk2::Types::Class> Nepomuk2::Types::Class::subClasses() const
 {
     return const_cast<Class*>(this)->subClasses();
 }
 
 
-QList<Nepomuk::Types::Class> Nepomuk::Types::Class::allParentClasses()
+QList<Nepomuk2::Types::Class> Nepomuk2::Types::Class::allParentClasses()
 {
     if ( d ) {
         D->init();
         return D->findParentClasses( D ).toList();
     }
     else {
-        return QList<Nepomuk::Types::Class>();
+        return QList<Nepomuk2::Types::Class>();
     }
 }
 
 
-QList<Nepomuk::Types::Class> Nepomuk::Types::Class::allParentClasses() const
+QList<Nepomuk2::Types::Class> Nepomuk2::Types::Class::allParentClasses() const
 {
     return const_cast<Class*>(this)->allParentClasses();
 }
 
 
-QList<Nepomuk::Types::Class> Nepomuk::Types::Class::allSubClasses()
+QList<Nepomuk2::Types::Class> Nepomuk2::Types::Class::allSubClasses()
 {
     if ( d ) {
         D->initAncestors();
         return D->findSubClasses( D ).toList();
     }
     else {
-        return QList<Nepomuk::Types::Class>();
+        return QList<Nepomuk2::Types::Class>();
     }
 }
 
 
-QList<Nepomuk::Types::Class> Nepomuk::Types::Class::allSubClasses() const
+QList<Nepomuk2::Types::Class> Nepomuk2::Types::Class::allSubClasses() const
 {
     return const_cast<Class*>(this)->allSubClasses();
 }
 
 
-bool Nepomuk::Types::Class::isParentOf( const Class& other )
+bool Nepomuk2::Types::Class::isParentOf( const Class& other )
 {
     if ( d ) {
         D->initAncestors();
@@ -468,7 +468,7 @@ bool Nepomuk::Types::Class::isParentOf( const Class& other )
             return true;
         }
         else {
-            for ( QList<Nepomuk::Types::Class>::iterator it = D->children.begin();
+            for ( QList<Nepomuk2::Types::Class>::iterator it = D->children.begin();
                   it != D->children.end(); ++it ) {
                 if ( ( *it ).isParentOf( other ) ) {
                     return true;
@@ -481,13 +481,13 @@ bool Nepomuk::Types::Class::isParentOf( const Class& other )
 }
 
 
-bool Nepomuk::Types::Class::isParentOf( const Class& other ) const
+bool Nepomuk2::Types::Class::isParentOf( const Class& other ) const
 {
     return const_cast<Class*>(this)->isParentOf( other );
 }
 
 
-bool Nepomuk::Types::Class::isSubClassOf( const Class& other )
+bool Nepomuk2::Types::Class::isSubClassOf( const Class& other )
 {
     if ( d ) {
         D->init();
@@ -496,7 +496,7 @@ bool Nepomuk::Types::Class::isSubClassOf( const Class& other )
             return true;
         }
         else {
-            for ( QList<Nepomuk::Types::Class>::iterator it = D->parents.begin();
+            for ( QList<Nepomuk2::Types::Class>::iterator it = D->parents.begin();
                   it != D->parents.end(); ++it ) {
                 if ( ( *it ).isSubClassOf( other ) ) {
                     return true;
@@ -509,7 +509,7 @@ bool Nepomuk::Types::Class::isSubClassOf( const Class& other )
 }
 
 
-bool Nepomuk::Types::Class::isSubClassOf( const Class& other ) const
+bool Nepomuk2::Types::Class::isSubClassOf( const Class& other ) const
 {
     return const_cast<Class*>(this)->isSubClassOf( other );
 }

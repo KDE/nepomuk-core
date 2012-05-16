@@ -25,7 +25,7 @@
 #include <QtCore/QTime>
 
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Search {
         /*DateTimeParser parses a string to extract QDateTime object(s). It is (will be) capable of extracting:
           * fully qualified date times

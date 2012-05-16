@@ -28,7 +28,7 @@
 
 #include <QtCore/QDateTime>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
 class ClassAndPropertyTree;
 class ResourceMerger;
@@ -105,7 +105,7 @@ public Q_SLOTS:
      * other resources.
      */
     void removeResources(const QList<QUrl>& resources,
-                         Nepomuk::RemovalFlags flags,
+                         Nepomuk2::RemovalFlags flags,
                          const QString& app);
     //@}
 
@@ -154,8 +154,8 @@ public Q_SLOTS:
      */
     QHash<QUrl,QUrl> storeResources(const SimpleResourceGraph& resources,
                         const QString& app,
-                        Nepomuk::StoreIdentificationMode identificationMode = Nepomuk::IdentifyNew,
-                        Nepomuk::StoreResourcesFlags flags = Nepomuk::NoStoreResourcesFlags,
+                        Nepomuk2::StoreIdentificationMode identificationMode = Nepomuk2::IdentifyNew,
+                        Nepomuk2::StoreResourcesFlags flags = Nepomuk2::NoStoreResourcesFlags,
                         const QHash<QUrl, QVariant>& additionalMetadata = QHash<QUrl, QVariant>() );
 
     /**
@@ -186,8 +186,8 @@ public Q_SLOTS:
     void importResources(const QUrl& url, const QString& app,
                          Soprano::RdfSerialization serialization,
                          const QString& userSerialization = QString(),
-                         Nepomuk::StoreIdentificationMode identificationMode = Nepomuk::IdentifyNew,
-                         Nepomuk::StoreResourcesFlags flags = Nepomuk::NoStoreResourcesFlags,
+                         Nepomuk2::StoreIdentificationMode identificationMode = Nepomuk2::IdentifyNew,
+                         Nepomuk2::StoreResourcesFlags flags = Nepomuk2::NoStoreResourcesFlags,
                          const QHash<QUrl, QVariant>& additionalMetadata = QHash<QUrl, QVariant>());
 
     /**

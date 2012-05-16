@@ -31,7 +31,7 @@ namespace Soprano {
     class Model;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class Resource;
     class Variant;
     class ResourceManagerHelper;
@@ -267,12 +267,12 @@ namespace Nepomuk {
         void nepomukSystemStopped();
 
     private Q_SLOTS:
-        void slotPropertyAdded(const Nepomuk::Resource &res, const Nepomuk::Types::Property &prop, const QVariant &value);
-        void slotPropertyRemoved(const Nepomuk::Resource &res, const Nepomuk::Types::Property &prop, const QVariant &value);
+        void slotPropertyAdded(const Nepomuk2::Resource &res, const Nepomuk2::Types::Property &prop, const QVariant &value);
+        void slotPropertyRemoved(const Nepomuk2::Resource &res, const Nepomuk2::Types::Property &prop, const QVariant &value);
 
     private:
-        friend class Nepomuk::Resource;
-        friend class Nepomuk::ResourceManagerPrivate;
+        friend class Nepomuk2::Resource;
+        friend class Nepomuk2::ResourceManagerPrivate;
 
         ResourceManager();
         ~ResourceManager();

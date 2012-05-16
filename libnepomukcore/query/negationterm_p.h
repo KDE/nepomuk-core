@@ -24,7 +24,7 @@
 
 #include "simpleterm_p.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         class NegationTermPrivate : public SimpleTermPrivate
         {

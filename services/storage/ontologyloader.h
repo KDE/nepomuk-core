@@ -30,7 +30,7 @@ class KJob;
 
 
 // Hint: Using QString instead of QUrl for URIs since this API will be exported via DBus and not used otherwise
-namespace Nepomuk {
+namespace Nepomuk2 {
     class OntologyLoader : public QObject
     {
         Q_OBJECT

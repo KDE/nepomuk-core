@@ -41,44 +41,44 @@
 
 namespace {
     /// create a mapping from binding name to property
-    QHash<QString, QString> encodeRequestProperties( const QList<Nepomuk::Query::Query::RequestProperty>& rps )
+    QHash<QString, QString> encodeRequestProperties( const QList<Nepomuk2::Query::Query::RequestProperty>& rps )
     {
         QHash<QString, QString> encodedRps;
         int i = 1;
-        foreach( const Nepomuk::Query::Query::RequestProperty& rp, rps ) {
+        foreach( const Nepomuk2::Query::Query::RequestProperty& rp, rps ) {
             encodedRps.insert( QString( "reqProp%1" ).arg( i++ ), KUrl( rp.property().uri() ).url() );
         }
         return encodedRps;
     }
 
     /// create a mapping from binding name to property
-    QHash<QString, QString> encodeRequestProperties( const QHash<QString, Nepomuk::Types::Property>& rps )
+    QHash<QString, QString> encodeRequestProperties( const QHash<QString, Nepomuk2::Types::Property>& rps )
     {
         QHash<QString, QString> encodedRps;
-        for( QHash<QString, Nepomuk::Types::Property>::const_iterator it = rps.constBegin();
+        for( QHash<QString, Nepomuk2::Types::Property>::const_iterator it = rps.constBegin();
              it != rps.constEnd(); ++it ) {
             encodedRps.insert( it.key(), KUrl( it.value().uri() ).url() );
         }
         return encodedRps;
     }
 
-    NepomukResultListEventLoop::NepomukResultListEventLoop(Nepomuk::Query::QueryServiceClient* parent)
+    NepomukResultListEventLoop::NepomukResultListEventLoop(Nepomuk2::Query::QueryServiceClient* parent)
         : QEventLoop(parent)
     {
-        connect(parent, SIGNAL(newEntries(QList<Nepomuk::Query::Result>)),
-                this, SLOT(addEntries(QList<Nepomuk::Query::Result>)));
+        connect(parent, SIGNAL(newEntries(QList<Nepomuk2::Query::Result>)),
+                this, SLOT(addEntries(QList<Nepomuk2::Query::Result>)));
     }
 
     NepomukResultListEventLoop::~NepomukResultListEventLoop()
     {
     }
 
-    void NepomukResultListEventLoop::addEntries(const QList< Nepomuk::Query::Result >& entries)
+    void NepomukResultListEventLoop::addEntries(const QList< Nepomuk2::Query::Result >& entries)
     {
         m_result << entries;
     }
 
-    QList< Nepomuk::Query::Result > NepomukResultListEventLoop::result() const
+    QList< Nepomuk2::Query::Result > NepomukResultListEventLoop::result() const
     {
         return m_result;
     }
@@ -86,7 +86,7 @@ namespace {
 }
 
 
-class Nepomuk::Query::QueryServiceClient::Private
+class Nepomuk2::Query::QueryServiceClient::Private
 {
 public:
     Private()
@@ -119,7 +119,7 @@ public:
 };
 
 
-void Nepomuk::Query::QueryServiceClient::Private::_k_entriesRemoved( const QStringList& uris )
+void Nepomuk2::Query::QueryServiceClient::Private::_k_entriesRemoved( const QStringList& uris )
 {
     QList<QUrl> ul;
     foreach( const QString& s, uris ) {
@@ -129,7 +129,7 @@ void Nepomuk::Query::QueryServiceClient::Private::_k_entriesRemoved( const QStri
 }
 
 
-void Nepomuk::Query::QueryServiceClient::Private::_k_finishedListing()
+void Nepomuk2::Query::QueryServiceClient::Private::_k_finishedListing()
 {
     m_queryActive = false;
     emit q->finishedListing();
@@ -139,7 +139,7 @@ void Nepomuk::Query::QueryServiceClient::Private::_k_finishedListing()
 }
 
 
-void Nepomuk::Query::QueryServiceClient::Private::_k_handleQueryReply(QDBusPendingCallWatcher* watcher)
+void Nepomuk2::Query::QueryServiceClient::Private::_k_handleQueryReply(QDBusPendingCallWatcher* watcher)
 {
     QDBusPendingReply<QDBusObjectPath> reply = *watcher;
     if(reply.isError()) {
@@ -155,8 +155,8 @@ void Nepomuk::Query::QueryServiceClient::Private::_k_handleQueryReply(QDBusPendi
         queryInterface = new org::kde::nepomuk::Query( queryServiceInterface->service(),
                                                        reply.value().path(),
                                                        dbusConnection );
-        connect( queryInterface, SIGNAL( newEntries( QList<Nepomuk::Query::Result> ) ),
-                 q, SIGNAL( newEntries( QList<Nepomuk::Query::Result> ) ) );
+        connect( queryInterface, SIGNAL( newEntries( QList<Nepomuk2::Query::Result> ) ),
+                 q, SIGNAL( newEntries( QList<Nepomuk2::Query::Result> ) ) );
         connect( queryInterface, SIGNAL( resultCount(int) ),
                  q, SIGNAL( resultCount(int) ) );
         connect( queryInterface, SIGNAL( entriesRemoved( QStringList ) ),
@@ -172,7 +172,7 @@ void Nepomuk::Query::QueryServiceClient::Private::_k_handleQueryReply(QDBusPendi
 }
 
 
-void Nepomuk::Query::QueryServiceClient::Private::_k_serviceRegistered(const QString &service)
+void Nepomuk2::Query::QueryServiceClient::Private::_k_serviceRegistered(const QString &service)
 {
     if (service == "org.kde.nepomuk.services.nepomukqueryservice") {
         delete queryServiceInterface;
@@ -184,7 +184,7 @@ void Nepomuk::Query::QueryServiceClient::Private::_k_serviceRegistered(const QSt
 }
 
 
-void Nepomuk::Query::QueryServiceClient::Private::_k_serviceUnregistered(const QString &service)
+void Nepomuk2::Query::QueryServiceClient::Private::_k_serviceUnregistered(const QString &service)
 {
     if (service == "org.kde.nepomuk.services.nepomukqueryservice") {
         emit q->serviceAvailabilityChanged(false);
@@ -194,13 +194,13 @@ void Nepomuk::Query::QueryServiceClient::Private::_k_serviceUnregistered(const Q
 
 
 
-Nepomuk::Query::QueryServiceClient::QueryServiceClient( QObject* parent )
+Nepomuk2::Query::QueryServiceClient::QueryServiceClient( QObject* parent )
     : QObject( parent ),
       d( new Private() )
 {
     d->q = this;
 
-    Nepomuk::Query::registerDBusTypes();
+    Nepomuk2::Query::registerDBusTypes();
 
     // we use our own connection to be thread-safe
     d->queryServiceInterface = new org::kde::nepomuk::QueryService( "org.kde.nepomuk.services.nepomukqueryservice",
@@ -215,7 +215,7 @@ Nepomuk::Query::QueryServiceClient::QueryServiceClient( QObject* parent )
 }
 
 
-Nepomuk::Query::QueryServiceClient::~QueryServiceClient()
+Nepomuk2::Query::QueryServiceClient::~QueryServiceClient()
 {
     close();
     delete d->queryServiceInterface;
@@ -223,7 +223,7 @@ Nepomuk::Query::QueryServiceClient::~QueryServiceClient()
 }
 
 
-bool Nepomuk::Query::QueryServiceClient::query( const Query& query )
+bool Nepomuk2::Query::QueryServiceClient::query( const Query& query )
 {
     close();
 
@@ -243,7 +243,7 @@ bool Nepomuk::Query::QueryServiceClient::query( const Query& query )
 }
 
 
-bool Nepomuk::Query::QueryServiceClient::sparqlQuery( const QString& query, const QHash<QString, Nepomuk::Types::Property>& requestPropertyMap )
+bool Nepomuk2::Query::QueryServiceClient::sparqlQuery( const QString& query, const QHash<QString, Nepomuk2::Types::Property>& requestPropertyMap )
 {
     close();
 
@@ -264,7 +264,7 @@ bool Nepomuk::Query::QueryServiceClient::sparqlQuery( const QString& query, cons
 }
 
 
-bool Nepomuk::Query::QueryServiceClient::desktopQuery( const QString& query )
+bool Nepomuk2::Query::QueryServiceClient::desktopQuery( const QString& query )
 {
     close();
 
@@ -284,7 +284,7 @@ bool Nepomuk::Query::QueryServiceClient::desktopQuery( const QString& query )
 }
 
 
-bool Nepomuk::Query::QueryServiceClient::blockingQuery( const Query& q )
+bool Nepomuk2::Query::QueryServiceClient::blockingQuery( const Query& q )
 {
     if( query( q ) ) {
         QEventLoop loop;
@@ -300,7 +300,7 @@ bool Nepomuk::Query::QueryServiceClient::blockingQuery( const Query& q )
 }
 
 
-QList< Nepomuk::Query::Result > Nepomuk::Query::QueryServiceClient::syncQuery(const Query& q, bool* ok)
+QList< Nepomuk2::Query::Result > Nepomuk2::Query::QueryServiceClient::syncQuery(const Query& q, bool* ok)
 {
     QueryServiceClient qsc;
     if( qsc.query( q ) ) {
@@ -317,12 +317,12 @@ QList< Nepomuk::Query::Result > Nepomuk::Query::QueryServiceClient::syncQuery(co
         if (ok) {
             *ok = false;
         }
-        return QList< Nepomuk::Query::Result >();
+        return QList< Nepomuk2::Query::Result >();
     }
 }
 
 
-bool Nepomuk::Query::QueryServiceClient::blockingSparqlQuery( const QString& q, const QHash<QString, Nepomuk::Types::Property>& requestPropertyMap )
+bool Nepomuk2::Query::QueryServiceClient::blockingSparqlQuery( const QString& q, const QHash<QString, Nepomuk2::Types::Property>& requestPropertyMap )
 {
     if( sparqlQuery( q, requestPropertyMap ) ) {
         QEventLoop loop;
@@ -338,8 +338,8 @@ bool Nepomuk::Query::QueryServiceClient::blockingSparqlQuery( const QString& q, 
 }
 
 
-QList< Nepomuk::Query::Result > Nepomuk::Query::QueryServiceClient::syncSparqlQuery(const QString& q,
-                                                    const QHash<QString, Nepomuk::Types::Property>& requestPropertyMap,
+QList< Nepomuk2::Query::Result > Nepomuk2::Query::QueryServiceClient::syncSparqlQuery(const QString& q,
+                                                    const QHash<QString, Nepomuk2::Types::Property>& requestPropertyMap,
                                                     bool *ok)
 {
     QueryServiceClient qsc;
@@ -357,12 +357,12 @@ QList< Nepomuk::Query::Result > Nepomuk::Query::QueryServiceClient::syncSparqlQu
         if (ok) {
             *ok = false;
         }
-        return QList< Nepomuk::Query::Result >();
+        return QList< Nepomuk2::Query::Result >();
     }
 }
 
 
-bool Nepomuk::Query::QueryServiceClient::blockingDesktopQuery( const QString& q )
+bool Nepomuk2::Query::QueryServiceClient::blockingDesktopQuery( const QString& q )
 {
     if( desktopQuery( q ) ) {
         QEventLoop loop;
@@ -378,7 +378,7 @@ bool Nepomuk::Query::QueryServiceClient::blockingDesktopQuery( const QString& q 
 }
 
 
-QList< Nepomuk::Query::Result > Nepomuk::Query::QueryServiceClient::syncDesktopQuery(const QString& q, bool* ok)
+QList< Nepomuk2::Query::Result > Nepomuk2::Query::QueryServiceClient::syncDesktopQuery(const QString& q, bool* ok)
 {
     QueryServiceClient qsc;
     if( qsc.desktopQuery( q ) ) {
@@ -395,12 +395,12 @@ QList< Nepomuk::Query::Result > Nepomuk::Query::QueryServiceClient::syncDesktopQ
         if (ok) {
             *ok = false;
         }
-        return QList< Nepomuk::Query::Result >();
+        return QList< Nepomuk2::Query::Result >();
     }
 }
 
 
-void Nepomuk::Query::QueryServiceClient::close()
+void Nepomuk2::Query::QueryServiceClient::close()
 {
     // drop pending query calls
     // TODO: This could lead to dangling queries in the service when close is called before the pending call has returned!!!
@@ -421,19 +421,19 @@ void Nepomuk::Query::QueryServiceClient::close()
 }
 
 
-bool Nepomuk::Query::QueryServiceClient::isListingFinished() const
+bool Nepomuk2::Query::QueryServiceClient::isListingFinished() const
 {
     return !d->m_queryActive;
 }
 
 
-bool Nepomuk::Query::QueryServiceClient::serviceAvailable()
+bool Nepomuk2::Query::QueryServiceClient::serviceAvailable()
 {
     return QDBusConnection::sessionBus().interface()->isServiceRegistered( "org.kde.nepomuk.services.nepomukqueryservice" );
 }
 
 
-QString Nepomuk::Query::QueryServiceClient::errorMessage() const
+QString Nepomuk2::Query::QueryServiceClient::errorMessage() const
 {
     return d->m_errorMessage;
 }

@@ -48,11 +48,11 @@
     </method>
     <method name="storeResources">
       <arg name="resources" type="a(sa{sv})" direction="in"/>
-      <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="QList&lt;Nepomuk::SimpleResource&gt;"/>
+      <annotation name="com.trolltech.QtDBus.QtTypeName.In0" value="QList&lt;Nepomuk2::SimpleResource&gt;"/>
       <arg name="identificationMode" type="i" direction="in"/>
       <arg name="flags" type="i" direction="in"/>
       <arg name="additionalMetadata" type="a{sv}" direction="in"/>
-      <annotation name="com.trolltech.QtDBus.QtTypeName.In3" value="Nepomuk::PropertyHash"/>
+      <annotation name="com.trolltech.QtDBus.QtTypeName.In3" value="Nepomuk2::PropertyHash"/>
       <arg name="app" type="s" direction="in"/>
       <arg type="a{ss}" direction="out"/>
       <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="QHash&lt;QString, QString&gt;"/>
@@ -63,7 +63,7 @@
       <arg name="identificationMode" type="i" direction="in"/>
       <arg name="flags" type="i" direction="in"/>
       <arg name="additionalMetadata" type="a{sv}" direction="in"/>
-      <annotation name="com.trolltech.QtDBus.QtTypeName.In4" value="Nepomuk::PropertyHash"/>
+      <annotation name="com.trolltech.QtDBus.QtTypeName.In4" value="Nepomuk2::PropertyHash"/>
       <arg name="app" type="s" direction="in"/>
     </method>
     <method name="importResources">
@@ -83,7 +83,7 @@
       <arg name="flags" type="i" direction="in"/>
       <arg name="targetGroups" type="as" direction="in"/>
       <arg type="a(sa{sv})" direction="out"/>
-      <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="QList&lt;Nepomuk::SimpleResource&gt;"/>
+      <annotation name="com.trolltech.QtDBus.QtTypeName.Out0" value="QList&lt;Nepomuk2::SimpleResource&gt;"/>
     </method>
     <method name="exportResources">
       <arg name="resources" type="as" direction="in"/>

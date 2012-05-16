@@ -25,7 +25,7 @@
 #include <QObject>
 #include <QStringList>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 class RemovableMediaModel;
 }
 namespace Soprano {
@@ -50,7 +50,7 @@ private Q_SLOTS:
 
 private:
     Soprano::Model* m_model;
-    Nepomuk::RemovableMediaModel* m_rmModel;
+    Nepomuk2::RemovableMediaModel* m_rmModel;
 };
 
 #endif

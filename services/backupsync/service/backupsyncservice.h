@@ -25,7 +25,7 @@
 
 #include "nepomukservice.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class DiffGenerator;
 

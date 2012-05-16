@@ -33,7 +33,7 @@
 #include <KDebug>
 
 
-Nepomuk::MetadataMover::MetadataMover( Soprano::Model* model, QObject* parent )
+Nepomuk2::MetadataMover::MetadataMover( Soprano::Model* model, QObject* parent )
     : QObject( parent ),
       m_queueMutex(QMutex::Recursive),
       m_model( model )
@@ -53,12 +53,12 @@ Nepomuk::MetadataMover::MetadataMover( Soprano::Model* model, QObject* parent )
 }
 
 
-Nepomuk::MetadataMover::~MetadataMover()
+Nepomuk2::MetadataMover::~MetadataMover()
 {
 }
 
 
-void Nepomuk::MetadataMover::moveFileMetadata( const KUrl& from, const KUrl& to )
+void Nepomuk2::MetadataMover::moveFileMetadata( const KUrl& from, const KUrl& to )
 {
 //    kDebug() << from << to;
     Q_ASSERT( !from.path().isEmpty() && from.path() != "/" );
@@ -75,14 +75,14 @@ void Nepomuk::MetadataMover::moveFileMetadata( const KUrl& from, const KUrl& to 
 }
 
 
-void Nepomuk::MetadataMover::removeFileMetadata( const KUrl& file )
+void Nepomuk2::MetadataMover::removeFileMetadata( const KUrl& file )
 {
     Q_ASSERT( !file.path().isEmpty() && file.path() != "/" );
     removeFileMetadata( KUrl::List() << file );
 }
 
 
-void Nepomuk::MetadataMover::removeFileMetadata( const KUrl::List& files )
+void Nepomuk2::MetadataMover::removeFileMetadata( const KUrl::List& files )
 {
     kDebug() << files;
     QMutexLocker lock(&m_queueMutex);
@@ -98,7 +98,7 @@ void Nepomuk::MetadataMover::removeFileMetadata( const KUrl::List& files )
 }
 
 
-void Nepomuk::MetadataMover::slotWorkUpdateQueue()
+void Nepomuk2::MetadataMover::slotWorkUpdateQueue()
 {
     // lock for initial iteration
     QMutexLocker lock(&m_queueMutex);
@@ -138,7 +138,7 @@ void Nepomuk::MetadataMover::slotWorkUpdateQueue()
 }
 
 
-void Nepomuk::MetadataMover::removeMetadata( const KUrl& url )
+void Nepomuk2::MetadataMover::removeMetadata( const KUrl& url )
 {
 //    kDebug() << url;
 
@@ -147,7 +147,7 @@ void Nepomuk::MetadataMover::removeMetadata( const KUrl& url )
     }
     else {
         const bool isFolder = url.url().endsWith('/');
-        Nepomuk::removeResources(QList<QUrl>() << url);
+        Nepomuk2::removeResources(QList<QUrl>() << url);
 
         if( isFolder ) {
             //
@@ -162,7 +162,7 @@ void Nepomuk::MetadataMover::removeMetadata( const KUrl& url )
                                                     "?r %1 ?url . "
                                                     "FILTER(REGEX(STR(?url),'^%2')) . "
                                                     "}" )
-                                .arg( Soprano::Node::resourceToN3( Nepomuk::Vocabulary::NIE::url() ),
+                                .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ),
                                         url.url(KUrl::AddTrailingSlash) );
 
             //
@@ -178,7 +178,7 @@ void Nepomuk::MetadataMover::removeMetadata( const KUrl& url )
                     urls << it[0].uri();
                 }
                 if ( !urls.isEmpty() ) {
-                    Nepomuk::removeResources(urls);
+                    Nepomuk2::removeResources(urls);
                 }
                 else {
                     break;
@@ -189,14 +189,14 @@ void Nepomuk::MetadataMover::removeMetadata( const KUrl& url )
 }
 
 
-void Nepomuk::MetadataMover::updateMetadata( const KUrl& from, const KUrl& to )
+void Nepomuk2::MetadataMover::updateMetadata( const KUrl& from, const KUrl& to )
 {
     kDebug() << from << "->" << to;
 
     if ( m_model->executeQuery(QString::fromLatin1("ask where { { %1 ?p ?o . } UNION { ?r nie:url %1 . } . }")
                                .arg(Soprano::Node::resourceToN3(from)),
                                Soprano::Query::QueryLanguageSparql).boolValue() ) {
-        Nepomuk::setProperty(QList<QUrl>() << from, Nepomuk::Vocabulary::NIE::url(), QVariantList() << to);
+        Nepomuk2::setProperty(QList<QUrl>() << from, Nepomuk2::Vocabulary::NIE::url(), QVariantList() << to);
     }
     else {
         //
@@ -209,7 +209,7 @@ void Nepomuk::MetadataMover::updateMetadata( const KUrl& from, const KUrl& to )
 
 
 // removes all finished requests older than 1 minute
-void Nepomuk::MetadataMover::slotClearRecentlyFinishedRequests()
+void Nepomuk2::MetadataMover::slotClearRecentlyFinishedRequests()
 {
     QMutexLocker lock( &m_queueMutex );
     QSet<UpdateRequest>::iterator it = m_recentlyFinishedRequests.begin();
@@ -231,7 +231,7 @@ void Nepomuk::MetadataMover::slotClearRecentlyFinishedRequests()
 
 
 // start the timer in the update thread
-void Nepomuk::MetadataMover::slotStartUpdateTimer()
+void Nepomuk2::MetadataMover::slotStartUpdateTimer()
 {
     if(!m_queueTimer->isActive()) {
         m_queueTimer->start();

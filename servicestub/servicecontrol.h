@@ -23,7 +23,7 @@
 
 #include <KService>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class Service;
 
     class ServiceControl : public QObject
@@ -59,7 +59,7 @@ namespace Nepomuk {
 	QString m_description;
 	QString m_readableName;
         KService::Ptr m_service;
-        Nepomuk::Service* m_nepomukServiceModule;
+        Nepomuk2::Service* m_nepomukServiceModule;
         bool m_initialized;
     };
 }

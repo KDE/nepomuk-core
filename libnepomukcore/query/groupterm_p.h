@@ -24,7 +24,7 @@
 
 #include "term_p.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         class GroupTermPrivate : public TermPrivate
         {

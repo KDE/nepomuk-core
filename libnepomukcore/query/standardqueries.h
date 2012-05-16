@@ -27,7 +27,7 @@
 
 class QDate;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         class Query;
 
@@ -137,6 +137,6 @@ namespace Nepomuk {
     }
 }
 
-Q_DECLARE_OPERATORS_FOR_FLAGS( Nepomuk::Query::DateRangeFlags )
+Q_DECLARE_OPERATORS_FOR_FLAGS( Nepomuk2::Query::DateRangeFlags )
 
 #endif

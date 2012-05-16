@@ -29,7 +29,7 @@
 #include "entity.h"
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Types {
 
         class Class;

@@ -26,7 +26,7 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
          * \class OrTerm orterm.h Nepomuk2/Query/OrTerm

@@ -34,7 +34,7 @@ namespace KIO {
     class Job;
 }
 
-namespace Nepomuk
+namespace Nepomuk2
 {
 
     /**

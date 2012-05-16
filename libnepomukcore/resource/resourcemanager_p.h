@@ -35,20 +35,20 @@ namespace Soprano {
 }
 
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class ResourceManager;
     class MainModel;
     class ResourceWatcher;
 
-    typedef QHash<KUrl, Nepomuk::ResourceData*> ResourceDataHash;
+    typedef QHash<KUrl, Nepomuk2::ResourceData*> ResourceDataHash;
 
     class ResourceManagerPrivate
     {
     public:
         ResourceManagerPrivate( ResourceManager* manager );
 
-        Nepomuk::MainModel* mainModel;
+        Nepomuk2::MainModel* mainModel;
         Soprano::Model* overrideModel;
 
         /// used to protect the initialization

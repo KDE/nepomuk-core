@@ -28,7 +28,7 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class Variant;
 
@@ -577,17 +577,17 @@ namespace Nepomuk {
          */
         NEPOMUK_EXPORT Term operator!=( const Types::Property& property, const Term& term );
 
-        NEPOMUK_EXPORT uint qHash( const Nepomuk::Query::Term& );
+        NEPOMUK_EXPORT uint qHash( const Nepomuk2::Query::Term& );
     }
 
 }
 
 /** \cond hide_nepomuk_term_clone_from_doxygen */
 // there is a hand written instantiation of clone()
-template<> Nepomuk::Query::TermPrivate* QSharedDataPointer<Nepomuk::Query::TermPrivate>::clone();
+template<> Nepomuk2::Query::TermPrivate* QSharedDataPointer<Nepomuk2::Query::TermPrivate>::clone();
 /** \endcond */
 
 // FIXME: the compiler does not find the operator in the class
-NEPOMUK_EXPORT QDebug operator<<( QDebug, const Nepomuk::Query::Term& );
+NEPOMUK_EXPORT QDebug operator<<( QDebug, const Nepomuk2::Query::Term& );
 
 #endif

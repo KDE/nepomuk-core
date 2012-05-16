@@ -29,16 +29,16 @@
 #include <Soprano/BindingSet>
 
 
-void Nepomuk::Query::registerDBusTypes()
+void Nepomuk2::Query::registerDBusTypes()
 {
-    qDBusRegisterMetaType<Nepomuk::Query::Result>();
-    qDBusRegisterMetaType<QList<Nepomuk::Query::Result> >();
+    qDBusRegisterMetaType<Nepomuk2::Query::Result>();
+    qDBusRegisterMetaType<QList<Nepomuk2::Query::Result> >();
     qDBusRegisterMetaType<Soprano::Node>();
     qDBusRegisterMetaType<RequestPropertyMapDBus>();
 }
 
 
-QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk::Query::Result& result )
+QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk2::Query::Result& result )
 {
     //
     // Signature: (sda{s(isss)}a{s(isss)}s)
@@ -51,8 +51,8 @@ QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk::Query::Result& res
 
     // request properties
     arg.beginMap( QVariant::String, qMetaTypeId<Soprano::Node>() );
-    QHash<Nepomuk::Types::Property, Soprano::Node> rp = result.requestProperties();
-    for ( QHash<Nepomuk::Types::Property, Soprano::Node>::const_iterator it = rp.constBegin(); it != rp.constEnd(); ++it ) {
+    QHash<Nepomuk2::Types::Property, Soprano::Node> rp = result.requestProperties();
+    for ( QHash<Nepomuk2::Types::Property, Soprano::Node>::const_iterator it = rp.constBegin(); it != rp.constEnd(); ++it ) {
         arg.beginMapEntry();
         arg << QString::fromAscii( it.key().uri().toEncoded() ) << it.value();
         arg.endMapEntry();
@@ -78,7 +78,7 @@ QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk::Query::Result& res
 }
 
 
-const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk::Query::Result& result )
+const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk2::Query::Result& result )
 {
     //
     // Signature: (sda{s(isss)}s)
@@ -89,7 +89,7 @@ const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk::Query::Resul
     double score = 0.0;
 
     arg >> uri >> score;
-    result = Nepomuk::Query::Result( Nepomuk::Resource::fromResourceUri( QUrl::fromEncoded( uri.toAscii() ) ), score );
+    result = Nepomuk2::Query::Result( Nepomuk2::Resource::fromResourceUri( QUrl::fromEncoded( uri.toAscii() ) ), score );
 
     arg.beginMap();
     while ( !arg.atEnd() ) {

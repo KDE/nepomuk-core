@@ -24,7 +24,7 @@
 
 #include <QtCore/QStringList>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class OntologyLoader;
 
     class Core : public Soprano::Server::ServerCore

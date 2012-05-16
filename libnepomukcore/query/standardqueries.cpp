@@ -37,11 +37,11 @@
 #include <QtCore/QDate>
 
 
-Nepomuk::Query::Query Nepomuk::Query::standardQuery( StandardQuery query, const Term& /*subterm*/ )
+Nepomuk2::Query::Query Nepomuk2::Query::standardQuery( StandardQuery query, const Term& /*subterm*/ )
 {
     switch( query ) {
     case LastModifiedFilesQuery: {
-        ComparisonTerm lastModifiedTerm( Nepomuk::Vocabulary::NIE::lastModified(), Term() );
+        ComparisonTerm lastModifiedTerm( Nepomuk2::Vocabulary::NIE::lastModified(), Term() );
         lastModifiedTerm.setSortWeight( 1, Qt::DescendingOrder );
         FileQuery lastModifiedQuery( lastModifiedTerm );
         return lastModifiedQuery;
@@ -60,12 +60,12 @@ Nepomuk::Query::Query Nepomuk::Query::standardQuery( StandardQuery query, const 
         // 2. no property at all
         OrTerm usageCntTerm(
             ComparisonTerm(
-                Nepomuk::Vocabulary::NUAO::usageCount(),
+                Nepomuk2::Vocabulary::NUAO::usageCount(),
                 LiteralTerm( 0 ),
                 ComparisonTerm::Equal ),
             NegationTerm::negateTerm(
                 ComparisonTerm(
-                    Nepomuk::Vocabulary::NUAO::usageCount(),
+                    Nepomuk2::Vocabulary::NUAO::usageCount(),
                     Term() ) ) );
 
         // Before we had the data management service there was no usage count
@@ -74,7 +74,7 @@ Nepomuk::Query::Query Nepomuk::Query::standardQuery( StandardQuery query, const 
         // However, by default we only show the top 10 results. Thus, in the
         // worst case this query will return the same as lastModifiedFilesQuery().
         ComparisonTerm modDateTerm(
-            Nepomuk::Vocabulary::NIE::lastModified(),
+            Nepomuk2::Vocabulary::NIE::lastModified(),
             Term() );
         modDateTerm.setSortWeight( 1, Qt::DescendingOrder );
 
@@ -94,7 +94,7 @@ Nepomuk::Query::Query Nepomuk::Query::standardQuery( StandardQuery query, const 
 }
 
 
-Nepomuk::Query::Query Nepomuk::Query::dateRangeQuery( const QDate& start, const QDate& end, DateRangeFlags dateFlags )
+Nepomuk2::Query::Query Nepomuk2::Query::dateRangeQuery( const QDate& start, const QDate& end, DateRangeFlags dateFlags )
 {
     // create our range
     const LiteralTerm dateFrom( QDateTime( start, QTime( 0,0,0 ) ) );
@@ -104,8 +104,8 @@ Nepomuk::Query::Query Nepomuk::Query::dateRangeQuery( const QDate& start, const 
 
     if( dateFlags & ModificationDate ) {
         // include files modified in our date range
-        ComparisonTerm lastModifiedStart = Nepomuk::Vocabulary::NIE::lastModified() > dateFrom;
-        ComparisonTerm lastModifiedEnd = Nepomuk::Vocabulary::NIE::lastModified() < dateTo;
+        ComparisonTerm lastModifiedStart = Nepomuk2::Vocabulary::NIE::lastModified() > dateFrom;
+        ComparisonTerm lastModifiedEnd = Nepomuk2::Vocabulary::NIE::lastModified() < dateTo;
         if( start.isValid() && end.isValid() )
             query = query || ( lastModifiedStart && lastModifiedEnd );
         else if( start.isValid() )
@@ -116,8 +116,8 @@ Nepomuk::Query::Query Nepomuk::Query::dateRangeQuery( const QDate& start, const 
 
     if( dateFlags & ContentDate ) {
         // include files created (as in photos taken) in our data range
-        ComparisonTerm contentCreatedStart = Nepomuk::Vocabulary::NIE::contentCreated() > dateFrom;
-        ComparisonTerm contentCreatedEnd = Nepomuk::Vocabulary::NIE::contentCreated() < dateTo;
+        ComparisonTerm contentCreatedStart = Nepomuk2::Vocabulary::NIE::contentCreated() > dateFrom;
+        ComparisonTerm contentCreatedEnd = Nepomuk2::Vocabulary::NIE::contentCreated() < dateTo;
         if( start.isValid() && end.isValid() )
             query = query || ( contentCreatedStart && contentCreatedEnd );
         else if( start.isValid() )
@@ -129,9 +129,9 @@ Nepomuk::Query::Query Nepomuk::Query::dateRangeQuery( const QDate& start, const 
     if( dateFlags & UsageDate ) {
         // include files opened (and optionally modified) in our date range
         // TODO: also take the end of the event into account
-        ComparisonTerm accessEventStart = Nepomuk::Vocabulary::NUAO::start() > dateFrom;
-        ComparisonTerm accessEventEnd = Nepomuk::Vocabulary::NUAO::start() < dateTo;
-        ComparisonTerm accessEventCondition( Nepomuk::Vocabulary::NUAO::involves(), Term() );
+        ComparisonTerm accessEventStart = Nepomuk2::Vocabulary::NUAO::start() > dateFrom;
+        ComparisonTerm accessEventEnd = Nepomuk2::Vocabulary::NUAO::start() < dateTo;
+        ComparisonTerm accessEventCondition( Nepomuk2::Vocabulary::NUAO::involves(), Term() );
         if( start.isValid() && end.isValid() )
             accessEventCondition.setSubTerm( accessEventStart && accessEventEnd );
         else if( start.isValid() )

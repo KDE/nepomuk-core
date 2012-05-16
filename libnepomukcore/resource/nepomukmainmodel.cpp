@@ -120,7 +120,7 @@ private:
 K_GLOBAL_STATIC( GlobalModelContainer, s_modelContainer )
 
 
-class Nepomuk::MainModel::Private
+class Nepomuk2::MainModel::Private
 {
 public:
     Private( MainModel* p )
@@ -132,7 +132,7 @@ private:
 };
 
 
-Nepomuk::MainModel::MainModel( QObject* parent )
+Nepomuk2::MainModel::MainModel( QObject* parent )
     : Soprano::Model(),
       d( new Private(this) )
 {
@@ -141,26 +141,26 @@ Nepomuk::MainModel::MainModel( QObject* parent )
 }
 
 
-Nepomuk::MainModel::~MainModel()
+Nepomuk2::MainModel::~MainModel()
 {
     delete d;
 }
 
 
-bool Nepomuk::MainModel::isValid() const
+bool Nepomuk2::MainModel::isValid() const
 {
     return s_modelContainer->localSocketClient.isConnected();
 }
 
 
-bool Nepomuk::MainModel::init()
+bool Nepomuk2::MainModel::init()
 {
     s_modelContainer->init( true );
     return isValid();
 }
 
 
-Soprano::StatementIterator Nepomuk::MainModel::listStatements( const Statement& partial ) const
+Soprano::StatementIterator Nepomuk2::MainModel::listStatements( const Statement& partial ) const
 {
     Soprano::StatementIterator it = s_modelContainer->model()->listStatements( partial );
     setError( s_modelContainer->model()->lastError() );
@@ -168,7 +168,7 @@ Soprano::StatementIterator Nepomuk::MainModel::listStatements( const Statement& 
 }
 
 
-Soprano::NodeIterator Nepomuk::MainModel::listContexts() const
+Soprano::NodeIterator Nepomuk2::MainModel::listContexts() const
 {
     Soprano::NodeIterator it = s_modelContainer->model()->listContexts();
     setError( s_modelContainer->model()->lastError() );
@@ -176,7 +176,7 @@ Soprano::NodeIterator Nepomuk::MainModel::listContexts() const
 }
 
 
-Soprano::QueryResultIterator Nepomuk::MainModel::executeQuery( const QString& query,
+Soprano::QueryResultIterator Nepomuk2::MainModel::executeQuery( const QString& query,
                                                                Soprano::Query::QueryLanguage language,
                                                                const QString& userQueryLanguage ) const
 {
@@ -186,7 +186,7 @@ Soprano::QueryResultIterator Nepomuk::MainModel::executeQuery( const QString& qu
 }
 
 
-bool Nepomuk::MainModel::containsStatement( const Statement& statement ) const
+bool Nepomuk2::MainModel::containsStatement( const Statement& statement ) const
 {
     bool b = s_modelContainer->model()->containsStatement( statement );
     setError( s_modelContainer->model()->lastError() );
@@ -194,7 +194,7 @@ bool Nepomuk::MainModel::containsStatement( const Statement& statement ) const
 }
 
 
-bool Nepomuk::MainModel::containsAnyStatement( const Statement &statement ) const
+bool Nepomuk2::MainModel::containsAnyStatement( const Statement &statement ) const
 {
     bool b = s_modelContainer->model()->containsAnyStatement( statement );
     setError( s_modelContainer->model()->lastError() );
@@ -202,7 +202,7 @@ bool Nepomuk::MainModel::containsAnyStatement( const Statement &statement ) cons
 }
 
 
-bool Nepomuk::MainModel::isEmpty() const
+bool Nepomuk2::MainModel::isEmpty() const
 {
     bool b = s_modelContainer->model()->isEmpty();
     setError( s_modelContainer->model()->lastError() );
@@ -210,7 +210,7 @@ bool Nepomuk::MainModel::isEmpty() const
 }
 
 
-int Nepomuk::MainModel::statementCount() const
+int Nepomuk2::MainModel::statementCount() const
 {
     int c = s_modelContainer->model()->statementCount();
     setError( s_modelContainer->model()->lastError() );
@@ -218,7 +218,7 @@ int Nepomuk::MainModel::statementCount() const
 }
 
 
-Soprano::Error::ErrorCode Nepomuk::MainModel::addStatement( const Statement& statement )
+Soprano::Error::ErrorCode Nepomuk2::MainModel::addStatement( const Statement& statement )
 {
     Soprano::Error::ErrorCode c = s_modelContainer->model()->addStatement( statement );
     setError( s_modelContainer->model()->lastError() );
@@ -226,7 +226,7 @@ Soprano::Error::ErrorCode Nepomuk::MainModel::addStatement( const Statement& sta
 }
 
 
-Soprano::Error::ErrorCode Nepomuk::MainModel::removeStatement( const Statement& statement )
+Soprano::Error::ErrorCode Nepomuk2::MainModel::removeStatement( const Statement& statement )
 {
     Soprano::Error::ErrorCode c = s_modelContainer->model()->removeStatement( statement );
     setError( s_modelContainer->model()->lastError() );
@@ -234,7 +234,7 @@ Soprano::Error::ErrorCode Nepomuk::MainModel::removeStatement( const Statement& 
 }
 
 
-Soprano::Error::ErrorCode Nepomuk::MainModel::removeAllStatements( const Statement& statement )
+Soprano::Error::ErrorCode Nepomuk2::MainModel::removeAllStatements( const Statement& statement )
 {
     Soprano::Error::ErrorCode c = s_modelContainer->model()->removeAllStatements( statement );
     setError( s_modelContainer->model()->lastError() );
@@ -242,7 +242,7 @@ Soprano::Error::ErrorCode Nepomuk::MainModel::removeAllStatements( const Stateme
 }
 
 
-Soprano::Node Nepomuk::MainModel::createBlankNode()
+Soprano::Node Nepomuk2::MainModel::createBlankNode()
 {
     Soprano::Node n = s_modelContainer->model()->createBlankNode();
     setError( s_modelContainer->model()->lastError() );

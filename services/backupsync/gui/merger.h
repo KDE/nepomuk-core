@@ -34,7 +34,7 @@ namespace Soprano {
     class Model;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class ResourceManager;
     class ChangeLog;
@@ -52,7 +52,7 @@ namespace Nepomuk {
         static Merger* instance();
 
     public Q_SLOTS:
-        int process( const Nepomuk::ChangeLog & logFile );
+        int process( const Nepomuk2::ChangeLog & logFile );
 
     Q_SIGNALS:
         void completed( int percent );

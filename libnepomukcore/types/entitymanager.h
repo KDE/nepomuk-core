@@ -30,7 +30,7 @@ namespace Soprano {
     class Statement;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Types {
         class EntityPrivate;
         class ClassPrivate;

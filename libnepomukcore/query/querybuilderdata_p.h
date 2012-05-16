@@ -54,7 +54,7 @@ QStringList stripExtendedCharsHack(const QStringList& terms) {
 }
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         class QueryBuilderData
         {

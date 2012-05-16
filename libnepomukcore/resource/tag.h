@@ -24,7 +24,7 @@
 #include "resource.h"
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     /**
      * \class Tag tag.h Nepomuk2/Tag

@@ -21,22 +21,22 @@
 
 #include "nepomukversion.h"
 
-unsigned int Nepomuk::versionMajor()
+unsigned int Nepomuk2::versionMajor()
 {
     return NEPOMUK_VERSION_MAJOR;
 }
 
-unsigned int Nepomuk::versionMinor()
+unsigned int Nepomuk2::versionMinor()
 {
     return NEPOMUK_VERSION_MINOR;
 }
 
-unsigned int Nepomuk::versionRelease()
+unsigned int Nepomuk2::versionRelease()
 {
     return NEPOMUK_VERSION_RELEASE;
 }
 
-const char* Nepomuk::versionString()
+const char* Nepomuk2::versionString()
 {
     return NEPOMUK_VERSION_STRING;
 }

@@ -32,7 +32,7 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
 typedef QMultiHash<QUrl, QVariant> PropertyHash;
 
@@ -180,15 +180,15 @@ private:
     QSharedDataPointer<Private> d;
 };
 
-NEPOMUK_EXPORT QDataStream & operator<<(QDataStream &, const Nepomuk::SimpleResource& );
-NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk::SimpleResource& );
-NEPOMUK_EXPORT QDebug operator<<(QDebug dbg, const Nepomuk::SimpleResource& res);
-NEPOMUK_EXPORT QDataStream & operator<<(QDataStream &, const Nepomuk::SimpleResource& );
-NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk::SimpleResource& );
+NEPOMUK_EXPORT QDataStream & operator<<(QDataStream &, const Nepomuk2::SimpleResource& );
+NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk2::SimpleResource& );
+NEPOMUK_EXPORT QDebug operator<<(QDebug dbg, const Nepomuk2::SimpleResource& res);
+NEPOMUK_EXPORT QDataStream & operator<<(QDataStream &, const Nepomuk2::SimpleResource& );
+NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk2::SimpleResource& );
 
 NEPOMUK_EXPORT uint qHash(const SimpleResource& res);
 }
 
-Q_DECLARE_TYPEINFO(Nepomuk::SimpleResource, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(Nepomuk2::SimpleResource, Q_MOVABLE_TYPE);
 
 #endif

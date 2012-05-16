@@ -44,7 +44,7 @@
 #include <stdio.h>
 
 using namespace Soprano;
-using namespace Nepomuk;
+using namespace Nepomuk2;
 
 namespace {
 #ifndef Q_OS_WIN
@@ -83,9 +83,9 @@ FakeDataManagementService::FakeDataManagementService(QObject *parent)
 
     // create the data management service stack connected to the fake storage
     m_nrlModel = new Soprano::NRLModel(m_model);
-    m_classAndPropertyTree = new Nepomuk::ClassAndPropertyTree(this);
-    m_dmModel = new Nepomuk::DataManagementModel(m_classAndPropertyTree, m_nrlModel);
-    m_dmAdaptor = new Nepomuk::DataManagementAdaptor(m_dmModel);
+    m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
+    m_dmModel = new Nepomuk2::DataManagementModel(m_classAndPropertyTree, m_nrlModel);
+    m_dmAdaptor = new Nepomuk2::DataManagementAdaptor(m_dmModel);
 
     // register the adaptor
     QDBusConnection::sessionBus().registerObject(QLatin1String("/datamanagement"), m_dmAdaptor, QDBusConnection::ExportScriptableContents);

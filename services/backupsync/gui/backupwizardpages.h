@@ -40,7 +40,7 @@
 #include "ui_restorefinal.h"
 #include "ui_errorpage.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class BackupWizard;
 

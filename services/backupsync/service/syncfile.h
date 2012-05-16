@@ -31,7 +31,7 @@ namespace Soprano {
     class Model;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
         
     class ChangeLog;
     class IdentificationSet;
@@ -77,12 +77,12 @@ namespace Nepomuk {
         *
         * \param model The model which should be queried to get the identifying Properties
         */
-        SyncFile( const Nepomuk::ChangeLog& log, Soprano::Model* model = ResourceManager::instance()->mainModel());
+        SyncFile( const Nepomuk2::ChangeLog& log, Soprano::Model* model = ResourceManager::instance()->mainModel());
 
         /**
         * Convenience function to create a SyncFile froma a ChangeLog and IdentificationSet
         */
-        SyncFile( const Nepomuk::ChangeLog& log, const Nepomuk::IdentificationSet& ident );
+        SyncFile( const Nepomuk2::ChangeLog& log, const Nepomuk2::IdentificationSet& ident );
 
         /**
         * Loads the ChangeLog present at \p changeLogUrl and the IdentificationSet present at

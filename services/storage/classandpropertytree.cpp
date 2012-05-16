@@ -44,9 +44,9 @@
 using namespace Soprano;
 using namespace Soprano::Vocabulary;
 
-Nepomuk::ClassAndPropertyTree* Nepomuk::ClassAndPropertyTree::s_self = 0;
+Nepomuk2::ClassAndPropertyTree* Nepomuk2::ClassAndPropertyTree::s_self = 0;
 
-class Nepomuk::ClassAndPropertyTree::ClassOrProperty
+class Nepomuk2::ClassAndPropertyTree::ClassOrProperty
 {
 public:
     ClassOrProperty()
@@ -78,7 +78,7 @@ public:
     QUrl range;
 };
 
-Nepomuk::ClassAndPropertyTree::ClassAndPropertyTree(QObject *parent)
+Nepomuk2::ClassAndPropertyTree::ClassAndPropertyTree(QObject *parent)
     : QObject(parent),
       m_mutex(QMutex::Recursive)
 {
@@ -86,13 +86,13 @@ Nepomuk::ClassAndPropertyTree::ClassAndPropertyTree(QObject *parent)
     s_self = this;
 }
 
-Nepomuk::ClassAndPropertyTree::~ClassAndPropertyTree()
+Nepomuk2::ClassAndPropertyTree::~ClassAndPropertyTree()
 {
     qDeleteAll(m_tree);
     s_self = 0;
 }
 
-bool Nepomuk::ClassAndPropertyTree::isKnownClass(const QUrl &uri) const
+bool Nepomuk2::ClassAndPropertyTree::isKnownClass(const QUrl &uri) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(uri))
@@ -101,7 +101,7 @@ bool Nepomuk::ClassAndPropertyTree::isKnownClass(const QUrl &uri) const
         return false;
 }
 
-QSet<QUrl> Nepomuk::ClassAndPropertyTree::allParents(const QUrl &uri) const
+QSet<QUrl> Nepomuk2::ClassAndPropertyTree::allParents(const QUrl &uri) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(uri))
@@ -110,7 +110,7 @@ QSet<QUrl> Nepomuk::ClassAndPropertyTree::allParents(const QUrl &uri) const
         return QSet<QUrl>();
 }
 
-bool Nepomuk::ClassAndPropertyTree::isChildOf(const QUrl &type, const QUrl &superClass) const
+bool Nepomuk2::ClassAndPropertyTree::isChildOf(const QUrl &type, const QUrl &superClass) const
 {
     if( type == superClass )
         return true;
@@ -122,7 +122,7 @@ bool Nepomuk::ClassAndPropertyTree::isChildOf(const QUrl &type, const QUrl &supe
         return 0;
 }
 
-bool Nepomuk::ClassAndPropertyTree::isChildOf(const QList< QUrl >& types, const QUrl& superClass) const
+bool Nepomuk2::ClassAndPropertyTree::isChildOf(const QList< QUrl >& types, const QUrl& superClass) const
 {
     if(superClass == RDFS::Resource()) {
         return true;
@@ -135,7 +135,7 @@ bool Nepomuk::ClassAndPropertyTree::isChildOf(const QList< QUrl >& types, const 
     return false;
 }
 
-int Nepomuk::ClassAndPropertyTree::maxCardinality(const QUrl &type) const
+int Nepomuk2::ClassAndPropertyTree::maxCardinality(const QUrl &type) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(type))
@@ -144,7 +144,7 @@ int Nepomuk::ClassAndPropertyTree::maxCardinality(const QUrl &type) const
         return 0;
 }
 
-QUrl Nepomuk::ClassAndPropertyTree::propertyDomain(const QUrl &uri) const
+QUrl Nepomuk2::ClassAndPropertyTree::propertyDomain(const QUrl &uri) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(uri))
@@ -153,7 +153,7 @@ QUrl Nepomuk::ClassAndPropertyTree::propertyDomain(const QUrl &uri) const
         return QUrl();
 }
 
-QUrl Nepomuk::ClassAndPropertyTree::propertyRange(const QUrl &uri) const
+QUrl Nepomuk2::ClassAndPropertyTree::propertyRange(const QUrl &uri) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(uri))
@@ -162,7 +162,7 @@ QUrl Nepomuk::ClassAndPropertyTree::propertyRange(const QUrl &uri) const
         return QUrl();
 }
 
-bool Nepomuk::ClassAndPropertyTree::hasLiteralRange(const QUrl &uri) const
+bool Nepomuk2::ClassAndPropertyTree::hasLiteralRange(const QUrl &uri) const
 {
     // TODO: this is a rather crappy check for literal range
     QMutexLocker lock(&m_mutex);
@@ -173,7 +173,7 @@ bool Nepomuk::ClassAndPropertyTree::hasLiteralRange(const QUrl &uri) const
         return false;
 }
 
-bool Nepomuk::ClassAndPropertyTree::isDefiningProperty(const QUrl &uri) const
+bool Nepomuk2::ClassAndPropertyTree::isDefiningProperty(const QUrl &uri) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(uri))
@@ -182,7 +182,7 @@ bool Nepomuk::ClassAndPropertyTree::isDefiningProperty(const QUrl &uri) const
         return true; // we default to true for unknown properties to ensure that we never perform invalid merges
 }
 
-Soprano::Node Nepomuk::ClassAndPropertyTree::variantToNode(const QVariant &value, const QUrl &property) const
+Soprano::Node Nepomuk2::ClassAndPropertyTree::variantToNode(const QVariant &value, const QUrl &property) const
 {
     QSet<Soprano::Node> nodes = variantListToNodeSet(QVariantList() << value, property);
     if(nodes.isEmpty())
@@ -202,7 +202,7 @@ namespace Vocabulary {
 }
 }
 
-QSet<Soprano::Node> Nepomuk::ClassAndPropertyTree::variantListToNodeSet(const QVariantList &vl, const QUrl &property) const
+QSet<Soprano::Node> Nepomuk2::ClassAndPropertyTree::variantListToNodeSet(const QVariantList &vl, const QUrl &property) const
 {
     clearError();
 
@@ -315,7 +315,7 @@ QSet<Soprano::Node> Nepomuk::ClassAndPropertyTree::variantListToNodeSet(const QV
     return nodes;
 }
 
-void Nepomuk::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
+void Nepomuk2::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
 {
     QMutexLocker lock(&m_mutex);
 
@@ -462,7 +462,7 @@ void Nepomuk::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
     }
 }
 
-const Nepomuk::ClassAndPropertyTree::ClassOrProperty * Nepomuk::ClassAndPropertyTree::findClassOrProperty(const QUrl &uri) const
+const Nepomuk2::ClassAndPropertyTree::ClassOrProperty * Nepomuk2::ClassAndPropertyTree::findClassOrProperty(const QUrl &uri) const
 {
     QHash<QUrl, ClassOrProperty*>::const_iterator it = m_tree.constFind(uri);
     if(it == m_tree.constEnd())
@@ -471,7 +471,7 @@ const Nepomuk::ClassAndPropertyTree::ClassOrProperty * Nepomuk::ClassAndProperty
         return it.value();
 }
 
-bool Nepomuk::ClassAndPropertyTree::contains(const QUrl& uri) const
+bool Nepomuk2::ClassAndPropertyTree::contains(const QUrl& uri) const
 {
     return m_tree.contains(uri);
 }
@@ -481,7 +481,7 @@ bool Nepomuk::ClassAndPropertyTree::contains(const QUrl& uri) const
  * Set the value of defining.
  * An defining property has at least one defining direct parent property.
  */
-int Nepomuk::ClassAndPropertyTree::updateDefining( ClassOrProperty* cop, QSet<QUrl>& definingNodes )
+int Nepomuk2::ClassAndPropertyTree::updateDefining( ClassOrProperty* cop, QSet<QUrl>& definingNodes )
 {
     if ( cop->defining != 0 ) {
         return cop->defining;
@@ -507,7 +507,7 @@ int Nepomuk::ClassAndPropertyTree::updateDefining( ClassOrProperty* cop, QSet<QU
     }
 }
 
-QSet<QUrl> Nepomuk::ClassAndPropertyTree::getAllParents(ClassOrProperty* cop, QSet<QUrl>& visitedNodes)
+QSet<QUrl> Nepomuk2::ClassAndPropertyTree::getAllParents(ClassOrProperty* cop, QSet<QUrl>& visitedNodes)
 {
     if(cop->allParents.isEmpty()) {
         for ( QSet<QUrl>::iterator it = cop->directParents.begin();
@@ -540,7 +540,7 @@ namespace {
     }
 }
 
-QList<Soprano::Statement> Nepomuk::ClassAndPropertyTree::simpleResourceToStatementList(const Nepomuk::SimpleResource &res) const
+QList<Soprano::Statement> Nepomuk2::ClassAndPropertyTree::simpleResourceToStatementList(const Nepomuk2::SimpleResource &res) const
 {
     const Soprano::Node subject = convertIfBlankNode(res.uri());
     QList<Soprano::Statement> list;
@@ -556,7 +556,7 @@ QList<Soprano::Statement> Nepomuk::ClassAndPropertyTree::simpleResourceToStateme
     return list;
 }
 
-QList<Soprano::Statement> Nepomuk::ClassAndPropertyTree::simpleResourceGraphToStatementList(const Nepomuk::SimpleResourceGraph &graph) const
+QList<Soprano::Statement> Nepomuk2::ClassAndPropertyTree::simpleResourceGraphToStatementList(const Nepomuk2::SimpleResourceGraph &graph) const
 {
     QList<Soprano::Statement> list;
     foreach(const SimpleResource& res, graph.toList()) {
@@ -565,7 +565,7 @@ QList<Soprano::Statement> Nepomuk::ClassAndPropertyTree::simpleResourceGraphToSt
     return list;
 }
 
-Nepomuk::ClassAndPropertyTree * Nepomuk::ClassAndPropertyTree::self()
+Nepomuk2::ClassAndPropertyTree * Nepomuk2::ClassAndPropertyTree::self()
 {
     return s_self;
 }

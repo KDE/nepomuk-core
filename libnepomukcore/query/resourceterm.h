@@ -29,7 +29,7 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
          * \class ResourceTerm resourceterm.h Nepomuk2/Query/ResourceTerm
@@ -62,7 +62,7 @@ namespace Nepomuk {
              *
              * \param resource The resource this term should match against.
              */
-            ResourceTerm( const Nepomuk::Resource& resource = Nepomuk::Resource() );
+            ResourceTerm( const Nepomuk2::Resource& resource = Nepomuk2::Resource() );
 
             /**
              * Desctructor.
@@ -79,14 +79,14 @@ namespace Nepomuk {
              *
              * \sa setResource()
              */
-            Nepomuk::Resource resource() const;
+            Nepomuk2::Resource resource() const;
 
             /**
              * Set the resource this term should match against.
              *
              * \sa resource()
              */
-            void setResource( const Nepomuk::Resource& resource );
+            void setResource( const Nepomuk2::Resource& resource );
         };
     }
 }

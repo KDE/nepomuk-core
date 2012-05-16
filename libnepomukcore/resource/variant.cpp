@@ -41,33 +41,33 @@ namespace {
 }
 
 
-class Nepomuk::Variant::Private
+class Nepomuk2::Variant::Private
 {
 public:
     QVariant value;
 };
 
 
-Nepomuk::Variant::Variant()
+Nepomuk2::Variant::Variant()
     : d( new Private )
 {
 }
 
 
-Nepomuk::Variant::~Variant()
+Nepomuk2::Variant::~Variant()
 {
     delete d;
 }
 
 
-Nepomuk::Variant::Variant( const Variant& other )
+Nepomuk2::Variant::Variant( const Variant& other )
     : d( new Private )
 {
     operator=( other );
 }
 
 
-Nepomuk::Variant::Variant( const QVariant& other )
+Nepomuk2::Variant::Variant( const QVariant& other )
     : d( new Private )
 {
     if ( other.userType() == QVariant::Int ||
@@ -99,168 +99,168 @@ Nepomuk::Variant::Variant( const QVariant& other )
 }
 
 
-Nepomuk::Variant::Variant( int i )
+Nepomuk2::Variant::Variant( int i )
     : d( new Private )
 {
     d->value.setValue( i );
 }
 
 
-Nepomuk::Variant::Variant( qlonglong i )
+Nepomuk2::Variant::Variant( qlonglong i )
     : d( new Private )
 {
     d->value.setValue( i );
 }
 
 
-Nepomuk::Variant::Variant( uint i )
+Nepomuk2::Variant::Variant( uint i )
     : d( new Private )
 {
     d->value.setValue( i );
 }
 
 
-Nepomuk::Variant::Variant( qulonglong i )
+Nepomuk2::Variant::Variant( qulonglong i )
     : d( new Private )
 {
     d->value.setValue( i );
 }
 
 
-Nepomuk::Variant::Variant( bool b )
+Nepomuk2::Variant::Variant( bool b )
     : d( new Private )
 {
     d->value.setValue( b );
 }
 
 
-Nepomuk::Variant::Variant( double v )
+Nepomuk2::Variant::Variant( double v )
     : d( new Private )
 {
     d->value.setValue( v );
 }
 
 
-Nepomuk::Variant::Variant( const char* string )
+Nepomuk2::Variant::Variant( const char* string )
     : d( new Private )
 {
     d->value.setValue( QString::fromLatin1(string) );
 }
 
 
-Nepomuk::Variant::Variant( const QString& string )
+Nepomuk2::Variant::Variant( const QString& string )
     : d( new Private )
 {
     d->value.setValue( string );
 }
 
 
-Nepomuk::Variant::Variant( const QDate& date )
+Nepomuk2::Variant::Variant( const QDate& date )
     : d( new Private )
 {
     d->value.setValue( date );
 }
 
 
-Nepomuk::Variant::Variant( const QTime& time )
+Nepomuk2::Variant::Variant( const QTime& time )
     : d( new Private )
 {
     d->value.setValue( time );
 }
 
 
-Nepomuk::Variant::Variant( const QDateTime& datetime )
+Nepomuk2::Variant::Variant( const QDateTime& datetime )
     : d( new Private )
 {
     d->value.setValue( datetime );
 }
 
 
-Nepomuk::Variant::Variant( const QUrl& url )
+Nepomuk2::Variant::Variant( const QUrl& url )
     : d( new Private )
 {
     d->value.setValue( url );
 }
 
 
-Nepomuk::Variant::Variant( const Nepomuk::Resource& r )
+Nepomuk2::Variant::Variant( const Nepomuk2::Resource& r )
     : d( new Private )
 {
     d->value.setValue( r );
 }
 
 
-Nepomuk::Variant::Variant( const QList<int>& i )
+Nepomuk2::Variant::Variant( const QList<int>& i )
     : d( new Private )
 {
     d->value.setValue( i );
 }
 
 
-Nepomuk::Variant::Variant( const QList<qlonglong>& i )
+Nepomuk2::Variant::Variant( const QList<qlonglong>& i )
     : d( new Private )
 {
     d->value.setValue( i );
 }
 
 
-Nepomuk::Variant::Variant( const QList<uint>& i )
+Nepomuk2::Variant::Variant( const QList<uint>& i )
     : d( new Private )
 {
     d->value.setValue( i );
 }
 
 
-Nepomuk::Variant::Variant( const QList<qulonglong>& i )
+Nepomuk2::Variant::Variant( const QList<qulonglong>& i )
     : d( new Private )
 {
     d->value.setValue( i );
 }
 
 
-Nepomuk::Variant::Variant( const QList<bool>& b )
+Nepomuk2::Variant::Variant( const QList<bool>& b )
     : d( new Private )
 {
     d->value.setValue( b );
 }
 
 
-Nepomuk::Variant::Variant( const QList<double>& v )
+Nepomuk2::Variant::Variant( const QList<double>& v )
     : d( new Private )
 {
     d->value.setValue( v );
 }
 
 
-Nepomuk::Variant::Variant( const QStringList& stringlist )
+Nepomuk2::Variant::Variant( const QStringList& stringlist )
     : d( new Private )
 {
     d->value.setValue( stringlist );
 }
 
 
-Nepomuk::Variant::Variant( const QList<QDate>& date )
+Nepomuk2::Variant::Variant( const QList<QDate>& date )
     : d( new Private )
 {
     d->value.setValue( date );
 }
 
 
-Nepomuk::Variant::Variant( const QList<QTime>& time )
+Nepomuk2::Variant::Variant( const QList<QTime>& time )
     : d( new Private )
 {
     d->value.setValue( time );
 }
 
 
-Nepomuk::Variant::Variant( const QList<QDateTime>& datetime )
+Nepomuk2::Variant::Variant( const QList<QDateTime>& datetime )
     : d( new Private )
 {
     d->value.setValue( datetime );
 }
 
 
-Nepomuk::Variant::Variant( const QList<QUrl>& url )
+Nepomuk2::Variant::Variant( const QList<QUrl>& url )
     : d( new Private )
 {
     d->value.setValue( url );
@@ -268,14 +268,14 @@ Nepomuk::Variant::Variant( const QList<QUrl>& url )
 
 
 
-Nepomuk::Variant::Variant( const QList<Resource>& r )
+Nepomuk2::Variant::Variant( const QList<Resource>& r )
     : d( new Private )
 {
     d->value.setValue( r );
 }
 
 
-Nepomuk::Variant::Variant( const QList<Variant>& vl )
+Nepomuk2::Variant::Variant( const QList<Variant>& vl )
     : d( new Private )
 {
     foreach( const Variant& v, vl ) {
@@ -284,182 +284,182 @@ Nepomuk::Variant::Variant( const QList<Variant>& vl )
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const Variant& v )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const Variant& v )
 {
     d->value = v.d->value;
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( int i )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( int i )
 {
     d->value.setValue( i );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( qlonglong i )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( qlonglong i )
 {
     d->value.setValue( i );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( uint i )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( uint i )
 {
     d->value.setValue( i );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( qulonglong i )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( qulonglong i )
 {
     d->value.setValue( i );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( bool b )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( bool b )
 {
     d->value.setValue( b );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( double v )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( double v )
 {
     d->value.setValue( v );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QString& string )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QString& string )
 {
     d->value.setValue( string );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QDate& date )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QDate& date )
 {
     d->value.setValue( date );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QTime& time )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QTime& time )
 {
     d->value.setValue( time );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QDateTime& datetime )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QDateTime& datetime )
 {
     d->value.setValue( datetime );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QUrl& url )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QUrl& url )
 {
     d->value.setValue( url );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const Resource& r )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const Resource& r )
 {
     d->value.setValue( r );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<int>& i )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<int>& i )
 {
     d->value.setValue( i );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<qlonglong>& i )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<qlonglong>& i )
 {
     d->value.setValue( i );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<uint>& i )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<uint>& i )
 {
     d->value.setValue( i );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<qulonglong>& i )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<qulonglong>& i )
 {
     d->value.setValue( i );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<bool>& b )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<bool>& b )
 {
     d->value.setValue( b );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<double>& v )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<double>& v )
 {
     d->value.setValue( v );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QStringList& stringlist )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QStringList& stringlist )
 {
     d->value.setValue( stringlist );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<QDate>& date )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<QDate>& date )
 {
     d->value.setValue( date );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<QTime>& time )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<QTime>& time )
 {
     d->value.setValue( time );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<QDateTime>& datetime )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<QDateTime>& datetime )
 {
     d->value.setValue( datetime );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<QUrl>& url )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<QUrl>& url )
 {
     d->value.setValue( url );
     return *this;
 }
 
 
-Nepomuk::Variant& Nepomuk::Variant::operator=( const QList<Resource>& r )
+Nepomuk2::Variant& Nepomuk2::Variant::operator=( const QList<Resource>& r )
 {
     d->value.setValue( r );
     return *this;
 }
 
 
-void Nepomuk::Variant::append( int i )
+void Nepomuk2::Variant::append( int i )
 {
     QList<int> l = toIntList();
     l.append( i );
@@ -467,7 +467,7 @@ void Nepomuk::Variant::append( int i )
 }
 
 
-void Nepomuk::Variant::append( qlonglong i )
+void Nepomuk2::Variant::append( qlonglong i )
 {
     QList<qlonglong> l = toInt64List();
     l.append( i );
@@ -475,7 +475,7 @@ void Nepomuk::Variant::append( qlonglong i )
 }
 
 
-void Nepomuk::Variant::append( uint i )
+void Nepomuk2::Variant::append( uint i )
 {
     QList<uint> l = toUnsignedIntList();
     l.append( i );
@@ -483,7 +483,7 @@ void Nepomuk::Variant::append( uint i )
 }
 
 
-void Nepomuk::Variant::append( qulonglong i )
+void Nepomuk2::Variant::append( qulonglong i )
 {
     QList<qulonglong> l = toUnsignedInt64List();
     l.append( i );
@@ -491,7 +491,7 @@ void Nepomuk::Variant::append( qulonglong i )
 }
 
 
-void Nepomuk::Variant::append( bool b )
+void Nepomuk2::Variant::append( bool b )
 {
     QList<bool> l = toBoolList();
     l.append( b );
@@ -499,7 +499,7 @@ void Nepomuk::Variant::append( bool b )
 }
 
 
-void Nepomuk::Variant::append( double d )
+void Nepomuk2::Variant::append( double d )
 {
     QList<double> l = toDoubleList();
     l.append( d );
@@ -507,7 +507,7 @@ void Nepomuk::Variant::append( double d )
 }
 
 
-void Nepomuk::Variant::append( const QString& string )
+void Nepomuk2::Variant::append( const QString& string )
 {
     QStringList l = toStringList();
     l.append( string );
@@ -515,7 +515,7 @@ void Nepomuk::Variant::append( const QString& string )
 }
 
 
-void Nepomuk::Variant::append( const QDate& date )
+void Nepomuk2::Variant::append( const QDate& date )
 {
     QList<QDate> l = toDateList();
     l.append( date );
@@ -523,7 +523,7 @@ void Nepomuk::Variant::append( const QDate& date )
 }
 
 
-void Nepomuk::Variant::append( const QTime& time )
+void Nepomuk2::Variant::append( const QTime& time )
 {
     QList<QTime> l = toTimeList();
     l.append( time );
@@ -531,7 +531,7 @@ void Nepomuk::Variant::append( const QTime& time )
 }
 
 
-void Nepomuk::Variant::append( const QDateTime& datetime )
+void Nepomuk2::Variant::append( const QDateTime& datetime )
 {
     QList<QDateTime> l = toDateTimeList();
     l.append( datetime );
@@ -539,7 +539,7 @@ void Nepomuk::Variant::append( const QDateTime& datetime )
 }
 
 
-void Nepomuk::Variant::append( const QUrl& url )
+void Nepomuk2::Variant::append( const QUrl& url )
 {
     QList<QUrl> l = toUrlList();
     l.append( url );
@@ -547,7 +547,7 @@ void Nepomuk::Variant::append( const QUrl& url )
 }
 
 
-void Nepomuk::Variant::append( const Resource& r )
+void Nepomuk2::Variant::append( const Resource& r )
 {
     QList<Resource> l = toResourceList();
     if ( !l.contains( r ) ) {
@@ -557,7 +557,7 @@ void Nepomuk::Variant::append( const Resource& r )
 }
 
 
-void Nepomuk::Variant::append( const Variant& v )
+void Nepomuk2::Variant::append( const Variant& v )
 {
     if ( !isValid() ) {
         operator=( v );
@@ -605,146 +605,146 @@ void Nepomuk::Variant::append( const Variant& v )
 }
 
 
-bool Nepomuk::Variant::isInt() const
+bool Nepomuk2::Variant::isInt() const
 {
     return( type() == QVariant::Int );
 }
 
 
-bool Nepomuk::Variant::isInt64() const
+bool Nepomuk2::Variant::isInt64() const
 {
     return( type() == QVariant::LongLong );
 }
 
 
-bool Nepomuk::Variant::isUnsignedInt() const
+bool Nepomuk2::Variant::isUnsignedInt() const
 {
     return( type() == QVariant::UInt );
 }
 
 
-bool Nepomuk::Variant::isUnsignedInt64() const
+bool Nepomuk2::Variant::isUnsignedInt64() const
 {
     return( type() == QVariant::ULongLong );
 }
 
 
-bool Nepomuk::Variant::isBool() const
+bool Nepomuk2::Variant::isBool() const
 {
     return( type() == QVariant::Bool );
 }
 
 
-bool Nepomuk::Variant::isDouble() const
+bool Nepomuk2::Variant::isDouble() const
 {
     return( type() == QVariant::Double );
 }
 
 
-bool Nepomuk::Variant::isString() const
+bool Nepomuk2::Variant::isString() const
 {
     return( type() == QVariant::String );
 }
 
 
-bool Nepomuk::Variant::isDate() const
+bool Nepomuk2::Variant::isDate() const
 {
     return( type() == QVariant::Date );
 }
 
 
-bool Nepomuk::Variant::isTime() const
+bool Nepomuk2::Variant::isTime() const
 {
     return( type() == QVariant::Time );
 }
 
 
-bool Nepomuk::Variant::isDateTime() const
+bool Nepomuk2::Variant::isDateTime() const
 {
     return( type() == QVariant::DateTime );
 }
 
 
-bool Nepomuk::Variant::isUrl() const
+bool Nepomuk2::Variant::isUrl() const
 {
     return( type() == QVariant::Url );
 }
 
 
-bool Nepomuk::Variant::isResource() const
+bool Nepomuk2::Variant::isResource() const
 {
     return( type() == qMetaTypeId<Resource>() ||
             isUrl() );
 }
 
 
-bool Nepomuk::Variant::isIntList() const
+bool Nepomuk2::Variant::isIntList() const
 {
     return( type() == qMetaTypeId<QList<int> >() );
 }
 
 
-bool Nepomuk::Variant::isUnsignedIntList() const
+bool Nepomuk2::Variant::isUnsignedIntList() const
 {
     return( type() == qMetaTypeId<QList<uint> >() );
 }
 
 
-bool Nepomuk::Variant::isInt64List() const
+bool Nepomuk2::Variant::isInt64List() const
 {
     return( type() == qMetaTypeId<QList<qlonglong> >() );
 }
 
 
-bool Nepomuk::Variant::isUnsignedInt64List() const
+bool Nepomuk2::Variant::isUnsignedInt64List() const
 {
     return( type() == qMetaTypeId<QList<qulonglong> >() );
 }
 
 
-bool Nepomuk::Variant::isBoolList() const
+bool Nepomuk2::Variant::isBoolList() const
 {
     return( type() == qMetaTypeId<QList<bool> >() );
 }
 
 
-bool Nepomuk::Variant::isDoubleList() const
+bool Nepomuk2::Variant::isDoubleList() const
 {
     return( type() == qMetaTypeId<QList<double> >() );
 }
 
 
-bool Nepomuk::Variant::isStringList() const
+bool Nepomuk2::Variant::isStringList() const
 {
     return( type() == QVariant::StringList );
 }
 
 
-bool Nepomuk::Variant::isDateList() const
+bool Nepomuk2::Variant::isDateList() const
 {
     return( type() == qMetaTypeId<QList<QDate> >() );
 }
 
 
-bool Nepomuk::Variant::isTimeList() const
+bool Nepomuk2::Variant::isTimeList() const
 {
     return( type() == qMetaTypeId<QList<QTime> >() );
 }
 
 
-bool Nepomuk::Variant::isDateTimeList() const
+bool Nepomuk2::Variant::isDateTimeList() const
 {
     return( type() == qMetaTypeId<QList<QDateTime> >() );
 }
 
 
-bool Nepomuk::Variant::isUrlList() const
+bool Nepomuk2::Variant::isUrlList() const
 {
     return( type() == qMetaTypeId<QList<QUrl> >() );
 }
 
 
-bool Nepomuk::Variant::isResourceList() const
+bool Nepomuk2::Variant::isResourceList() const
 {
     return( type() == qMetaTypeId<QList<Resource> >() ||
             isUrlList() );
@@ -752,7 +752,7 @@ bool Nepomuk::Variant::isResourceList() const
 
 
 
-int Nepomuk::Variant::toInt() const
+int Nepomuk2::Variant::toInt() const
 {
     if(isList()) {
         QList<int> l = toIntList();
@@ -764,7 +764,7 @@ int Nepomuk::Variant::toInt() const
 }
 
 
-qlonglong Nepomuk::Variant::toInt64() const
+qlonglong Nepomuk2::Variant::toInt64() const
 {
     if(isList()) {
         QList<qlonglong> l = toInt64List();
@@ -776,7 +776,7 @@ qlonglong Nepomuk::Variant::toInt64() const
 }
 
 
-uint Nepomuk::Variant::toUnsignedInt() const
+uint Nepomuk2::Variant::toUnsignedInt() const
 {
     if(isList()) {
         QList<uint> l = toUnsignedIntList();
@@ -788,7 +788,7 @@ uint Nepomuk::Variant::toUnsignedInt() const
 }
 
 
-qulonglong Nepomuk::Variant::toUnsignedInt64() const
+qulonglong Nepomuk2::Variant::toUnsignedInt64() const
 {
     if(isList()) {
         QList<qulonglong> l = toUnsignedInt64List();
@@ -800,7 +800,7 @@ qulonglong Nepomuk::Variant::toUnsignedInt64() const
 }
 
 
-bool Nepomuk::Variant::toBool() const
+bool Nepomuk2::Variant::toBool() const
 {
     if(isList()) {
         QList<bool> l = toBoolList();
@@ -812,7 +812,7 @@ bool Nepomuk::Variant::toBool() const
 }
 
 
-double Nepomuk::Variant::toDouble() const
+double Nepomuk2::Variant::toDouble() const
 {
     if(isList()) {
         QList<double> l = toDoubleList();
@@ -824,7 +824,7 @@ double Nepomuk::Variant::toDouble() const
 }
 
 
-QString Nepomuk::Variant::toString() const
+QString Nepomuk2::Variant::toString() const
 {
 //    kDebug() << "(Variant::toString() converting... " << QMetaType::typeName(type());
     if( isList() )
@@ -857,7 +857,7 @@ QString Nepomuk::Variant::toString() const
 }
 
 
-QDate Nepomuk::Variant::toDate() const
+QDate Nepomuk2::Variant::toDate() const
 {
     if(isList()) {
         QList<QDate> l = toDateList();
@@ -868,7 +868,7 @@ QDate Nepomuk::Variant::toDate() const
 }
 
 
-QTime Nepomuk::Variant::toTime() const
+QTime Nepomuk2::Variant::toTime() const
 {
     if(isList()) {
         QList<QTime> l = toTimeList();
@@ -879,7 +879,7 @@ QTime Nepomuk::Variant::toTime() const
 }
 
 
-QDateTime Nepomuk::Variant::toDateTime() const
+QDateTime Nepomuk2::Variant::toDateTime() const
 {
     if(isList()) {
         QList<QDateTime> l = toDateTimeList();
@@ -890,7 +890,7 @@ QDateTime Nepomuk::Variant::toDateTime() const
 }
 
 
-QUrl Nepomuk::Variant::toUrl() const
+QUrl Nepomuk2::Variant::toUrl() const
 {
     if(isList()) {
         QList<QUrl> l = toUrlList();
@@ -905,7 +905,7 @@ QUrl Nepomuk::Variant::toUrl() const
 }
 
 
-Nepomuk::Resource Nepomuk::Variant::toResource() const
+Nepomuk2::Resource Nepomuk2::Variant::toResource() const
 {
     if(isResourceList() || isUrlList()) {
         QList<Resource> l = toResourceList();
@@ -921,7 +921,7 @@ Nepomuk::Resource Nepomuk::Variant::toResource() const
 
 
 
-QList<int> Nepomuk::Variant::toIntList() const
+QList<int> Nepomuk2::Variant::toIntList() const
 {
     if( isUnsignedInt() ||
         isInt() ||
@@ -946,7 +946,7 @@ QList<int> Nepomuk::Variant::toIntList() const
 }
 
 
-QList<qlonglong> Nepomuk::Variant::toInt64List() const
+QList<qlonglong> Nepomuk2::Variant::toInt64List() const
 {
     if( isUnsignedInt() ||
         isInt() ||
@@ -971,7 +971,7 @@ QList<qlonglong> Nepomuk::Variant::toInt64List() const
 }
 
 
-QList<uint> Nepomuk::Variant::toUnsignedIntList() const
+QList<uint> Nepomuk2::Variant::toUnsignedIntList() const
 {
     if( isUnsignedInt() ||
         isInt() ||
@@ -996,7 +996,7 @@ QList<uint> Nepomuk::Variant::toUnsignedIntList() const
 }
 
 
-QList<qulonglong> Nepomuk::Variant::toUnsignedInt64List() const
+QList<qulonglong> Nepomuk2::Variant::toUnsignedInt64List() const
 {
     if( isUnsignedInt() ||
         isInt() ||
@@ -1021,7 +1021,7 @@ QList<qulonglong> Nepomuk::Variant::toUnsignedInt64List() const
 }
 
 
-QList<bool> Nepomuk::Variant::toBoolList() const
+QList<bool> Nepomuk2::Variant::toBoolList() const
 {
     if( isBool() ) {
         QList<bool> l;
@@ -1033,7 +1033,7 @@ QList<bool> Nepomuk::Variant::toBoolList() const
 }
 
 
-QList<double> Nepomuk::Variant::toDoubleList() const
+QList<double> Nepomuk2::Variant::toDoubleList() const
 {
     if( isDouble() ) {
         QList<double> l;
@@ -1050,13 +1050,13 @@ template<typename T> QStringList convertToStringList( const QList<T>& l )
     QStringList sl;
     QListIterator<T> it( l );
     while( it.hasNext() )
-        sl.append( Nepomuk::Variant( it.next() ).toString() );
+        sl.append( Nepomuk2::Variant( it.next() ).toString() );
 //   for( QList<T>::const_iterator it = l.constBegin(); it != l.constEnd(); ++it )
-//     sl.append( Nepomuk::Variant( *it ).toString() );
+//     sl.append( Nepomuk2::Variant( *it ).toString() );
     return sl;
 }
 
-QStringList Nepomuk::Variant::toStringList() const
+QStringList Nepomuk2::Variant::toStringList() const
 {
     //  kDebug() << "(Variant::toStringList() converting... " << QMetaType::typeName(simpleType());
     if( !d->value.isValid() )
@@ -1092,7 +1092,7 @@ QStringList Nepomuk::Variant::toStringList() const
 }
 
 
-QList<QDate> Nepomuk::Variant::toDateList() const
+QList<QDate> Nepomuk2::Variant::toDateList() const
 {
     if( isDate() ) {
         QList<QDate> l;
@@ -1104,7 +1104,7 @@ QList<QDate> Nepomuk::Variant::toDateList() const
 }
 
 
-QList<QTime> Nepomuk::Variant::toTimeList() const
+QList<QTime> Nepomuk2::Variant::toTimeList() const
 {
     if( isTime() ) {
         QList<QTime> l;
@@ -1116,7 +1116,7 @@ QList<QTime> Nepomuk::Variant::toTimeList() const
 }
 
 
-QList<QDateTime> Nepomuk::Variant::toDateTimeList() const
+QList<QDateTime> Nepomuk2::Variant::toDateTimeList() const
 {
     if( isDateTime() ) {
         QList<QDateTime> l;
@@ -1128,7 +1128,7 @@ QList<QDateTime> Nepomuk::Variant::toDateTimeList() const
 }
 
 
-QList<QUrl> Nepomuk::Variant::toUrlList() const
+QList<QUrl> Nepomuk2::Variant::toUrlList() const
 {
     if( type() == qMetaTypeId<Resource>() ||
         type() == QVariant::Url ) {
@@ -1149,7 +1149,7 @@ QList<QUrl> Nepomuk::Variant::toUrlList() const
 }
 
 
-QList<Nepomuk::Resource> Nepomuk::Variant::toResourceList() const
+QList<Nepomuk2::Resource> Nepomuk2::Variant::toResourceList() const
 {
     if( type() == qMetaTypeId<Resource>() ||
         type() == QVariant::Url ) {
@@ -1170,7 +1170,7 @@ QList<Nepomuk::Resource> Nepomuk::Variant::toResourceList() const
 }
 
 
-QList<Nepomuk::Variant> Nepomuk::Variant::toVariantList() const
+QList<Nepomuk2::Variant> Nepomuk2::Variant::toVariantList() const
 {
     QList<Variant> l;
 
@@ -1253,7 +1253,7 @@ QList<Nepomuk::Variant> Nepomuk::Variant::toVariantList() const
 }
 
 
-Soprano::Node Nepomuk::Variant::toNode() const
+Soprano::Node Nepomuk2::Variant::toNode() const
 {
     if( !isValid() || isList() )
         return Soprano::Node();
@@ -1264,7 +1264,7 @@ Soprano::Node Nepomuk::Variant::toNode() const
 }
 
 
-QList<Soprano::Node> Nepomuk::Variant::toNodeList() const
+QList<Soprano::Node> Nepomuk2::Variant::toNodeList() const
 {
     QList<Soprano::Node> nl;
 
@@ -1288,7 +1288,7 @@ QList<Soprano::Node> Nepomuk::Variant::toNodeList() const
 }
 
 
-bool Nepomuk::Variant::isList() const
+bool Nepomuk2::Variant::isList() const
 {
     return( isIntList() ||
             isInt64List() ||
@@ -1305,13 +1305,13 @@ bool Nepomuk::Variant::isList() const
 }
 
 
-int Nepomuk::Variant::type() const
+int Nepomuk2::Variant::type() const
 {
     return d->value.userType();
 }
 
 
-int Nepomuk::Variant::simpleType() const
+int Nepomuk2::Variant::simpleType() const
 {
     if( isIntList() )
         return QVariant::Int;
@@ -1343,7 +1343,7 @@ int Nepomuk::Variant::simpleType() const
 
 
 // static
-Nepomuk::Variant Nepomuk::Variant::fromString( const QString& value, int type )
+Nepomuk2::Variant Nepomuk2::Variant::fromString( const QString& value, int type )
 {
     // first check the types that are not supported by Soprano since they are not literal types
     if( type == qMetaTypeId<Resource>() ) {
@@ -1361,7 +1361,7 @@ Nepomuk::Variant Nepomuk::Variant::fromString( const QString& value, int type )
 
 
 // static
-Nepomuk::Variant Nepomuk::Variant::fromNode( const Soprano::Node& node )
+Nepomuk2::Variant Nepomuk2::Variant::fromNode( const Soprano::Node& node )
 {
     //
     // We cannot put in Resource objects here since then nie:url file:/ URLs would
@@ -1369,46 +1369,46 @@ Nepomuk::Variant Nepomuk::Variant::fromNode( const Soprano::Node& node )
     // That is why Variant treats QUrl and Resource pretty much as similar.
     //
     if ( node.isResource() ) {
-        return Nepomuk::Variant( node.uri() );
+        return Nepomuk2::Variant( node.uri() );
     }
     else if ( node.isLiteral() ) {
-        return Nepomuk::Variant( node.literal().variant() );
+        return Nepomuk2::Variant( node.literal().variant() );
     }
     else {
-        return Nepomuk::Variant();
+        return Nepomuk2::Variant();
     }
 }
 
 
 // static
-Nepomuk::Variant Nepomuk::Variant::fromNodeList( const QList<Soprano::Node>& valueNodes )
+Nepomuk2::Variant Nepomuk2::Variant::fromNodeList( const QList<Soprano::Node>& valueNodes )
 {
     if( valueNodes.size() == 1 ) {
-        return Nepomuk::Variant::fromNode( valueNodes.first() );
+        return Nepomuk2::Variant::fromNode( valueNodes.first() );
     }
     else {
         if( valueNodes.first().isResource() ) {
-            QList<Nepomuk::Resource> resList;
+            QList<Nepomuk2::Resource> resList;
             Q_FOREACH( const Soprano::Node & n, valueNodes ) {
                 if( n.isResource() )
-                    resList << Nepomuk::Resource( n.uri() );
+                    resList << Nepomuk2::Resource( n.uri() );
             }
-            return Nepomuk::Variant( resList );
+            return Nepomuk2::Variant( resList );
         }
         else if( valueNodes.first().isLiteral() ) {
             QList<Variant> varList;
             Q_FOREACH( const Soprano::Node & n, valueNodes ) {
                 if( n.isLiteral() )
-                    varList << Nepomuk::Variant( n.literal().variant() );
+                    varList << Nepomuk2::Variant( n.literal().variant() );
             }
-            return Nepomuk::Variant( varList );
+            return Nepomuk2::Variant( varList );
         }
-        return Nepomuk::Variant();
+        return Nepomuk2::Variant();
     }
 }
 
 
-bool Nepomuk::Variant::operator==( const Variant& other ) const
+bool Nepomuk2::Variant::operator==( const Variant& other ) const
 {
     // we handle the special case of Urls and Resources before
     // comparing the simple type
@@ -1445,31 +1445,31 @@ bool Nepomuk::Variant::operator==( const Variant& other ) const
 }
 
 
-bool Nepomuk::Variant::operator!=( const Variant& other ) const
+bool Nepomuk2::Variant::operator!=( const Variant& other ) const
 {
     return !operator==( other );
 }
 
 
-QVariant Nepomuk::Variant::variant() const
+QVariant Nepomuk2::Variant::variant() const
 {
     return d->value;
 }
 
 
-bool Nepomuk::Variant::isValid() const
+bool Nepomuk2::Variant::isValid() const
 {
     return d->value.isValid();
 }
 
 
-QDebug operator<<( QDebug dbg, const Nepomuk::Variant& v )
+QDebug operator<<( QDebug dbg, const Nepomuk2::Variant& v )
 {
     if( v.isList() )
-        dbg.nospace() << "Nepomuk::Variant(" << v.toStringList() << "@list)";
+        dbg.nospace() << "Nepomuk2::Variant(" << v.toStringList() << "@list)";
     else if( v.isResource() )
-        dbg.nospace() << "Nepomuk::Variant(Nepomuk::Resource(" << v.toString() << "))";
+        dbg.nospace() << "Nepomuk2::Variant(Nepomuk2::Resource(" << v.toString() << "))";
     else
-        dbg.nospace() << "Nepomuk::Variant(" << v.variant() << ")";
+        dbg.nospace() << "Nepomuk2::Variant(" << v.variant() << ")";
     return dbg;
 }

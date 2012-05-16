@@ -55,7 +55,7 @@ using namespace Soprano;
 #define MAINMODEL (m_rm->m_manager->mainModel())
 
 
-Nepomuk::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, const QUrl& type, ResourceManagerPrivate* rm )
+Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, const QUrl& type, ResourceManagerPrivate* rm )
     : m_uri(uri),
       m_mainType( type ),
       m_modificationMutex(QMutex::Recursive),
@@ -91,51 +91,51 @@ Nepomuk::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, co
         }
         else if( kickOffUri.scheme() != QLatin1String("nepomuk") ) {
             // It's probably the nie:url
-            m_cache.insert( Nepomuk::Vocabulary::NIE::url(), kickOffUri );
+            m_cache.insert( Nepomuk2::Vocabulary::NIE::url(), kickOffUri );
         }
     }
     m_rm->addToKickOffList( this, m_kickoffUris );
 }
 
 
-Nepomuk::ResourceData::~ResourceData()
+Nepomuk2::ResourceData::~ResourceData()
 {
     resetAll(true);
     m_rm->dataCnt.deref();
 }
 
 
-bool Nepomuk::ResourceData::isFile()
+bool Nepomuk2::ResourceData::isFile()
 {
     return( m_uri.scheme() == QLatin1String("file") ||
             m_nieUrl.scheme() == QLatin1String("file") ||
             (!m_kickoffUris.isEmpty() && (*m_kickoffUris.begin()).scheme() == QLatin1String("file")) ||
             constHasType( Soprano::Vocabulary::Xesam::File() ) ||
-            constHasType( Nepomuk::Vocabulary::NFO::FileDataObject() ) );
+            constHasType( Nepomuk2::Vocabulary::NFO::FileDataObject() ) );
 }
 
 
-QUrl Nepomuk::ResourceData::uri() const
+QUrl Nepomuk2::ResourceData::uri() const
 {
     return m_uri;
 }
 
 
-QUrl Nepomuk::ResourceData::type()
+QUrl Nepomuk2::ResourceData::type()
 {
     load();
     return m_mainType;
 }
 
 
-QList<QUrl> Nepomuk::ResourceData::allTypes()
+QList<QUrl> Nepomuk2::ResourceData::allTypes()
 {
     load();
     return m_types;
 }
 
 
-void Nepomuk::ResourceData::setTypes( const QList<QUrl>& types )
+void Nepomuk2::ResourceData::setTypes( const QList<QUrl>& types )
 {
     store();
 
@@ -153,12 +153,12 @@ void Nepomuk::ResourceData::setTypes( const QList<QUrl>& types )
     }
 
     // update the data store
-    setProperty(Soprano::Vocabulary::RDF::type(), Nepomuk::Variant(types) );
+    setProperty(Soprano::Vocabulary::RDF::type(), Nepomuk2::Variant(types) );
 }
 
 
 
-void Nepomuk::ResourceData::resetAll( bool isDelete )
+void Nepomuk2::ResourceData::resetAll( bool isDelete )
 {
     // remove us from all caches (store() will re-insert us later if necessary)
     m_rm->mutex.lock();
@@ -182,7 +182,7 @@ void Nepomuk::ResourceData::resetAll( bool isDelete )
             }
 
             // remove this Resource from the list of watched resources
-            QMetaObject::invokeMethod(m_rm->m_watcher, "removeResource", Qt::AutoConnection, Q_ARG(Nepomuk::Resource, Resource::fromResourceUri(m_uri)));
+            QMetaObject::invokeMethod(m_rm->m_watcher, "removeResource", Qt::AutoConnection, Q_ARG(Nepomuk2::Resource, Resource::fromResourceUri(m_uri)));
             m_addedToWatcher = false;
         }
     }
@@ -208,14 +208,14 @@ void Nepomuk::ResourceData::resetAll( bool isDelete )
 }
 
 
-QHash<QUrl, Nepomuk::Variant> Nepomuk::ResourceData::allProperties()
+QHash<QUrl, Nepomuk2::Variant> Nepomuk2::ResourceData::allProperties()
 {
     load();
     return m_cache;
 }
 
 
-bool Nepomuk::ResourceData::hasProperty( const QUrl& uri )
+bool Nepomuk2::ResourceData::hasProperty( const QUrl& uri )
 {
     load();
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( uri );
@@ -226,7 +226,7 @@ bool Nepomuk::ResourceData::hasProperty( const QUrl& uri )
 }
 
 
-bool Nepomuk::ResourceData::hasProperty( const QUrl& p, const Variant& v )
+bool Nepomuk2::ResourceData::hasProperty( const QUrl& p, const Variant& v )
 {
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( p );
     if( it == m_cache.constEnd() )
@@ -242,14 +242,14 @@ bool Nepomuk::ResourceData::hasProperty( const QUrl& p, const Variant& v )
 }
 
 
-bool Nepomuk::ResourceData::hasType( const QUrl& uri )
+bool Nepomuk2::ResourceData::hasType( const QUrl& uri )
 {
     load();
     return constHasType( uri );
 }
 
 
-bool Nepomuk::ResourceData::constHasType( const QUrl& uri ) const
+bool Nepomuk2::ResourceData::constHasType( const QUrl& uri ) const
 {
     // we need to protect the reading, too. setTypes may be triggered from another thread
     QMutexLocker lock(&m_modificationMutex);
@@ -267,7 +267,7 @@ bool Nepomuk::ResourceData::constHasType( const QUrl& uri ) const
 }
 
 
-Nepomuk::Variant Nepomuk::ResourceData::property( const QUrl& uri )
+Nepomuk2::Variant Nepomuk2::ResourceData::property( const QUrl& uri )
 {
     load();
 
@@ -285,7 +285,7 @@ Nepomuk::Variant Nepomuk::ResourceData::property( const QUrl& uri )
 }
 
 
-bool Nepomuk::ResourceData::store()
+bool Nepomuk2::ResourceData::store()
 {
     QMutexLocker lock(&m_modificationMutex);
 
@@ -295,11 +295,11 @@ bool Nepomuk::ResourceData::store()
         if ( m_nieUrl.isValid() &&
              m_nieUrl.isLocalFile() &&
              m_mainType == Soprano::Vocabulary::RDFS::Resource() ) {
-            m_mainType = Nepomuk::Vocabulary::NFO::FileDataObject();
+            m_mainType = Nepomuk2::Vocabulary::NFO::FileDataObject();
             m_types << m_mainType;
         }
 
-        Nepomuk::CreateResourceJob* job = Nepomuk::createResource(m_types, QString(), QString());
+        Nepomuk2::CreateResourceJob* job = Nepomuk2::createResource(m_types, QString(), QString());
         if( !job->exec() ) {
             //TODO: Set the error somehow
             kWarning() << job->errorString();
@@ -330,7 +330,7 @@ bool Nepomuk::ResourceData::store()
             if( url.scheme().isEmpty() )
                 setProperty( Soprano::Vocabulary::NAO::identifier(), Variant(url.url()) );
             else
-                setProperty( Nepomuk::Vocabulary::NIE::url(), Variant(url.url()) );
+                setProperty( Nepomuk2::Vocabulary::NIE::url(), Variant(url.url()) );
         }
     }
 
@@ -338,7 +338,7 @@ bool Nepomuk::ResourceData::store()
 }
 
 
-void Nepomuk::ResourceData::loadType( const QUrl& storedType )
+void Nepomuk2::ResourceData::loadType( const QUrl& storedType )
 {
     if ( !m_types.contains( storedType ) ) {
         m_types << storedType;
@@ -380,7 +380,7 @@ void Nepomuk::ResourceData::loadType( const QUrl& storedType )
 }
 
 
-bool Nepomuk::ResourceData::load()
+bool Nepomuk2::ResourceData::load()
 {
     QMutexLocker lock(&m_modificationMutex);
 
@@ -396,14 +396,14 @@ bool Nepomuk::ResourceData::load()
             // get queued in case of calls between different threads.
             //
             m_rm->m_watcher->moveToThread(m_rm->m_manager->thread());
-            QObject::connect( m_rm->m_watcher, SIGNAL(propertyAdded(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)),
-                              m_rm->m_manager, SLOT(slotPropertyAdded(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)) );
-            QObject::connect( m_rm->m_watcher, SIGNAL(propertyRemoved(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)),
-                              m_rm->m_manager, SLOT(slotPropertyRemoved(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)) );
-            m_rm->m_watcher->addResource( Nepomuk::Resource::fromResourceUri(m_uri) );
+            QObject::connect( m_rm->m_watcher, SIGNAL(propertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
+                              m_rm->m_manager, SLOT(slotPropertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
+            QObject::connect( m_rm->m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
+                              m_rm->m_manager, SLOT(slotPropertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
+            m_rm->m_watcher->addResource( Nepomuk2::Resource::fromResourceUri(m_uri) );
         }
         else {
-            QMetaObject::invokeMethod(m_rm->m_watcher, "addResource", Qt::AutoConnection, Q_ARG(Nepomuk::Resource, Nepomuk::Resource::fromResourceUri(m_uri)) );
+            QMetaObject::invokeMethod(m_rm->m_watcher, "addResource", Qt::AutoConnection, Q_ARG(Nepomuk2::Resource, Nepomuk2::Resource::fromResourceUri(m_uri)) );
         }
         // (re-)start the watcher in case this resource is the only one in the list of watched
         if(m_rm->m_watcher->resources().count() <= 1) {
@@ -428,7 +428,7 @@ bool Nepomuk::ResourceData::load()
                     }
                 }
                 else {
-                    Nepomuk::Variant var = Variant::fromNode( o );
+                    Nepomuk2::Variant var = Variant::fromNode( o );
                     updateKickOffLists( p, var );
                     m_cache[p].append( var );
                 }
@@ -464,7 +464,7 @@ bool Nepomuk::ResourceData::load()
 }
 
 
-void Nepomuk::ResourceData::setProperty( const QUrl& uri, const Nepomuk::Variant& value )
+void Nepomuk2::ResourceData::setProperty( const QUrl& uri, const Nepomuk2::Variant& value )
 {
     Q_ASSERT( uri.isValid() );
 
@@ -474,7 +474,7 @@ void Nepomuk::ResourceData::setProperty( const QUrl& uri, const Nepomuk::Variant
 
         // update the store
         QVariantList varList;
-        foreach( const Nepomuk::Variant var, value.toVariantList() ) {
+        foreach( const Nepomuk2::Variant var, value.toVariantList() ) {
             // make sure resource values are in the store
             if( var.simpleType() == qMetaTypeId<Resource>() ) {
                 var.toResource().m_data->store();
@@ -485,7 +485,7 @@ void Nepomuk::ResourceData::setProperty( const QUrl& uri, const Nepomuk::Variant
             }
         }
 
-        KJob* job = Nepomuk::setProperty(QList<QUrl>() << m_uri, uri, varList);
+        KJob* job = Nepomuk2::setProperty(QList<QUrl>() << m_uri, uri, varList);
         if( !job->exec() ) {
             //TODO: Set the error somehow
             kWarning() << job->errorString();
@@ -504,7 +504,7 @@ void Nepomuk::ResourceData::setProperty( const QUrl& uri, const Nepomuk::Variant
 }
 
 
-void Nepomuk::ResourceData::addProperty( const QUrl& uri, const Nepomuk::Variant& value )
+void Nepomuk2::ResourceData::addProperty( const QUrl& uri, const Nepomuk2::Variant& value )
 {
     Q_ASSERT( uri.isValid() );
 
@@ -514,7 +514,7 @@ void Nepomuk::ResourceData::addProperty( const QUrl& uri, const Nepomuk::Variant
 
         // update the store
         QVariantList varList;
-        foreach( const Nepomuk::Variant var, value.toVariantList() ) {
+        foreach( const Nepomuk2::Variant var, value.toVariantList() ) {
             // make sure resource values are in the store
             if( var.simpleType() == qMetaTypeId<Resource>() ) {
                 var.toResource().m_data->store();
@@ -525,7 +525,7 @@ void Nepomuk::ResourceData::addProperty( const QUrl& uri, const Nepomuk::Variant
             }
         }
 
-        KJob* job = Nepomuk::addProperty(QList<QUrl>() << m_uri, uri, varList);
+        KJob* job = Nepomuk2::addProperty(QList<QUrl>() << m_uri, uri, varList);
         if( !job->exec() ) {
             //TODO: Set the error somehow
             kWarning() << job->errorString();
@@ -542,13 +542,13 @@ void Nepomuk::ResourceData::addProperty( const QUrl& uri, const Nepomuk::Variant
 }
 
 
-void Nepomuk::ResourceData::removeProperty( const QUrl& uri )
+void Nepomuk2::ResourceData::removeProperty( const QUrl& uri )
 {
     Q_ASSERT( uri.isValid() );
     if( !m_uri.isEmpty() ) {
         QMutexLocker lock(&m_modificationMutex);
 
-        KJob* job = Nepomuk::removeProperties(QList<QUrl>() << m_uri, QList<QUrl>() << uri);
+        KJob* job = Nepomuk2::removeProperties(QList<QUrl>() << m_uri, QList<QUrl>() << uri);
         if( !job->exec() ) {
             //TODO: Set the error somehow
             kWarning() << job->errorString();
@@ -564,13 +564,13 @@ void Nepomuk::ResourceData::removeProperty( const QUrl& uri )
 }
 
 
-void Nepomuk::ResourceData::remove( bool recursive )
+void Nepomuk2::ResourceData::remove( bool recursive )
 {
     Q_UNUSED(recursive)
     QMutexLocker lock(&m_modificationMutex);
 
     if( !m_uri.isEmpty() ) {
-        KJob* job = Nepomuk::removeResources(QList<QUrl>() << m_uri);
+        KJob* job = Nepomuk2::removeResources(QList<QUrl>() << m_uri);
         if( !job->exec() ) {
             //TODO: Set the error somehow
             kWarning() << job->errorString();
@@ -582,7 +582,7 @@ void Nepomuk::ResourceData::remove( bool recursive )
 }
 
 
-bool Nepomuk::ResourceData::exists()
+bool Nepomuk2::ResourceData::exists()
 {
     if( m_uri.isValid() ) {
         const QString query = QString::fromLatin1("ask { %1 ?p ?o . }")
@@ -595,13 +595,13 @@ bool Nepomuk::ResourceData::exists()
 }
 
 
-bool Nepomuk::ResourceData::isValid() const
+bool Nepomuk2::ResourceData::isValid() const
 {
     return( !m_mainType.isEmpty() && ( !m_uri.isEmpty() || !m_kickoffUris.isEmpty() ) );
 }
 
 
-Nepomuk::ResourceData* Nepomuk::ResourceData::determineUri()
+Nepomuk2::ResourceData* Nepomuk2::ResourceData::determineUri()
 {
     // We have the following possible situations:
     // 1. m_uri is already valid
@@ -655,7 +655,7 @@ Nepomuk::ResourceData* Nepomuk::ResourceData::determineUri()
                                                     "UNION "
                                                     "{ %2 ?p ?o . } "
                                                     "} LIMIT 1")
-                                .arg( Soprano::Node::resourceToN3( Nepomuk::Vocabulary::NIE::url() ) )
+                                .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ) )
                                 .arg( Soprano::Node::resourceToN3( kickOffUri ) );
                 Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
                 if( it.next() ) {
@@ -699,13 +699,13 @@ Nepomuk::ResourceData* Nepomuk::ResourceData::determineUri()
 }
 
 
-void Nepomuk::ResourceData::invalidateCache()
+void Nepomuk2::ResourceData::invalidateCache()
 {
     m_cacheDirty = true;
 }
 
 
-Nepomuk::Thing Nepomuk::ResourceData::pimoThing()
+Nepomuk2::Thing Nepomuk2::ResourceData::pimoThing()
 {
     load();
     if( !m_pimoThing ) {
@@ -731,7 +731,7 @@ Nepomuk::Thing Nepomuk::ResourceData::pimoThing()
 }
 
 
-bool Nepomuk::ResourceData::operator==( const ResourceData& other ) const
+bool Nepomuk2::ResourceData::operator==( const ResourceData& other ) const
 {
     if( this == &other )
         return true;
@@ -742,7 +742,7 @@ bool Nepomuk::ResourceData::operator==( const ResourceData& other ) const
 }
 
 
-QDebug Nepomuk::ResourceData::operator<<( QDebug dbg ) const
+QDebug Nepomuk2::ResourceData::operator<<( QDebug dbg ) const
 {
     KUrl::List list = m_kickoffUris.toList();
     dbg << QString::fromLatin1("[kickoffuri: %1; uri: %2; type: %3; ref: %4]")
@@ -755,17 +755,17 @@ QDebug Nepomuk::ResourceData::operator<<( QDebug dbg ) const
 }
 
 
-QDebug operator<<( QDebug dbg, const Nepomuk::ResourceData& data )
+QDebug operator<<( QDebug dbg, const Nepomuk2::ResourceData& data )
 {
     return data.operator<<( dbg );
 }
 
 
-void Nepomuk::ResourceData::updateKickOffLists(const QUrl& prop, const Nepomuk::Variant& v)
+void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& prop, const Nepomuk2::Variant& v)
 {
     KUrl oldUrl;
     KUrl newUrl;
-    if( prop == Nepomuk::Vocabulary::NIE::url() ) {
+    if( prop == Nepomuk2::Vocabulary::NIE::url() ) {
         oldUrl = m_nieUrl;
         newUrl = v.toUrl();
         m_nieUrl = newUrl;

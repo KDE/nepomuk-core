@@ -29,7 +29,7 @@
 
 #include <KDebug>
 
-Nepomuk::Query::FolderConnection::FolderConnection( Folder* folder )
+Nepomuk2::Query::FolderConnection::FolderConnection( Folder* folder )
     : QObject( folder ),
       m_folder( folder )
 {
@@ -37,21 +37,21 @@ Nepomuk::Query::FolderConnection::FolderConnection( Folder* folder )
 }
 
 
-Nepomuk::Query::FolderConnection::~FolderConnection()
+Nepomuk2::Query::FolderConnection::~FolderConnection()
 {
     m_folder->removeConnection( this );
 }
 
 
-void Nepomuk::Query::FolderConnection::list()
+void Nepomuk2::Query::FolderConnection::list()
 {
     kDebug();
 
     m_folder->disconnect( this );
-    connect( m_folder, SIGNAL( newEntries( QList<Nepomuk::Query::Result> ) ),
-             this, SIGNAL( newEntries( QList<Nepomuk::Query::Result> ) ) );
-    connect( m_folder, SIGNAL( entriesRemoved( QList<Nepomuk::Query::Result> ) ),
-             this, SLOT( slotEntriesRemoved( QList<Nepomuk::Query::Result> ) ) );
+    connect( m_folder, SIGNAL( newEntries( QList<Nepomuk2::Query::Result> ) ),
+             this, SIGNAL( newEntries( QList<Nepomuk2::Query::Result> ) ) );
+    connect( m_folder, SIGNAL( entriesRemoved( QList<Nepomuk2::Query::Result> ) ),
+             this, SLOT( slotEntriesRemoved( QList<Nepomuk2::Query::Result> ) ) );
 
     // report cached entries
     if ( !m_folder->entries().isEmpty() ) {
@@ -82,17 +82,17 @@ void Nepomuk::Query::FolderConnection::list()
 }
 
 
-void Nepomuk::Query::FolderConnection::listen()
+void Nepomuk2::Query::FolderConnection::listen()
 {
     m_folder->disconnect( this );
 
     // if the folder has already finished listing it will only emit
     // changed - exactly what we want
     if ( m_folder->initialListingDone() ) {
-        connect( m_folder, SIGNAL( newEntries( QList<Nepomuk::Query::Result> ) ),
-                 this, SIGNAL( newEntries( QList<Nepomuk::Query::Result> ) ) );
-        connect( m_folder, SIGNAL( entriesRemoved( QList<Nepomuk::Query::Result> ) ),
-                 this, SLOT( slotEntriesRemoved( QList<Nepomuk::Query::Result> ) ) );
+        connect( m_folder, SIGNAL( newEntries( QList<Nepomuk2::Query::Result> ) ),
+                 this, SIGNAL( newEntries( QList<Nepomuk2::Query::Result> ) ) );
+        connect( m_folder, SIGNAL( entriesRemoved( QList<Nepomuk2::Query::Result> ) ),
+                 this, SLOT( slotEntriesRemoved( QList<Nepomuk2::Query::Result> ) ) );
         connect( m_folder, SIGNAL( resultCount( int ) ),
                  this, SIGNAL( resultCount( int ) ) );
     }
@@ -105,7 +105,7 @@ void Nepomuk::Query::FolderConnection::listen()
 }
 
 
-void Nepomuk::Query::FolderConnection::slotEntriesRemoved( const QList<Nepomuk::Query::Result>& entries )
+void Nepomuk2::Query::FolderConnection::slotEntriesRemoved( const QList<Nepomuk2::Query::Result>& entries )
 {
     QStringList uris;
     for ( int i = 0; i < entries.count(); ++i ) {
@@ -116,37 +116,37 @@ void Nepomuk::Query::FolderConnection::slotEntriesRemoved( const QList<Nepomuk::
 }
 
 
-void Nepomuk::Query::FolderConnection::slotFinishedListing()
+void Nepomuk2::Query::FolderConnection::slotFinishedListing()
 {
     // this slot is only called in listen mode. Once the listing is
     // finished we can start listening for changes
-    connect( m_folder, SIGNAL( newEntries( QList<Nepomuk::Query::Result> ) ),
-             this, SIGNAL( newEntries( QList<Nepomuk::Query::Result> ) ) );
-    connect( m_folder, SIGNAL( entriesRemoved( QList<Nepomuk::Query::Result> ) ),
-             this, SLOT( slotEntriesRemoved( QList<Nepomuk::Query::Result> ) ) );
+    connect( m_folder, SIGNAL( newEntries( QList<Nepomuk2::Query::Result> ) ),
+             this, SIGNAL( newEntries( QList<Nepomuk2::Query::Result> ) ) );
+    connect( m_folder, SIGNAL( entriesRemoved( QList<Nepomuk2::Query::Result> ) ),
+             this, SLOT( slotEntriesRemoved( QList<Nepomuk2::Query::Result> ) ) );
 }
 
 
-void Nepomuk::Query::FolderConnection::close()
+void Nepomuk2::Query::FolderConnection::close()
 {
     kDebug();
     deleteLater();
 }
 
 
-bool Nepomuk::Query::FolderConnection::isListingFinished() const
+bool Nepomuk2::Query::FolderConnection::isListingFinished() const
 {
     return m_folder->initialListingDone();
 }
 
 
-QString Nepomuk::Query::FolderConnection::queryString() const
+QString Nepomuk2::Query::FolderConnection::queryString() const
 {
     return m_folder->sparqlQuery();
 }
 
 
-QDBusObjectPath Nepomuk::Query::FolderConnection::registerDBusObject( const QString& dbusClient, int id )
+QDBusObjectPath Nepomuk2::Query::FolderConnection::registerDBusObject( const QString& dbusClient, int id )
 {
     // create the query adaptor on this connection
     ( void )new QueryAdaptor( this );

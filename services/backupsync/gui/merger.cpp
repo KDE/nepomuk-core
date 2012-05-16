@@ -28,7 +28,7 @@
 
 #include <KDebug>
 
-Nepomuk::Merger::Merger( QObject* parent )
+Nepomuk2::Merger::Merger( QObject* parent )
     : QThread( parent )
 {
     //Register DBus interface
@@ -39,28 +39,28 @@ Nepomuk::Merger::Merger( QObject* parent )
     start();
 }
 
-Nepomuk::Merger* Nepomuk::Merger::instance()
+Nepomuk2::Merger* Nepomuk2::Merger::instance()
 {
     static Merger m;
     return &m;
 }
 
 
-Nepomuk::Merger::~Merger()
+Nepomuk2::Merger::~Merger()
 {
     stop();
     wait();
 }
 
 
-void Nepomuk::Merger::stop()
+void Nepomuk2::Merger::stop()
 {
     m_stopped = true;
     m_queueWaiter.wakeAll();
 }
 
 
-int Nepomuk::Merger::process(const Nepomuk::ChangeLog& changeLog )
+int Nepomuk2::Merger::process(const Nepomuk2::ChangeLog& changeLog )
 {
     kDebug();
     m_queueMutex.lock();
@@ -76,7 +76,7 @@ int Nepomuk::Merger::process(const Nepomuk::ChangeLog& changeLog )
 }
 
 
-void Nepomuk::Merger::run()
+void Nepomuk2::Merger::run()
 {
     m_stopped = false;
 

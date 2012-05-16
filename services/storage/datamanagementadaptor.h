@@ -37,7 +37,7 @@
 
 class QThreadPool;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 class DataManagementModel;
 class DataManagementCommand;
 
@@ -50,7 +50,7 @@ class DataManagementAdaptor: public QObject, protected QDBusContext
     Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.DataManagement")
 
 public:
-    DataManagementAdaptor(Nepomuk::DataManagementModel* parent);
+    DataManagementAdaptor(Nepomuk2::DataManagementModel* parent);
     ~DataManagementAdaptor();
 
     /**
@@ -76,12 +76,12 @@ public Q_SLOTS:
     Q_SCRIPTABLE void removeProperties(const QStringList &resources, const QStringList &properties, const QString &app);
     Q_SCRIPTABLE QString createResource(const QStringList &types, const QString &label, const QString &description, const QString &app);
     Q_SCRIPTABLE void removeResources(const QStringList &resources, int flags, const QString &app);
-    Q_SCRIPTABLE QList<Nepomuk::SimpleResource> describeResources(const QStringList &resources, int flags, const QStringList& targetParties);
-    Q_SCRIPTABLE QHash<QString, QString> storeResources(const QList<Nepomuk::SimpleResource>& resources, int identificationMode, int flags, const Nepomuk::PropertyHash &additionalMetadata, const QString &app);
+    Q_SCRIPTABLE QList<Nepomuk2::SimpleResource> describeResources(const QStringList &resources, int flags, const QStringList& targetParties);
+    Q_SCRIPTABLE QHash<QString, QString> storeResources(const QList<Nepomuk2::SimpleResource>& resources, int identificationMode, int flags, const Nepomuk2::PropertyHash &additionalMetadata, const QString &app);
     Q_SCRIPTABLE void mergeResources(const QString &resource1, const QString &resource2, const QString &app);
     Q_SCRIPTABLE void removeDataByApplication(int flags, const QString &app);
     Q_SCRIPTABLE void removeDataByApplication(const QStringList &resources, int flags, const QString &app);
-    Q_SCRIPTABLE void importResources(const QString& url, const QString& serialization, int identificationMode, int flags, const Nepomuk::PropertyHash &additionalMetadata, const QString& app);
+    Q_SCRIPTABLE void importResources(const QString& url, const QString& serialization, int identificationMode, int flags, const Nepomuk2::PropertyHash &additionalMetadata, const QString& app);
     Q_SCRIPTABLE QString exportResources(const QStringList &resources, const QString& mimeType, int flags, const QStringList& targetParties);
 
     /// convinience overloads for scripts (no lists)
@@ -94,9 +94,9 @@ public Q_SLOTS:
     Q_SCRIPTABLE void importResources(const QString& url, const QString& serialization, int identificationMode, int flags, const QString& app);
 
 private:
-    void enqueueCommand(Nepomuk::DataManagementCommand* cmd);
+    void enqueueCommand(Nepomuk2::DataManagementCommand* cmd);
 
-    Nepomuk::DataManagementModel* m_model;
+    Nepomuk2::DataManagementModel* m_model;
     QThreadPool* m_threadPool;
     QHash<QString, QString> m_namespaces;
     QRegExp m_namespacePrefixRx;

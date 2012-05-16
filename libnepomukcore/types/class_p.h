@@ -28,7 +28,7 @@
 #include <QtCore/QSharedData>
 
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Types {
         class ClassPrivate : public EntityPrivate
         {

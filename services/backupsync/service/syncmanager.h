@@ -26,7 +26,7 @@
 #include <QUrl>
 #include <QDateTime>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class SyncFile;
 

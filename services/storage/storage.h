@@ -21,7 +21,7 @@
 
 #include "nepomukservice.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class Core;
 
@@ -41,7 +41,7 @@ namespace Nepomuk {
         void slotNepomukCoreInitialized( bool success );
 
     private:
-        Nepomuk::Core* m_core;
+        Nepomuk2::Core* m_core;
     };
 }
 

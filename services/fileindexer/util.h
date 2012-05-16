@@ -24,7 +24,7 @@
 
 class KJob;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /// remove all indexed data for \p url the datamanagement way
     KJob* clearIndexedData( const QUrl& url );
     KJob* clearIndexedData( const QList<QUrl>& urls );

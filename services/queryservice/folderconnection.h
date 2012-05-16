@@ -25,7 +25,7 @@
 class QUrl;
 class QDBusServiceWatcher;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
 
         class Result;
@@ -60,17 +60,17 @@ namespace Nepomuk {
             QString queryString() const;
 
         Q_SIGNALS:
-            void newEntries( const QList<Nepomuk::Query::Result>& );
+            void newEntries( const QList<Nepomuk2::Query::Result>& );
             void entriesRemoved( const QStringList& );
-            void entriesRemoved( const QList<Nepomuk::Query::Result>& entries );
+            void entriesRemoved( const QList<Nepomuk2::Query::Result>& entries );
 
             void resultCount( int count );
             void totalResultCount( int count );
             void finishedListing();
 
         private Q_SLOTS:
-            //void slotNewEntries( const QList<Nepomuk::Query::Result>& results );
-            void slotEntriesRemoved( const QList<Nepomuk::Query::Result>& entries );
+            //void slotNewEntries( const QList<Nepomuk2::Query::Result>& results );
+            void slotEntriesRemoved( const QList<Nepomuk2::Query::Result>& entries );
             void slotFinishedListing();
 
         private:

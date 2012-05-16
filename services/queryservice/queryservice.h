@@ -34,7 +34,7 @@ class QDBusMessage;
 class QDBusServiceWatcher;
 class QThreadPool;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
 
         class Folder;
@@ -69,7 +69,7 @@ namespace Nepomuk {
             Q_SCRIPTABLE QDBusObjectPath sparqlQuery( const QString& query, const RequestPropertyMapDBus& requestProps, const QDBusMessage& msg );
 
         private Q_SLOTS:
-            void slotFolderAboutToBeDeleted( Nepomuk::Query::Folder* folder );
+            void slotFolderAboutToBeDeleted( Nepomuk2::Query::Folder* folder );
 
         private:
             /**

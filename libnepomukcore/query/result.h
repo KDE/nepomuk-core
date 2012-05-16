@@ -30,7 +30,7 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class Resource;
     class Variant;
@@ -45,7 +45,7 @@ namespace Nepomuk {
          * \brief A single search result.
          *
          * A search via QueryServiceClient returns a set of Result object. A result consists
-         * of a Nepomuk::Resource and an optional score.
+         * of a Nepomuk2::Resource and an optional score.
          *
          * Additional bindings (variable values) as requested via ComparisonTerm::setVariableName()
          * can be retrieved using additionalBinding().
@@ -68,7 +68,7 @@ namespace Nepomuk {
              * \param resource The result resource.
              * \param score The optional result score.
              */
-            Result( const Nepomuk::Resource& resource, double score = 0.0 );
+            Result( const Nepomuk2::Resource& resource, double score = 0.0 );
 
             /**
              * Copy constructor.

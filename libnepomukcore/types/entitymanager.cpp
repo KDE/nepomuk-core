@@ -26,14 +26,14 @@
 
 #include <QtCore/QMutexLocker>
 
-Q_GLOBAL_STATIC( Nepomuk::Types::EntityManager, entityManager )
+Q_GLOBAL_STATIC( Nepomuk2::Types::EntityManager, entityManager )
 
-Nepomuk::Types::EntityManager::EntityManager()
+Nepomuk2::Types::EntityManager::EntityManager()
 {
 }
 
 
-QExplicitlySharedDataPointer<Nepomuk::Types::ClassPrivate> Nepomuk::Types::EntityManager::getClass( const QUrl& uri )
+QExplicitlySharedDataPointer<Nepomuk2::Types::ClassPrivate> Nepomuk2::Types::EntityManager::getClass( const QUrl& uri )
 {
     QMutexLocker lock( &m_mutex );
 
@@ -49,7 +49,7 @@ QExplicitlySharedDataPointer<Nepomuk::Types::ClassPrivate> Nepomuk::Types::Entit
 }
 
 
-QExplicitlySharedDataPointer<Nepomuk::Types::PropertyPrivate> Nepomuk::Types::EntityManager::getProperty( const QUrl& uri )
+QExplicitlySharedDataPointer<Nepomuk2::Types::PropertyPrivate> Nepomuk2::Types::EntityManager::getProperty( const QUrl& uri )
 {
     QMutexLocker lock( &m_mutex );
 
@@ -65,7 +65,7 @@ QExplicitlySharedDataPointer<Nepomuk::Types::PropertyPrivate> Nepomuk::Types::En
 }
 
 
-QExplicitlySharedDataPointer<Nepomuk::Types::OntologyPrivate> Nepomuk::Types::EntityManager::getOntology( const QUrl& uri )
+QExplicitlySharedDataPointer<Nepomuk2::Types::OntologyPrivate> Nepomuk2::Types::EntityManager::getOntology( const QUrl& uri )
 {
     QMutexLocker lock( &m_mutex );
 
@@ -81,7 +81,7 @@ QExplicitlySharedDataPointer<Nepomuk::Types::OntologyPrivate> Nepomuk::Types::En
 }
 
 
-Nepomuk::Types::EntityManager* Nepomuk::Types::EntityManager::self()
+Nepomuk2::Types::EntityManager* Nepomuk2::Types::EntityManager::self()
 {
     return entityManager();
 }

@@ -42,7 +42,7 @@ inline char* toString(const Soprano::Statement& s) {
 
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     void insertOntologies( Soprano::Model *model, const QUrl &ontologyGraph );
 }
 

@@ -26,7 +26,7 @@
 
 #include <Soprano/LiteralValue>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         class LiteralTermPrivate : public TermPrivate
         {

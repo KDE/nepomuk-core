@@ -18,7 +18,7 @@ set(servicestub_SRCS
 qt4_add_dbus_adaptor(servicestub_SRCS
   ../interfaces/org.kde.nepomuk.ServiceControl.xml
   servicecontrol.h
-  Nepomuk::ServiceControl)
+  Nepomuk2::ServiceControl)
 
 kde4_add_executable(nepomukservicestub
   ${servicestub_SRCS}

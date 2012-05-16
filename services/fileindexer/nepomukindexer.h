@@ -29,7 +29,7 @@ class KProcess;
 class QFileInfo;
 class QTimer;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class Resource;
 
@@ -66,7 +66,7 @@ namespace Nepomuk {
          * \param url The url used in indexFile() or indexResource()
          * \param resource The resource representing the indexed file or resource in %Nepomuk
          */
-//        void indexingDone( const KUrl& url, const Nepomuk::Resource& resource );
+//        void indexingDone( const KUrl& url, const Nepomuk2::Resource& resource );
 
         // TODO: void indexingFailed( const KUrl& url );
         // TODO: better only have one method for success and failure.

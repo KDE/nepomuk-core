@@ -22,7 +22,7 @@
 #include <QtCore/QObject>
 #include <QtDBus/QDBusMessage>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class ServiceController;
 

@@ -43,8 +43,8 @@
 
 using namespace Soprano;
 using namespace Soprano::Vocabulary;
-using namespace Nepomuk;
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2;
+using namespace Nepomuk2::Vocabulary;
 
 
 void DataManagementAdaptorTest::resetModel()
@@ -96,11 +96,11 @@ void DataManagementAdaptorTest::initTestCase()
     // DataManagementModel relies on the ussage of a NRLModel in the storage service
     m_nrlModel = new Soprano::NRLModel(m_model);
 
-    m_classAndPropertyTree = new Nepomuk::ClassAndPropertyTree(this);
+    m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
 
-    m_dmModel = new Nepomuk::DataManagementModel(m_classAndPropertyTree, m_nrlModel);
+    m_dmModel = new Nepomuk2::DataManagementModel(m_classAndPropertyTree, m_nrlModel);
 
-    m_dmAdaptor = new Nepomuk::DataManagementAdaptor(m_dmModel);
+    m_dmAdaptor = new Nepomuk2::DataManagementAdaptor(m_dmModel);
 }
 
 void DataManagementAdaptorTest::cleanupTestCase()

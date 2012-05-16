@@ -34,7 +34,7 @@ namespace Soprano {
     class Model;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class MetadataMover : public QObject
     {
         Q_OBJECT

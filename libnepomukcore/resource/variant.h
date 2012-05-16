@@ -32,7 +32,7 @@ namespace Soprano {
     class Node;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class Resource;
 
@@ -387,10 +387,10 @@ namespace Nepomuk {
 }
 
 
-NEPOMUK_EXPORT QDebug operator<<( QDebug dbg, const Nepomuk::Variant& );
+NEPOMUK_EXPORT QDebug operator<<( QDebug dbg, const Nepomuk2::Variant& );
 
-Q_DECLARE_METATYPE(Nepomuk::Resource)
-Q_DECLARE_METATYPE(QList<Nepomuk::Resource>)
+Q_DECLARE_METATYPE(Nepomuk2::Resource)
+Q_DECLARE_METATYPE(QList<Nepomuk2::Resource>)
 Q_DECLARE_METATYPE(QList<int>)
 Q_DECLARE_METATYPE(QList<qlonglong>)
 Q_DECLARE_METATYPE(QList<uint>)

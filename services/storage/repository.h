@@ -31,7 +31,7 @@ namespace Soprano {
 
 class KJob;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class RemovableMediaModel;
     class ResourceWatcherModel;
     class ModelCopyJob;
@@ -102,11 +102,11 @@ namespace Nepomuk {
         State m_state;
 
         Soprano::Model* m_model;
-        Nepomuk::ClassAndPropertyTree* m_classAndPropertyTree;
+        Nepomuk2::ClassAndPropertyTree* m_classAndPropertyTree;
         RemovableMediaModel* m_removableStorageModel;
         VirtuosoInferenceModel* m_inferenceModel;
         DataManagementModel* m_dataManagementModel;
-        Nepomuk::DataManagementAdaptor* m_dataManagementAdaptor;
+        Nepomuk2::DataManagementAdaptor* m_dataManagementAdaptor;
         Soprano::NRLModel* m_nrlModel;
         const Soprano::Backend* m_backend;
 

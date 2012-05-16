@@ -37,7 +37,7 @@
 #include <Soprano/Model>
 
 // trueg: why not use QSharedData and avoid all the hassle or returning references in SyncFile?
-class Nepomuk::ChangeLog::Private {
+class Nepomuk2::ChangeLog::Private {
 public:
     // vHanda: Maybe I should use a QMap<ChangeLogRecord, QHashDummyValue> ?
     // That way the records will be ordered.
@@ -45,54 +45,54 @@ public:
     QList<ChangeLogRecord> m_records;
 };
 
-Nepomuk::ChangeLog::ChangeLog()
-    : d( new Nepomuk::ChangeLog::Private )
+Nepomuk2::ChangeLog::ChangeLog()
+    : d( new Nepomuk2::ChangeLog::Private )
 {
 }
 
-Nepomuk::ChangeLog::ChangeLog(const Nepomuk::ChangeLog& rhs)
-    : d( new Nepomuk::ChangeLog::Private )
+Nepomuk2::ChangeLog::ChangeLog(const Nepomuk2::ChangeLog& rhs)
+    : d( new Nepomuk2::ChangeLog::Private )
 {
     this->operator=( rhs );
 }
 
-Nepomuk::ChangeLog::~ChangeLog()
+Nepomuk2::ChangeLog::~ChangeLog()
 {
     delete d;
 }
 
-Nepomuk::ChangeLog& Nepomuk::ChangeLog::operator=(const Nepomuk::ChangeLog& rhs)
+Nepomuk2::ChangeLog& Nepomuk2::ChangeLog::operator=(const Nepomuk2::ChangeLog& rhs)
 {
     (*d) = (*rhs.d);
     return *this;
 }
 
 
-int Nepomuk::ChangeLog::size() const
+int Nepomuk2::ChangeLog::size() const
 {
     return d->m_records.size();
 }
 
 
-bool Nepomuk::ChangeLog::empty() const
+bool Nepomuk2::ChangeLog::empty() const
 {
     return d->m_records.empty();
 }
 
 
-void Nepomuk::ChangeLog::clear()
+void Nepomuk2::ChangeLog::clear()
 {
     d->m_records.clear();
 }
 
 
-void Nepomuk::ChangeLog::add(const Nepomuk::ChangeLogRecord& r)
+void Nepomuk2::ChangeLog::add(const Nepomuk2::ChangeLogRecord& r)
 {
     d->m_records.append( r );
 }
 
 
-QList<Nepomuk::ChangeLogRecord> Nepomuk::ChangeLog::toList() const
+QList<Nepomuk2::ChangeLogRecord> Nepomuk2::ChangeLog::toList() const
 {
     return d->m_records;
 }
@@ -103,14 +103,14 @@ QList<Nepomuk::ChangeLogRecord> Nepomuk::ChangeLog::toList() const
 //        of the changelog the performance is the same as no copying takes place
 //        but the API would be much cleaner or at least more in sync with the Qt/KDE
 //        API style
-void Nepomuk::ChangeLog::sort()
+void Nepomuk2::ChangeLog::sort()
 {
     qSort( d->m_records );
 }
 
 
 // trueg: here the same as above applies.
-void Nepomuk::ChangeLog::invert()
+void Nepomuk2::ChangeLog::invert()
 {
     QMutableListIterator<ChangeLogRecord> it( d->m_records );
     while( it.hasNext() ) {
@@ -121,7 +121,7 @@ void Nepomuk::ChangeLog::invert()
 
 
 // trueg: and once more as above - maybe the methods could then be named "sorted()", "inverted()", and "filtered()"
-void Nepomuk::ChangeLog::filter(const QSet< QUrl >& nepomukUris)
+void Nepomuk2::ChangeLog::filter(const QSet< QUrl >& nepomukUris)
 {
     QMutableListIterator<ChangeLogRecord> it( d->m_records );
     while( it.hasNext() ) {
@@ -133,14 +133,14 @@ void Nepomuk::ChangeLog::filter(const QSet< QUrl >& nepomukUris)
 }
 
 
-Nepomuk::ChangeLog& Nepomuk::ChangeLog::operator +=(const Nepomuk::ChangeLog& log)
+Nepomuk2::ChangeLog& Nepomuk2::ChangeLog::operator +=(const Nepomuk2::ChangeLog& log)
 {
     d->m_records += log.d->m_records;
     return *this;
 }
 
 
-Nepomuk::ChangeLog Nepomuk::ChangeLog::fromUrl(const QUrl& url)
+Nepomuk2::ChangeLog Nepomuk2::ChangeLog::fromUrl(const QUrl& url)
 {
     ChangeLog log;
     log.d->m_records = ChangeLogRecord::loadRecords( url );
@@ -148,7 +148,7 @@ Nepomuk::ChangeLog Nepomuk::ChangeLog::fromUrl(const QUrl& url)
 }
 
 
-Nepomuk::ChangeLog Nepomuk::ChangeLog::fromUrl(const QUrl& url, const QDateTime& min)
+Nepomuk2::ChangeLog Nepomuk2::ChangeLog::fromUrl(const QUrl& url, const QDateTime& min)
 {
     ChangeLog log;
     log.d->m_records = ChangeLogRecord::loadRecords( url, min );
@@ -156,13 +156,13 @@ Nepomuk::ChangeLog Nepomuk::ChangeLog::fromUrl(const QUrl& url, const QDateTime&
 }
 
 
-bool Nepomuk::ChangeLog::save(const QUrl& url) const
+bool Nepomuk2::ChangeLog::save(const QUrl& url) const
 {
     return ChangeLogRecord::saveRecords( d->m_records, url );
 }
 
 
-void Nepomuk::ChangeLog::removeRecordsAfter(const QDateTime& dt)
+void Nepomuk2::ChangeLog::removeRecordsAfter(const QDateTime& dt)
 {
     QMutableListIterator<ChangeLogRecord> it( d->m_records );
     while( it.hasNext() ) {
@@ -173,7 +173,7 @@ void Nepomuk::ChangeLog::removeRecordsAfter(const QDateTime& dt)
     }
 }
 
-void Nepomuk::ChangeLog::removeRecordsBefore(const QDateTime& dt)
+void Nepomuk2::ChangeLog::removeRecordsBefore(const QDateTime& dt)
 {
     QMutableListIterator<ChangeLogRecord> it( d->m_records );
     while( it.hasNext() ) {
@@ -184,7 +184,7 @@ void Nepomuk::ChangeLog::removeRecordsBefore(const QDateTime& dt)
     }
 }
 
-QSet<QUrl> Nepomuk::ChangeLog::resources() const
+QSet<QUrl> Nepomuk2::ChangeLog::resources() const
 {
     QSet<QUrl> uniqueUris;
 
@@ -204,7 +204,7 @@ QSet<QUrl> Nepomuk::ChangeLog::resources() const
     return uniqueUris;
 }
 
-QSet<QUrl> Nepomuk::ChangeLog::subjects() const
+QSet<QUrl> Nepomuk2::ChangeLog::subjects() const
 {
     QSet<QUrl> uniqueUris;
 
@@ -216,7 +216,7 @@ QSet<QUrl> Nepomuk::ChangeLog::subjects() const
     return uniqueUris;
 }
 
-QSet<QUrl> Nepomuk::ChangeLog::objects() const
+QSet<QUrl> Nepomuk2::ChangeLog::objects() const
 {
     QSet<QUrl> uniqueUris;
 
@@ -232,14 +232,14 @@ QSet<QUrl> Nepomuk::ChangeLog::objects() const
     return uniqueUris;
 }
 
-Nepomuk::ChangeLog& Nepomuk::ChangeLog::operator+=(const Nepomuk::ChangeLogRecord& record)
+Nepomuk2::ChangeLog& Nepomuk2::ChangeLog::operator+=(const Nepomuk2::ChangeLogRecord& record)
 {
     add( record );
     return *this;
 }
 
 
-QTextStream& Nepomuk::operator<<(QTextStream& ts, const Nepomuk::ChangeLog& log)
+QTextStream& Nepomuk2::operator<<(QTextStream& ts, const Nepomuk2::ChangeLog& log)
 {
     foreach( const ChangeLogRecord & record, log.toList() )
         ts << record << "\n";
@@ -247,21 +247,21 @@ QTextStream& Nepomuk::operator<<(QTextStream& ts, const Nepomuk::ChangeLog& log)
 }
 
 
-QString Nepomuk::ChangeLog::dateTimeFormat()
+QString Nepomuk2::ChangeLog::dateTimeFormat()
 {
     return ChangeLogRecord::dateTimeFormat();
 }
 
-QDebug operator<<( QDebug debug, const Nepomuk::ChangeLog & log )
+QDebug operator<<( QDebug debug, const Nepomuk2::ChangeLog & log )
 {
-    foreach( const Nepomuk::ChangeLogRecord & rec, log.toList() )
+    foreach( const Nepomuk2::ChangeLogRecord & rec, log.toList() )
         debug << rec.toString();
     return debug;
 }
 
 
 // static
-Nepomuk::ChangeLog Nepomuk::ChangeLog::fromList(const QList< Soprano::Statement >& st)
+Nepomuk2::ChangeLog Nepomuk2::ChangeLog::fromList(const QList< Soprano::Statement >& st)
 {
     ChangeLog log;
     log.d->m_records = ChangeLogRecord::toRecordList( st );
@@ -269,7 +269,7 @@ Nepomuk::ChangeLog Nepomuk::ChangeLog::fromList(const QList< Soprano::Statement 
 }
 
 // static
-Nepomuk::ChangeLog Nepomuk::ChangeLog::fromList(const QList< Nepomuk::ChangeLogRecord >& records)
+Nepomuk2::ChangeLog Nepomuk2::ChangeLog::fromList(const QList< Nepomuk2::ChangeLogRecord >& records)
 {
     ChangeLog log;
     log.d->m_records = records;
@@ -277,7 +277,7 @@ Nepomuk::ChangeLog Nepomuk::ChangeLog::fromList(const QList< Nepomuk::ChangeLogR
 }
 
 // static
-Nepomuk::ChangeLog Nepomuk::ChangeLog::fromGraphUri(const QUrl& graphUri, Soprano::Model* model)
+Nepomuk2::ChangeLog Nepomuk2::ChangeLog::fromGraphUri(const QUrl& graphUri, Soprano::Model* model)
 {
     ChangeLog log;
     log.d->m_records = ChangeLogRecord::toRecordList(graphUri, model);
@@ -285,7 +285,7 @@ Nepomuk::ChangeLog Nepomuk::ChangeLog::fromGraphUri(const QUrl& graphUri, Sopran
 }
 
 // static
-Nepomuk::ChangeLog Nepomuk::ChangeLog::fromGraphUriList(const QList< QUrl >& graphUriList, Soprano::Model* model)
+Nepomuk2::ChangeLog Nepomuk2::ChangeLog::fromGraphUriList(const QList< QUrl >& graphUriList, Soprano::Model* model)
 {
     ChangeLog log;
     log.d->m_records = ChangeLogRecord::toRecordList(graphUriList, model);

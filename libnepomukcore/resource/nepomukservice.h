@@ -26,7 +26,7 @@ namespace Soprano {
     class Model;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
      * \class Service nepomukservice.h Nepomuk2/Service
      *
@@ -44,11 +44,11 @@ namespace Nepomuk {
      * dependencies name other services.
      *
      * To create a new %Nepomuk service one derives a new class from
-     * Nepomuk::Service and exports it as a standard KDE module, i.e.
+     * Nepomuk2::Service and exports it as a standard KDE module, i.e.
      * plugin.
      *
      * \code
-     * class MyService : public Nepomuk::Service
+     * class MyService : public Nepomuk2::Service
      * {
      *    // do fancy stuff
      * };
@@ -135,7 +135,7 @@ namespace Nepomuk {
 /**
  * Export a %Nepomuk service.
  *
- * \param classname The name of the Nepomuk::Service subclass to export.
+ * \param classname The name of the Nepomuk2::Service subclass to export.
  * \param libname The name of the library which should export the service.
  */
 #define NEPOMUK_EXPORT_SERVICE( classname, libname )    \

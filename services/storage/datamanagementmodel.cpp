@@ -67,7 +67,7 @@
 
 #define STRIGI_INDEX_GRAPH_FOR "http://www.strigi.org/fields#indexGraphFor"
 
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 using namespace Soprano::Vocabulary;
 
 //// TODO: do not allow to create properties or classes through the "normal" methods. Instead provide methods for it.
@@ -96,7 +96,7 @@ namespace {
     }
 
     template<typename T> QString createResourceFilter(const T& resources, const QString& var, bool exclude = true) {
-        QString filter = QString::fromLatin1("%1 in (%2)").arg(var, Nepomuk::resourcesToN3(resources).join(QLatin1String(",")));
+        QString filter = QString::fromLatin1("%1 in (%2)").arg(var, Nepomuk2::resourcesToN3(resources).join(QLatin1String(",")));
         if(exclude) {
             filter = QString::fromLatin1("!(%1)").arg(filter);
         }
@@ -149,7 +149,7 @@ namespace {
                 return NonExistingFileUrl;
             }
         }
-        else if(Nepomuk::ClassAndPropertyTree::self()->contains(uri)) {
+        else if(Nepomuk2::ClassAndPropertyTree::self()->contains(uri)) {
             return OntologyUri;
         }
         // if supported by kio
@@ -172,7 +172,7 @@ namespace {
     }
 }
 
-class Nepomuk::DataManagementModel::Private
+class Nepomuk2::DataManagementModel::Private
 {
 public:
     ClassAndPropertyTree* m_classAndPropertyTree;
@@ -185,7 +185,7 @@ public:
     bool m_ignoreCreationDate;
 };
 
-Nepomuk::DataManagementModel::DataManagementModel(Nepomuk::ClassAndPropertyTree* tree, Soprano::Model* model, QObject *parent)
+Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTree* tree, Soprano::Model* model, QObject *parent)
     : Soprano::FilterModel(model),
       d(new Private())
 {
@@ -211,19 +211,19 @@ Nepomuk::DataManagementModel::DataManagementModel(Nepomuk::ClassAndPropertyTree*
     }
 }
 
-Nepomuk::DataManagementModel::~DataManagementModel()
+Nepomuk2::DataManagementModel::~DataManagementModel()
 {
     delete d;
 }
 
 
-Soprano::Error::ErrorCode Nepomuk::DataManagementModel::updateModificationDate(const QUrl& resource, const QUrl & graph, const QDateTime& date, bool includeCreationDate)
+Soprano::Error::ErrorCode Nepomuk2::DataManagementModel::updateModificationDate(const QUrl& resource, const QUrl & graph, const QDateTime& date, bool includeCreationDate)
 {
     return updateModificationDate(QSet<QUrl>() << resource, graph, date, includeCreationDate);
 }
 
 
-Soprano::Error::ErrorCode Nepomuk::DataManagementModel::updateModificationDate(const QSet<QUrl>& resources, const QUrl & graph, const QDateTime& date, bool includeCreationDate)
+Soprano::Error::ErrorCode Nepomuk2::DataManagementModel::updateModificationDate(const QSet<QUrl>& resources, const QUrl & graph, const QDateTime& date, bool includeCreationDate)
 {
     if(resources.isEmpty()) {
         return Soprano::Error::ErrorNone;
@@ -258,7 +258,7 @@ Soprano::Error::ErrorCode Nepomuk::DataManagementModel::updateModificationDate(c
     return Soprano::Error::ErrorNone;
 }
 
-void Nepomuk::DataManagementModel::addProperty(const QList<QUrl> &resources, const QUrl &property, const QVariantList &values, const QString &app)
+void Nepomuk2::DataManagementModel::addProperty(const QList<QUrl> &resources, const QUrl &property, const QVariantList &values, const QString &app)
 {
     //
     // Check parameters
@@ -415,7 +415,7 @@ void Nepomuk::DataManagementModel::addProperty(const QList<QUrl> &resources, con
 
 // setting a property can be implemented by way of addProperty. All we have to do before calling addProperty is to remove all
 // the values that are not in the setProperty call
-void Nepomuk::DataManagementModel::setProperty(const QList<QUrl> &resources, const QUrl &property, const QVariantList &values, const QString &app)
+void Nepomuk2::DataManagementModel::setProperty(const QList<QUrl> &resources, const QUrl &property, const QVariantList &values, const QString &app)
 {
     //
     // Special case: setting to the empty list
@@ -574,7 +574,7 @@ void Nepomuk::DataManagementModel::setProperty(const QList<QUrl> &resources, con
     }
 }
 
-void Nepomuk::DataManagementModel::removeProperty(const QList<QUrl> &resources, const QUrl &property, const QVariantList &values, const QString &app)
+void Nepomuk2::DataManagementModel::removeProperty(const QList<QUrl> &resources, const QUrl &property, const QVariantList &values, const QString &app)
 {
     // 1. remove the triples
     // 2. remove trailing graphs
@@ -694,7 +694,7 @@ void Nepomuk::DataManagementModel::removeProperty(const QList<QUrl> &resources, 
     }
 }
 
-void Nepomuk::DataManagementModel::removeProperties(const QList<QUrl> &resources, const QList<QUrl> &properties, const QString &app)
+void Nepomuk2::DataManagementModel::removeProperties(const QList<QUrl> &resources, const QList<QUrl> &properties, const QString &app)
 {
     // 1. remove the triples
     // 2. remove trailing graphs
@@ -818,7 +818,7 @@ void Nepomuk::DataManagementModel::removeProperties(const QList<QUrl> &resources
 }
 
 
-QUrl Nepomuk::DataManagementModel::createResource(const QList<QUrl> &types, const QString &label, const QString &description, const QString &app)
+QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, const QString &label, const QString &description, const QString &app)
 {
     // 1. create an new graph
     // 2. check if the app exists, if not create it in the new graph
@@ -878,7 +878,7 @@ QUrl Nepomuk::DataManagementModel::createResource(const QList<QUrl> &types, cons
     return resUri;
 }
 
-void Nepomuk::DataManagementModel::removeResources(const QList<QUrl> &resources, RemovalFlags flags, const QString &app)
+void Nepomuk2::DataManagementModel::removeResources(const QList<QUrl> &resources, RemovalFlags flags, const QString &app)
 {
     kDebug() << resources << app << flags;
 
@@ -934,7 +934,7 @@ void Nepomuk::DataManagementModel::removeResources(const QList<QUrl> &resources,
     removeAllResources(resolvedResources, flags);
 }
 
-void Nepomuk::DataManagementModel::removeDataByApplication(const QList<QUrl> &resources, RemovalFlags flags, const QString &app)
+void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &resources, RemovalFlags flags, const QString &app)
 {
     //
     // Check parameters
@@ -1079,7 +1079,7 @@ void Nepomuk::DataManagementModel::removeDataByApplication(const QList<QUrl> &re
         graphRemovalCandidates += executeQuery(QString::fromLatin1("select distinct ?g (0) as ?c where { "
                                                                    "?g <"STRIGI_INDEX_GRAPH_FOR"> ?r . "
                                                                    "FILTER(?r in (%1)) . }")
-                                               .arg(Nepomuk::resourcesToN3(resolvedResources).join(QLatin1String(","))),
+                                               .arg(Nepomuk2::resourcesToN3(resolvedResources).join(QLatin1String(","))),
                                                Soprano::Query::QueryLanguageSparql).allElements();
     }
 
@@ -1305,7 +1305,7 @@ struct GraphRemovalCandidate {
 };
 }
 
-void Nepomuk::DataManagementModel::removeDataByApplication(RemovalFlags flags, const QString &app)
+void Nepomuk2::DataManagementModel::removeDataByApplication(RemovalFlags flags, const QString &app)
 {
     //
     // Check parameters
@@ -1434,10 +1434,10 @@ void Nepomuk::DataManagementModel::removeDataByApplication(RemovalFlags flags, c
 
 
 //// TODO: do not allow to create properties or classes this way
-QHash<QUrl, QUrl> Nepomuk::DataManagementModel::storeResources(const Nepomuk::SimpleResourceGraph &resources,
+QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::SimpleResourceGraph &resources,
                                                   const QString &app,
-                                                  Nepomuk::StoreIdentificationMode identificationMode,
-                                                  Nepomuk::StoreResourcesFlags flags,
+                                                  Nepomuk2::StoreIdentificationMode identificationMode,
+                                                  Nepomuk2::StoreResourcesFlags flags,
                                                   const QHash<QUrl, QVariant> &additionalMetadata)
 {
     if(app.isEmpty()) {
@@ -1788,12 +1788,12 @@ QHash<QUrl, QUrl> Nepomuk::DataManagementModel::storeResources(const Nepomuk::Si
     return merger.mappings();
 }
 
-void Nepomuk::DataManagementModel::importResources(const QUrl &url,
+void Nepomuk2::DataManagementModel::importResources(const QUrl &url,
                                                    const QString &app,
                                                    Soprano::RdfSerialization serialization,
                                                    const QString &userSerialization,
-                                                   Nepomuk::StoreIdentificationMode identificationMode,
-                                                   Nepomuk::StoreResourcesFlags flags,
+                                                   Nepomuk2::StoreIdentificationMode identificationMode,
+                                                   Nepomuk2::StoreResourcesFlags flags,
                                                    const QHash<QUrl, QVariant>& additionalMetadata)
 {
     // download the file
@@ -1838,7 +1838,7 @@ void Nepomuk::DataManagementModel::importResources(const QUrl &url,
     KIO::NetAccess::removeTempFile(tmpFileName);
 }
 
-void Nepomuk::DataManagementModel::mergeResources(const QUrl &res1, const QUrl &res2, const QString &app)
+void Nepomuk2::DataManagementModel::mergeResources(const QUrl &res1, const QUrl &res2, const QString &app)
 {
     if(res1.isEmpty() || res2.isEmpty()) {
         setError(QLatin1String("mergeResources: Encountered empty resource URI."), Soprano::Error::ErrorInvalidArgument);
@@ -1918,7 +1918,7 @@ QVariant nodeToVariant(const Soprano::Node& node) {
 }
 }
 
-Nepomuk::SimpleResourceGraph Nepomuk::DataManagementModel::describeResources(const QList<QUrl> &resources,
+Nepomuk2::SimpleResourceGraph Nepomuk2::DataManagementModel::describeResources(const QList<QUrl> &resources,
                                                                              DescribeResourcesFlags flags,
                                                                              const QList<QUrl>& targetParties) const
 {
@@ -2132,10 +2132,10 @@ namespace {
     }
 }
 
-QString Nepomuk::DataManagementModel::exportResources(const QList<QUrl> &resources,
+QString Nepomuk2::DataManagementModel::exportResources(const QList<QUrl> &resources,
                                                       Soprano::RdfSerialization serialization,
                                                       const QString &userSerialization,
-                                                      Nepomuk::DescribeResourcesFlags flags,
+                                                      Nepomuk2::DescribeResourcesFlags flags,
                                                       const QList<QUrl> &targetParties) const
 {
     // try to get a serializer. Without it there is no point in doing any other work
@@ -2181,7 +2181,7 @@ QString Nepomuk::DataManagementModel::exportResources(const QList<QUrl> &resourc
 }
 
 
-void Nepomuk::DataManagementModel::removeTrailingGraphs(const QSet<QUrl>& graphs)
+void Nepomuk2::DataManagementModel::removeTrailingGraphs(const QSet<QUrl>& graphs)
 {
     kDebug() << graphs;
 
@@ -2219,7 +2219,7 @@ void Nepomuk::DataManagementModel::removeTrailingGraphs(const QSet<QUrl>& graphs
 }
 
 
-QUrl Nepomuk::DataManagementModel::createGraph(const QString &app, const QHash<QUrl, QVariant> &additionalMetadata)
+QUrl Nepomuk2::DataManagementModel::createGraph(const QString &app, const QHash<QUrl, QVariant> &additionalMetadata)
 {
     QHash<QUrl, Soprano::Node> graphMetaData;
 
@@ -2238,7 +2238,7 @@ QUrl Nepomuk::DataManagementModel::createGraph(const QString &app, const QHash<Q
     return createGraph( app, graphMetaData );
 }
 
-QUrl Nepomuk::DataManagementModel::createGraph(const QString& app, const QMultiHash< QUrl, Soprano::Node >& additionalMetadata)
+QUrl Nepomuk2::DataManagementModel::createGraph(const QString& app, const QMultiHash< QUrl, Soprano::Node >& additionalMetadata)
 {
     QHash<QUrl, Soprano::Node> graphMetaData = additionalMetadata;
 
@@ -2329,7 +2329,7 @@ QUrl Nepomuk::DataManagementModel::createGraph(const QString& app, const QMultiH
 }
 
 
-QUrl Nepomuk::DataManagementModel::splitGraph(const QUrl &graph, const QUrl& metadataGraph_, const QUrl &appRes)
+QUrl Nepomuk2::DataManagementModel::splitGraph(const QUrl &graph, const QUrl& metadataGraph_, const QUrl &appRes)
 {
     const QUrl newGraph = createUri(GraphUri);
     const QUrl newMetadataGraph = createUri(GraphUri);
@@ -2369,7 +2369,7 @@ QUrl Nepomuk::DataManagementModel::splitGraph(const QUrl &graph, const QUrl& met
 }
 
 
-QUrl Nepomuk::DataManagementModel::findApplicationResource(const QString &app, bool create)
+QUrl Nepomuk2::DataManagementModel::findApplicationResource(const QString &app, bool create)
 {
     Soprano::QueryResultIterator it =
             executeQuery(QString::fromLatin1("select ?r where { ?r a %1 . ?r %2 %3 . } LIMIT 1")
@@ -2401,7 +2401,7 @@ QUrl Nepomuk::DataManagementModel::findApplicationResource(const QString &app, b
     }
 }
 
-QUrl Nepomuk::DataManagementModel::createUri(Nepomuk::DataManagementModel::UriType type)
+QUrl Nepomuk2::DataManagementModel::createUri(Nepomuk2::DataManagementModel::UriType type)
 {
     QString typeToken;
     if(type == GraphUri)
@@ -2430,7 +2430,7 @@ QUrl Nepomuk::DataManagementModel::createUri(Nepomuk::DataManagementModel::UriTy
 
 
 // TODO: emit resource watcher resource creation signals
-QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(const QHash<QUrl, QUrl> &resources, const QUrl &property, const QHash<Soprano::Node, Soprano::Node> &nodes, const QString &app, bool signalPropertyChanged)
+QHash<QUrl, QList<Soprano::Node> > Nepomuk2::DataManagementModel::addProperty(const QHash<QUrl, QUrl> &resources, const QUrl &property, const QHash<Soprano::Node, Soprano::Node> &nodes, const QString &app, bool signalPropertyChanged)
 {
     kDebug() << resources << property << nodes << app;
     Q_ASSERT(!resources.isEmpty());
@@ -2607,7 +2607,7 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk::DataManagementModel::addProperty(con
     return QHash<QUrl, QList<Soprano::Node> >();
 }
 
-bool Nepomuk::DataManagementModel::doesResourceExist(const QUrl &res, const QUrl& graph) const
+bool Nepomuk2::DataManagementModel::doesResourceExist(const QUrl &res, const QUrl& graph) const
 {
     if(graph.isEmpty()) {
         return executeQuery(QString::fromLatin1("ask where { %1 ?p ?v . FILTER(%2) . }")
@@ -2624,7 +2624,7 @@ bool Nepomuk::DataManagementModel::doesResourceExist(const QUrl &res, const QUrl
     }
 }
 
-QHash<QUrl, QUrl> Nepomuk::DataManagementModel::resolveUrls(const QList<QUrl> &urls, bool statLocalFiles) const
+QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::resolveUrls(const QList<QUrl> &urls, bool statLocalFiles) const
 {
     QHash<QUrl, QUrl> uriHash;
     Q_FOREACH(const QUrl& url, urls) {
@@ -2637,7 +2637,7 @@ QHash<QUrl, QUrl> Nepomuk::DataManagementModel::resolveUrls(const QList<QUrl> &u
     return uriHash;
 }
 
-QUrl Nepomuk::DataManagementModel::resolveUrl(const QUrl &url, bool statLocalFiles) const
+QUrl Nepomuk2::DataManagementModel::resolveUrl(const QUrl &url, bool statLocalFiles) const
 {
     const UriState state = uriState( url, statLocalFiles );
 
@@ -2696,7 +2696,7 @@ QUrl Nepomuk::DataManagementModel::resolveUrl(const QUrl &url, bool statLocalFil
     return url;
 }
 
-QHash<Soprano::Node, Soprano::Node> Nepomuk::DataManagementModel::resolveNodes(const QSet<Soprano::Node> &nodes) const
+QHash<Soprano::Node, Soprano::Node> Nepomuk2::DataManagementModel::resolveNodes(const QSet<Soprano::Node> &nodes) const
 {
     QHash<Soprano::Node, Soprano::Node> resolvedNodes;
     Q_FOREACH(const Soprano::Node& node, nodes) {
@@ -2714,7 +2714,7 @@ QHash<Soprano::Node, Soprano::Node> Nepomuk::DataManagementModel::resolveNodes(c
     return resolvedNodes;
 }
 
-bool Nepomuk::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource, const QUrl &nieUrl)
+bool Nepomuk2::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource, const QUrl &nieUrl)
 {
     kDebug() << resource << "->" << nieUrl;
 
@@ -2859,7 +2859,7 @@ bool Nepomuk::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource,
     }
 }
 
-//void Nepomuk::DataManagementModel::insertStatements(const QSet<QUrl> &resources, const QUrl &property, const QSet<Soprano::Node> &values, const QUrl &graph)
+//void Nepomuk2::DataManagementModel::insertStatements(const QSet<QUrl> &resources, const QUrl &property, const QSet<Soprano::Node> &values, const QUrl &graph)
 //{
 //    const QString propertyString = Soprano::Node::resourceToN3(property);
 
@@ -2879,12 +2879,12 @@ bool Nepomuk::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource,
 //    executeQuery(query, Soprano::Query::QueryLanguageSparql);
 //}
 
-Nepomuk::ClassAndPropertyTree* Nepomuk::DataManagementModel::classAndPropertyTree()
+Nepomuk2::ClassAndPropertyTree* Nepomuk2::DataManagementModel::classAndPropertyTree()
 {
     return d->m_classAndPropertyTree;
 }
 
-bool Nepomuk::DataManagementModel::containsResourceWithProtectedType(const QSet<QUrl> &resources) const
+bool Nepomuk2::DataManagementModel::containsResourceWithProtectedType(const QSet<QUrl> &resources) const
 {
     if(resources.isEmpty())
         return false;
@@ -2903,17 +2903,17 @@ bool Nepomuk::DataManagementModel::containsResourceWithProtectedType(const QSet<
     }
 }
 
-bool Nepomuk::DataManagementModel::isProtectedProperty(const QUrl &prop) const
+bool Nepomuk2::DataManagementModel::isProtectedProperty(const QUrl &prop) const
 {
     return d->m_protectedProperties.contains(prop);
 }
 
-Nepomuk::ResourceWatcherManager* Nepomuk::DataManagementModel::resourceWatcherManager() const
+Nepomuk2::ResourceWatcherManager* Nepomuk2::DataManagementModel::resourceWatcherManager() const
 {
     return d->m_watchManager;
 }
 
-void Nepomuk::DataManagementModel::removeAllResources(const QSet<QUrl> &resources, RemovalFlags flags)
+void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resources, RemovalFlags flags)
 {
     QSet<QUrl> resolvedResources(resources);
 

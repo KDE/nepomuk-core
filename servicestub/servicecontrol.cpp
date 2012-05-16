@@ -25,7 +25,7 @@
 #include "nepomukservice.h"
 
 
-Nepomuk::ServiceControl::ServiceControl( const QString& serviceName, const KService::Ptr& service, QObject* parent )
+Nepomuk2::ServiceControl::ServiceControl( const QString& serviceName, const KService::Ptr& service, QObject* parent )
     : QObject( parent ),
       m_serviceName( serviceName ),
       m_service( service ),
@@ -37,34 +37,34 @@ Nepomuk::ServiceControl::ServiceControl( const QString& serviceName, const KServ
 }
 
 
-Nepomuk::ServiceControl::~ServiceControl()
+Nepomuk2::ServiceControl::~ServiceControl()
 {
 }
 
 
-void Nepomuk::ServiceControl::setServiceInitialized( bool success )
+void Nepomuk2::ServiceControl::setServiceInitialized( bool success )
 {
     m_initialized = success;
     emit serviceInitialized( success );
 }
 
 
-bool Nepomuk::ServiceControl::isInitialized() const
+bool Nepomuk2::ServiceControl::isInitialized() const
 {
     return m_initialized;
 }
 
-QString Nepomuk::ServiceControl::description() const
+QString Nepomuk2::ServiceControl::description() const
 {
     return m_description;
 }
 
-QString Nepomuk::ServiceControl::name() const
+QString Nepomuk2::ServiceControl::name() const
 {
     return m_readableName;
 }
 
-void Nepomuk::ServiceControl::start()
+void Nepomuk2::ServiceControl::start()
 {
     QTextStream s( stderr );
 
@@ -89,7 +89,7 @@ void Nepomuk::ServiceControl::start()
     // start the service
     // ====================================
     QString startErrorDescription;
-    m_nepomukServiceModule = m_service->createInstance<Nepomuk::Service>( this, QVariantList(), &startErrorDescription);
+    m_nepomukServiceModule = m_service->createInstance<Nepomuk2::Service>( this, QVariantList(), &startErrorDescription);
     if( !m_nepomukServiceModule ) {
         s << "Failed to start service " << m_serviceName << " ("<< startErrorDescription << ")." << endl;
         qApp->exit( ErrorFailedToStart );
@@ -106,7 +106,7 @@ void Nepomuk::ServiceControl::start()
 }
 
 
-void Nepomuk::ServiceControl::shutdown()
+void Nepomuk2::ServiceControl::shutdown()
 {
     delete m_nepomukServiceModule;
     m_nepomukServiceModule = 0;
@@ -114,7 +114,7 @@ void Nepomuk::ServiceControl::shutdown()
 }
 
 
-QString Nepomuk::ServiceControl::dbusServiceName( const QString& serviceName )
+QString Nepomuk2::ServiceControl::dbusServiceName( const QString& serviceName )
 {
     return QString("org.kde.nepomuk.services.%1").arg(serviceName);
 }

@@ -29,7 +29,7 @@ namespace Soprano {
 
 class QDateTime;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class OntologyUpdateJob : public KJob
     {
         Q_OBJECT

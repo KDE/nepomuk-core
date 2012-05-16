@@ -23,7 +23,7 @@
 #include "query.h"
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
          * \class FileQuery filequery.h Nepomuk2/Query/FileQuery
@@ -192,6 +192,6 @@ namespace Nepomuk {
     }
 }
 
-Q_DECLARE_OPERATORS_FOR_FLAGS( Nepomuk::Query::FileQuery::FileMode )
+Q_DECLARE_OPERATORS_FOR_FLAGS( Nepomuk2::Query::FileQuery::FileMode )
 
 #endif

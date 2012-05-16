@@ -35,7 +35,7 @@ namespace Soprano {
     class Serializer;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
         /**
         * \class ChangeLogRecord changelogrecord.h
@@ -101,7 +101,7 @@ namespace Nepomuk {
              * [+/-] [TimeStamp] [Statement]
              * The Statement is serialized as NQuad.
              */
-            static bool saveRecords( const QList<Nepomuk::ChangeLogRecord>& records, const QUrl& url );
+            static bool saveRecords( const QList<Nepomuk2::ChangeLogRecord>& records, const QUrl& url );
 
             /**
              * Loads all the records from \p url whose dateTime >= \p min

@@ -26,7 +26,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QDateTime>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class ChangeLog;
     class ChangeLogRecord;
@@ -65,7 +65,7 @@ namespace Nepomuk {
         void unlock();
 
     private:
-        friend class Nepomuk::LogStorageHelper;
+        friend class Nepomuk2::LogStorageHelper;
         
         LogStorage();
         ~LogStorage();

@@ -47,7 +47,7 @@
 using namespace Soprano;
 
 
-class Nepomuk::OntologyLoader::Private
+class Nepomuk2::OntologyLoader::Private
 {
 public:
     Private( OntologyLoader* p )
@@ -72,7 +72,7 @@ private:
 };
 
 
-void Nepomuk::OntologyLoader::Private::updateOntology( const QString& filename )
+void Nepomuk2::OntologyLoader::Private::updateOntology( const QString& filename )
 {
     KConfig ontologyDescFile( filename );
     KConfigGroup df( &ontologyDescFile, QLatin1String( "Ontology" ) );
@@ -146,7 +146,7 @@ void Nepomuk::OntologyLoader::Private::updateOntology( const QString& filename )
 
 
 
-Nepomuk::OntologyLoader::OntologyLoader( Soprano::Model* model, QObject* parent )
+Nepomuk2::OntologyLoader::OntologyLoader( Soprano::Model* model, QObject* parent )
     : QObject( parent ),
       d( new Private(this) )
 {
@@ -179,13 +179,13 @@ Nepomuk::OntologyLoader::OntologyLoader( Soprano::Model* model, QObject* parent 
 }
 
 
-Nepomuk::OntologyLoader::~OntologyLoader()
+Nepomuk2::OntologyLoader::~OntologyLoader()
 {
     delete d;
 }
 
 
-void Nepomuk::OntologyLoader::updateLocalOntologies()
+void Nepomuk2::OntologyLoader::updateLocalOntologies()
 {
     d->someOntologyUpdated = false;
     d->desktopFilesToUpdate = KGlobal::dirs()->findAllResources( "xdgdata-ontology", "*.ontology", KStandardDirs::Recursive|KStandardDirs::NoDuplicates );
@@ -195,14 +195,14 @@ void Nepomuk::OntologyLoader::updateLocalOntologies()
 }
 
 
-void Nepomuk::OntologyLoader::updateAllLocalOntologies()
+void Nepomuk2::OntologyLoader::updateAllLocalOntologies()
 {
     d->forceOntologyUpdate = true;
     updateLocalOntologies();
 }
 
 
-void Nepomuk::OntologyLoader::updateNextOntology()
+void Nepomuk2::OntologyLoader::updateNextOntology()
 {
     if( !d->desktopFilesToUpdate.isEmpty() ) {
         d->updateOntology( d->desktopFilesToUpdate.takeFirst() );
@@ -215,20 +215,20 @@ void Nepomuk::OntologyLoader::updateNextOntology()
 }
 
 
-QString Nepomuk::OntologyLoader::findOntologyContext( const QString& uri )
+QString Nepomuk2::OntologyLoader::findOntologyContext( const QString& uri )
 {
     return QString::fromAscii( d->model->findOntologyContext( QUrl::fromEncoded( uri.toAscii() ) ).toEncoded() );
 }
 
 
-void Nepomuk::OntologyLoader::importOntology( const QString& url )
+void Nepomuk2::OntologyLoader::importOntology( const QString& url )
 {
     connect( GraphRetriever::retrieve( url ), SIGNAL( result( KJob* ) ),
              this, SLOT( slotGraphRetrieverResult( KJob* ) ) );
 }
 
 
-void Nepomuk::OntologyLoader::slotGraphRetrieverResult( KJob* job )
+void Nepomuk2::OntologyLoader::slotGraphRetrieverResult( KJob* job )
 {
     GraphRetriever* graphRetriever = static_cast<GraphRetriever*>( job );
     if ( job->error() ) {

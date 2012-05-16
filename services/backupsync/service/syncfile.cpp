@@ -32,33 +32,33 @@
 #include "resourcemanager.h"
 
 
-class Nepomuk::SyncFile::Private {
+class Nepomuk2::SyncFile::Private {
 public :
     ChangeLog m_changeLog;
     IdentificationSet m_identificationSet;
 };
 
 
-Nepomuk::SyncFile::SyncFile()
-    : d( new Nepomuk::SyncFile::Private() )
+Nepomuk2::SyncFile::SyncFile()
+    : d( new Nepomuk2::SyncFile::Private() )
 {
 }
 
 
-Nepomuk::SyncFile::SyncFile(const Nepomuk::SyncFile& rhs)
-    : d( new Nepomuk::SyncFile::Private() )
+Nepomuk2::SyncFile::SyncFile(const Nepomuk2::SyncFile& rhs)
+    : d( new Nepomuk2::SyncFile::Private() )
 {
     this->operator=( rhs );
 }
 
 
-Nepomuk::SyncFile::~SyncFile()
+Nepomuk2::SyncFile::~SyncFile()
 {
     delete d;
 }
 
 
-Nepomuk::SyncFile& Nepomuk::SyncFile::operator=(const Nepomuk::SyncFile& rhs)
+Nepomuk2::SyncFile& Nepomuk2::SyncFile::operator=(const Nepomuk2::SyncFile& rhs)
 {
     // trueg: why not use QSharedData if the data can be copied this easily anyway?
     // however, in that case the non-const methods below returning refs will call d->detach
@@ -67,38 +67,38 @@ Nepomuk::SyncFile& Nepomuk::SyncFile::operator=(const Nepomuk::SyncFile& rhs)
 }
 
 
-Nepomuk::SyncFile::SyncFile(const QUrl& url)
-: d( new Nepomuk::SyncFile::Private() )
+Nepomuk2::SyncFile::SyncFile(const QUrl& url)
+: d( new Nepomuk2::SyncFile::Private() )
 {
     load( url );
 }
 
 
-Nepomuk::SyncFile::SyncFile(const Nepomuk::ChangeLog& log, Soprano::Model* model)
-: d( new Nepomuk::SyncFile::Private() )
+Nepomuk2::SyncFile::SyncFile(const Nepomuk2::ChangeLog& log, Soprano::Model* model)
+: d( new Nepomuk2::SyncFile::Private() )
 {
     d->m_changeLog = log;
     d->m_identificationSet = IdentificationSet::fromChangeLog( log, model );
 }
 
 
-Nepomuk::SyncFile::SyncFile(const Nepomuk::ChangeLog& log, const Nepomuk::IdentificationSet& ident)
-: d( new Nepomuk::SyncFile::Private() )
+Nepomuk2::SyncFile::SyncFile(const Nepomuk2::ChangeLog& log, const Nepomuk2::IdentificationSet& ident)
+: d( new Nepomuk2::SyncFile::Private() )
 {
     d->m_changeLog = log;
     d->m_identificationSet = ident;
 }
 
 
-Nepomuk::SyncFile::SyncFile(const QList<Soprano::Statement>& stList, Soprano::Model* model)
-: d( new Nepomuk::SyncFile::Private() )
+Nepomuk2::SyncFile::SyncFile(const QList<Soprano::Statement>& stList, Soprano::Model* model)
+: d( new Nepomuk2::SyncFile::Private() )
 {
     d->m_changeLog = ChangeLog::fromList( stList );
     d->m_identificationSet = IdentificationSet::fromChangeLog( d->m_changeLog, model );
 }
 
 
-bool Nepomuk::SyncFile::load(const QUrl& changeLogUrl, const QUrl& identFileUrl)
+bool Nepomuk2::SyncFile::load(const QUrl& changeLogUrl, const QUrl& identFileUrl)
 {
     d->m_identificationSet = IdentificationSet::fromUrl( identFileUrl );
     d->m_changeLog = ChangeLog::fromUrl( changeLogUrl );
@@ -106,7 +106,7 @@ bool Nepomuk::SyncFile::load(const QUrl& changeLogUrl, const QUrl& identFileUrl)
 }
 
 
-bool Nepomuk::SyncFile::load(const QUrl& syncFile)
+bool Nepomuk2::SyncFile::load(const QUrl& syncFile)
 {
     KTar tarFile( syncFile.toString(), QString::fromLatin1("application/x-gzip") );
     if( !tarFile.open( QIODevice::ReadOnly ) ) {
@@ -127,7 +127,7 @@ bool Nepomuk::SyncFile::load(const QUrl& syncFile)
 }
 
 
-bool Nepomuk::SyncFile::save( const QUrl& outFile )
+bool Nepomuk2::SyncFile::save( const QUrl& outFile )
 {
     kDebug() << "Saving at " << outFile;
     KTempDir tempDir;
@@ -142,7 +142,7 @@ bool Nepomuk::SyncFile::save( const QUrl& outFile )
 }
 
 // static
-bool Nepomuk::SyncFile::createSyncFile(const QUrl& logfile, const QUrl& identFile, const QUrl & outFile)
+bool Nepomuk2::SyncFile::createSyncFile(const QUrl& logfile, const QUrl& identFile, const QUrl & outFile)
 {
     KTar tarFile( outFile.toString(), QString::fromLatin1("application/x-gzip") );
     if( !tarFile.open( QIODevice::WriteOnly ) ) {
@@ -157,23 +157,23 @@ bool Nepomuk::SyncFile::createSyncFile(const QUrl& logfile, const QUrl& identFil
 }
 
 
-Nepomuk::ChangeLog& Nepomuk::SyncFile::changeLog()
+Nepomuk2::ChangeLog& Nepomuk2::SyncFile::changeLog()
 {
     return d->m_changeLog;
 }
 
 
-Nepomuk::IdentificationSet& Nepomuk::SyncFile::identificationSet()
+Nepomuk2::IdentificationSet& Nepomuk2::SyncFile::identificationSet()
 {
     return d->m_identificationSet;
 }
 
-const Nepomuk::ChangeLog& Nepomuk::SyncFile::changeLog() const
+const Nepomuk2::ChangeLog& Nepomuk2::SyncFile::changeLog() const
 {
     return d->m_changeLog;
 }
 
-const Nepomuk::IdentificationSet& Nepomuk::SyncFile::identificationSet() const
+const Nepomuk2::IdentificationSet& Nepomuk2::SyncFile::identificationSet() const
 {
     return d->m_identificationSet;
 }

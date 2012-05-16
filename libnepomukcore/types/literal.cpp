@@ -64,19 +64,19 @@ const XmlSchemaMap& xmlSchemaTypes()
 }
 
 
-Nepomuk::Types::Literal::Literal()
+Nepomuk2::Types::Literal::Literal()
 {
     d = new Private();
 }
 
 
-Nepomuk::Types::Literal::Literal( const Literal& other )
+Nepomuk2::Types::Literal::Literal( const Literal& other )
 {
     d = other.d;
 }
 
 
-Nepomuk::Types::Literal::Literal( const QUrl& dataType )
+Nepomuk2::Types::Literal::Literal( const QUrl& dataType )
 {
     d = new Private();
     d->dataTypeUri = dataType;
@@ -97,31 +97,31 @@ Nepomuk::Types::Literal::Literal( const QUrl& dataType )
 }
 
 
-Nepomuk::Types::Literal::~Literal()
+Nepomuk2::Types::Literal::~Literal()
 {
 }
 
 
-Nepomuk::Types::Literal& Nepomuk::Types::Literal::operator=( const Literal& other )
+Nepomuk2::Types::Literal& Nepomuk2::Types::Literal::operator=( const Literal& other )
 {
     d = other.d;
     return *this;
 }
 
 
-QUrl Nepomuk::Types::Literal::dataTypeUri() const
+QUrl Nepomuk2::Types::Literal::dataTypeUri() const
 {
     return d->dataTypeUri;
 }
 
 
-QVariant::Type Nepomuk::Types::Literal::dataType() const
+QVariant::Type Nepomuk2::Types::Literal::dataType() const
 {
     return d->dataType;
 }
 
 
-bool Nepomuk::Types::Literal::isValid() const
+bool Nepomuk2::Types::Literal::isValid() const
 {
     return d->dataTypeUri.isValid();
 }

@@ -31,7 +31,7 @@
 
 #include <Solid/StorageAccess>
 
-RemovableDeviceIndexNotification::RemovableDeviceIndexNotification(const Nepomuk::RemovableMediaCache::Entry* medium,
+RemovableDeviceIndexNotification::RemovableDeviceIndexNotification(const Nepomuk2::RemovableMediaCache::Entry* medium,
                                                                    QObject *parent)
     : KNotification(QLatin1String("nepomuk_new_removable_device"),
           KNotification::Persistent,

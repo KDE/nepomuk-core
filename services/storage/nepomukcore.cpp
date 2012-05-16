@@ -31,7 +31,7 @@
 
 static const char s_repositoryName[] = "main";
 
-Nepomuk::Core::Core( QObject* parent )
+Nepomuk2::Core::Core( QObject* parent )
     : Soprano::Server::ServerCore( parent ),
       m_repository( 0 ),
       m_ontologyLoader( 0 ),
@@ -43,13 +43,13 @@ Nepomuk::Core::Core( QObject* parent )
 }
 
 
-Nepomuk::Core::~Core()
+Nepomuk2::Core::~Core()
 {
     kDebug() << "Shutting down Nepomuk storage core.";
 }
 
 
-void Nepomuk::Core::init()
+void Nepomuk2::Core::init()
 {
     // TODO: export the main model on org.kde.NepomukRepository via Soprano::Server::DBusExportModel
 
@@ -58,13 +58,13 @@ void Nepomuk::Core::init()
 }
 
 
-bool Nepomuk::Core::initialized() const
+bool Nepomuk2::Core::initialized() const
 {
     return m_initialized;
 }
 
 
-void Nepomuk::Core::slotRepositoryOpened( Repository* repo, bool success )
+void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
 {
     if( !success ) {
         emit initializationDone( success );
@@ -82,14 +82,14 @@ void Nepomuk::Core::slotRepositoryOpened( Repository* repo, bool success )
 }
 
 
-void Nepomuk::Core::slotRepositoryClosed(Nepomuk::Repository*)
+void Nepomuk2::Core::slotRepositoryClosed(Nepomuk2::Repository*)
 {
     delete m_ontologyLoader;
     m_ontologyLoader = 0;
 }
 
 
-void Nepomuk::Core::slotOntologiesLoaded(bool somethingChanged)
+void Nepomuk2::Core::slotOntologiesLoaded(bool somethingChanged)
 {
     m_repository->updateInference(somethingChanged);
 
@@ -101,7 +101,7 @@ void Nepomuk::Core::slotOntologiesLoaded(bool somethingChanged)
 }
 
 
-Soprano::Model* Nepomuk::Core::model( const QString& name )
+Soprano::Model* Nepomuk2::Core::model( const QString& name )
 {
     // we only allow the one model
     if ( name == QLatin1String( s_repositoryName ) ) {
@@ -116,7 +116,7 @@ Soprano::Model* Nepomuk::Core::model( const QString& name )
 }
 
 
-Soprano::Model* Nepomuk::Core::createModel( const Soprano::BackendSettings& )
+Soprano::Model* Nepomuk2::Core::createModel( const Soprano::BackendSettings& )
 {
     if ( !m_repository ) {
         m_repository = new Repository( QLatin1String( s_repositoryName ) );

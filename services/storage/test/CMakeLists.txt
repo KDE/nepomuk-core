@@ -40,7 +40,7 @@ set( DMTEST
 qt4_add_dbus_adaptor(DMTEST
   ../../../interfaces/org.kde.nepomuk.ResourceWatcherConnection.xml
   resourcewatcherconnection.h
-  Nepomuk::ResourceWatcherConnection)
+  Nepomuk2::ResourceWatcherConnection)
 
 
 kde4_add_library( datamanagementtestlib STATIC ${DMTEST} )

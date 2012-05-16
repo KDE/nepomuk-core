@@ -22,7 +22,7 @@
 #include "simpleterm.h"
 #include "simpleterm_p.h"
 
-bool Nepomuk::Query::SimpleTermPrivate::equals( const TermPrivate* other ) const
+bool Nepomuk2::Query::SimpleTermPrivate::equals( const TermPrivate* other ) const
 {
     if ( other->m_type == m_type ) {
         return( m_subTerm == static_cast<const SimpleTermPrivate*>( other )->m_subTerm );
@@ -33,30 +33,30 @@ bool Nepomuk::Query::SimpleTermPrivate::equals( const TermPrivate* other ) const
 }
 
 
-Nepomuk::Query::SimpleTerm::SimpleTerm( const Term& term )
+Nepomuk2::Query::SimpleTerm::SimpleTerm( const Term& term )
     : Term( term )
 {
 }
 
 
-Nepomuk::Query::SimpleTerm::SimpleTerm( TermPrivate* d )
+Nepomuk2::Query::SimpleTerm::SimpleTerm( TermPrivate* d )
     : Term( d )
 {
 }
 
 
-Nepomuk::Query::SimpleTerm::~SimpleTerm()
+Nepomuk2::Query::SimpleTerm::~SimpleTerm()
 {
 }
 
-Nepomuk::Query::Term Nepomuk::Query::SimpleTerm::subTerm() const
+Nepomuk2::Query::Term Nepomuk2::Query::SimpleTerm::subTerm() const
 {
     N_D_CONST( SimpleTerm );
     return d->m_subTerm;
 }
 
 
-void Nepomuk::Query::SimpleTerm::setSubTerm( const Term& term )
+void Nepomuk2::Query::SimpleTerm::setSubTerm( const Term& term )
 {
     N_D( SimpleTerm );
     d->m_subTerm = term;

@@ -26,7 +26,7 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
          * \class SimpleTerm simpleterm.h Nepomuk2/Query/SimpleTerm

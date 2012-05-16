@@ -26,7 +26,7 @@
 
 #include <QtCore/QDateTime>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
      * \class MainModel nepomukmainmodel.h Nepomuk2/MainModel
      *

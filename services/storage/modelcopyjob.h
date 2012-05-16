@@ -23,7 +23,7 @@ namespace Soprano {
     class Model;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class ModelCopyJob : public KJob
     {
         Q_OBJECT

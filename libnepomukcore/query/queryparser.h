@@ -27,7 +27,7 @@
 #include "nepomuk_export.h"
 
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
          * \class QueryParser queryparser.h Nepomuk2/Query/QueryParser
@@ -200,6 +200,6 @@ namespace Nepomuk {
     }
 }
 
-Q_DECLARE_OPERATORS_FOR_FLAGS( Nepomuk::Query::QueryParser::ParserFlags )
+Q_DECLARE_OPERATORS_FOR_FLAGS( Nepomuk2::Query::QueryParser::ParserFlags )
 
 #endif

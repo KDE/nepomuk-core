@@ -24,7 +24,7 @@
 
 #include <Soprano/FilterModel>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     
     class VirtuosoInferenceModel : public Soprano::FilterModel
     {

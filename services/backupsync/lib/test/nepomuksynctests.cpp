@@ -41,7 +41,7 @@
 
 void NepomukSyncTests::basicIdentification()
 {
-    Soprano::Model * model = Nepomuk::ResourceManager::instance()->mainModel();
+    Soprano::Model * model = Nepomuk2::ResourceManager::instance()->mainModel();
     model->removeAllStatements();
 
     KTemporaryFile file1;
@@ -50,11 +50,11 @@ void NepomukSyncTests::basicIdentification()
     file1.open();
     file2.open();
 
-    Nepomuk::Resource res1( file1.fileName() );
+    Nepomuk2::Resource res1( file1.fileName() );
     res1.setRating( 5 );
 
-    Nepomuk::Resource res2( file2.fileName() );
-    res2.addTag( Nepomuk::Tag("test-tag") );
+    Nepomuk2::Resource res2( file2.fileName() );
+    res2.addTag( Nepomuk2::Tag("test-tag") );
 
     QList<Soprano::Statement> list = model->listStatements().allStatements();
     kDebug() << "SIZE: " << list.size();
@@ -62,7 +62,7 @@ void NepomukSyncTests::basicIdentification()
     //
     // Pass them to the ResourceIdentifier
     //
-    Nepomuk::Sync::ResourceIdentifier identifier;
+    Nepomuk2::Sync::ResourceIdentifier identifier;
     identifier.addStatements( list );
     identifier.identifyAll();
 
@@ -84,7 +84,7 @@ void NepomukSyncTests::resourceMergerTests()
     QString propString("nepomuktest:/prop/");
     QString objString("nepomuktest:/obj/");
     
-    Soprano::Model * model = Nepomuk::ResourceManager::instance()->mainModel();
+    Soprano::Model * model = Nepomuk2::ResourceManager::instance()->mainModel();
     Soprano::Graph graph;
     
     QUrl res1uri( resString + '1' );
@@ -98,15 +98,15 @@ void NepomukSyncTests::resourceMergerTests()
     KTemporaryFile file;
     file.open();
     
-    Nepomuk::Resource res1( file.fileName() );
-    res1.addProperty( QUrl( propString + '5' ), Nepomuk::Variant( 5 ) );
+    Nepomuk2::Resource res1( file.fileName() );
+    res1.addProperty( QUrl( propString + '5' ), Nepomuk2::Variant( 5 ) );
     
     Soprano::Node context = model->listStatements( res1.resourceUri(), QUrl( propString + '5' ), Soprano::Node( Soprano::LiteralValue( 5 ) ) ).iterateContexts().allElements().first();
     
-    QHash<KUrl, Nepomuk::Resource> hash;
+    QHash<KUrl, Nepomuk2::Resource> hash;
     hash.insert( res1uri, res1 );
     
-    Nepomuk::Sync::ResourceMerger merger;
+    Nepomuk2::Sync::ResourceMerger merger;
     merger.merge( graph, hash );
     
     // Check if res1uri was mapped to res1 and all its properties were added.

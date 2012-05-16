@@ -24,7 +24,7 @@
 #include <KJob>
 #include <QtCore/QUrl>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class BackupGenerationJob : public KJob
     {
