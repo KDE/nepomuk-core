@@ -29,7 +29,7 @@
 namespace Nepomuk {
     namespace Query {
         /**
-         * \class NegationTerm negationterm.h Nepomuk/Query/NegationTerm
+         * \class NegationTerm negationterm.h Nepomuk2/Query/NegationTerm
          *
          * \brief Negate an arbitrary term.
          *

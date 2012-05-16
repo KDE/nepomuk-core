@@ -55,7 +55,7 @@ namespace Nepomuk {
     NEPOMUK_EXPORT QString errorString( ErrorCode code );
 
     /**
-     * \class Resource resource.h Nepomuk/Resource
+     * \class Resource resource.h Nepomuk2/Resource
      *
      * \brief Resource is the central object type in Nepomuk. It represents a piece of
      * information of any kind.

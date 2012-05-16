@@ -37,7 +37,7 @@ namespace Nepomuk {
 typedef QMultiHash<QUrl, QVariant> PropertyHash;
 
 /**
- * \class SimpleResource simpleresource.h Nepomuk/SimpleResource
+ * \class SimpleResource simpleresource.h Nepomuk2/SimpleResource
  *
  * \brief Represents a snapshot of one %Nepomuk resource.
  *

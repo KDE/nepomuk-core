@@ -29,7 +29,7 @@
 namespace Nepomuk {
     namespace Query {
         /**
-         * \class GroupTerm groupterm.h Nepomuk/Query/GroupTerm
+         * \class GroupTerm groupterm.h Nepomuk2/Query/GroupTerm
          *
          * \brief Abstract base class for AndTerm and OrTerm which
          * maintains a list of sub-terms.

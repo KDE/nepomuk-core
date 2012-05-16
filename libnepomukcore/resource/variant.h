@@ -37,7 +37,7 @@ namespace Nepomuk {
     class Resource;
 
     /**
-     * \class Variant variant.h Nepomuk/Variant
+     * \class Variant variant.h Nepomuk2/Variant
      *
      * \brief The %Nepomuk Variant extends over QVariant by introducing
      * direct support for Resource embedding, automatic list conversion

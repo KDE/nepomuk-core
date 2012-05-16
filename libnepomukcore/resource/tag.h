@@ -27,7 +27,7 @@
 namespace Nepomuk {
 
     /**
-     * \class Tag tag.h Nepomuk/Tag
+     * \class Tag tag.h Nepomuk2/Tag
      *
      * A Tag can be assigned to any Thing. This allows simple grouping
      * of resources. Each Tag is identifed by its label which should

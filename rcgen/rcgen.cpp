@@ -194,7 +194,7 @@ int main( int argc, char** argv )
         QTextStream s( stdout, QIODevice::WriteOnly );
         QStringListIterator it( l );
         while( it.hasNext() )
-            s << "#include <nepomuk/" << it.next() << ">" << endl;
+            s << "#include <nepomuk2/" << it.next() << ">" << endl;
     }
 
     return 0;

@@ -307,7 +307,7 @@ class OntologyParser():
         header.write('\n')
 
         # all classes need the SimpleResource include
-        header.write('#include <nepomuk/simpleresource.h>\n\n')
+        header.write('#include <nepomuk2/simpleresource.h>\n\n')
 
         # write includes for the parent classes
         parentClassNames = []

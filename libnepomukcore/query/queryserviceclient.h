@@ -36,7 +36,7 @@ namespace Nepomuk {
         class Result;
 
         /**
-         * \class QueryServiceClient queryserviceclient.h Nepomuk/Query/QueryServiceClient
+         * \class QueryServiceClient queryserviceclient.h Nepomuk2/Query/QueryServiceClient
          *
          * \brief Convenience frontend to the %Nepomuk Query DBus Service
          *

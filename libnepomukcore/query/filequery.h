@@ -26,7 +26,7 @@
 namespace Nepomuk {
     namespace Query {
         /**
-         * \class FileQuery filequery.h Nepomuk/Query/FileQuery
+         * \class FileQuery filequery.h Nepomuk2/Query/FileQuery
          *
          * \brief A Nepomuk desktop query specialized for file searches.
          *

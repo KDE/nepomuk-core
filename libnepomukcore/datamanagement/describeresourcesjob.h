@@ -36,7 +36,7 @@ namespace Nepomuk {
 class SimpleResourceGraph;
 
 /**
- * \class DescribeResourcesJob describeresourcesjob.h Nepomuk/DescribeResourcesJob
+ * \class DescribeResourcesJob describeresourcesjob.h Nepomuk2/DescribeResourcesJob
  *
  * \brief Job returned by Nepomuk::describeResources().
  *

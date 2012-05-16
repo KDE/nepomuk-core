@@ -34,7 +34,7 @@ class QDBusPendingCallWatcher;
 
 namespace Nepomuk {
 /**
- * \class CreateResourceJob createresourcejob.h Nepomuk/CreateResourceJob
+ * \class CreateResourceJob createresourcejob.h Nepomuk2/CreateResourceJob
  *
  * \brief Job returned by Nepomuk::createResource().
  *

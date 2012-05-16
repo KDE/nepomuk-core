@@ -42,7 +42,7 @@ namespace Nepomuk {
     }
 
     /**
-     * \class ResourceManager resourcemanager.h Nepomuk/ResourceManager
+     * \class ResourceManager resourcemanager.h Nepomuk2/ResourceManager
      *
      * \brief The ResourceManager is the central \a %Nepomuk configuration point.
      *

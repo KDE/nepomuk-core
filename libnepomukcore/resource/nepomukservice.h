@@ -28,7 +28,7 @@ namespace Soprano {
 
 namespace Nepomuk {
     /**
-     * \class Service nepomukservice.h Nepomuk/Service
+     * \class Service nepomukservice.h Nepomuk2/Service
      *
      * \brief Base class for all Nepomuk services.
      *

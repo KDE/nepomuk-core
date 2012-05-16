@@ -30,7 +30,7 @@
 namespace Nepomuk {
     namespace Query {
         /**
-         * \class QueryParser queryparser.h Nepomuk/Query/QueryParser
+         * \class QueryParser queryparser.h Nepomuk2/Query/QueryParser
          *
          * \brief Parser for desktop user queries.
          *

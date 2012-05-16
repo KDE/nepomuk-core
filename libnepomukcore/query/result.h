@@ -40,7 +40,7 @@ namespace Nepomuk {
 
     namespace Query {
         /**
-         * \class Result result.h Nepomuk/Query/Result
+         * \class Result result.h Nepomuk2/Query/Result
          *
          * \brief A single search result.
          *

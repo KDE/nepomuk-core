@@ -29,7 +29,7 @@
 
 namespace Nepomuk {
     /**
-     * \class Thing thing.h Nepomuk/Thing
+     * \class Thing thing.h Nepomuk2/Thing
      *
      * \brief A Nepomuk PIMO Thing resource.
      *

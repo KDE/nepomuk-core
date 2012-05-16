@@ -32,7 +32,7 @@
 namespace Nepomuk {
     namespace Query {
         /**
-         * \class ResourceTerm resourceterm.h Nepomuk/Query/ResourceTerm
+         * \class ResourceTerm resourceterm.h Nepomuk2/Query/ResourceTerm
          *
          * \brief Matches exactly one resource.
          *

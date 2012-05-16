@@ -36,7 +36,7 @@ namespace Nepomuk {
         class Literal;
 
         /**
-         * \class Property property.h Nepomuk/Types/Property
+         * \class Property property.h Nepomuk2/Types/Property
          *
          * \brief A property is a resource of type rdf:Property which relates a domain
          * with a range. The latter one can be a Literal or a Class.

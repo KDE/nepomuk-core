@@ -50,7 +50,7 @@ namespace Nepomuk {
         class TermPrivate;
 
         /**
-         * \class Term term.h Nepomuk/Query/Term
+         * \class Term term.h Nepomuk2/Query/Term
          *
          * \brief The base class for all term types.
          *

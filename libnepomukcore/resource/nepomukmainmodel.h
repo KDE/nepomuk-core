@@ -28,7 +28,7 @@
 
 namespace Nepomuk {
     /**
-     * \class MainModel nepomukmainmodel.h Nepomuk/MainModel
+     * \class MainModel nepomukmainmodel.h Nepomuk2/MainModel
      *
      * \brief The main %Nepomuk data storage model.
      *

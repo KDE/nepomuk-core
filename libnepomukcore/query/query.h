@@ -47,7 +47,7 @@ namespace Nepomuk {
         typedef QHash<QString, Nepomuk::Types::Property> RequestPropertyMap;
 
         /**
-         * \class Query query.h Nepomuk/Query/Query
+         * \class Query query.h Nepomuk2/Query/Query
          *
          * \brief A Nepomuk desktop query.
          *
@@ -273,7 +273,7 @@ namespace Nepomuk {
             QueryFlags queryFlags() const;
 
             /**
-             * \class RequestProperty query.h Nepomuk/Query/Query
+             * \class RequestProperty query.h Nepomuk2/Query/Query
              *
              * \brief A request property can be added to a Query to retrieve
              * additional information about the results.

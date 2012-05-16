@@ -195,7 +195,7 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/nuao.h
   ${CMAKE_CURRENT_BINARY_DIR}/ndo.h
 
-  DESTINATION ${INCLUDE_INSTALL_DIR}/nepomuk COMPONENT Devel
+  DESTINATION ${INCLUDE_INSTALL_DIR}/nepomuk2 COMPONENT Devel
 )
 
 add_subdirectory(test)

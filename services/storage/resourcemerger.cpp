@@ -36,7 +36,7 @@
 #include <Soprano/LiteralValue>
 #include <Soprano/Node>
 
-#include <Nepomuk/Vocabulary/NIE>
+#include <Nepomuk2/Vocabulary/NIE>
 
 #include <KDebug>
 #include <Soprano/Graph>

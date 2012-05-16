@@ -32,7 +32,7 @@
 namespace Nepomuk {
     namespace Query {
         /**
-         * \class ResourceTypeTerm resourcetypeterm.h Nepomuk/Query/ResourceTypeTerm
+         * \class ResourceTypeTerm resourcetypeterm.h Nepomuk2/Query/ResourceTypeTerm
          *
          * \brief Matching resources by type.
          *

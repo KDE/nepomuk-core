@@ -33,7 +33,7 @@ namespace Nepomuk {
 
     namespace Query {
         /**
-         * \class ComparisonTerm comparisonterm.h Nepomuk/Query/ComparisonTerm
+         * \class ComparisonTerm comparisonterm.h Nepomuk2/Query/ComparisonTerm
          *
          * \brief A term matching the value of a property.
          *

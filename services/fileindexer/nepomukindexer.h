@@ -34,7 +34,7 @@ namespace Nepomuk {
     class Resource;
 
     /**
-     * \class Indexer nepomukindexer.h Nepomuk/Indexer
+     * \class Indexer nepomukindexer.h Nepomuk2/Indexer
      *
      * \brief The one entry point to indexing files.
      *

@@ -29,7 +29,7 @@
 namespace Nepomuk {
     namespace Query {
         /**
-         * \class OptionalTerm optionalterm.h Nepomuk/Query/OptionalTerm
+         * \class OptionalTerm optionalterm.h Nepomuk2/Query/OptionalTerm
          *
          * \brief Make a term optional.
          *
