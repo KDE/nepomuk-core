@@ -1,1 +1,1 @@
-#include "../nepomuk/thing.h"
+#include "../nepomuk2/thing.h"

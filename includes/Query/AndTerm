@@ -1,1 +1,1 @@
-#include "../../nepomuk/andterm.h"
+#include "../../nepomuk2/andterm.h"

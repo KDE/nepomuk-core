@@ -1,1 +1,1 @@
-#include "../../nepomuk/standardqueries.h"
+#include "../../nepomuk2/standardqueries.h"
