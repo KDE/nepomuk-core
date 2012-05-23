@@ -37,19 +37,19 @@
 #include <KDebug>
 #include <KRandom>
 
-Nepomuk::IdentifierModel::IdentifierModel(QObject* parent): QAbstractItemModel(parent)
+Nepomuk2::IdentifierModel::IdentifierModel(QObject* parent): QAbstractItemModel(parent)
 {
     m_tree = new IdentifierModelTree();
 }
 
 
-Nepomuk::IdentifierModel::~IdentifierModel()
+Nepomuk2::IdentifierModel::~IdentifierModel()
 {
     delete m_tree;
 }
 
 
-QVariant Nepomuk::IdentifierModel::data(const QModelIndex& index, int role) const
+QVariant Nepomuk2::IdentifierModel::data(const QModelIndex& index, int role) const
 {
     if( !index.isValid() )
         return QVariant();
@@ -82,7 +82,7 @@ QVariant Nepomuk::IdentifierModel::data(const QModelIndex& index, int role) cons
 }
 
 
-int Nepomuk::IdentifierModel::columnCount(const QModelIndex& parent) const
+int Nepomuk2::IdentifierModel::columnCount(const QModelIndex& parent) const
 {
     Q_UNUSED( parent );
     // It is always 1 for now
@@ -90,7 +90,7 @@ int Nepomuk::IdentifierModel::columnCount(const QModelIndex& parent) const
 }
 
 
-int Nepomuk::IdentifierModel::rowCount(const QModelIndex& parent) const
+int Nepomuk2::IdentifierModel::rowCount(const QModelIndex& parent) const
 {
     if( parent.column() > 0 )
         return 0;
@@ -105,7 +105,7 @@ int Nepomuk::IdentifierModel::rowCount(const QModelIndex& parent) const
 }
 
 
-QModelIndex Nepomuk::IdentifierModel::parent(const QModelIndex& index) const
+QModelIndex Nepomuk2::IdentifierModel::parent(const QModelIndex& index) const
 {
     if( !index.isValid() )
         return QModelIndex();
@@ -128,7 +128,7 @@ QModelIndex Nepomuk::IdentifierModel::parent(const QModelIndex& index) const
 }
 
 
-QModelIndex Nepomuk::IdentifierModel::index(int row, int column, const QModelIndex& parent) const
+QModelIndex Nepomuk2::IdentifierModel::index(int row, int column, const QModelIndex& parent) const
 {
     if( column > 0 )
         return QModelIndex();
@@ -149,7 +149,7 @@ QModelIndex Nepomuk::IdentifierModel::index(int row, int column, const QModelInd
 }
 
 
-void Nepomuk::IdentifierModel::identified( const QUrl& oldUri, const QUrl& newUri)
+void Nepomuk2::IdentifierModel::identified( const QUrl& oldUri, const QUrl& newUri)
 {
 //    kDebug() << oldUri << " -----> " << newUri;
 
@@ -166,7 +166,7 @@ void Nepomuk::IdentifierModel::identified( const QUrl& oldUri, const QUrl& newUr
 }
 
 
-void Nepomuk::IdentifierModel::notIdentified( const QList< Soprano::Statement >& sts )
+void Nepomuk2::IdentifierModel::notIdentified( const QList< Soprano::Statement >& sts )
 {
     if( sts.isEmpty() )
         return;
@@ -188,14 +188,14 @@ void Nepomuk::IdentifierModel::notIdentified( const QList< Soprano::Statement >&
     endResetModel();
 }
 
-Qt::ItemFlags Nepomuk::IdentifierModel::flags(const QModelIndex& index) const
+Qt::ItemFlags Nepomuk2::IdentifierModel::flags(const QModelIndex& index) const
 {
     Q_UNUSED( index );
     //return QAbstractItemModel::flags(index);
     return Qt::ItemIsSelectable | Qt::ItemIsEnabled;
 }
 
-void Nepomuk::IdentifierModel::ignoreAll()
+void Nepomuk2::IdentifierModel::ignoreAll()
 {
     emit layoutAboutToBeChanged();
     

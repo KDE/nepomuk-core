@@ -34,12 +34,12 @@
 #include <KComponentData>
 
 
-KJob* Nepomuk::clearIndexedData( const QUrl& url )
+KJob* Nepomuk2::clearIndexedData( const QUrl& url )
 {
     return clearIndexedData(QList<QUrl>() << url);
 }
 
-KJob* Nepomuk::clearIndexedData( const QList<QUrl>& urls )
+KJob* Nepomuk2::clearIndexedData( const QList<QUrl>& urls )
 {
     if ( urls.isEmpty() )
         return 0;
@@ -55,5 +55,5 @@ KJob* Nepomuk::clearIndexedData( const QList<QUrl>& urls )
         component = KComponentData( QByteArray("nepomukindexer"),
                                     QByteArray(), KComponentData::SkipMainComponentRegistration );
     }
-    return Nepomuk::removeDataByApplication( urls, RemoveSubResoures, component );
+    return Nepomuk2::removeDataByApplication( urls, RemoveSubResoures, component );
 }

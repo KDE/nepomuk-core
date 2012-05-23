@@ -24,37 +24,37 @@
 #include "nie.h"
 #include "nfo.h"
 
-Nepomuk::File::File( const KUrl& url )
-    : Resource( url, Nepomuk::Vocabulary::NFO::FileDataObject() )
+Nepomuk2::File::File( const KUrl& url )
+    : Resource( url, Nepomuk2::Vocabulary::NFO::FileDataObject() )
 {
 }
 
 
-Nepomuk::File::File( const Resource& other )
+Nepomuk2::File::File( const Resource& other )
     : Resource( other )
 {
 }
 
 
-Nepomuk::File::~File()
+Nepomuk2::File::~File()
 {
 }
 
 
-Nepomuk::File& Nepomuk::File::operator=( const KUrl& url )
+Nepomuk2::File& Nepomuk2::File::operator=( const KUrl& url )
 {
     this->Resource::operator=(url);
     return (*this);
 }
 
 
-KUrl Nepomuk::File::url() const
+KUrl Nepomuk2::File::url() const
 {
-    return property( Nepomuk::Vocabulary::NIE::url() ).toUrl();
+    return property( Nepomuk2::Vocabulary::NIE::url() ).toUrl();
 }
 
 
-Nepomuk::File Nepomuk::File::dirResource() const
+Nepomuk2::File Nepomuk2::File::dirResource() const
 {
     if( isFile() ) {
         return File( url().upUrl() );

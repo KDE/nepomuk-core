@@ -26,7 +26,7 @@ set(nepomuksync_SRCS
 soprano_add_ontology(nepomuksync_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/../../../ontologies/nrio.trig
   "NRIO"
-  "Nepomuk::Vocabulary"
+  "Nepomuk2::Vocabulary"
   "trig")
 
 kde4_add_library(nepomuksync SHARED ${nepomuksync_SRCS})

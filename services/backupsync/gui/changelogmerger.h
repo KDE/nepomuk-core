@@ -31,7 +31,7 @@
 
 #include <QtCore/QDateTime>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class ChangeLogMerger : public Sync::ResourceMerger
     {
     public:
@@ -81,7 +81,7 @@ namespace Nepomuk {
          * Same as multiple Cardinality resolution, but a lot faster. It figures out which statement
          * should be present by looking at the max time stamp.
          */
-        void resolveSingleCardinality( const QList< Nepomuk::ChangeLogRecord >& theirRecords, const QList< Nepomuk::ChangeLogRecord >& ownRecords );
+        void resolveSingleCardinality( const QList< Nepomuk2::ChangeLogRecord >& theirRecords, const QList< Nepomuk2::ChangeLogRecord >& ownRecords );
     };
 
 }

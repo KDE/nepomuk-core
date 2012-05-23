@@ -29,14 +29,14 @@
 #include "nepomuk_export.h"
 
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Types {
 
         class Class;
         class Property;
 
         /**
-         * \class Ontology ontology.h Nepomuk/Types/Ontology
+         * \class Ontology ontology.h Nepomuk2/Types/Ontology
          *
          * \brief Represents one ontology.
          *

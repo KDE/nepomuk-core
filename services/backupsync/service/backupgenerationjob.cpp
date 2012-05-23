@@ -24,20 +24,20 @@
 
 #include <QtCore/QTimer>
 
-Nepomuk::BackupGenerationJob::BackupGenerationJob(const QUrl& url, QObject* parent)
+Nepomuk2::BackupGenerationJob::BackupGenerationJob(const QUrl& url, QObject* parent)
     : KJob(parent),
       m_url( url )
 {
 }
 
-void Nepomuk::BackupGenerationJob::start()
+void Nepomuk2::BackupGenerationJob::start()
 {
     QTimer::singleShot( 0, this, SLOT(doWork()) );
 }
 
-void Nepomuk::BackupGenerationJob::doWork()
+void Nepomuk2::BackupGenerationJob::doWork()
 {
-    Nepomuk::saveBackupSyncFile( m_url );
+    Nepomuk2::saveBackupSyncFile( m_url );
     emitResult();
 }
 

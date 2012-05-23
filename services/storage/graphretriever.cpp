@@ -39,14 +39,14 @@
 #include <kio/job.h>
 
 
-class Nepomuk::GraphRetriever::Private
+class Nepomuk2::GraphRetriever::Private
 {
 public:
-    Private( Nepomuk::GraphRetriever* qq );
+    Private( Nepomuk2::GraphRetriever* qq );
 
     void get( const QUrl& url );
 
-    Nepomuk::GraphRetriever*   q;
+    Nepomuk2::GraphRetriever*   q;
 
     QUrl url;
     QHash<int, QByteArray>     m_data;
@@ -55,14 +55,14 @@ public:
 };
 
 
-Nepomuk::GraphRetriever::Private::Private( Nepomuk::GraphRetriever* qq )
+Nepomuk2::GraphRetriever::Private::Private( Nepomuk2::GraphRetriever* qq )
     : q(qq),
       m_idleCount( 0 )
 {
 }
 
 
-void Nepomuk::GraphRetriever::Private::get( const QUrl& url )
+void Nepomuk2::GraphRetriever::Private::get( const QUrl& url )
 {
     KIO::StoredTransferJob* job = KIO::storedGet( url, KIO::Reload, KIO::HideProgressInfo );
     job->addMetaData( "accept",
@@ -76,38 +76,38 @@ void Nepomuk::GraphRetriever::Private::get( const QUrl& url )
 }
 
 
-Nepomuk::GraphRetriever::GraphRetriever( QObject* parent )
+Nepomuk2::GraphRetriever::GraphRetriever( QObject* parent )
     : KJob( parent ),
       d( new Private(this) )
 {
 }
 
 
-Nepomuk::GraphRetriever::~GraphRetriever()
+Nepomuk2::GraphRetriever::~GraphRetriever()
 {
     delete d;
 }
 
 
-void Nepomuk::GraphRetriever::setUrl( const QUrl& url )
+void Nepomuk2::GraphRetriever::setUrl( const QUrl& url )
 {
     d->url = url;
 }
 
 
-QUrl Nepomuk::GraphRetriever::url() const
+QUrl Nepomuk2::GraphRetriever::url() const
 {
     return d->url;
 }
 
 
-void Nepomuk::GraphRetriever::start()
+void Nepomuk2::GraphRetriever::start()
 {
     d->get( d->url );
 }
 
 
-Soprano::Model* Nepomuk::GraphRetriever::model() const
+Soprano::Model* Nepomuk2::GraphRetriever::model() const
 {
     Soprano::Model* result = Soprano::createModel();
     Soprano::StatementIterator it = statements();
@@ -118,7 +118,7 @@ Soprano::Model* Nepomuk::GraphRetriever::model() const
 }
 
 
-Soprano::StatementIterator Nepomuk::GraphRetriever::statements() const
+Soprano::StatementIterator Nepomuk2::GraphRetriever::statements() const
 {
     QByteArray data;
     Soprano::RdfSerialization serialization = Soprano::SerializationRdfXml;
@@ -142,7 +142,7 @@ Soprano::StatementIterator Nepomuk::GraphRetriever::statements() const
 }
 
 
-void Nepomuk::GraphRetriever::httpRequestFinished( KJob* job )
+void Nepomuk2::GraphRetriever::httpRequestFinished( KJob* job )
 {
     KIO::StoredTransferJob* tj = static_cast<KIO::StoredTransferJob*>( job );
 
@@ -162,7 +162,7 @@ void Nepomuk::GraphRetriever::httpRequestFinished( KJob* job )
 }
 
 
-Nepomuk::GraphRetriever* Nepomuk::GraphRetriever::retrieve( const QUrl& uri )
+Nepomuk2::GraphRetriever* Nepomuk2::GraphRetriever::retrieve( const QUrl& uri )
 {
     GraphRetriever* gr = new GraphRetriever();
     gr->setUrl( uri );

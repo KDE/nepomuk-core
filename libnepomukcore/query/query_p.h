@@ -31,7 +31,7 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
 
         class QueryBuilderData;
@@ -55,7 +55,7 @@ namespace Nepomuk {
              * features of some of the term types.
              * We might expose some of them in the next major KDE release.
              */
-            Nepomuk::Query::Term optimizeEvenMore(const Nepomuk::Query::Term& term) const;
+            Nepomuk2::Query::Term optimizeEvenMore(const Nepomuk2::Query::Term& term) const;
 
             QStringList buildRequestPropertyVariableList() const;
             QString buildRequestPropertyPatterns() const;

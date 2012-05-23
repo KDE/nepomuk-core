@@ -26,7 +26,7 @@
 
 class KDiskFreeSpace;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class IndexScheduler;
 

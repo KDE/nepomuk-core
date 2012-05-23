@@ -39,22 +39,22 @@ set( BackupSyncService_SRCS
 
 # qt4_add_dbus_adaptor( BackupSyncService_SRCS
 #                       ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.identifier.xml
-#                       identifier.h Nepomuk::Identifier )
+#                       identifier.h Nepomuk2::Identifier )
 # qt4_add_dbus_adaptor( BackupSyncService_SRCS
 #                       ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.merger.xml
-#                       merger.h Nepomuk::Merger )
+#                       merger.h Nepomuk2::Merger )
 qt4_add_dbus_adaptor( BackupSyncService_SRCS
                       ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
-                      backupmanager.h Nepomuk::BackupManager )
+                      backupmanager.h Nepomuk2::BackupManager )
 qt4_add_dbus_adaptor( BackupSyncService_SRCS
                       ../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.syncmanager.xml
-                      syncmanager.h Nepomuk::SyncManager )
+                      syncmanager.h Nepomuk2::SyncManager )
 
 #--------- Ontologies -------#
 soprano_add_ontology(BackupSyncService_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/../../../ontologies/nrio.trig
   "NRIO"
-  "Nepomuk::Vocabulary"
+  "Nepomuk2::Vocabulary"
   "trig")
 
 kde4_add_plugin(nepomukbackupsync ${BackupSyncService_SRCS})

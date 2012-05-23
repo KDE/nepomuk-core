@@ -37,14 +37,14 @@ namespace Soprano {
     class Graph;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class DataManagementModel;
     class ResourceWatcherManager;
 
     class ResourceMerger : public Soprano::Error::ErrorCache
     {
     public:
-        ResourceMerger( Nepomuk::DataManagementModel * model, const QString & app,
+        ResourceMerger( Nepomuk2::DataManagementModel * model, const QString & app,
                         const QHash<QUrl, QVariant>& additionalMetadata,
                         const StoreResourcesFlags& flags );
         virtual ~ResourceMerger();
@@ -111,7 +111,7 @@ namespace Nepomuk {
         QUrl m_graph;
 
         StoreResourcesFlags m_flags;
-        Nepomuk::DataManagementModel * m_model;
+        Nepomuk2::DataManagementModel * m_model;
 
         QUrl mergeGraphs( const QUrl& oldGraph );
 

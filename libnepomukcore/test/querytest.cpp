@@ -52,16 +52,16 @@
 #include <kdebug.h>
 #include <qtest_kde.h>
 
-Q_DECLARE_METATYPE( Nepomuk::Query::Query )
+Q_DECLARE_METATYPE( Nepomuk2::Query::Query )
 
-using namespace Nepomuk::Query;
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2::Query;
+using namespace Nepomuk2::Vocabulary;
 
 
 // this is a tricky one as we nee to match the variable names and order of the queries exactly.
 void QueryTest::testToSparql_data()
 {
-    QTest::addColumn<Nepomuk::Query::Query>( "query" );
+    QTest::addColumn<Nepomuk2::Query::Query>( "query" );
     QTest::addColumn<QString>( "queryString" );
 
     Query simpleLiteralQuery( LiteralTerm( "Hello" ) );
@@ -143,9 +143,9 @@ void QueryTest::testToSparql_data()
 
     QDateTime now = QDateTime::currentDateTime();
     QTest::newRow( "nie:lastModified" )
-        << Query( ComparisonTerm( Nepomuk::Vocabulary::NIE::lastModified(), LiteralTerm( now ), ComparisonTerm::GreaterOrEqual ) )
+        << Query( ComparisonTerm( Nepomuk2::Vocabulary::NIE::lastModified(), LiteralTerm( now ), ComparisonTerm::GreaterOrEqual ) )
         << QString::fromLatin1("select distinct ?r where { ?r %1 ?v1 . FILTER(?v1>=%2) . }")
-        .arg(Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NIE::lastModified()),
+        .arg(Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NIE::lastModified()),
              Soprano::Node::literalToN3(now));
 
     QTest::newRow( "hastag with literal term" )
@@ -279,7 +279,7 @@ void QueryTest::testToSparql_data()
              Soprano::Node::resourceToN3(Soprano::Vocabulary::XMLSchema::xsdInt()) );
 
     QTest::newRow( "ComparisonTerm with invalid property" )
-        << Query( ComparisonTerm( Nepomuk::Types::Property(), ResourceTerm( QUrl("nepomuk:/res/foobar") ) ))
+        << Query( ComparisonTerm( Nepomuk2::Types::Property(), ResourceTerm( QUrl("nepomuk:/res/foobar") ) ))
         << QString::fromLatin1("select distinct ?r where { ?r ?v1 <nepomuk:/res/foobar> . }");
 
     QTest::newRow( "ComparisonTerm with invalid subterm" )
@@ -288,7 +288,7 @@ void QueryTest::testToSparql_data()
         .arg(Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::hasTag()));
 
     QTest::newRow( "ComparisonTerm with invalid property and subterm" )
-        << Query( ComparisonTerm( Nepomuk::Types::Property(), Term() ) )
+        << Query( ComparisonTerm( Nepomuk2::Types::Property(), Term() ) )
         << QString::fromLatin1("select distinct ?r where { ?r ?v1 ?v2 . }");
 
     ComparisonTerm orderByTerm5( Soprano::Vocabulary::NAO::numericRating(), Term() );
@@ -318,8 +318,8 @@ void QueryTest::testToSparql_data()
     QTest::newRow( "empty file query" )
         << Query(emptyFileQuery)
         << QString::fromLatin1("select distinct ?r where { ?r a ?v1 . FILTER(?v1 in (%1,%2)) . }")
-        .arg( Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::Folder()),
-              Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::FileDataObject()) );
+        .arg( Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::Folder()),
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::FileDataObject()) );
 
 
     FileQuery fileQuery( ComparisonTerm( Soprano::Vocabulary::NAO::hasTag(), ResourceTerm(QUrl("nepomuk:/res/foobar")) ) );
@@ -327,24 +327,24 @@ void QueryTest::testToSparql_data()
         << Query(fileQuery)
         << QString::fromLatin1("select distinct ?r where { { ?r %1 <nepomuk:/res/foobar> . ?r a ?v1 . FILTER(?v1 in (%2,%3)) . } . }")
         .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::hasTag()),
-              Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::Folder()),
-              Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::FileDataObject()) );
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::Folder()),
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::FileDataObject()) );
 
     fileQuery.setFileMode(FileQuery::QueryFiles);
     QTest::newRow( "file query (only files)" )
         << Query(fileQuery)
         << QString::fromLatin1("select distinct ?r where { { ?r %1 <nepomuk:/res/foobar> . ?r a %2 . FILTER(!bif:exists((select (1) where { ?r a %3 . }))) . } . }")
         .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::hasTag()),
-              Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::FileDataObject()),
-              Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::Folder()) );
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::FileDataObject()),
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::Folder()) );
 
     fileQuery.setFileMode(FileQuery::QueryFolders);
     QTest::newRow( "file query (only folders)" )
         << Query(fileQuery)
         << QString::fromLatin1("select distinct ?r where { { ?r %1 <nepomuk:/res/foobar> . ?r a %2 . FILTER(!bif:exists((select (1) where { ?r a %3 . }))) . } . }")
         .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::hasTag()),
-              Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::Folder()),
-              Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::FileDataObject()) );
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::Folder()),
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::FileDataObject()) );
 
 
     fileQuery.setFileMode(FileQuery::QueryFilesAndFolders);
@@ -360,9 +360,9 @@ void QueryTest::testToSparql_data()
                                "FILTER(REGEX(STR(?reqProp1), '(^file:///home/test/includeme/)', 'i')) . "
                                "FILTER(!REGEX(STR(?reqProp1), '^(file:///home/test/includeme/excludeme/)', 'i')) . } . }")
         .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::hasTag()),
-              Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::Folder()),
-              Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::FileDataObject()),
-              Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NIE::url()) );
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::Folder()),
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::FileDataObject()),
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NIE::url()) );
 
 
     QTest::newRow( "Query one resource" )
@@ -387,10 +387,10 @@ void QueryTest::testToSparql_data()
     QUrl res("nepomuk:/res/foobar");
     AndTerm mainTerm;
     OrTerm typeOr;
-    typeOr.addSubTerm( ResourceTypeTerm( Nepomuk::Vocabulary::NFO::RasterImage() ) );
-    typeOr.addSubTerm( ResourceTypeTerm( Nepomuk::Vocabulary::NFO::Audio() ) );
+    typeOr.addSubTerm( ResourceTypeTerm( Nepomuk2::Vocabulary::NFO::RasterImage() ) );
+    typeOr.addSubTerm( ResourceTypeTerm( Nepomuk2::Vocabulary::NFO::Audio() ) );
     mainTerm.addSubTerm( typeOr );
-    mainTerm.addSubTerm( NegationTerm::negateTerm( ComparisonTerm( Nepomuk::Types::Property(), ResourceTerm( res ) ).inverted() ) );
+    mainTerm.addSubTerm( NegationTerm::negateTerm( ComparisonTerm( Nepomuk2::Types::Property(), ResourceTerm( res ) ).inverted() ) );
 
     // an empty comparisonterm results in "?r ?v1 ?v2"
     ComparisonTerm ct;
@@ -409,8 +409,8 @@ void QueryTest::testToSparql_data()
                                          "?r a ?v4 . FILTER(?v4 in (%2,%1)) . "
                                          "FILTER(!bif:exists((select (1) where { <nepomuk:/res/foobar> ?v1 ?r . }))) . "
                                          "} . } ORDER BY DESC ( ?cnt )")
-                     .arg(Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::RasterImage()),
-                          Soprano::Node::resourceToN3(Nepomuk::Vocabulary::NFO::Audio()));
+                     .arg(Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::RasterImage()),
+                          Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::Audio()));
 
     QTest::newRow( "a complex one" )
         << Query( mainTerm )
@@ -418,48 +418,48 @@ void QueryTest::testToSparql_data()
 
 #if 0
 // subquery to match grouding occurrences of nepomuk:/TEST
-    ComparisonTerm goterm( Nepomuk::Vocabulary::PIMO::groundingOccurrence(),
-                           ResourceTerm( Nepomuk::Resource( QUrl("nepomuk:/TEST")) ) );
+    ComparisonTerm goterm( Nepomuk2::Vocabulary::PIMO::groundingOccurrence(),
+                           ResourceTerm( Nepomuk2::Resource( QUrl("nepomuk:/TEST")) ) );
     goterm.setInverted(true);
 
 // combine that with only nco:PersonContacts
-    AndTerm pcgoterm( ResourceTypeTerm( Nepomuk::Vocabulary::NCO::PersonContact() ),
+    AndTerm pcgoterm( ResourceTypeTerm( Nepomuk2::Vocabulary::NCO::PersonContact() ),
                       goterm );
 
 // now look for im accounts of those grounding occurrences (pcgoterm will become the subject of this comparison,
 // thus the comparison will match the im accounts)
-    ComparisonTerm impcgoterm( Nepomuk::Vocabulary::NCO::hasIMAccount(),
+    ComparisonTerm impcgoterm( Nepomuk2::Vocabulary::NCO::hasIMAccount(),
                                pcgoterm );
     impcgoterm.setInverted(true);
 
 // now look for all buddies of the accounts
-    ComparisonTerm buddyTerm( QUrl("http://kde.org/telepathy#isBuddyOf")/*Nepomuk::Vocabulary::Telepathy::isBuddyOf()*/,
+    ComparisonTerm buddyTerm( QUrl("http://kde.org/telepathy#isBuddyOf")/*Nepomuk2::Vocabulary::Telepathy::isBuddyOf()*/,
                               impcgoterm );
 
 // set the name of the variable (i.e. the buddies) to be able to match it later
     buddyTerm.setVariableName("t");
 
 // same comparison, other property, but use the same variable name to match them
-    ComparisonTerm ppterm( QUrl("http://kde.org/telepathy#publishesPresenceTo")/*Nepomuk::Vocabulary::Telepathy::publishesPresenceTo()*/,
-                           ResourceTypeTerm( Nepomuk::Vocabulary::NCO::IMAccount() ) );
+    ComparisonTerm ppterm( QUrl("http://kde.org/telepathy#publishesPresenceTo")/*Nepomuk2::Vocabulary::Telepathy::publishesPresenceTo()*/,
+                           ResourceTypeTerm( Nepomuk2::Vocabulary::NCO::IMAccount() ) );
     ppterm.setVariableName("t");
 
 // combine both to complete the matching of the im account ?account
-    AndTerm accountTerm( ResourceTypeTerm( Nepomuk::Vocabulary::NCO::IMAccount() ),
+    AndTerm accountTerm( ResourceTypeTerm( Nepomuk2::Vocabulary::NCO::IMAccount() ),
                          buddyTerm,
                          ppterm );
 
 // match the account and select it for the results
-    ComparisonTerm imaccountTerm( Nepomuk::Vocabulary::NCO::hasIMAccount(), accountTerm );
+    ComparisonTerm imaccountTerm( Nepomuk2::Vocabulary::NCO::hasIMAccount(), accountTerm );
     imaccountTerm.setVariableName("account");
 
 // and finally the exclusion of those person contacts that already have a pimo person attached
-    ComparisonTerm personTerm( Nepomuk::Vocabulary::PIMO::groundingOccurrence(),
-                               ResourceTypeTerm( Nepomuk::Vocabulary::PIMO::Person() ) );
+    ComparisonTerm personTerm( Nepomuk2::Vocabulary::PIMO::groundingOccurrence(),
+                               ResourceTypeTerm( Nepomuk2::Vocabulary::PIMO::Person() ) );
     personTerm.setInverted(true);
 
 // and all combined
-    Query theQuery( AndTerm( ResourceTypeTerm( Nepomuk::Vocabulary::NCO::PersonContact() ),
+    Query theQuery( AndTerm( ResourceTypeTerm( Nepomuk2::Vocabulary::NCO::PersonContact() ),
                              imaccountTerm,
                              NegationTerm::negateTerm(personTerm)) );
 
@@ -505,7 +505,7 @@ QString normalizeVariables(const QString& s) {
 }
 void QueryTest::testToSparql()
 {
-    QFETCH( Nepomuk::Query::Query, query );
+    QFETCH( Nepomuk2::Query::Query, query );
     QFETCH( QString, queryString );
 
     // we test without result restrictions which always look the same anyway
@@ -596,8 +596,8 @@ void QueryTest::testLogicalOperators()
 
 void QueryTest::testComparison_data()
 {
-    QTest::addColumn<Nepomuk::Query::Query>( "q1" );
-    QTest::addColumn<Nepomuk::Query::Query>( "q2" );
+    QTest::addColumn<Nepomuk2::Query::Query>( "q1" );
+    QTest::addColumn<Nepomuk2::Query::Query>( "q2" );
 
     // invalid queries should always be similar - trivial but worth checking anyway
     Query q1, q2;
@@ -615,8 +615,8 @@ void QueryTest::testComparison_data()
 
 void QueryTest::testComparison()
 {
-    QFETCH( Nepomuk::Query::Query, q1 );
-    QFETCH( Nepomuk::Query::Query, q2 );
+    QFETCH( Nepomuk2::Query::Query, q1 );
+    QFETCH( Nepomuk2::Query::Query, q2 );
 
     QCOMPARE( q1, q2 );
 }
@@ -624,30 +624,30 @@ void QueryTest::testComparison()
 
 void QueryTest::testTermFromProperty()
 {
-    QCOMPARE( Term::fromProperty(Soprano::Vocabulary::NAO::hasTag(), Nepomuk::Variant( QString::fromLatin1("Hello World") )),
+    QCOMPARE( Term::fromProperty(Soprano::Vocabulary::NAO::hasTag(), Nepomuk2::Variant( QString::fromLatin1("Hello World") )),
               Term(
                   ComparisonTerm( Soprano::Vocabulary::NAO::hasTag(),
                                   LiteralTerm( QLatin1String("Hello World") ),
                                   ComparisonTerm::Equal ) )
         );
 
-    QCOMPARE( Term::fromProperty(Soprano::Vocabulary::NAO::hasTag(), Nepomuk::Variant( 42 )),
+    QCOMPARE( Term::fromProperty(Soprano::Vocabulary::NAO::hasTag(), Nepomuk2::Variant( 42 )),
               Term(
                   ComparisonTerm( Soprano::Vocabulary::NAO::hasTag(),
                                   LiteralTerm( 42 ),
                                   ComparisonTerm::Equal ) )
         );
 
-    Nepomuk::Resource res( QUrl("nepomuk:/res/foobar") );
-    QCOMPARE( Term::fromProperty(Soprano::Vocabulary::NAO::hasTag(), Nepomuk::Variant( res )),
+    Nepomuk2::Resource res( QUrl("nepomuk:/res/foobar") );
+    QCOMPARE( Term::fromProperty(Soprano::Vocabulary::NAO::hasTag(), Nepomuk2::Variant( res )),
               Term(
                   ComparisonTerm( Soprano::Vocabulary::NAO::hasTag(),
                                   ResourceTerm( res ),
                                   ComparisonTerm::Equal ) )
         );
 
-    Nepomuk::Resource res2( QUrl("nepomuk:/res/foobar2") );
-    QCOMPARE( Term::fromProperty(Soprano::Vocabulary::NAO::hasTag(), Nepomuk::Variant( QList<Nepomuk::Resource>() << res << res2 )),
+    Nepomuk2::Resource res2( QUrl("nepomuk:/res/foobar2") );
+    QCOMPARE( Term::fromProperty(Soprano::Vocabulary::NAO::hasTag(), Nepomuk2::Variant( QList<Nepomuk2::Resource>() << res << res2 )),
               Term(
                   AndTerm(
                       ComparisonTerm( Soprano::Vocabulary::NAO::hasTag(),

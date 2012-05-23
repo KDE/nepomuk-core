@@ -26,7 +26,7 @@
 #include <QtCore/QVariant>
 #include <QtCore/QSharedData>
 
-class Nepomuk::Types::Literal::Private : public QSharedData
+class Nepomuk2::Types::Literal::Private : public QSharedData
 {
  public:
     Private()

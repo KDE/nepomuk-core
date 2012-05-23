@@ -34,61 +34,61 @@
 
 
 
-void Nepomuk::setDefaultRepository( const QString& )
+void Nepomuk2::setDefaultRepository( const QString& )
 {
     // deprecated - do nothing
 }
 
 
-QString Nepomuk::defaultGraph()
+QString Nepomuk2::defaultGraph()
 {
     return QLatin1String("main");
 }
 
 
-QString Nepomuk::typePredicate()
+QString Nepomuk2::typePredicate()
 {
     return Soprano::Vocabulary::RDF::type().toString();
 }
 
 
-Soprano::Node Nepomuk::valueToRDFNode( const Nepomuk::Variant& v )
+Soprano::Node Nepomuk2::valueToRDFNode( const Nepomuk2::Variant& v )
 {
     return v.toNode();
 }
 
 
-QList<Soprano::Node> Nepomuk::valuesToRDFNodes( const Nepomuk::Variant& v )
+QList<Soprano::Node> Nepomuk2::valuesToRDFNodes( const Nepomuk2::Variant& v )
 {
     return v.toNodeList();
 }
 
 
-Nepomuk::Variant Nepomuk::RDFLiteralToValue( const Soprano::Node& node )
+Nepomuk2::Variant Nepomuk2::RDFLiteralToValue( const Soprano::Node& node )
 {
     return Variant::fromNode( node );
 }
 
 
-QString Nepomuk::rdfNamepace()
+QString Nepomuk2::rdfNamepace()
 {
     return Soprano::Vocabulary::RDF::rdfNamespace().toString();
 }
 
 
-QString Nepomuk::rdfsNamespace()
+QString Nepomuk2::rdfsNamespace()
 {
     return Soprano::Vocabulary::RDFS::rdfsNamespace().toString();
 }
 
 
-QString Nepomuk::nrlNamespace()
+QString Nepomuk2::nrlNamespace()
 {
     return Soprano::Vocabulary::NRL::nrlNamespace().toString();
 }
 
 
-QString Nepomuk::naoNamespace()
+QString Nepomuk2::naoNamespace()
 {
     return Soprano::Vocabulary::NAO::naoNamespace().toString();
 }

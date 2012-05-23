@@ -35,7 +35,7 @@ public:
     virtual ~TestWidget();
     
 private:
-    Nepomuk::IdentifierModel * m_model;
+    Nepomuk2::IdentifierModel * m_model;
     MergeConflictDelegate * m_delegate;
 
     void notIdentified( const QString& resUri, const QString& nieUrl );

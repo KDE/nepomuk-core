@@ -31,7 +31,7 @@
 #include "changelog.h"
 #include "changelogrecord.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
         
         class ResourceLog
@@ -44,7 +44,7 @@ namespace Nepomuk {
         class ResourceLogMap : public QHash<KUrl, ResourceLog> {
         public:
             static ResourceLogMap fromChangeLogRecordList( const QList<ChangeLogRecord> & records );
-            static ResourceLogMap fromChangeLog( const Nepomuk::ChangeLog& log );
+            static ResourceLogMap fromChangeLog( const Nepomuk2::ChangeLog& log );
 
             void optimize();
         };

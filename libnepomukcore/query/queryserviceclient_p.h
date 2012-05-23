@@ -32,16 +32,16 @@ namespace {
     {
         Q_OBJECT
         public:
-            NepomukResultListEventLoop(Nepomuk::Query::QueryServiceClient *parent);
+            NepomukResultListEventLoop(Nepomuk2::Query::QueryServiceClient *parent);
             virtual ~NepomukResultListEventLoop();
 
-            QList<Nepomuk::Query::Result> result() const;
+            QList<Nepomuk2::Query::Result> result() const;
 
         public Q_SLOTS:
-            void addEntries(const QList<Nepomuk::Query::Result> &entries);
+            void addEntries(const QList<Nepomuk2::Query::Result> &entries);
 
         private:
-            QList<Nepomuk::Query::Result> m_result;
+            QList<Nepomuk2::Query::Result> m_result;
     };
 
 }

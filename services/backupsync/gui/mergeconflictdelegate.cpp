@@ -122,7 +122,7 @@ void MergeConflictDelegate::paint(QPainter *painter, const QStyleOptionViewItem 
     painter->drawText(x, y, metrics.elidedText(labelText(index), Qt::ElideRight, availTextWidth));
 
     // draw type
-    x += metrics.width(index.data(Nepomuk::IdentifierModel::LabelRole).toString()) + metrics.averageCharWidth();
+    x += metrics.width(index.data(Nepomuk2::IdentifierModel::LabelRole).toString()) + metrics.averageCharWidth();
     font.setItalic(true);
     metrics = font;
     painter->setFont(font);
@@ -164,28 +164,28 @@ QSize MergeConflictDelegate::sizeHint(const QStyleOptionViewItem &option, const 
 void MergeConflictDelegate::slotResolveButtonClicked()
 {
     kDebug() << focusedIndex().data(Qt::DisplayRole);
-    emit requestResourceResolve(focusedIndex().data(Nepomuk::IdentifierModel::ResourceRole).toUrl());
+    emit requestResourceResolve(focusedIndex().data(Nepomuk2::IdentifierModel::ResourceRole).toUrl());
 }
 
 void MergeConflictDelegate::slotDiscardButtonClicked()
 {
     kDebug() << focusedIndex().data(Qt::DisplayRole);
-    emit requestResourceDiscard(focusedIndex().data(Nepomuk::IdentifierModel::ResourceRole).toUrl());
+    emit requestResourceDiscard(focusedIndex().data(Nepomuk2::IdentifierModel::ResourceRole).toUrl());
 }
 
 QString MergeConflictDelegate::labelText(const QModelIndex &index) const
 {
-    return index.data(Nepomuk::IdentifierModel::LabelRole).toString();
+    return index.data(Nepomuk2::IdentifierModel::LabelRole).toString();
 }
 
 QString MergeConflictDelegate::typeText(const QModelIndex &index) const
 {
-    return QLatin1String("(") + Nepomuk::Types::Class(index.data(Nepomuk::IdentifierModel::TypeRole).toUrl()).label() + QLatin1String(")");
+    return QLatin1String("(") + Nepomuk2::Types::Class(index.data(Nepomuk2::IdentifierModel::TypeRole).toUrl()).label() + QLatin1String(")");
 }
 
 QString MergeConflictDelegate::statusText(const QModelIndex &index, QPainter* painter) const
 {
-    const KUrl identifiedResource = index.data(Nepomuk::IdentifierModel::IdentifiedResourceRole).toUrl();
+    const KUrl identifiedResource = index.data(Nepomuk2::IdentifierModel::IdentifiedResourceRole).toUrl();
     if( identifiedResource.isValid() ) {
         if(painter) {
             KColorScheme cs(QPalette::Active);
@@ -194,7 +194,7 @@ QString MergeConflictDelegate::statusText(const QModelIndex &index, QPainter* pa
         return i18nc("@item:inlistbox Refers to a set of metadata that has been identified as beloging to file file at %1. %1 is a URL or part of it.",
                      "Identified as: %1", identifiedResource.pathOrUrl(KUrl::RemoveTrailingSlash));
     }
-    else if( index.data(Nepomuk::IdentifierModel::DiscardedRole).toBool() ) {
+    else if( index.data(Nepomuk2::IdentifierModel::DiscardedRole).toBool() ) {
         if(painter) {
             KColorScheme cs(QPalette::Active);
             painter->setPen(cs.foreground(KColorScheme::NegativeText).color());

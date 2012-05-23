@@ -37,40 +37,40 @@
 #include <KDebug>
 
 
-class Nepomuk::DescribeResourcesJob::Private
+class Nepomuk2::DescribeResourcesJob::Private
 {
 public:
     SimpleResourceGraph m_resources;
 };
 
-Nepomuk::DescribeResourcesJob::DescribeResourcesJob(const QList<QUrl>& resources,
+Nepomuk2::DescribeResourcesJob::DescribeResourcesJob(const QList<QUrl>& resources,
                                                     DescribeResourcesFlags flags,
                                                     const QList<QUrl>& targetGroups)
     : KJob(0),
       d(new Private)
 {
-    org::kde::nepomuk::DataManagement* dms = Nepomuk::dataManagementDBusInterface();
+    org::kde::nepomuk::DataManagement* dms = Nepomuk2::dataManagementDBusInterface();
     QDBusPendingCallWatcher* dbusCallWatcher
-           = new QDBusPendingCallWatcher(dms->describeResources(Nepomuk::DBus::convertUriList(resources),
+           = new QDBusPendingCallWatcher(dms->describeResources(Nepomuk2::DBus::convertUriList(resources),
                                                                 int(flags),
-                                                                Nepomuk::DBus::convertUriList(targetGroups)));
+                                                                Nepomuk2::DBus::convertUriList(targetGroups)));
     connect(dbusCallWatcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
             this, SLOT(slotDBusCallFinished(QDBusPendingCallWatcher*)));
 }
 
-Nepomuk::DescribeResourcesJob::~DescribeResourcesJob()
+Nepomuk2::DescribeResourcesJob::~DescribeResourcesJob()
 {
     delete d;
 }
 
-void Nepomuk::DescribeResourcesJob::start()
+void Nepomuk2::DescribeResourcesJob::start()
 {
     // do nothing, we do everything in the constructor
 }
 
-void Nepomuk::DescribeResourcesJob::slotDBusCallFinished(QDBusPendingCallWatcher *watcher)
+void Nepomuk2::DescribeResourcesJob::slotDBusCallFinished(QDBusPendingCallWatcher *watcher)
 {
-    QDBusPendingReply<QList<Nepomuk::SimpleResource> > reply = *watcher;
+    QDBusPendingReply<QList<Nepomuk2::SimpleResource> > reply = *watcher;
     if (reply.isError()) {
         QDBusError error = reply.error();
         setError(1);
@@ -83,7 +83,7 @@ void Nepomuk::DescribeResourcesJob::slotDBusCallFinished(QDBusPendingCallWatcher
     emitResult();
 }
 
-Nepomuk::SimpleResourceGraph Nepomuk::DescribeResourcesJob::resources() const
+Nepomuk2::SimpleResourceGraph Nepomuk2::DescribeResourcesJob::resources() const
 {
     return d->m_resources;
 }

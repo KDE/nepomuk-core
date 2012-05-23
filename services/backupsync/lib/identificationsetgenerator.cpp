@@ -32,7 +32,7 @@
 
 #include "resourcemanager.h"
 
-Nepomuk::Sync::IdentificationSetGenerator::IdentificationSetGenerator(const QSet<KUrl>& uniqueUris, Soprano::Model* m, const QSet<KUrl> & ignoreList)
+Nepomuk2::Sync::IdentificationSetGenerator::IdentificationSetGenerator(const QSet<KUrl>& uniqueUris, Soprano::Model* m, const QSet<KUrl> & ignoreList)
 {
     notDone = uniqueUris - ignoreList;
     model = m;
@@ -40,7 +40,7 @@ Nepomuk::Sync::IdentificationSetGenerator::IdentificationSetGenerator(const QSet
 
 }
 
-Soprano::QueryResultIterator Nepomuk::Sync::IdentificationSetGenerator::performQuery(const QStringList& uris)
+Soprano::QueryResultIterator Nepomuk2::Sync::IdentificationSetGenerator::performQuery(const QStringList& uris)
 {
     QString query = QString::fromLatin1("select distinct ?r ?p ?o where { ?r ?p ?o. "
                                         "{ ?p %1 %2 .} "
@@ -55,7 +55,7 @@ Soprano::QueryResultIterator Nepomuk::Sync::IdentificationSetGenerator::performQ
     return model->executeQuery(query, Soprano::Query::QueryLanguageSparql);
 }
 
-void Nepomuk::Sync::IdentificationSetGenerator::iterate()
+void Nepomuk2::Sync::IdentificationSetGenerator::iterate()
 {
     QStringList uris;
 
@@ -89,7 +89,7 @@ void Nepomuk::Sync::IdentificationSetGenerator::iterate()
     }
 }
 
-QList<Soprano::Statement> Nepomuk::Sync::IdentificationSetGenerator::generate()
+QList<Soprano::Statement> Nepomuk2::Sync::IdentificationSetGenerator::generate()
 {
     done.clear();
 

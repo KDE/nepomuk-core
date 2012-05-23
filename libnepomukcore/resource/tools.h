@@ -31,12 +31,12 @@
 
 #include <kdemacros.h>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
      * Used internally by Resource.
      * Converts a Variant into a literal value to be used in the RDF store.
      *
-     * \deprecated Use Nepomuk::Varaint::toNodeList()
+     * \deprecated Use Nepomuk2::Varaint::toNodeList()
      */
     KDE_DEPRECATED NEPOMUK_EXPORT QList<Soprano::Node> valuesToRDFNodes( const Variant& );
 
@@ -44,7 +44,7 @@ namespace Nepomuk {
      * Used internally by Resource.
      * Converts a non-list Variant into a Soprano::Node.
      *
-     * \deprecated Use Nepomuk::Varaint::toNode()
+     * \deprecated Use Nepomuk2::Varaint::toNode()
      */
     KDE_DEPRECATED NEPOMUK_EXPORT Soprano::Node valueToRDFNode( const Variant& );
 
@@ -90,7 +90,7 @@ namespace Nepomuk {
     /**
      * \return The name of the default Nepomuk repository ("main").
      *
-     * \deprecated Use Nepomuk::ResourceManager::mainModel()
+     * \deprecated Use Nepomuk2::ResourceManager::mainModel()
      */
     KDE_DEPRECATED NEPOMUK_EXPORT QString defaultGraph();
 

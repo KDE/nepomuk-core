@@ -68,7 +68,7 @@ kde4_add_ui_files( NepomukBackup_GUI_SRCS
 soprano_add_ontology(NepomukBackup_GUI_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/../../../ontologies/nrio.trig
   "NRIO"
-  "Nepomuk::Vocabulary"
+  "Nepomuk2::Vocabulary"
   "trig")
 
 kde4_add_executable(nepomukbackup ${NepomukBackup_GUI_SRCS})

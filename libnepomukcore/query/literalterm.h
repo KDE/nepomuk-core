@@ -26,10 +26,10 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
-         * \class LiteralTerm literalterm.h Nepomuk/Query/LiteralTerm
+         * \class LiteralTerm literalterm.h Nepomuk2/Query/LiteralTerm
          *
          * \brief Match literal properties via full text.
          *

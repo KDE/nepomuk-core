@@ -31,7 +31,7 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     /**
      * \class ResourceWatcher resourcewatcher.h
@@ -63,12 +63,12 @@ namespace Nepomuk {
      * property on one specific resource \c res.
      *
      * \code
-     * Nepomuk::ResourceWatcher* watcher = new Nepomuk::ResourceWatcher(this);
+     * Nepomuk2::ResourceWatcher* watcher = new Nepomuk2::ResourceWatcher(this);
      * watcher->addResource(res);
      * watcher->addProperty(NMM:performer());
-     * connect(watcher, SIGNAL(propertyAdded(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)),
+     * connect(watcher, SIGNAL(propertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
      *         this, SLOT(slotPropertyChanged()));
-     * connect(watcher, SIGNAL(propertyRemoved(Nepomuk::Resource, Nepomuk::Types::Property, QVariant)),
+     * connect(watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
      *         this, SLOT(slotPropertyChanged()));
      * rwatcher->start();
      * \endcode
@@ -113,7 +113,7 @@ namespace Nepomuk {
          *
          * \sa setResources()
          */
-        void addResource( const Nepomuk::Resource & res );
+        void addResource( const Nepomuk2::Resource & res );
 
         /**
          * \brief Add a property to be watched.
@@ -142,7 +142,7 @@ namespace Nepomuk {
          *
          * \sa setResources()
          */
-        void removeResource( const Nepomuk::Resource & res );
+        void removeResource( const Nepomuk2::Resource & res );
 
         /**
          * \brief Remove a property to be watched.
@@ -171,7 +171,7 @@ namespace Nepomuk {
          *
          * \sa addResource()
          */
-        void setResources( const QList<Nepomuk::Resource> & resources_ );
+        void setResources( const QList<Nepomuk2::Resource> & resources_ );
 
         /**
          * \brief Set the properties to be watched.
@@ -197,7 +197,7 @@ namespace Nepomuk {
          * Every change to one of these resources will be
          * signalled, depending on the configured properties().
          */
-        QList<Nepomuk::Resource> resources() const;
+        QList<Nepomuk2::Resource> resources() const;
 
         /**
          * \brief The properties that have been configured via addProperty() and setProperties().
@@ -231,7 +231,7 @@ namespace Nepomuk {
          * \param types The types the new resource has. If types() have been configured this list will always
          * contain one of the configured types.
          */
-        void resourceCreated( const Nepomuk::Resource & resource, const QList<QUrl>& types ); //FIXME: Use either Resource or uri, not a mix
+        void resourceCreated( const Nepomuk2::Resource & resource, const QList<QUrl>& types ); //FIXME: Use either Resource or uri, not a mix
 
         /**
          * \brief This signal is emitted when a resource is deleted.
@@ -247,7 +247,7 @@ namespace Nepomuk {
          * \param res The changed resource.
          * \param type The newly added type. If types() have been configured it will be one of them.
          */
-        void resourceTypeAdded( const Nepomuk::Resource & res, const Nepomuk::Types::Class & type );
+        void resourceTypeAdded( const Nepomuk2::Resource & res, const Nepomuk2::Types::Class & type );
 
         /**
          * \brief This signal is emitted when a type has been removed from a resource.
@@ -257,7 +257,7 @@ namespace Nepomuk {
          * \param res The changed resource.
          * \param type The removed type. If types() have been configured it will be one of them.
          */
-        void resourceTypeRemoved( const Nepomuk::Resource & res, const Nepomuk::Types::Class & type );
+        void resourceTypeRemoved( const Nepomuk2::Resource & res, const Nepomuk2::Types::Class & type );
 
         /**
          * \brief This signal is emitted when a property value is added.
@@ -265,8 +265,8 @@ namespace Nepomuk {
          * \param property The property which has a new value.
          * \param value The newly added property value.
          */
-        void propertyAdded( const Nepomuk::Resource & resource,
-                            const Nepomuk::Types::Property & property,
+        void propertyAdded( const Nepomuk2::Resource & resource,
+                            const Nepomuk2::Types::Property & property,
                             const QVariant & value );
 
         /**
@@ -275,8 +275,8 @@ namespace Nepomuk {
          * \param property The property which was changed.
          * \param value The removed property value.
          */
-        void propertyRemoved( const Nepomuk::Resource & resource,
-                              const Nepomuk::Types::Property & property,
+        void propertyRemoved( const Nepomuk2::Resource & resource,
+                              const Nepomuk2::Types::Property & property,
                               const QVariant & value );
 
         /**
@@ -295,8 +295,8 @@ namespace Nepomuk {
          * \param addedValues The values that have been added.
          * \param removedValues The values that have been removed.
          */
-        void propertyChanged( const Nepomuk::Resource & resource,
-                              const Nepomuk::Types::Property & property,
+        void propertyChanged( const Nepomuk2::Resource & resource,
+                              const Nepomuk2::Types::Property & property,
                               const QVariantList & addedValues,
                               const QVariantList & removedValues );
 

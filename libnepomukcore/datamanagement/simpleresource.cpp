@@ -52,47 +52,47 @@ QUrl createBlankUri()
 }
 }
 
-class Nepomuk::SimpleResource::Private : public QSharedData
+class Nepomuk2::SimpleResource::Private : public QSharedData
 {
 public:
     QUrl m_uri;
     PropertyHash m_properties;
 };
 
-Nepomuk::SimpleResource::SimpleResource(const QUrl& uri)
+Nepomuk2::SimpleResource::SimpleResource(const QUrl& uri)
 {
     d = new Private();
     setUri(uri);
 }
 
-Nepomuk::SimpleResource::SimpleResource(const PropertyHash& properties)
+Nepomuk2::SimpleResource::SimpleResource(const PropertyHash& properties)
 {
     d = new Private();
     setUri(QUrl());
     setProperties(properties);
 }
 
-Nepomuk::SimpleResource::SimpleResource(const SimpleResource& other)
+Nepomuk2::SimpleResource::SimpleResource(const SimpleResource& other)
     : d(other.d)
 {
 }
 
-Nepomuk::SimpleResource::~SimpleResource()
+Nepomuk2::SimpleResource::~SimpleResource()
 {
 }
 
-Nepomuk::SimpleResource & Nepomuk::SimpleResource::operator=(const Nepomuk::SimpleResource &other)
+Nepomuk2::SimpleResource & Nepomuk2::SimpleResource::operator=(const Nepomuk2::SimpleResource &other)
 {
     d = other.d;
     return *this;
 }
 
-QUrl Nepomuk::SimpleResource::uri() const
+QUrl Nepomuk2::SimpleResource::uri() const
 {
     return d->m_uri;
 }
 
-void Nepomuk::SimpleResource::setUri(const QUrl& uri)
+void Nepomuk2::SimpleResource::setUri(const QUrl& uri)
 {
     if(uri.isEmpty())
         d->m_uri = createBlankUri();
@@ -109,7 +109,7 @@ namespace {
     }
 }
 
-QList< Soprano::Statement > Nepomuk::SimpleResource::toStatementList() const
+QList< Soprano::Statement > Nepomuk2::SimpleResource::toStatementList() const
 {
     QList<Soprano::Statement> list;
     QHashIterator<QUrl, QVariant> it( d->m_properties );
@@ -129,7 +129,7 @@ QList< Soprano::Statement > Nepomuk::SimpleResource::toStatementList() const
     return list;
 }
 
-bool Nepomuk::SimpleResource::isValid() const
+bool Nepomuk2::SimpleResource::isValid() const
 {
     // We do not check if m_uri.isValid() as a blank uri of the form "_:daf" would be invalid
     if(d->m_uri.isEmpty() || d->m_properties.isEmpty()) {
@@ -147,27 +147,27 @@ bool Nepomuk::SimpleResource::isValid() const
     return true;
 }
 
-bool Nepomuk::SimpleResource::operator==(const Nepomuk::SimpleResource &other) const
+bool Nepomuk2::SimpleResource::operator==(const Nepomuk2::SimpleResource &other) const
 {
     return d->m_uri == other.d->m_uri && d->m_properties == other.d->m_properties;
 }
 
-Nepomuk::PropertyHash Nepomuk::SimpleResource::properties() const
+Nepomuk2::PropertyHash Nepomuk2::SimpleResource::properties() const
 {
     return d->m_properties;
 }
 
-bool Nepomuk::SimpleResource::contains(const QUrl &property) const
+bool Nepomuk2::SimpleResource::contains(const QUrl &property) const
 {
     return d->m_properties.contains(property);
 }
 
-bool Nepomuk::SimpleResource::contains(const QUrl &property, const QVariant &value) const
+bool Nepomuk2::SimpleResource::contains(const QUrl &property, const QVariant &value) const
 {
     return d->m_properties.contains(property, value);
 }
 
-bool Nepomuk::SimpleResource::containsNode(const QUrl &property, const Soprano::Node &node) const
+bool Nepomuk2::SimpleResource::containsNode(const QUrl &property, const Soprano::Node &node) const
 {
     if(node.isLiteral())
         return contains(property, node.literal().variant());
@@ -177,25 +177,25 @@ bool Nepomuk::SimpleResource::containsNode(const QUrl &property, const Soprano::
         return false;
 }
 
-void Nepomuk::SimpleResource::setPropertyNode(const QUrl &property, const Soprano::Node &value)
+void Nepomuk2::SimpleResource::setPropertyNode(const QUrl &property, const Soprano::Node &value)
 {
     d->m_properties.remove(property);
     addPropertyNode(property, value);
 }
 
-void Nepomuk::SimpleResource::setProperty(const QUrl &property, const QVariant &value)
+void Nepomuk2::SimpleResource::setProperty(const QUrl &property, const QVariant &value)
 {
     d->m_properties.remove(property);
     addProperty(property, value);
 }
 
-void Nepomuk::SimpleResource::setProperty(const QUrl& property, const Nepomuk::SimpleResource& res)
+void Nepomuk2::SimpleResource::setProperty(const QUrl& property, const Nepomuk2::SimpleResource& res)
 {
     setProperty(property, res.uri());
 }
 
 
-void Nepomuk::SimpleResource::setProperty(const QUrl &property, const QVariantList &values)
+void Nepomuk2::SimpleResource::setProperty(const QUrl &property, const QVariantList &values)
 {
     d->m_properties.remove(property);
     foreach(const QVariant& v, values) {
@@ -203,19 +203,19 @@ void Nepomuk::SimpleResource::setProperty(const QUrl &property, const QVariantLi
     }
 }
 
-void Nepomuk::SimpleResource::addProperty(const QUrl &property, const QVariant &value)
+void Nepomuk2::SimpleResource::addProperty(const QUrl &property, const QVariant &value)
 {
     // QMultiHash even stores the same key/value pair multiple times!
     if(!d->m_properties.contains(property, value))
         d->m_properties.insertMulti(property, value);
 }
 
-void Nepomuk::SimpleResource::addProperty(const QUrl& property, const Nepomuk::SimpleResource& res)
+void Nepomuk2::SimpleResource::addProperty(const QUrl& property, const Nepomuk2::SimpleResource& res)
 {
     addProperty(property, res.uri());
 }
 
-void Nepomuk::SimpleResource::addPropertyNode(const QUrl &property, const Soprano::Node &node)
+void Nepomuk2::SimpleResource::addPropertyNode(const QUrl &property, const Soprano::Node &node)
 {
     if(node.isResource())
         addProperty(property, QVariant(node.uri()));
@@ -224,17 +224,17 @@ void Nepomuk::SimpleResource::addPropertyNode(const QUrl &property, const Sopran
     // else do nothing
 }
 
-void Nepomuk::SimpleResource::remove(const QUrl &property, const QVariant &value)
+void Nepomuk2::SimpleResource::remove(const QUrl &property, const QVariant &value)
 {
     d->m_properties.remove(property, value);
 }
 
-void Nepomuk::SimpleResource::remove(const QUrl &property)
+void Nepomuk2::SimpleResource::remove(const QUrl &property)
 {
     d->m_properties.remove(property);
 }
 
-void Nepomuk::SimpleResource::removeAll(const QUrl &property, const QVariant &value)
+void Nepomuk2::SimpleResource::removeAll(const QUrl &property, const QVariant &value)
 {
     if(property.isEmpty()) {
         if(value.isValid()) {
@@ -254,12 +254,12 @@ void Nepomuk::SimpleResource::removeAll(const QUrl &property, const QVariant &va
     }
 }
 
-void Nepomuk::SimpleResource::addType(const QUrl &type)
+void Nepomuk2::SimpleResource::addType(const QUrl &type)
 {
     addProperty(Soprano::Vocabulary::RDF::type(), type);
 }
 
-void Nepomuk::SimpleResource::setTypes(const QList<QUrl> &types)
+void Nepomuk2::SimpleResource::setTypes(const QList<QUrl> &types)
 {
     QVariantList values;
     foreach(const QUrl& type, types) {
@@ -268,43 +268,43 @@ void Nepomuk::SimpleResource::setTypes(const QList<QUrl> &types)
     setProperty(Soprano::Vocabulary::RDF::type(), values);
 }
 
-void Nepomuk::SimpleResource::setProperties(const Nepomuk::PropertyHash &properties)
+void Nepomuk2::SimpleResource::setProperties(const Nepomuk2::PropertyHash &properties)
 {
     d->m_properties = properties;
 }
 
-void Nepomuk::SimpleResource::clear()
+void Nepomuk2::SimpleResource::clear()
 {
     d->m_properties.clear();
 }
 
-void Nepomuk::SimpleResource::addProperties(const Nepomuk::PropertyHash &properties)
+void Nepomuk2::SimpleResource::addProperties(const Nepomuk2::PropertyHash &properties)
 {
     d->m_properties += properties;
 }
 
-QVariantList Nepomuk::SimpleResource::property(const QUrl &property) const
+QVariantList Nepomuk2::SimpleResource::property(const QUrl &property) const
 {
     return d->m_properties.values(property);
 }
 
-uint Nepomuk::qHash(const SimpleResource& res)
+uint Nepomuk2::qHash(const SimpleResource& res)
 {
     return qHash(res.uri());
 }
 
-QDebug Nepomuk::operator<<(QDebug dbg, const Nepomuk::SimpleResource& res)
+QDebug Nepomuk2::operator<<(QDebug dbg, const Nepomuk2::SimpleResource& res)
 {
     return dbg << res.uri() << res.properties();
 }
 
-QDataStream & Nepomuk::operator<<(QDataStream & stream, const Nepomuk::SimpleResource& resource)
+QDataStream & Nepomuk2::operator<<(QDataStream & stream, const Nepomuk2::SimpleResource& resource)
 {
     stream << resource.uri() << resource.properties();
     return stream;
 }
 
-QDataStream & Nepomuk::operator>>(QDataStream & stream, Nepomuk::SimpleResource& resource)
+QDataStream & Nepomuk2::operator>>(QDataStream & stream, Nepomuk2::SimpleResource& resource)
 {
     QUrl uri;
     PropertyHash properties;

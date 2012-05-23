@@ -30,7 +30,7 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class ResourceData;
     class Variant;
@@ -55,7 +55,7 @@ namespace Nepomuk {
     NEPOMUK_EXPORT QString errorString( ErrorCode code );
 
     /**
-     * \class Resource resource.h Nepomuk/Resource
+     * \class Resource resource.h Nepomuk2/Resource
      *
      * \brief Resource is the central object type in Nepomuk. It represents a piece of
      * information of any kind.
@@ -81,7 +81,7 @@ namespace Nepomuk {
      *
      * \code
      * KUrl fileUrl("file:///home/foobar/example.txt");
-     * Nepomuk::Resource fileRes(fileUrl);
+     * Nepomuk2::Resource fileRes(fileUrl);
      * QUrl fileResUri = fileRes.resourceUri();
      * \endcode
      *
@@ -494,7 +494,7 @@ namespace Nepomuk {
          *
          * \since 4.5
          */
-        static Resource fromResourceUri( const KUrl& uri, const Nepomuk::Types::Class& type = Nepomuk::Types::Class() );
+        static Resource fromResourceUri( const KUrl& uri, const Nepomuk2::Types::Class& type = Nepomuk2::Types::Class() );
 
     private:
         /**

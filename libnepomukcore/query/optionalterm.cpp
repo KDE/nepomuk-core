@@ -23,7 +23,7 @@
 #include "optionalterm_p.h"
 #include "querybuilderdata_p.h"
 
-QString Nepomuk::Query::OptionalTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
+QString Nepomuk2::Query::OptionalTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
 {
     Q_UNUSED(parentTerm);
 
@@ -32,31 +32,31 @@ QString Nepomuk::Query::OptionalTermPrivate::toSparqlGraphPattern( const QString
 }
 
 
-Nepomuk::Query::OptionalTerm::OptionalTerm()
+Nepomuk2::Query::OptionalTerm::OptionalTerm()
     : SimpleTerm( new OptionalTermPrivate() )
 {
 }
 
 
-Nepomuk::Query::OptionalTerm::OptionalTerm( const OptionalTerm& term )
+Nepomuk2::Query::OptionalTerm::OptionalTerm( const OptionalTerm& term )
     : SimpleTerm( term )
 {
 }
 
 
-Nepomuk::Query::OptionalTerm::~OptionalTerm()
+Nepomuk2::Query::OptionalTerm::~OptionalTerm()
 {
 }
 
 
-Nepomuk::Query::OptionalTerm& Nepomuk::Query::OptionalTerm::operator=( const OptionalTerm& term )
+Nepomuk2::Query::OptionalTerm& Nepomuk2::Query::OptionalTerm::operator=( const OptionalTerm& term )
 {
     d_ptr = term.d_ptr;
     return *this;
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::OptionalTerm::optionalizeTerm( const Term& term )
+Nepomuk2::Query::Term Nepomuk2::Query::OptionalTerm::optionalizeTerm( const Term& term )
 {
     if ( !term.isOptionalTerm() ) {
         OptionalTerm ot;

@@ -26,18 +26,18 @@
 #include <QtDBus/QDBusObjectPath>
 #include <QtDBus/QDBusServiceWatcher>
 
-Nepomuk::ResourceWatcherConnection::ResourceWatcherConnection( ResourceWatcherManager* parent )
+Nepomuk2::ResourceWatcherConnection::ResourceWatcherConnection( ResourceWatcherManager* parent )
     : QObject( parent ),
       m_manager(parent)
 {
 }
 
-Nepomuk::ResourceWatcherConnection::~ResourceWatcherConnection()
+Nepomuk2::ResourceWatcherConnection::~ResourceWatcherConnection()
 {
     m_manager->removeConnection(this);
 }
 
-QDBusObjectPath Nepomuk::ResourceWatcherConnection::registerDBusObject( const QString& dbusClient, int id )
+QDBusObjectPath Nepomuk2::ResourceWatcherConnection::registerDBusObject( const QString& dbusClient, int id )
 {
     // build the dbus object path from the id and register the connection as a Query dbus object
     new ResourceWatcherConnectionAdaptor( this );
@@ -56,52 +56,52 @@ QDBusObjectPath Nepomuk::ResourceWatcherConnection::registerDBusObject( const QS
     return QDBusObjectPath( dbusObjectPath );
 }
 
-void Nepomuk::ResourceWatcherConnection::close()
+void Nepomuk2::ResourceWatcherConnection::close()
 {
     deleteLater();
 }
 
-void Nepomuk::ResourceWatcherConnection::setResources(const QStringList &resources)
+void Nepomuk2::ResourceWatcherConnection::setResources(const QStringList &resources)
 {
     m_manager->setResources(this, resources);
 }
 
-void Nepomuk::ResourceWatcherConnection::addResource(const QString &resource)
+void Nepomuk2::ResourceWatcherConnection::addResource(const QString &resource)
 {
     m_manager->addResource(this, resource);
 }
 
-void Nepomuk::ResourceWatcherConnection::removeResource(const QString &resource)
+void Nepomuk2::ResourceWatcherConnection::removeResource(const QString &resource)
 {
     m_manager->removeResource(this, resource);
 }
 
-void Nepomuk::ResourceWatcherConnection::setProperties(const QStringList &properties)
+void Nepomuk2::ResourceWatcherConnection::setProperties(const QStringList &properties)
 {
     m_manager->setProperties(this, properties);
 }
 
-void Nepomuk::ResourceWatcherConnection::addProperty(const QString &property)
+void Nepomuk2::ResourceWatcherConnection::addProperty(const QString &property)
 {
     m_manager->addProperty(this, property);
 }
 
-void Nepomuk::ResourceWatcherConnection::removeProperty(const QString &property)
+void Nepomuk2::ResourceWatcherConnection::removeProperty(const QString &property)
 {
     m_manager->removeProperty(this, property);
 }
 
-void Nepomuk::ResourceWatcherConnection::setTypes(const QStringList &types)
+void Nepomuk2::ResourceWatcherConnection::setTypes(const QStringList &types)
 {
     m_manager->setTypes(this, types);
 }
 
-void Nepomuk::ResourceWatcherConnection::addType(const QString &type)
+void Nepomuk2::ResourceWatcherConnection::addType(const QString &type)
 {
     m_manager->addType(this, type);
 }
 
-void Nepomuk::ResourceWatcherConnection::removeType(const QString &type)
+void Nepomuk2::ResourceWatcherConnection::removeType(const QString &type)
 {
     m_manager->removeType(this, type);
 }

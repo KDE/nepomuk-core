@@ -22,7 +22,7 @@ set(queryservice_SRCS
 qt4_add_dbus_adaptor(queryservice_SRCS
   ../../interfaces/org.kde.nepomuk.Query.xml
   folderconnection.h
-  Nepomuk::Query::FolderConnection)
+  Nepomuk2::Query::FolderConnection)
 
 kde4_add_plugin(nepomukqueryservice ${queryservice_SRCS})
 

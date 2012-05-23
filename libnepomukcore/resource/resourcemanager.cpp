@@ -53,9 +53,9 @@
 
 using namespace Soprano;
 
-Nepomuk::ResourceManager* Nepomuk::ResourceManager::s_instance = 0;
+Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::s_instance = 0;
 
-Nepomuk::ResourceManagerPrivate::ResourceManagerPrivate( ResourceManager* manager )
+Nepomuk2::ResourceManagerPrivate::ResourceManagerPrivate( ResourceManager* manager )
     : mainModel( 0 ),
       overrideModel( 0 ),
       mutex(QMutex::Recursive),
@@ -63,11 +63,11 @@ Nepomuk::ResourceManagerPrivate::ResourceManagerPrivate( ResourceManager* manage
       m_manager( manager ),
       m_watcher( 0 )
 {
-    Nepomuk::DBus::registerDBusTypes();
+    Nepomuk2::DBus::registerDBusTypes();
 }
 
 
-Nepomuk::ResourceData* Nepomuk::ResourceManagerPrivate::data( const QUrl& uri, const QUrl& type )
+Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::data( const QUrl& uri, const QUrl& type )
 {
     if ( uri.isEmpty() ) {
         // return an invalid resource which may be activated by calling setProperty
@@ -83,7 +83,7 @@ Nepomuk::ResourceData* Nepomuk::ResourceManagerPrivate::data( const QUrl& uri, c
 }
 
 
-Nepomuk::ResourceData* Nepomuk::ResourceManagerPrivate::data( const QString& uriOrId, const QUrl& type )
+Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::data( const QString& uriOrId, const QUrl& type )
 {
     if ( !uriOrId.isEmpty() ) {
         KUrl url(uriOrId);
@@ -94,7 +94,7 @@ Nepomuk::ResourceData* Nepomuk::ResourceManagerPrivate::data( const QString& uri
 }
 
 
-Nepomuk::ResourceData* Nepomuk::ResourceManagerPrivate::dataForResourceUri( const QUrl& uri, const QUrl& type )
+Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::dataForResourceUri( const QUrl& uri, const QUrl& type )
 {
     if ( uri.isEmpty() ) {
         // return an invalid resource which may be activated by calling setProperty
@@ -110,7 +110,7 @@ Nepomuk::ResourceData* Nepomuk::ResourceManagerPrivate::dataForResourceUri( cons
 }
 
 
-QList<Nepomuk::ResourceData*> Nepomuk::ResourceManagerPrivate::allResourceDataOfType( const QUrl& type )
+QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceDataOfType( const QUrl& type )
 {
     QList<ResourceData*> l;
 
@@ -136,7 +136,7 @@ QList<Nepomuk::ResourceData*> Nepomuk::ResourceManagerPrivate::allResourceDataOf
 }
 
 
-QList<Nepomuk::ResourceData*> Nepomuk::ResourceManagerPrivate::allResourceDataWithProperty( const QUrl& uri, const Variant& v )
+QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceDataWithProperty( const QUrl& uri, const Variant& v )
 {
     QList<ResourceData*> l;
 
@@ -170,19 +170,19 @@ QList<Nepomuk::ResourceData*> Nepomuk::ResourceManagerPrivate::allResourceDataWi
 }
 
 
-QList<Nepomuk::ResourceData*> Nepomuk::ResourceManagerPrivate::allResourceData()
+QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceData()
 {
     return m_uriKickoffData.values().toSet().toList();
 }
 
 
-bool Nepomuk::ResourceManagerPrivate::dataCacheFull() const
+bool Nepomuk2::ResourceManagerPrivate::dataCacheFull() const
 {
     return dataCnt >= 1000;
 }
 
 
-void Nepomuk::ResourceManagerPrivate::cleanupCache( int num )
+void Nepomuk2::ResourceManagerPrivate::cleanupCache( int num )
 {
     QMutexLocker lock( &mutex );
 
@@ -199,7 +199,7 @@ void Nepomuk::ResourceManagerPrivate::cleanupCache( int num )
 }
 
 
-bool Nepomuk::ResourceManagerPrivate::shouldBeDeleted( ResourceData * rd ) const
+bool Nepomuk2::ResourceManagerPrivate::shouldBeDeleted( ResourceData * rd ) const
 {
     //
     // We delete data objects in one of two cases:
@@ -210,14 +210,14 @@ bool Nepomuk::ResourceManagerPrivate::shouldBeDeleted( ResourceData * rd ) const
 }
 
 
-void Nepomuk::ResourceManagerPrivate::addToKickOffList( ResourceData* rd, const QSet<KUrl> & uris )
+void Nepomuk2::ResourceManagerPrivate::addToKickOffList( ResourceData* rd, const QSet<KUrl> & uris )
 {
     Q_FOREACH( const KUrl& uri, uris )
         m_uriKickoffData.insert( uri, rd );
 }
 
 
-void Nepomuk::ResourceManagerPrivate::_k_storageServiceInitialized( bool success )
+void Nepomuk2::ResourceManagerPrivate::_k_storageServiceInitialized( bool success )
 {
     if( success ) {
         kDebug() << "Nepomuk Storage service up and initialized.";
@@ -228,7 +228,7 @@ void Nepomuk::ResourceManagerPrivate::_k_storageServiceInitialized( bool success
 }
 
 
-void Nepomuk::ResourceManagerPrivate::_k_dbusServiceUnregistered( const QString& serviceName )
+void Nepomuk2::ResourceManagerPrivate::_k_dbusServiceUnregistered( const QString& serviceName )
 {
     if( serviceName == QLatin1String("org.kde.NepomukStorage") ) {
         kDebug() << "Nepomuk Storage service went down.";
@@ -239,7 +239,7 @@ void Nepomuk::ResourceManagerPrivate::_k_dbusServiceUnregistered( const QString&
 
 
 
-Nepomuk::ResourceData* Nepomuk::ResourceManagerPrivate::findData( const QUrl& uri )
+Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::findData( const QUrl& uri )
 {
     if ( !uri.isEmpty() ) {
         QMutexLocker lock( &mutex );
@@ -261,7 +261,7 @@ Nepomuk::ResourceData* Nepomuk::ResourceManagerPrivate::findData( const QUrl& ur
 }
 
 
-Nepomuk::ResourceManager::ResourceManager()
+Nepomuk2::ResourceManager::ResourceManager()
     : QObject(),
       d( new ResourceManagerPrivate( this ) )
 {
@@ -287,7 +287,7 @@ Nepomuk::ResourceManager::ResourceManager()
 }
 
 
-Nepomuk::ResourceManager::~ResourceManager()
+Nepomuk2::ResourceManager::~ResourceManager()
 {
     clearCache();
     delete d->mainModel;
@@ -299,13 +299,13 @@ Nepomuk::ResourceManager::~ResourceManager()
 }
 
 
-void Nepomuk::ResourceManager::deleteInstance()
+void Nepomuk2::ResourceManager::deleteInstance()
 {
     delete this;
 }
 
 
-Nepomuk::ResourceManager* Nepomuk::ResourceManager::instance()
+Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::instance()
 {
     if(!s_instance) {
         s_instance = new ResourceManager();
@@ -315,7 +315,7 @@ Nepomuk::ResourceManager* Nepomuk::ResourceManager::instance()
 }
 
 
-int Nepomuk::ResourceManager::init()
+int Nepomuk2::ResourceManager::init()
 {
     QMutexLocker lock( &d->initMutex );
 
@@ -329,7 +329,7 @@ int Nepomuk::ResourceManager::init()
 }
 
 
-bool Nepomuk::ResourceManager::initialized() const
+bool Nepomuk2::ResourceManager::initialized() const
 {
     QMutexLocker lock( &d->initMutex );
     return d->mainModel && d->mainModel->isValid();
@@ -337,34 +337,34 @@ bool Nepomuk::ResourceManager::initialized() const
 
 
 #ifndef KDE_NO_DEPRECATED
-Nepomuk::Resource Nepomuk::ResourceManager::createResourceFromUri( const QString& uri )
+Nepomuk2::Resource Nepomuk2::ResourceManager::createResourceFromUri( const QString& uri )
 {
     return Resource( uri, QUrl() );
 }
 #endif
 
-void Nepomuk::ResourceManager::removeResource( const QString& uri )
+void Nepomuk2::ResourceManager::removeResource( const QString& uri )
 {
     Resource res( uri );
     res.remove();
 }
 
-void Nepomuk::ResourceManager::notifyError( const QString& uri, int errorCode )
+void Nepomuk2::ResourceManager::notifyError( const QString& uri, int errorCode )
 {
-    kDebug() << "(Nepomuk::ResourceManager) error: " << uri << " " << errorCode;
+    kDebug() << "(Nepomuk2::ResourceManager) error: " << uri << " " << errorCode;
     emit error( uri, errorCode );
 }
 
 
 #ifndef KDE_NO_DEPRECATED
-QList<Nepomuk::Resource> Nepomuk::ResourceManager::allResourcesOfType( const QString& type )
+QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesOfType( const QString& type )
 {
     return allResourcesOfType( QUrl(type) );
 }
 #endif
 
 
-QList<Nepomuk::Resource> Nepomuk::ResourceManager::allResourcesOfType( const QUrl& type )
+QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesOfType( const QUrl& type )
 {
     QSet<Resource> set;
 
@@ -395,9 +395,9 @@ QList<Nepomuk::Resource> Nepomuk::ResourceManager::allResourcesOfType( const QUr
 }
 
 
-QList<Nepomuk::Resource> Nepomuk::ResourceManager::allResources()
+QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResources()
 {
-    QList<Nepomuk::Resource> l;
+    QList<Nepomuk2::Resource> l;
     Q_FOREACH( ResourceData* data, d->allResourceData()) {
         l << Resource( data );
     }
@@ -414,14 +414,14 @@ QList<Nepomuk::Resource> Nepomuk::ResourceManager::allResources()
 
 
 #ifndef KDE_NO_DEPRECATED
-QList<Nepomuk::Resource> Nepomuk::ResourceManager::allResourcesWithProperty( const QString& uri, const Variant& v )
+QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesWithProperty( const QString& uri, const Variant& v )
 {
     return allResourcesWithProperty( QUrl(uri), v );
 }
 #endif
 
 
-QList<Nepomuk::Resource> Nepomuk::ResourceManager::allResourcesWithProperty( const QUrl& uri, const Variant& v )
+QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesWithProperty( const QUrl& uri, const Variant& v )
 {
     QSet<Resource> set;
 
@@ -451,21 +451,21 @@ QList<Nepomuk::Resource> Nepomuk::ResourceManager::allResourcesWithProperty( con
 }
 
 
-void Nepomuk::ResourceManager::clearCache()
+void Nepomuk2::ResourceManager::clearCache()
 {
     d->cleanupCache( -1 );
 }
 
 
 #ifndef KDE_NO_DEPRECATED
-QString Nepomuk::ResourceManager::generateUniqueUri()
+QString Nepomuk2::ResourceManager::generateUniqueUri()
 {
     return generateUniqueUri( QString() ).toString();
 }
 #endif
 
 
-QUrl Nepomuk::ResourceManager::generateUniqueUri( const QString& name )
+QUrl Nepomuk2::ResourceManager::generateUniqueUri( const QString& name )
 {
     // default to res URIs
     QString type = QLatin1String("res");
@@ -497,7 +497,7 @@ QUrl Nepomuk::ResourceManager::generateUniqueUri( const QString& name )
 }
 
 
-Soprano::Model* Nepomuk::ResourceManager::mainModel()
+Soprano::Model* Nepomuk2::ResourceManager::mainModel()
 {
     // make sure we are initialized
     if ( !d->overrideModel && !initialized() ) {
@@ -508,7 +508,7 @@ Soprano::Model* Nepomuk::ResourceManager::mainModel()
 }
 
 
-void Nepomuk::ResourceManager::slotPropertyAdded(const Resource &res, const Types::Property &prop, const QVariant &value)
+void Nepomuk2::ResourceManager::slotPropertyAdded(const Resource &res, const Types::Property &prop, const QVariant &value)
 {
     ResourceDataHash::iterator it = d->m_initializedData.find(res.resourceUri());
     if(it != d->m_initializedData.end()) {
@@ -518,7 +518,7 @@ void Nepomuk::ResourceManager::slotPropertyAdded(const Resource &res, const Type
     }
 }
 
-void Nepomuk::ResourceManager::slotPropertyRemoved(const Resource &res, const Types::Property &prop, const QVariant &value_)
+void Nepomuk2::ResourceManager::slotPropertyRemoved(const Resource &res, const Types::Property &prop, const QVariant &value_)
 {
     ResourceDataHash::iterator it = d->m_initializedData.find(res.resourceUri());
     if(it != d->m_initializedData.end()) {
@@ -544,7 +544,7 @@ void Nepomuk::ResourceManager::slotPropertyRemoved(const Resource &res, const Ty
     }
 }
 
-void Nepomuk::ResourceManager::setOverrideMainModel( Soprano::Model* model )
+void Nepomuk2::ResourceManager::setOverrideMainModel( Soprano::Model* model )
 {
     QMutexLocker lock( &d->mutex );
 
@@ -559,7 +559,7 @@ void Nepomuk::ResourceManager::setOverrideMainModel( Soprano::Model* model )
 }
 
 
-Nepomuk::ResourceManager* Nepomuk::ResourceManager::createManagerForModel( Soprano::Model* model )
+Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::createManagerForModel( Soprano::Model* model )
 {
     ResourceManager* manager = new ResourceManager();
     manager->setOverrideMainModel( model );

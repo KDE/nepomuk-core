@@ -28,7 +28,7 @@ class KUrl;
 class QUrl;
 class QString;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class Resource;
 

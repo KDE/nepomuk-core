@@ -29,7 +29,7 @@
 #include <Soprano/BindingSet>
 
 
-class Nepomuk::Query::Result::Private : public QSharedData
+class Nepomuk2::Query::Result::Private : public QSharedData
 {
 public:
     Resource resource;
@@ -40,13 +40,13 @@ public:
 };
 
 
-Nepomuk::Query::Result::Result()
+Nepomuk2::Query::Result::Result()
     : d( new Private() )
 {
 }
 
 
-Nepomuk::Query::Result::Result( const Resource& res, double score )
+Nepomuk2::Query::Result::Result( const Resource& res, double score )
     : d( new Private() )
 {
     d->resource = res;
@@ -54,57 +54,57 @@ Nepomuk::Query::Result::Result( const Resource& res, double score )
 }
 
 
-Nepomuk::Query::Result::Result( const Result& other )
+Nepomuk2::Query::Result::Result( const Result& other )
 {
     d = other.d;
 }
 
 
-Nepomuk::Query::Result::~Result()
+Nepomuk2::Query::Result::~Result()
 {
 }
 
 
-Nepomuk::Query::Result& Nepomuk::Query::Result::operator=( const Result& other )
+Nepomuk2::Query::Result& Nepomuk2::Query::Result::operator=( const Result& other )
 {
     d = other.d;
     return *this;
 }
 
 
-double Nepomuk::Query::Result::score() const
+double Nepomuk2::Query::Result::score() const
 {
     return d->score;
 }
 
 
-Nepomuk::Resource Nepomuk::Query::Result::resource() const
+Nepomuk2::Resource Nepomuk2::Query::Result::resource() const
 {
     return d->resource;
 }
 
 
-void Nepomuk::Query::Result::setScore( double score )
+void Nepomuk2::Query::Result::setScore( double score )
 {
     d->score = score;
 }
 
 
-void Nepomuk::Query::Result::addRequestProperty( const Nepomuk::Types::Property& property, const Soprano::Node& value )
+void Nepomuk2::Query::Result::addRequestProperty( const Nepomuk2::Types::Property& property, const Soprano::Node& value )
 {
     d->requestProperties[property] = value;
 }
 
 
-Soprano::Node Nepomuk::Query::Result::operator[]( const Nepomuk::Types::Property& property ) const
+Soprano::Node Nepomuk2::Query::Result::operator[]( const Nepomuk2::Types::Property& property ) const
 {
     return requestProperty( property );
 }
 
 
-Soprano::Node Nepomuk::Query::Result::requestProperty( const Nepomuk::Types::Property& property ) const
+Soprano::Node Nepomuk2::Query::Result::requestProperty( const Nepomuk2::Types::Property& property ) const
 {
-    QHash<Nepomuk::Types::Property, Soprano::Node>::const_iterator it = d->requestProperties.find( property );
+    QHash<Nepomuk2::Types::Property, Soprano::Node>::const_iterator it = d->requestProperties.find( property );
     if ( it != d->requestProperties.end() ) {
         return *it;
     }
@@ -114,43 +114,43 @@ Soprano::Node Nepomuk::Query::Result::requestProperty( const Nepomuk::Types::Pro
 }
 
 
-QHash<Nepomuk::Types::Property, Soprano::Node> Nepomuk::Query::Result::requestProperties() const
+QHash<Nepomuk2::Types::Property, Soprano::Node> Nepomuk2::Query::Result::requestProperties() const
 {
     return d->requestProperties;
 }
 
 
-void Nepomuk::Query::Result::setAdditionalBindings( const Soprano::BindingSet& bindings )
+void Nepomuk2::Query::Result::setAdditionalBindings( const Soprano::BindingSet& bindings )
 {
     d->additionalBindings = bindings;
 }
 
 
-Soprano::BindingSet Nepomuk::Query::Result::additionalBindings() const
+Soprano::BindingSet Nepomuk2::Query::Result::additionalBindings() const
 {
     return d->additionalBindings;
 }
 
 
-Nepomuk::Variant Nepomuk::Query::Result::additionalBinding( const QString& name ) const
+Nepomuk2::Variant Nepomuk2::Query::Result::additionalBinding( const QString& name ) const
 {
     return Variant::fromNode( d->additionalBindings.value(name) );
 }
 
 
-void Nepomuk::Query::Result::setExcerpt( const QString& text )
+void Nepomuk2::Query::Result::setExcerpt( const QString& text )
 {
     d->excerpt = text;
 }
 
 
-QString Nepomuk::Query::Result::excerpt() const
+QString Nepomuk2::Query::Result::excerpt() const
 {
     return d->excerpt;
 }
 
 
-bool Nepomuk::Query::Result::operator==( const Result& other ) const
+bool Nepomuk2::Query::Result::operator==( const Result& other ) const
 {
     if ( d->resource != other.d->resource ||
          d->score != other.d->score ) {

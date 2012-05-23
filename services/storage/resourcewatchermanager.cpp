@@ -85,7 +85,7 @@ QList<QUrl> convertUris(const QStringList& uris) {
 /**
  * Returns true if the given hash contains at least one of the possible combinations of con and "c in candidates".
  */
-bool hashContainsAtLeastOneOf(Nepomuk::ResourceWatcherConnection* con, const QSet<QUrl>& candidates, const QMultiHash<QUrl, Nepomuk::ResourceWatcherConnection*>& hash) {
+bool hashContainsAtLeastOneOf(Nepomuk2::ResourceWatcherConnection* con, const QSet<QUrl>& candidates, const QMultiHash<QUrl, Nepomuk2::ResourceWatcherConnection*>& hash) {
     for(QSet<QUrl>::const_iterator it = candidates.constBegin();
         it != candidates.constEnd(); ++it) {
         if(hash.contains(*it, con)) {
@@ -97,7 +97,7 @@ bool hashContainsAtLeastOneOf(Nepomuk::ResourceWatcherConnection* con, const QSe
 }
 
 
-Nepomuk::ResourceWatcherManager::ResourceWatcherManager(DataManagementModel* parent)
+Nepomuk2::ResourceWatcherManager::ResourceWatcherManager(DataManagementModel* parent)
     : QObject(parent),
       m_model(parent),
       m_connectionCount(0)
@@ -105,7 +105,7 @@ Nepomuk::ResourceWatcherManager::ResourceWatcherManager(DataManagementModel* par
     QDBusConnection::sessionBus().registerObject("/resourcewatcher", this, QDBusConnection::ExportScriptableSlots|QDBusConnection::ExportScriptableSignals);
 }
 
-Nepomuk::ResourceWatcherManager::~ResourceWatcherManager()
+Nepomuk2::ResourceWatcherManager::~ResourceWatcherManager()
 {
     // the connections call removeConnection() from their descrutors. Thus,
     // we need to clean them up before we are deleted ourselves
@@ -118,7 +118,7 @@ Nepomuk::ResourceWatcherManager::~ResourceWatcherManager()
 }
 
 
-void Nepomuk::ResourceWatcherManager::addStatement(const Soprano::Statement& st)
+void Nepomuk2::ResourceWatcherManager::addStatement(const Soprano::Statement& st)
 {
     // FIXME!
     kError() << "FIXME";
@@ -126,7 +126,7 @@ void Nepomuk::ResourceWatcherManager::addStatement(const Soprano::Statement& st)
 }
 
 
-void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &addedValues, const QList<Soprano::Node> &removedValues)
+void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &addedValues, const QList<Soprano::Node> &removedValues)
 {
     kDebug() << res << property << addedValues << removedValues;
 
@@ -235,7 +235,7 @@ void Nepomuk::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl
     }
 }
 
-void Nepomuk::ResourceWatcherManager::changeProperty(const QMultiHash< QUrl, Soprano::Node >& oldValues,
+void Nepomuk2::ResourceWatcherManager::changeProperty(const QMultiHash< QUrl, Soprano::Node >& oldValues,
                                                      const QUrl& property,
                                                      const QList<Soprano::Node>& nodes)
 {
@@ -246,7 +246,7 @@ void Nepomuk::ResourceWatcherManager::changeProperty(const QMultiHash< QUrl, Sop
     }
 }
 
-void Nepomuk::ResourceWatcherManager::createResource(const QUrl &uri, const QList<QUrl> &types)
+void Nepomuk2::ResourceWatcherManager::createResource(const QUrl &uri, const QList<QUrl> &types)
 {
     QSet<ResourceWatcherConnection*> connections(m_watchAllConnections);
     foreach(const QUrl& type, types) {
@@ -264,7 +264,7 @@ void Nepomuk::ResourceWatcherManager::createResource(const QUrl &uri, const QLis
     }
 }
 
-void Nepomuk::ResourceWatcherManager::removeResource(const QUrl &res, const QList<QUrl>& types)
+void Nepomuk2::ResourceWatcherManager::removeResource(const QUrl &res, const QList<QUrl>& types)
 {
     QSet<ResourceWatcherConnection*> connections(m_watchAllConnections);
     foreach(const QUrl& type, types) {
@@ -285,13 +285,13 @@ void Nepomuk::ResourceWatcherManager::removeResource(const QUrl &res, const QLis
     }
 }
 
-void Nepomuk::ResourceWatcherManager::changeSomething()
+void Nepomuk2::ResourceWatcherManager::changeSomething()
 {
     // make sure we emit from the correct thread through a queued connection
     QMetaObject::invokeMethod(this, "somethingChanged");
 }
 
-Nepomuk::ResourceWatcherConnection* Nepomuk::ResourceWatcherManager::createConnection(const QList<QUrl> &resources,
+Nepomuk2::ResourceWatcherConnection* Nepomuk2::ResourceWatcherManager::createConnection(const QList<QUrl> &resources,
                                                                                       const QList<QUrl> &properties,
                                                                                       const QList<QUrl> &types)
 {
@@ -317,7 +317,7 @@ Nepomuk::ResourceWatcherConnection* Nepomuk::ResourceWatcherManager::createConne
     return con;
 }
 
-QDBusObjectPath Nepomuk::ResourceWatcherManager::watch(const QStringList& resources,
+QDBusObjectPath Nepomuk2::ResourceWatcherManager::watch(const QStringList& resources,
                                                        const QStringList& properties,
                                                        const QStringList& types)
 {
@@ -333,10 +333,10 @@ QDBusObjectPath Nepomuk::ResourceWatcherManager::watch(const QStringList& resour
 }
 
 namespace {
-    void removeConnectionFromHash( QMultiHash<QUrl, Nepomuk::ResourceWatcherConnection*> & hash,
-                 const Nepomuk::ResourceWatcherConnection * con )
+    void removeConnectionFromHash( QMultiHash<QUrl, Nepomuk2::ResourceWatcherConnection*> & hash,
+                 const Nepomuk2::ResourceWatcherConnection * con )
     {
-        QMutableHashIterator<QUrl, Nepomuk::ResourceWatcherConnection*> it( hash );
+        QMutableHashIterator<QUrl, Nepomuk2::ResourceWatcherConnection*> it( hash );
         while( it.hasNext() ) {
             if( it.next().value() == con )
                 it.remove();
@@ -344,7 +344,7 @@ namespace {
     }
 }
 
-void Nepomuk::ResourceWatcherManager::removeConnection(Nepomuk::ResourceWatcherConnection *con)
+void Nepomuk2::ResourceWatcherManager::removeConnection(Nepomuk2::ResourceWatcherConnection *con)
 {
     removeConnectionFromHash( m_resHash, con );
     removeConnectionFromHash( m_propHash, con );
@@ -352,7 +352,7 @@ void Nepomuk::ResourceWatcherManager::removeConnection(Nepomuk::ResourceWatcherC
     m_watchAllConnections.remove(con);
 }
 
-void Nepomuk::ResourceWatcherManager::setResources(Nepomuk::ResourceWatcherConnection *conn, const QStringList &resources)
+void Nepomuk2::ResourceWatcherManager::setResources(Nepomuk2::ResourceWatcherConnection *conn, const QStringList &resources)
 {
     const QSet<QUrl> newRes = convertUris(resources).toSet();
     const QSet<QUrl> oldRes = m_resHash.keys(conn).toSet();
@@ -375,13 +375,13 @@ void Nepomuk::ResourceWatcherManager::setResources(Nepomuk::ResourceWatcherConne
     }
 }
 
-void Nepomuk::ResourceWatcherManager::addResource(Nepomuk::ResourceWatcherConnection *conn, const QString &resource)
+void Nepomuk2::ResourceWatcherManager::addResource(Nepomuk2::ResourceWatcherConnection *conn, const QString &resource)
 {
     m_resHash.insert(convertUri(resource), conn);
     m_watchAllConnections.remove(conn);
 }
 
-void Nepomuk::ResourceWatcherManager::removeResource(Nepomuk::ResourceWatcherConnection *conn, const QString &resource)
+void Nepomuk2::ResourceWatcherManager::removeResource(Nepomuk2::ResourceWatcherConnection *conn, const QString &resource)
 {
     m_resHash.remove(convertUri(resource), conn);
     if(!m_resHash.values().contains(conn) &&
@@ -391,7 +391,7 @@ void Nepomuk::ResourceWatcherManager::removeResource(Nepomuk::ResourceWatcherCon
     }
 }
 
-void Nepomuk::ResourceWatcherManager::setProperties(Nepomuk::ResourceWatcherConnection *conn, const QStringList &properties)
+void Nepomuk2::ResourceWatcherManager::setProperties(Nepomuk2::ResourceWatcherConnection *conn, const QStringList &properties)
 {
     const QSet<QUrl> newprop = convertUris(properties).toSet();
     const QSet<QUrl> oldprop = m_propHash.keys(conn).toSet();
@@ -414,13 +414,13 @@ void Nepomuk::ResourceWatcherManager::setProperties(Nepomuk::ResourceWatcherConn
     }
 }
 
-void Nepomuk::ResourceWatcherManager::addProperty(Nepomuk::ResourceWatcherConnection *conn, const QString &property)
+void Nepomuk2::ResourceWatcherManager::addProperty(Nepomuk2::ResourceWatcherConnection *conn, const QString &property)
 {
     m_propHash.insert(convertUri(property), conn);
     m_watchAllConnections.remove(conn);
 }
 
-void Nepomuk::ResourceWatcherManager::removeProperty(Nepomuk::ResourceWatcherConnection *conn, const QString &property)
+void Nepomuk2::ResourceWatcherManager::removeProperty(Nepomuk2::ResourceWatcherConnection *conn, const QString &property)
 {
     m_propHash.remove(convertUri(property), conn);
     if(!m_resHash.values().contains(conn) &&
@@ -430,7 +430,7 @@ void Nepomuk::ResourceWatcherManager::removeProperty(Nepomuk::ResourceWatcherCon
     }
 }
 
-void Nepomuk::ResourceWatcherManager::setTypes(Nepomuk::ResourceWatcherConnection *conn, const QStringList &types)
+void Nepomuk2::ResourceWatcherManager::setTypes(Nepomuk2::ResourceWatcherConnection *conn, const QStringList &types)
 {
     const QSet<QUrl> newtype = convertUris(types).toSet();
     const QSet<QUrl> oldtype = m_typeHash.keys(conn).toSet();
@@ -453,13 +453,13 @@ void Nepomuk::ResourceWatcherManager::setTypes(Nepomuk::ResourceWatcherConnectio
     }
 }
 
-void Nepomuk::ResourceWatcherManager::addType(Nepomuk::ResourceWatcherConnection *conn, const QString &type)
+void Nepomuk2::ResourceWatcherManager::addType(Nepomuk2::ResourceWatcherConnection *conn, const QString &type)
 {
     m_typeHash.insert(convertUri(type), conn);
     m_watchAllConnections.remove(conn);
 }
 
-void Nepomuk::ResourceWatcherManager::removeType(Nepomuk::ResourceWatcherConnection *conn, const QString &type)
+void Nepomuk2::ResourceWatcherManager::removeType(Nepomuk2::ResourceWatcherConnection *conn, const QString &type)
 {
     m_typeHash.remove(convertUri(type), conn);
     if(!m_resHash.values().contains(conn) &&
@@ -469,7 +469,7 @@ void Nepomuk::ResourceWatcherManager::removeType(Nepomuk::ResourceWatcherConnect
     }
 }
 
-QSet<QUrl> Nepomuk::ResourceWatcherManager::getTypes(const Soprano::Node &res) const
+QSet<QUrl> Nepomuk2::ResourceWatcherManager::getTypes(const Soprano::Node &res) const
 {
     QSet<QUrl> types;
     Soprano::StatementIterator it = m_model->listStatements(res, RDF::type(), Soprano::Node());
@@ -480,7 +480,7 @@ QSet<QUrl> Nepomuk::ResourceWatcherManager::getTypes(const Soprano::Node &res) c
 }
 
 // FIXME: also take super-classes into account
-void Nepomuk::ResourceWatcherManager::changeTypes(const QUrl &res, const QSet<QUrl>& resTypes, const QSet<QUrl> &addedTypes, const QSet<QUrl> &removedTypes)
+void Nepomuk2::ResourceWatcherManager::changeTypes(const QUrl &res, const QSet<QUrl>& resTypes, const QSet<QUrl> &addedTypes, const QSet<QUrl> &removedTypes)
 {
     // first collect all the connections we need to emit the signals for
     QSet<ResourceWatcherConnection*> addConnections(m_watchAllConnections), removeConnections(m_watchAllConnections);
@@ -556,7 +556,7 @@ void Nepomuk::ResourceWatcherManager::changeTypes(const QUrl &res, const QSet<QU
     }
 }
 
-bool Nepomuk::ResourceWatcherManager::connectionWatchesOneType(Nepomuk::ResourceWatcherConnection *con, const QSet<QUrl> &types) const
+bool Nepomuk2::ResourceWatcherManager::connectionWatchesOneType(Nepomuk2::ResourceWatcherConnection *con, const QSet<QUrl> &types) const
 {
     return !m_typeHash.values().contains(con) || hashContainsAtLeastOneOf(con, types, m_typeHash);
 }

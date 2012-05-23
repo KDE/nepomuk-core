@@ -55,8 +55,8 @@
 
 using namespace Soprano;
 using namespace Soprano::Vocabulary;
-using namespace Nepomuk;
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2;
+using namespace Nepomuk2::Vocabulary;
 
 
 void AsyncClientApiTest::initTestCase()
@@ -101,7 +101,7 @@ void AsyncClientApiTest::resetModel()
 
     // add some classes and properties
     QUrl graph("graph:/onto");
-    Nepomuk::insertOntologies( m_model, graph );
+    Nepomuk2::insertOntologies( m_model, graph );
     
     // rebuild the internals of the data management model
     QDBusInterface(QLatin1String("org.kde.nepomuk.FakeDataManagement"),
@@ -123,7 +123,7 @@ void AsyncClientApiTest::testAddProperty()
 
     m_model->addStatement(QUrl("res:/A"), RDF::type(), QUrl("class:/typeA"), g1);
     
-    KJob* job = Nepomuk::addProperty(QList<QUrl>() << QUrl("res:/A"), QUrl("prop:/int"), QVariantList() << 42);
+    KJob* job = Nepomuk2::addProperty(QList<QUrl>() << QUrl("res:/A"), QUrl("prop:/int"), QVariantList() << 42);
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
 
@@ -137,7 +137,7 @@ void AsyncClientApiTest::testSetProperty()
 
     m_model->addStatement(QUrl("res:/A"), RDF::type(), QUrl("class:/typeA"), g1);
 
-    KJob* job = Nepomuk::setProperty(QList<QUrl>() << QUrl("res:/A"), QUrl("prop:/int"), QVariantList() << 42);
+    KJob* job = Nepomuk2::setProperty(QList<QUrl>() << QUrl("res:/A"), QUrl("prop:/int"), QVariantList() << 42);
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
 
@@ -157,7 +157,7 @@ void AsyncClientApiTest::testRemoveProperties()
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/int2"), LiteralValue(12), g1);
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/int2"), LiteralValue(2), g1);
 
-    KJob* job = Nepomuk::removeProperties(QList<QUrl>() << QUrl("res:/A"), QList<QUrl>() << QUrl("prop:/int") << QUrl("prop:/int2"));
+    KJob* job = Nepomuk2::removeProperties(QList<QUrl>() << QUrl("res:/A"), QList<QUrl>() << QUrl("prop:/int") << QUrl("prop:/int2"));
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
 
@@ -168,7 +168,7 @@ void AsyncClientApiTest::testRemoveProperties()
 
 void AsyncClientApiTest::testCreateResource()
 {
-    CreateResourceJob* job = Nepomuk::createResource(QList<QUrl>() << QUrl("class:/typeA") << QUrl("class:/typeB"), QLatin1String("label"), QLatin1String("desc"));
+    CreateResourceJob* job = Nepomuk2::createResource(QList<QUrl>() << QUrl("class:/typeA") << QUrl("class:/typeB"), QLatin1String("label"), QLatin1String("desc"));
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
 
@@ -189,7 +189,7 @@ void AsyncClientApiTest::testRemoveProperty()
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g1);
     m_model->addStatement(QUrl("res:/A"), NAO::lastModified(), LiteralValue(QDateTime::currentDateTime()), g1);
 
-    KJob* job = Nepomuk::removeProperty(QList<QUrl>() << QUrl("res:/A"), QUrl("prop:/string"), QVariantList() << QLatin1String("hello world"));
+    KJob* job = Nepomuk2::removeProperty(QList<QUrl>() << QUrl("res:/A"), QUrl("prop:/string"), QVariantList() << QLatin1String("hello world"));
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
 
@@ -205,7 +205,7 @@ void AsyncClientApiTest::testRemoveResources()
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar")), g1);
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g1);
 
-    KJob* job = Nepomuk::removeResources(QList<QUrl>() << QUrl("res:/A"), NoRemovalFlags);
+    KJob* job = Nepomuk2::removeResources(QList<QUrl>() << QUrl("res:/A"), NoRemovalFlags);
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
 
@@ -238,7 +238,7 @@ void AsyncClientApiTest::testRemoveDataByApplication()
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g2);
 
     // delete the resource
-    KJob* job = Nepomuk::removeDataByApplication(QList<QUrl>() << QUrl("res:/A"), NoRemovalFlags);
+    KJob* job = Nepomuk2::removeDataByApplication(QList<QUrl>() << QUrl("res:/A"), NoRemovalFlags);
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
 
@@ -267,10 +267,10 @@ void AsyncClientApiTest::testStoreResources()
     res.addProperty(QUrl("prop:/time"), QTime::currentTime());
     res.addProperty(QUrl("prop:/dateTime"), QDateTime::currentDateTime());
     
-    Nepomuk::PropertyHash additionalMetadata;
+    Nepomuk2::PropertyHash additionalMetadata;
     additionalMetadata.insert(NAO::created(), QDateTime::currentDateTime());
 
-    StoreResourcesJob* job = Nepomuk::storeResources(SimpleResourceGraph() << res, Nepomuk::IdentifyNew, Nepomuk::NoStoreResourcesFlags, additionalMetadata);
+    StoreResourcesJob* job = Nepomuk2::storeResources(SimpleResourceGraph() << res, Nepomuk2::IdentifyNew, Nepomuk2::NoStoreResourcesFlags, additionalMetadata);
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
     const QHash<QUrl, QUrl> mappings = job->mappings();
@@ -308,7 +308,7 @@ void AsyncClientApiTest::testMergeResources()
     m_model->addStatement(QUrl("res:/B"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello")), g1);
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/res"), QUrl("res:/B"), g1);
 
-    KJob* job = Nepomuk::mergeResources(QUrl("res:/A"), QUrl("res:/B"));
+    KJob* job = Nepomuk2::mergeResources(QUrl("res:/A"), QUrl("res:/B"));
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
 
@@ -346,7 +346,7 @@ void AsyncClientApiTest::testDescribeResources()
 
 
     // we only use one of the test cases from the dms test: get two resources with subresoruces
-    DescribeResourcesJob* job = Nepomuk::describeResources(QList<QUrl>() << QUrl("res:/A") << QUrl("res:/C"));
+    DescribeResourcesJob* job = Nepomuk2::describeResources(QList<QUrl>() << QUrl("res:/A") << QUrl("res:/C"));
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
 
@@ -395,7 +395,7 @@ void AsyncClientApiTest::testImportResources()
 
 
     // import the file
-    KJob* job = Nepomuk::importResources(QUrl::fromLocalFile(tmp.fileName()), Soprano::SerializationNTriples);
+    KJob* job = Nepomuk2::importResources(QUrl::fromLocalFile(tmp.fileName()), Soprano::SerializationNTriples);
     QVERIFY(QTest::kWaitForSignal(job, SIGNAL(result(KJob*)), 5000));
     QVERIFY(!job->error());
 

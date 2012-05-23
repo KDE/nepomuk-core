@@ -36,7 +36,7 @@ set(indexer_SRCS
   ../../../servicestub/priority.cpp
   )
 
-soprano_add_ontology(indexer_SRCS ${nepomuk_ontologies_SOURCE_DIR}/kext.trig "KExt" "Nepomuk::Vocabulary" "trig")
+soprano_add_ontology(indexer_SRCS ${nepomuk_ontologies_SOURCE_DIR}/kext.trig "KExt" "Nepomuk2::Vocabulary" "trig")
 
 kde4_add_executable( nepomukindexer ${indexer_SRCS} )
 

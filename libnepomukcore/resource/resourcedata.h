@@ -35,7 +35,7 @@
 #include <soprano/statement.h>
 
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class Resource;
     class ResourceManagerPrivate;
@@ -46,13 +46,13 @@ namespace Nepomuk {
         explicit ResourceData( const QUrl& uri, const QUrl& kickOffUri, const QUrl& type_, ResourceManagerPrivate* rm );
         ~ResourceData();
 
-        inline bool ref(Nepomuk::Resource* res) {
+        inline bool ref(Nepomuk2::Resource* res) {
             m_resources.push_back( res );
             return m_ref.ref();
         }
 
 
-        inline bool deref(Nepomuk::Resource* res) {
+        inline bool deref(Nepomuk2::Resource* res) {
             m_resources.removeAll( res );
             return m_ref.deref();
         }
@@ -215,6 +215,6 @@ namespace Nepomuk {
     };
 }
 
-QDebug operator<<( QDebug dbg, const Nepomuk::ResourceData& );
+QDebug operator<<( QDebug dbg, const Nepomuk2::ResourceData& );
 
 #endif

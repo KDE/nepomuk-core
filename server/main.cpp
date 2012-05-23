@@ -35,7 +35,7 @@
 
 
 namespace {
-    Nepomuk::Server* s_server = 0;
+    Nepomuk2::Server* s_server = 0;
 
 #ifndef Q_OS_WIN
     void signalHandler( int signal )
@@ -89,6 +89,6 @@ extern "C" NEPOMUK_SERVER_EXPORT int kdemain( int argc, char** argv )
 #endif
 
     QCoreApplication app(argc, argv);
-    s_server = new Nepomuk::Server(&app);
+    s_server = new Nepomuk2::Server(&app);
     return app.exec();
 }

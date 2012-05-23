@@ -30,7 +30,7 @@
 // TODO: 1. "Cancel" just closes the dialog without any feedback on the backup
 //       2. If the service crashes the dialog does not notice
 
-Nepomuk::BackupWizard::BackupWizard(QWidget* parent, Qt::WindowFlags flags)
+Nepomuk2::BackupWizard::BackupWizard(QWidget* parent, Qt::WindowFlags flags)
     : QWizard(parent, flags)
 {
     setPixmap(LogoPixmap, KIcon(QLatin1String("nepomuk")).pixmap(32, 32));
@@ -49,27 +49,27 @@ Nepomuk::BackupWizard::BackupWizard(QWidget* parent, Qt::WindowFlags flags)
     m_identifier = Identifier::instance();
     m_merger = Merger::instance();
 
-    // IMPORTANT : We've used "Nepomuk::ChangeLog" in the string cause in the slots, signals, and
-    // connect statement we're using Nepomuk::ChangeLog, NOT ChangeLog
-    qRegisterMetaType<Nepomuk::ChangeLog>("Nepomuk::ChangeLog");
+    // IMPORTANT : We've used "Nepomuk2::ChangeLog" in the string cause in the slots, signals, and
+    // connect statement we're using Nepomuk2::ChangeLog, NOT ChangeLog
+    qRegisterMetaType<Nepomuk2::ChangeLog>("Nepomuk2::ChangeLog");
 
     //registerMetaTypes();
-    connect( m_identifier, SIGNAL( processed( Nepomuk::ChangeLog ) ),
-             m_merger, SLOT( process( Nepomuk::ChangeLog ) ) );
+    connect( m_identifier, SIGNAL( processed( Nepomuk2::ChangeLog ) ),
+             m_merger, SLOT( process( Nepomuk2::ChangeLog ) ) );
 
 }
 
-void Nepomuk::BackupWizard::startBackup()
+void Nepomuk2::BackupWizard::startBackup()
 {
     setStartId(Id_BackupSettingsPage);
 }
 
-void Nepomuk::BackupWizard::startRestore()
+void Nepomuk2::BackupWizard::startRestore()
 {
     setStartId(Id_RestoreSelectionPage);
 }
 
-void Nepomuk::BackupWizard::showError(const QString &error)
+void Nepomuk2::BackupWizard::showError(const QString &error)
 {
     setField(QLatin1String("errorMessage"), error);
     setStartId(Id_ErrorPage);

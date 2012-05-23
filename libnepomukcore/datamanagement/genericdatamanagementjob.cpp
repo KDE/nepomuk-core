@@ -34,7 +34,7 @@
 
 #include <KDebug>
 
-Nepomuk::GenericDataManagementJob::GenericDataManagementJob(const char *methodName,
+Nepomuk2::GenericDataManagementJob::GenericDataManagementJob(const char *methodName,
                                                             QGenericArgument val0,
                                                             QGenericArgument val1,
                                                             QGenericArgument val2,
@@ -44,7 +44,7 @@ Nepomuk::GenericDataManagementJob::GenericDataManagementJob(const char *methodNa
     : KJob(0)
 {
     QDBusPendingReply<> reply;
-    QMetaObject::invokeMethod(Nepomuk::dataManagementDBusInterface(),
+    QMetaObject::invokeMethod(Nepomuk2::dataManagementDBusInterface(),
                               methodName,
                               Qt::DirectConnection,
                               Q_RETURN_ARG(QDBusPendingReply<> , reply),
@@ -59,16 +59,16 @@ Nepomuk::GenericDataManagementJob::GenericDataManagementJob(const char *methodNa
             this, SLOT(slotDBusCallFinished(QDBusPendingCallWatcher*)));
 }
 
-Nepomuk::GenericDataManagementJob::~GenericDataManagementJob()
+Nepomuk2::GenericDataManagementJob::~GenericDataManagementJob()
 {
 }
 
-void Nepomuk::GenericDataManagementJob::start()
+void Nepomuk2::GenericDataManagementJob::start()
 {
     // do nothing
 }
 
-void Nepomuk::GenericDataManagementJob::slotDBusCallFinished(QDBusPendingCallWatcher *watcher)
+void Nepomuk2::GenericDataManagementJob::slotDBusCallFinished(QDBusPendingCallWatcher *watcher)
 {
     QDBusPendingReply<> reply = *watcher;
     if (reply.isError()) {
@@ -83,7 +83,7 @@ void Nepomuk::GenericDataManagementJob::slotDBusCallFinished(QDBusPendingCallWat
 
 QThreadStorage<OrgKdeNepomukDataManagementInterface *> s_perThreadDms;
 
-OrgKdeNepomukDataManagementInterface* Nepomuk::dataManagementDBusInterface()
+OrgKdeNepomukDataManagementInterface* Nepomuk2::dataManagementDBusInterface()
 {
   if (!s_perThreadDms.hasLocalData()) {
     // DBus types necessary for storeResources

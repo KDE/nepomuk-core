@@ -27,7 +27,7 @@
 
 #include "property.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
 
         class QueryBuilderData;
@@ -71,8 +71,8 @@ namespace Nepomuk {
             bool m_inverted;
         };
 
-        QString comparatorToString( Nepomuk::Query::ComparisonTerm::Comparator c );
-        Nepomuk::Query::ComparisonTerm::Comparator stringToComparator( const QStringRef& c );
+        QString comparatorToString( Nepomuk2::Query::ComparisonTerm::Comparator c );
+        Nepomuk2::Query::ComparisonTerm::Comparator stringToComparator( const QStringRef& c );
     }
 }
 

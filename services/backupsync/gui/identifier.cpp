@@ -43,7 +43,7 @@
 
 #include <KDebug>
 
-Nepomuk::Identifier::Identifier(QObject* parent): QThread(parent)
+Nepomuk2::Identifier::Identifier(QObject* parent): QThread(parent)
 {
     //Register DBus interface
     //new IdentifierAdaptor( this );
@@ -53,20 +53,20 @@ Nepomuk::Identifier::Identifier(QObject* parent): QThread(parent)
     start();
 }
 
-Nepomuk::Identifier* Nepomuk::Identifier::instance()
+Nepomuk2::Identifier* Nepomuk2::Identifier::instance()
 {
     static Identifier ident;
     return &ident;
 }
 
-Nepomuk::Identifier::~Identifier()
+Nepomuk2::Identifier::~Identifier()
 {
     stop();
     quit();
 }
 
 
-int Nepomuk::Identifier::process(const Nepomuk::SyncFile& sf)
+int Nepomuk2::Identifier::process(const Nepomuk2::SyncFile& sf)
 {
     m_queueMutex.lock();
 
@@ -82,7 +82,7 @@ int Nepomuk::Identifier::process(const Nepomuk::SyncFile& sf)
 }
 
 
-void Nepomuk::Identifier::stop()
+void Nepomuk2::Identifier::stop()
 {
     m_stopped = true;
     m_queueWaiter.wakeAll();
@@ -90,7 +90,7 @@ void Nepomuk::Identifier::stop()
 
 
 
-void Nepomuk::Identifier::run()
+void Nepomuk2::Identifier::run()
 {
     m_stopped = false;
 
@@ -141,7 +141,7 @@ void Nepomuk::Identifier::run()
 }
 
 
-bool Nepomuk::Identifier::identify(int id, const QString& oldUriString, const QString& newUriString)
+bool Nepomuk2::Identifier::identify(int id, const QString& oldUriString, const QString& newUriString)
 {
     QUrl oldUri( oldUriString );
     QUrl newUri( newUriString );
@@ -160,10 +160,10 @@ bool Nepomuk::Identifier::identify(int id, const QString& oldUriString, const QS
         return false;
 
     if( newUri.scheme() == QLatin1String("nepomuk") ) {
-        ip->forceResource( oldUri, Nepomuk::Resource(newUri) );
+        ip->forceResource( oldUri, Nepomuk2::Resource(newUri) );
     }
     else if( newUri.scheme() == "file" ) {
-        ip->forceResource( oldUri, Nepomuk::Resource(newUri) );
+        ip->forceResource( oldUri, Nepomuk2::Resource(newUri) );
     }
 
     m_queueMutex.lock();
@@ -175,7 +175,7 @@ bool Nepomuk::Identifier::identify(int id, const QString& oldUriString, const QS
 }
 
 
-bool Nepomuk::Identifier::ignore(int id, const QString& urlString, bool ignoreSub)
+bool Nepomuk2::Identifier::ignore(int id, const QString& urlString, bool ignoreSub)
 {
     KUrl url( urlString );
     // Lock the mutex and all
@@ -189,7 +189,7 @@ bool Nepomuk::Identifier::ignore(int id, const QString& urlString, bool ignoreSu
     return identifier->ignore( url, ignoreSub );
 }
 
-void Nepomuk::Identifier::ignoreAll(int id)
+void Nepomuk2::Identifier::ignoreAll(int id)
 {
     QMutexLocker lock ( &m_processMutex );
 
@@ -203,7 +203,7 @@ void Nepomuk::Identifier::ignoreAll(int id)
     }
 }
 
-void Nepomuk::Identifier::emitNotIdentified(int id, const QList< Soprano::Statement >& stList)
+void Nepomuk2::Identifier::emitNotIdentified(int id, const QList< Soprano::Statement >& stList)
 {
     const Soprano::Serializer* serializer = Soprano::PluginManager::instance()->discoverSerializerForSerialization( Soprano::SerializationNQuads );
 
@@ -215,12 +215,12 @@ void Nepomuk::Identifier::emitNotIdentified(int id, const QList< Soprano::Statem
     emit notIdentified( id, ser );
 }
 
-void Nepomuk::Identifier::test()
+void Nepomuk2::Identifier::test()
 {
     kDebug() << "Test!";
 }
 
-void Nepomuk::Identifier::completeIdentification(int id)
+void Nepomuk2::Identifier::completeIdentification(int id)
 {
     kDebug() << id;
 
@@ -244,7 +244,7 @@ void Nepomuk::Identifier::completeIdentification(int id)
 }
 
 
-void Nepomuk::Identifier::identifyAllWithCompletedSignals(Nepomuk::SyncFileIdentifier* ident)
+void Nepomuk2::Identifier::identifyAllWithCompletedSignals(Nepomuk2::SyncFileIdentifier* ident)
 {
     int unidentified = ident->unidentified().size();
     float step = 100.0/unidentified;

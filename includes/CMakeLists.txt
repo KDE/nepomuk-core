@@ -6,7 +6,7 @@ install(FILES
   Tag
   Thing
   Variant
-DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk COMPONENT Devel)
+DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2 COMPONENT Devel)
 
 
 install(FILES
@@ -14,7 +14,7 @@ install(FILES
   Types/Literal
   Types/Ontology
   Types/Property
-DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk/Types COMPONENT Devel)
+DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2/Types COMPONENT Devel)
 
 
 install(FILES
@@ -35,7 +35,7 @@ install(FILES
   Query/SimpleTerm
   Query/StandardQuery
   Query/Term
-DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk/Query COMPONENT Devel)
+DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2/Query COMPONENT Devel)
 
 
 install(FILES
@@ -50,4 +50,4 @@ install(FILES
   Vocabulary/NUAO
   Vocabulary/PIMO
   Vocabulary/TMO
-DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk/Vocabulary COMPONENT Devel)
+DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2/Vocabulary COMPONENT Devel)

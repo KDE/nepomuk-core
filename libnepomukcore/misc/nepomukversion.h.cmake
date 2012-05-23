@@ -72,7 +72,7 @@
 #define NEPOMUK_IS_VERSION(a,b,c) ( NEPOMUK_VERSION >= NEPOMUK_MAKE_VERSION(a,b,c) )
 
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
      * @brief Returns the major number of %Nepomuk's version, e.g.
      * 1 for %Nepomuk 1.0.2.

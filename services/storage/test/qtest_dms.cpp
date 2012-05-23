@@ -36,10 +36,10 @@
 
 using namespace Soprano::Vocabulary;
 using namespace Soprano;
-using namespace Nepomuk::Vocabulary;
-using namespace Nepomuk;
+using namespace Nepomuk2::Vocabulary;
+using namespace Nepomuk2;
 
-void Nepomuk::insertOntologies(Soprano::Model* model, const QUrl& graph)
+void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
 {
     model->addStatement( graph, RDF::type(), NRL::Ontology(), graph );
     // removeResources depends on type inference

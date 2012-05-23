@@ -41,7 +41,7 @@ namespace {
 }
 
 
-Nepomuk::EventMonitor::EventMonitor( IndexScheduler* scheduler, QObject* parent )
+Nepomuk2::EventMonitor::EventMonitor( IndexScheduler* scheduler, QObject* parent )
     : QObject( parent ),
       m_indexScheduler( scheduler ),
       m_pauseState( NotPaused ),
@@ -84,12 +84,12 @@ Nepomuk::EventMonitor::EventMonitor( IndexScheduler* scheduler, QObject* parent 
 }
 
 
-Nepomuk::EventMonitor::~EventMonitor()
+Nepomuk2::EventMonitor::~EventMonitor()
 {
 }
 
 
-void Nepomuk::EventMonitor::slotPowerManagementStatusChanged( bool conserveResources )
+void Nepomuk2::EventMonitor::slotPowerManagementStatusChanged( bool conserveResources )
 {
     if ( !conserveResources && m_pauseState == PausedDueToPowerManagement ) {
         kDebug() << "Resuming indexer due to power management";
@@ -109,7 +109,7 @@ void Nepomuk::EventMonitor::slotPowerManagementStatusChanged( bool conserveResou
 }
 
 
-void Nepomuk::EventMonitor::slotCheckAvailableSpace()
+void Nepomuk2::EventMonitor::slotCheckAvailableSpace()
 {
     KDiskFreeSpaceInfo info = KDiskFreeSpaceInfo::freeSpaceInfo( KStandardDirs::locateLocal( "data", "nepomuk/repository/", false ) );
     if ( info.isValid() ) {
@@ -135,7 +135,7 @@ void Nepomuk::EventMonitor::slotCheckAvailableSpace()
 }
 
 
-void Nepomuk::EventMonitor::slotIndexingStopped()
+void Nepomuk2::EventMonitor::slotIndexingStopped()
 {
     // inform the user about the end of initial indexing. This will only be called once
     if ( !m_indexScheduler->isSuspended() ) {
@@ -153,7 +153,7 @@ void Nepomuk::EventMonitor::slotIndexingStopped()
 }
 
 
-void Nepomuk::EventMonitor::pauseIndexing(int pauseState)
+void Nepomuk2::EventMonitor::pauseIndexing(int pauseState)
 {
     m_pauseState = pauseState;
     m_indexScheduler->suspend();
@@ -162,7 +162,7 @@ void Nepomuk::EventMonitor::pauseIndexing(int pauseState)
 }
 
 
-void Nepomuk::EventMonitor::resumeIndexing()
+void Nepomuk2::EventMonitor::resumeIndexing()
 {
     m_pauseState = NotPaused;
     m_indexScheduler->resume();
@@ -171,7 +171,7 @@ void Nepomuk::EventMonitor::resumeIndexing()
 }
 
 
-void Nepomuk::EventMonitor::slotIndexingSuspended( bool suspended )
+void Nepomuk2::EventMonitor::slotIndexingSuspended( bool suspended )
 {
     if( suspended ) {
         //The indexing is already paused, this meerly sets the correct state, and adjusts the timing.
@@ -184,7 +184,7 @@ void Nepomuk::EventMonitor::slotIndexingSuspended( bool suspended )
 }
 
 
-void Nepomuk::EventMonitor::slotIndexingStateChanged(bool indexing)
+void Nepomuk2::EventMonitor::slotIndexingStateChanged(bool indexing)
 {
     // there is no need to check the available space (and wasting IO) when we are not indexing
     // the only exception is when we suspended due to disk space shortage since we can resume once

@@ -21,7 +21,7 @@
  * @short Specific code implementation with full checks.
  *
  * This implementation of the AbstractCode interface returns generated
- * code that uses Nepomuk::Property to full check syntax and semantic
+ * code that uses Nepomuk2::Property to full check syntax and semantic
  * of the data before writing it to the Nepomuk storage.
  */
 class SafeCode : public AbstractCode

@@ -30,17 +30,17 @@
 
 namespace QTest {
     template<>
-    char* toString(const Nepomuk::Query::Query& query) {
+    char* toString(const Nepomuk2::Query::Query& query) {
         return qstrdup( query.toString().toUtf8().data() );
     }
 
     template<>
-    char* toString(const Nepomuk::Query::Term& term) {
+    char* toString(const Nepomuk2::Query::Term& term) {
         return qstrdup( term.toString().toUtf8().data() );
     }
 
     template<>
-    char* toString(const Nepomuk::Types::Class& e) {
+    char* toString(const Nepomuk2::Types::Class& e) {
         return qstrdup( e.uri().toString().toUtf8().data() );
     }
 }

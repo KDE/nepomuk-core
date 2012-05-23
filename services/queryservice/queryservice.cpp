@@ -38,11 +38,11 @@
 
 Q_DECLARE_METATYPE( QList<QUrl> )
 
-NEPOMUK_EXPORT_SERVICE( Nepomuk::Query::QueryService, "nepomukqueryservice" )
+NEPOMUK_EXPORT_SERVICE( Nepomuk2::Query::QueryService, "nepomukqueryservice" )
 
 static QThreadPool* s_searchThreadPool = 0;
 
-Nepomuk::Query::QueryService::QueryService( QObject* parent, const QVariantList& )
+Nepomuk2::Query::QueryService::QueryService( QObject* parent, const QVariantList& )
     : Service( parent ),
       m_folderConnectionCnt( 0 )
 {
@@ -51,15 +51,15 @@ Nepomuk::Query::QueryService::QueryService( QObject* parent, const QVariantList&
     s_searchThreadPool->setMaxThreadCount( 10 );
 
     // register types used in the DBus adaptor
-    Nepomuk::Query::registerDBusTypes();
+    Nepomuk2::Query::registerDBusTypes();
 
     // register type used to communicate removeEntries between threads
     qRegisterMetaType<QList<QUrl> >();
-    qRegisterMetaType<QList<Nepomuk::Query::Result> >();
+    qRegisterMetaType<QList<Nepomuk2::Query::Result> >();
 }
 
 
-Nepomuk::Query::QueryService::~QueryService()
+Nepomuk2::Query::QueryService::~QueryService()
 {
     // cannot use qDeleteAll since deleting a folder changes m_openQueryFolders
     while ( !m_openQueryFolders.isEmpty() )
@@ -70,13 +70,13 @@ Nepomuk::Query::QueryService::~QueryService()
 
 
 // static
-QThreadPool* Nepomuk::Query::QueryService::searchThreadPool()
+QThreadPool* Nepomuk2::Query::QueryService::searchThreadPool()
 {
     return s_searchThreadPool;
 }
 
 
-QDBusObjectPath Nepomuk::Query::QueryService::query( const QString& query, const QDBusMessage& msg )
+QDBusObjectPath Nepomuk2::Query::QueryService::query( const QString& query, const QDBusMessage& msg )
 {
     Query q = Query::fromString( query );
     if ( !q.isValid() ) {
@@ -91,7 +91,7 @@ QDBusObjectPath Nepomuk::Query::QueryService::query( const QString& query, const
 }
 
 
-QDBusObjectPath Nepomuk::Query::QueryService::desktopQuery( const QString& query, const QDBusMessage& msg )
+QDBusObjectPath Nepomuk2::Query::QueryService::desktopQuery( const QString& query, const QDBusMessage& msg )
 {
     Query q = QueryParser::parseQuery( query );
     if( !q.isValid() ) {
@@ -108,9 +108,9 @@ QDBusObjectPath Nepomuk::Query::QueryService::desktopQuery( const QString& query
 
 
 namespace {
-    Nepomuk::Query::RequestPropertyMap decodeRequestPropertiesList( const RequestPropertyMapDBus& requestProps )
+    Nepomuk2::Query::RequestPropertyMap decodeRequestPropertiesList( const RequestPropertyMapDBus& requestProps )
     {
-        Nepomuk::Query::RequestPropertyMap rpm;
+        Nepomuk2::Query::RequestPropertyMap rpm;
         for ( RequestPropertyMapDBus::const_iterator it = requestProps.constBegin();
               it != requestProps.constEnd(); ++it )
             rpm.insert( it.key(), KUrl( it.value() ) );
@@ -118,7 +118,7 @@ namespace {
     }
 }
 
-QDBusObjectPath Nepomuk::Query::QueryService::sparqlQuery( const QString& sparql, const RequestPropertyMapDBus& requestProps, const QDBusMessage& msg )
+QDBusObjectPath Nepomuk2::Query::QueryService::sparqlQuery( const QString& sparql, const RequestPropertyMapDBus& requestProps, const QDBusMessage& msg )
 {
     kDebug() << "Query request:" << sparql << requestProps;
 
@@ -135,7 +135,7 @@ QDBusObjectPath Nepomuk::Query::QueryService::sparqlQuery( const QString& sparql
 }
 
 
-Nepomuk::Query::Folder* Nepomuk::Query::QueryService::getFolder( const Query& query )
+Nepomuk2::Query::Folder* Nepomuk2::Query::QueryService::getFolder( const Query& query )
 {
     QHash<Query, Folder*>::const_iterator it = m_openQueryFolders.constFind( query );
     if ( it != m_openQueryFolders.constEnd() ) {
@@ -145,15 +145,15 @@ Nepomuk::Query::Folder* Nepomuk::Query::QueryService::getFolder( const Query& qu
     else {
         kDebug() << "Creating new search folder for query:" << query;
         Folder* newFolder = new Folder( query, this );
-        connect( newFolder, SIGNAL( aboutToBeDeleted( Nepomuk::Query::Folder* ) ),
-                 this, SLOT( slotFolderAboutToBeDeleted( Nepomuk::Query::Folder* ) ) );
+        connect( newFolder, SIGNAL( aboutToBeDeleted( Nepomuk2::Query::Folder* ) ),
+                 this, SLOT( slotFolderAboutToBeDeleted( Nepomuk2::Query::Folder* ) ) );
         m_openQueryFolders.insert( query, newFolder );
         return newFolder;
     }
 }
 
 
-Nepomuk::Query::Folder* Nepomuk::Query::QueryService::getFolder( const QString& query, const Nepomuk::Query::RequestPropertyMap& requestProps )
+Nepomuk2::Query::Folder* Nepomuk2::Query::QueryService::getFolder( const QString& query, const Nepomuk2::Query::RequestPropertyMap& requestProps )
 {
     QHash<QString, Folder*>::const_iterator it = m_openSparqlFolders.constFind( query );
     if ( it != m_openSparqlFolders.constEnd() ) {
@@ -163,15 +163,15 @@ Nepomuk::Query::Folder* Nepomuk::Query::QueryService::getFolder( const QString& 
     else {
         kDebug() << "Creating new search folder for query:" << query;
         Folder* newFolder = new Folder( query, requestProps, this );
-        connect( newFolder, SIGNAL( aboutToBeDeleted( Nepomuk::Query::Folder* ) ),
-                 this, SLOT( slotFolderAboutToBeDeleted( Nepomuk::Query::Folder* ) ) );
+        connect( newFolder, SIGNAL( aboutToBeDeleted( Nepomuk2::Query::Folder* ) ),
+                 this, SLOT( slotFolderAboutToBeDeleted( Nepomuk2::Query::Folder* ) ) );
         m_openSparqlFolders.insert( query, newFolder );
         return newFolder;
     }
 }
 
 
-void Nepomuk::Query::QueryService::slotFolderAboutToBeDeleted( Folder* folder )
+void Nepomuk2::Query::QueryService::slotFolderAboutToBeDeleted( Folder* folder )
 {
     kDebug() << folder;
     if ( folder->isSparqlQueryFolder() )

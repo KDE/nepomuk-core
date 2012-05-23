@@ -36,7 +36,7 @@
 #include <QtCore/QTextStream>
 
 
-Nepomuk::Indexer::Indexer(const QFileInfo& info, QObject* parent)
+Nepomuk2::Indexer::Indexer(const QFileInfo& info, QObject* parent)
     : KJob(parent),
       m_url( info.absoluteFilePath() )
 {
@@ -47,7 +47,7 @@ Nepomuk::Indexer::Indexer(const QFileInfo& info, QObject* parent)
             this, SLOT(slotProcessTimerTimeout()));
 }
 
-void Nepomuk::Indexer::start()
+void Nepomuk2::Indexer::start()
 {
     // setup the external process which does the actual indexing
     const QString exe = KStandardDirs::findExe(QLatin1String("nepomukindexer"));
@@ -65,7 +65,7 @@ void Nepomuk::Indexer::start()
 }
 
 
-void Nepomuk::Indexer::slotIndexedFile(int exitCode)
+void Nepomuk2::Indexer::slotIndexedFile(int exitCode)
 {
     // stop the timer since there is no need to kill the process anymore
     m_processTimer->stop();
@@ -81,7 +81,7 @@ void Nepomuk::Indexer::slotIndexedFile(int exitCode)
     emitResult();
 }
 
-void Nepomuk::Indexer::slotProcessTimerTimeout()
+void Nepomuk2::Indexer::slotProcessTimerTimeout()
 {
     kDebug() << "Killing the indexer process which seems stuck for" << m_url;
     m_process->disconnect(this);

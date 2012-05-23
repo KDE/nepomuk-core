@@ -58,7 +58,7 @@ namespace {
 }
 
 
-Nepomuk::Repository::Repository( const QString& name )
+Nepomuk2::Repository::Repository( const QString& name )
     : m_name( name ),
       m_state( CLOSED ),
       m_model( 0 ),
@@ -75,14 +75,14 @@ Nepomuk::Repository::Repository( const QString& name )
 }
 
 
-Nepomuk::Repository::~Repository()
+Nepomuk2::Repository::~Repository()
 {
     kDebug() << m_name;
     close();
 }
 
 
-void Nepomuk::Repository::close()
+void Nepomuk2::Repository::close()
 {
     kDebug() << m_name;
 
@@ -119,7 +119,7 @@ void Nepomuk::Repository::close()
 }
 
 
-void Nepomuk::Repository::open()
+void Nepomuk2::Repository::open()
 {
     Q_ASSERT( m_state == CLOSED );
 
@@ -219,11 +219,11 @@ void Nepomuk::Repository::open()
 
     // create the one class and property tree to be used in DMS
     // =================================
-    m_classAndPropertyTree = new Nepomuk::ClassAndPropertyTree(this);
+    m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
 
     // create the RemovableMediaModel which does the transparent handling of removable mounts
     // =================================
-    m_removableStorageModel = new Nepomuk::RemovableMediaModel(m_model);
+    m_removableStorageModel = new Nepomuk2::RemovableMediaModel(m_model);
 
     // Create the NRLModel which is required by the DMM below
     // =================================
@@ -237,7 +237,7 @@ void Nepomuk::Repository::open()
     // create the DataManagementModel on top of everything
     // =================================
     m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
-    m_dataManagementAdaptor = new Nepomuk::DataManagementAdaptor(m_dataManagementModel);
+    m_dataManagementAdaptor = new Nepomuk2::DataManagementAdaptor(m_dataManagementModel);
     QDBusConnection::sessionBus().registerObject(QLatin1String("/datamanagement"), m_dataManagementAdaptor, QDBusConnection::ExportScriptableContents);
     setParentModel(m_dataManagementModel);
 
@@ -329,7 +329,7 @@ void Nepomuk::Repository::open()
 }
 
 
-void Nepomuk::Repository::copyFinished( KJob* job )
+void Nepomuk2::Repository::copyFinished( KJob* job )
 {
     m_modelCopyJob = 0;
 
@@ -375,7 +375,7 @@ void Nepomuk::Repository::copyFinished( KJob* job )
 }
 
 
-QString Nepomuk::Repository::usedSopranoBackend() const
+QString Nepomuk2::Repository::usedSopranoBackend() const
 {
     if ( m_backend )
         return m_backend->pluginName();
@@ -384,7 +384,7 @@ QString Nepomuk::Repository::usedSopranoBackend() const
 }
 
 
-Soprano::BackendSettings Nepomuk::Repository::readVirtuosoSettings() const
+Soprano::BackendSettings Nepomuk2::Repository::readVirtuosoSettings() const
 {
     Soprano::BackendSettings settings;
 
@@ -421,7 +421,7 @@ Soprano::BackendSettings Nepomuk::Repository::readVirtuosoSettings() const
     return settings;
 }
 
-void Nepomuk::Repository::updateInference(bool ontologiesChanged)
+void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
 {
     // the funny way to update the query prefix cache
     m_nrlModel->setEnableQueryPrefixExpansion(false);
@@ -441,7 +441,7 @@ void Nepomuk::Repository::updateInference(bool ontologiesChanged)
     m_inferenceModel->updateOntologyGraphs(ontologiesChanged);
 }
 
-void Nepomuk::Repository::slotVirtuosoStopped(bool normalExit)
+void Nepomuk2::Repository::slotVirtuosoStopped(bool normalExit)
 {
     if(!normalExit) {
         kDebug() << "Virtuoso was killed or crashed. Restarting the repository.";

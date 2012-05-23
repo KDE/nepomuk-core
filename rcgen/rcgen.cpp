@@ -62,7 +62,7 @@ int main( int argc, char** argv )
 
     KCmdLineOptions options;
     options.add("verbose", ki18n("Verbose output debugging mode."));
-    options.add("fast", ki18n("Generate simple and fast wrapper classes not based on Nepomuk::Resource which do not provide any data integrity checking"));
+    options.add("fast", ki18n("Generate simple and fast wrapper classes not based on Nepomuk2::Resource which do not provide any data integrity checking"));
     options.add("writeall", ki18n("Actually generate the code."));
     options.add("listincludes", ki18n("List all includes (deprecated)."));
     options.add("listheaders", ki18n("List all header files that will be generated via the --writeall command."));
@@ -194,7 +194,7 @@ int main( int argc, char** argv )
         QTextStream s( stdout, QIODevice::WriteOnly );
         QStringListIterator it( l );
         while( it.hasNext() )
-            s << "#include <nepomuk/" << it.next() << ">" << endl;
+            s << "#include <nepomuk2/" << it.next() << ">" << endl;
     }
 
     return 0;

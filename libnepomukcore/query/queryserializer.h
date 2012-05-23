@@ -22,7 +22,7 @@
 
 class QString;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         class Query;
         class Term;

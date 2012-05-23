@@ -36,20 +36,20 @@
 
 using namespace Soprano::Vocabulary;
 
-Nepomuk::GraphMaintainer::GraphMaintainer(Soprano::Model* model)
+Nepomuk2::GraphMaintainer::GraphMaintainer(Soprano::Model* model)
     : QThread(model),
       m_model(model),
       m_canceled(false)
 {
 }
 
-Nepomuk::GraphMaintainer::~GraphMaintainer()
+Nepomuk2::GraphMaintainer::~GraphMaintainer()
 {
     m_canceled = true;
     wait();
 }
 
-void Nepomuk::GraphMaintainer::run()
+void Nepomuk2::GraphMaintainer::run()
 {
     kDebug() << "Running graph maintenance";
 

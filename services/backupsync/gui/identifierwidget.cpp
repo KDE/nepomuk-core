@@ -35,7 +35,7 @@
 #include <Soprano/StatementIterator>
 
 
-Nepomuk::IdentifierWidget::IdentifierWidget(int id, QWidget* parent): QWidget(parent), m_id(id)
+Nepomuk2::IdentifierWidget::IdentifierWidget(int id, QWidget* parent): QWidget(parent), m_id(id)
 {
     //registerMetaTypes();
     setupUi(this);
@@ -64,7 +64,7 @@ Nepomuk::IdentifierWidget::IdentifierWidget(int id, QWidget* parent): QWidget(pa
              this, SLOT(slotDiscardAll()) );
 }
 
-void Nepomuk::IdentifierWidget::ignore(const QUrl& uri)
+void Nepomuk2::IdentifierWidget::ignore(const QUrl& uri)
 {
     Q_UNUSED( uri );
 
@@ -79,7 +79,7 @@ void Nepomuk::IdentifierWidget::ignore(const QUrl& uri)
 }
 
 
-void Nepomuk::IdentifierWidget::identify()
+void Nepomuk2::IdentifierWidget::identify()
 {
     QModelIndex index = m_viewConflicts->currentIndex();
     if( !index.isValid() )
@@ -97,7 +97,7 @@ void Nepomuk::IdentifierWidget::identify()
         m_identifier->identify( m_id, treeItem->resourceUri().toString(), newUrl.url() );
 }
 
-void Nepomuk::IdentifierWidget::notIdentified(int id, const QString& string)
+void Nepomuk2::IdentifierWidget::notIdentified(int id, const QString& string)
 {
     if( id != m_id )
         return;
@@ -110,7 +110,7 @@ void Nepomuk::IdentifierWidget::notIdentified(int id, const QString& string)
     m_model->notIdentified( stList );
 }
 
-void Nepomuk::IdentifierWidget::identified(int id, const QString& oldUri, const QString& newUri)
+void Nepomuk2::IdentifierWidget::identified(int id, const QString& oldUri, const QString& newUri)
 {
     if( id != m_id )
         return;
@@ -118,13 +118,13 @@ void Nepomuk::IdentifierWidget::identified(int id, const QString& oldUri, const 
     m_model->identified( QUrl(oldUri), QUrl(newUri) );
 }
 
-void Nepomuk::IdentifierWidget::slotDiscardAll()
+void Nepomuk2::IdentifierWidget::slotDiscardAll()
 {
     m_identifier->ignoreAll( m_id );
     m_model->ignoreAll();
 }
 
-void Nepomuk::IdentifierWidget::completed(int id, int progress)
+void Nepomuk2::IdentifierWidget::completed(int id, int progress)
 {
     if( id != m_id )
         return;

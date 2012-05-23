@@ -38,7 +38,7 @@
 #include <QtCore/QFile>
 
 
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 // TODO: how do we handle this scenario: the indexer indexes files on a removable medium. This includes
 //       a nie:isPartOf relation to the parent folder of the mount point. This is technically not correct
@@ -48,7 +48,7 @@ using namespace Nepomuk::Vocabulary;
 /**
  * A simple wrapper iterator which converts all filex:/ URLs to local file:/ URLs (if possible).
  */
-class Nepomuk::RemovableMediaModel::StatementIteratorBackend : public Soprano::IteratorBackend<Soprano::Statement>
+class Nepomuk2::RemovableMediaModel::StatementIteratorBackend : public Soprano::IteratorBackend<Soprano::Statement>
 {
 public:
     StatementIteratorBackend(const RemovableMediaModel* model,
@@ -78,10 +78,10 @@ private:
 /**
  * A simple wrapper iterator which converts all filex:/ URLs to local file:/ URLs (if possible).
  */
-class Nepomuk::RemovableMediaModel::QueryResultIteratorBackend : public Soprano::QueryResultIteratorBackend
+class Nepomuk2::RemovableMediaModel::QueryResultIteratorBackend : public Soprano::QueryResultIteratorBackend
 {
 public:
-    QueryResultIteratorBackend(const Nepomuk::RemovableMediaModel* model, const Soprano::QueryResultIterator& it)
+    QueryResultIteratorBackend(const Nepomuk2::RemovableMediaModel* model, const Soprano::QueryResultIterator& it)
         : m_it(it),
           m_model(model) {
     }
@@ -136,64 +136,64 @@ private:
 };
 
 
-Nepomuk::RemovableMediaModel::RemovableMediaModel(Soprano::Model* parentModel, QObject* parent)
+Nepomuk2::RemovableMediaModel::RemovableMediaModel(Soprano::Model* parentModel, QObject* parent)
     : Soprano::FilterModel(parentModel)
 {
     setParent(parent);
     m_removableMediaCache = new RemovableMediaCache(this);
 }
 
-Nepomuk::RemovableMediaModel::~RemovableMediaModel()
+Nepomuk2::RemovableMediaModel::~RemovableMediaModel()
 {
 }
 
-Soprano::Error::ErrorCode Nepomuk::RemovableMediaModel::addStatement(const Soprano::Statement &statement)
+Soprano::Error::ErrorCode Nepomuk2::RemovableMediaModel::addStatement(const Soprano::Statement &statement)
 {
         //
         // First we create the filesystem resource. We mostly need this for the user readable label.
         //
-//        Nepomuk::Resource fsRes( entry.m_uuid, Nepomuk::Vocabulary::NFO::Filesystem() );
+//        Nepomuk2::Resource fsRes( entry.m_uuid, Nepomuk2::Vocabulary::NFO::Filesystem() );
 //        fsRes.setLabel( entry.m_description );
 
         // IDEA: What about nie:hasPart nfo:FileSystem for all top-level items instead of the nfo:Folder that is the mount point.
         // But then we run into the recursion problem
 //        Resource fileRes( resource );
-//        fileRes.addProperty( Nepomuk::Vocabulary::NIE::isPartOf(), fsRes );
+//        fileRes.addProperty( Nepomuk2::Vocabulary::NIE::isPartOf(), fsRes );
 
     return FilterModel::addStatement(convertFileUrls(statement));
 }
 
-Soprano::Error::ErrorCode Nepomuk::RemovableMediaModel::removeStatement(const Soprano::Statement &statement)
+Soprano::Error::ErrorCode Nepomuk2::RemovableMediaModel::removeStatement(const Soprano::Statement &statement)
 {
     return FilterModel::removeStatement(convertFileUrls(statement));
 }
 
-Soprano::Error::ErrorCode Nepomuk::RemovableMediaModel::removeAllStatements(const Soprano::Statement &statement)
+Soprano::Error::ErrorCode Nepomuk2::RemovableMediaModel::removeAllStatements(const Soprano::Statement &statement)
 {
     return FilterModel::removeAllStatements(convertFileUrls(statement));
 }
 
-bool Nepomuk::RemovableMediaModel::containsStatement(const Soprano::Statement &statement) const
+bool Nepomuk2::RemovableMediaModel::containsStatement(const Soprano::Statement &statement) const
 {
     return FilterModel::containsStatement(convertFileUrls(statement));
 }
 
-bool Nepomuk::RemovableMediaModel::containsAnyStatement(const Soprano::Statement &statement) const
+bool Nepomuk2::RemovableMediaModel::containsAnyStatement(const Soprano::Statement &statement) const
 {
     return FilterModel::containsAnyStatement(convertFileUrls(statement));
 }
 
-Soprano::StatementIterator Nepomuk::RemovableMediaModel::listStatements(const Soprano::Statement &partial) const
+Soprano::StatementIterator Nepomuk2::RemovableMediaModel::listStatements(const Soprano::Statement &partial) const
 {
     return new StatementIteratorBackend(this, FilterModel::listStatements(partial));
 }
 
-Soprano::QueryResultIterator Nepomuk::RemovableMediaModel::executeQuery(const QString &query, Soprano::Query::QueryLanguage language, const QString &userQueryLanguage) const
+Soprano::QueryResultIterator Nepomuk2::RemovableMediaModel::executeQuery(const QString &query, Soprano::Query::QueryLanguage language, const QString &userQueryLanguage) const
 {
     return new QueryResultIteratorBackend(this, FilterModel::executeQuery(convertFileUrls(query), language, userQueryLanguage));
 }
 
-Soprano::Node Nepomuk::RemovableMediaModel::convertFileUrl(const Soprano::Node &node, bool forRegEx) const
+Soprano::Node Nepomuk2::RemovableMediaModel::convertFileUrl(const Soprano::Node &node, bool forRegEx) const
 {
     if(node.isResource()) {
         const QUrl url = node.uri();
@@ -212,7 +212,7 @@ Soprano::Node Nepomuk::RemovableMediaModel::convertFileUrl(const Soprano::Node &
 }
 
 
-Soprano::Statement Nepomuk::RemovableMediaModel::convertFileUrls(const Soprano::Statement &statement) const
+Soprano::Statement Nepomuk2::RemovableMediaModel::convertFileUrls(const Soprano::Statement &statement) const
 {
     if(statement.predicate().uri() == NIE::url() ||
             (statement.predicate().isEmpty() && statement.object().isResource())) {
@@ -225,7 +225,7 @@ Soprano::Statement Nepomuk::RemovableMediaModel::convertFileUrls(const Soprano::
 }
 
 
-Soprano::Statement Nepomuk::RemovableMediaModel::convertFilexUrls(const Soprano::Statement &s) const
+Soprano::Statement Nepomuk2::RemovableMediaModel::convertFilexUrls(const Soprano::Statement &s) const
 {
     if(s.predicate().uri() == NIE::url()) {
         Soprano::Statement newStatement(s);
@@ -237,7 +237,7 @@ Soprano::Statement Nepomuk::RemovableMediaModel::convertFilexUrls(const Soprano:
     }
 }
 
-Soprano::Node Nepomuk::RemovableMediaModel::convertFilexUrl(const Soprano::Node &node) const
+Soprano::Node Nepomuk2::RemovableMediaModel::convertFilexUrl(const Soprano::Node &node) const
 {
     if(node.isResource()) {
         const QUrl url = node.uri();
@@ -253,7 +253,7 @@ Soprano::Node Nepomuk::RemovableMediaModel::convertFilexUrl(const Soprano::Node 
     return node;
 }
 
-QString Nepomuk::RemovableMediaModel::convertFileUrls(const QString &query) const
+QString Nepomuk2::RemovableMediaModel::convertFileUrls(const QString &query) const
 {
     //
     // There are at least two cases to handle:

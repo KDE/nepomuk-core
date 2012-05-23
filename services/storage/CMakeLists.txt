@@ -32,12 +32,12 @@ set(storage_SRCS
 qt4_add_dbus_adaptor(storage_SRCS
   ../../interfaces/org.kde.nepomuk.OntologyManager.xml
   ontologyloader.h
-  Nepomuk::OntologyLoader)
+  Nepomuk2::OntologyLoader)
 
 qt4_add_dbus_adaptor(storage_SRCS
   ../../interfaces/org.kde.nepomuk.ResourceWatcherConnection.xml
   resourcewatcherconnection.h
-  Nepomuk::ResourceWatcherConnection)
+  Nepomuk2::ResourceWatcherConnection)
 
 kde4_add_plugin(nepomukstorage ${storage_SRCS})
 

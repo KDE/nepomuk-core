@@ -32,7 +32,7 @@ namespace Soprano {
     class QueryResultIterator;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Sync {
         
         class IdentificationSetGenerator {

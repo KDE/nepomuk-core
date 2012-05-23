@@ -28,7 +28,7 @@
 
 #include <QtCore/QDir>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Test {
         void writeIndexerConfig(const QStringList& includeFolders,
                                 const QStringList& excludeFolders,

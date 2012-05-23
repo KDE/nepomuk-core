@@ -29,12 +29,12 @@
 #include "nepomuk_export.h"
 
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Types {
         class Property;
 
         /**
-         * \class Class class.h Nepomuk/Types/Class
+         * \class Class class.h Nepomuk2/Types/Class
          *
          * \brief A Class is a resource of type rdf:Class.
          *

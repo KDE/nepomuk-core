@@ -28,7 +28,7 @@ namespace Soprano {
 class Model;
 class NRLModel;
 }
-namespace Nepomuk {
+namespace Nepomuk2 {
 class DataManagementModel;
 class ClassAndPropertyTree;
 class VirtuosoInferenceModel;
@@ -183,9 +183,9 @@ private:
     KTempDir* m_storageDir;
     Soprano::Model* m_model;
     Soprano::NRLModel* m_nrlModel;
-    Nepomuk::VirtuosoInferenceModel* m_inferenceModel;
-    Nepomuk::ClassAndPropertyTree* m_classAndPropertyTree;
-    Nepomuk::DataManagementModel* m_dmModel;
+    Nepomuk2::VirtuosoInferenceModel* m_inferenceModel;
+    Nepomuk2::ClassAndPropertyTree* m_classAndPropertyTree;
+    Nepomuk2::DataManagementModel* m_dmModel;
 };
 
 #endif

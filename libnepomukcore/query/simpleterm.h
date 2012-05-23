@@ -26,10 +26,10 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
-         * \class SimpleTerm simpleterm.h Nepomuk/Query/SimpleTerm
+         * \class SimpleTerm simpleterm.h Nepomuk2/Query/SimpleTerm
          *
          * \brief Abstract base class for NegationTerm and ComparisonTerm
          * which maintains one sub-term.

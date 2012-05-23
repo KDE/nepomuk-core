@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     const uint mtime = args->getOption("mtime").toUInt();
 
     if( args->count() == 0 ) {
-        Nepomuk::Indexer indexer;
+        Nepomuk2::Indexer indexer;
         if( !indexer.indexStdin( uri, mtime ) ) {
             QTextStream s(stdout);
             s << indexer.lastError();
@@ -81,12 +81,12 @@ int main(int argc, char *argv[])
         }
     }
     else if( args->isSet("clear") ) {
-        Nepomuk::clearIndexedData( args->url(0) );
+        Nepomuk2::clearIndexedData( args->url(0) );
         kDebug() << "Removed indexed data for" << args->url(0);
         return 0;
     }
     else {
-        Nepomuk::Indexer indexer;
+        Nepomuk2::Indexer indexer;
         if( !indexer.indexFile( args->url(0), uri, mtime ) ) {
             QTextStream s(stdout);
             s << indexer.lastError();

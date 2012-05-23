@@ -25,14 +25,14 @@
 
 #include <QtCore/QStringList>
 
-QString Nepomuk::Query::OrTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
+QString Nepomuk2::Query::OrTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
 {
     Q_UNUSED(parentTerm);
 
     QStringList pattern;
 
     qbd->pushGroupTerm(this);
-    foreach( const Nepomuk::Query::Term &t, m_subTerms ) {
+    foreach( const Nepomuk2::Query::Term &t, m_subTerms ) {
         pattern += t.d_ptr->toSparqlGraphPattern( resourceVarName, this, additionalFilters, qbd );
     }
     qbd->popGroupTerm();
@@ -41,19 +41,19 @@ QString Nepomuk::Query::OrTermPrivate::toSparqlGraphPattern( const QString& reso
 }
 
 
-Nepomuk::Query::OrTerm::OrTerm()
+Nepomuk2::Query::OrTerm::OrTerm()
     : GroupTerm( new OrTermPrivate() )
 {
 }
 
 
-Nepomuk::Query::OrTerm::OrTerm( const OrTerm& term )
+Nepomuk2::Query::OrTerm::OrTerm( const OrTerm& term )
     : GroupTerm( term )
 {
 }
 
 
-Nepomuk::Query::OrTerm::OrTerm( const Term& term1,
+Nepomuk2::Query::OrTerm::OrTerm( const Term& term1,
                                 const Term& term2,
                                 const Term& term3,
                                 const Term& term4,
@@ -70,19 +70,19 @@ Nepomuk::Query::OrTerm::OrTerm( const Term& term1,
 }
 
 
-Nepomuk::Query::OrTerm::OrTerm( const QList<Term>& terms )
+Nepomuk2::Query::OrTerm::OrTerm( const QList<Term>& terms )
     : GroupTerm( new OrTermPrivate() )
 {
     setSubTerms( terms );
 }
 
 
-Nepomuk::Query::OrTerm::~OrTerm()
+Nepomuk2::Query::OrTerm::~OrTerm()
 {
 }
 
 
-Nepomuk::Query::OrTerm& Nepomuk::Query::OrTerm::operator=( const OrTerm& term )
+Nepomuk2::Query::OrTerm& Nepomuk2::Query::OrTerm::operator=( const OrTerm& term )
 {
     d_ptr = term.d_ptr;
     return *this;

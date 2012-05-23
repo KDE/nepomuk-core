@@ -26,7 +26,7 @@
 #include "andterm_p.h"
 #include "comparisonterm.h"
 
-QString Nepomuk::Query::NegationTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
+QString Nepomuk2::Query::NegationTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
 {
     //
     // A small optimization: we can negate filters very easily
@@ -74,31 +74,31 @@ QString Nepomuk::Query::NegationTermPrivate::toSparqlGraphPattern( const QString
 }
 
 
-Nepomuk::Query::NegationTerm::NegationTerm()
+Nepomuk2::Query::NegationTerm::NegationTerm()
     : SimpleTerm( new NegationTermPrivate() )
 {
 }
 
 
-Nepomuk::Query::NegationTerm::NegationTerm( const NegationTerm& term )
+Nepomuk2::Query::NegationTerm::NegationTerm( const NegationTerm& term )
     : SimpleTerm( term )
 {
 }
 
 
-Nepomuk::Query::NegationTerm::~NegationTerm()
+Nepomuk2::Query::NegationTerm::~NegationTerm()
 {
 }
 
 
-Nepomuk::Query::NegationTerm& Nepomuk::Query::NegationTerm::operator=( const NegationTerm& term )
+Nepomuk2::Query::NegationTerm& Nepomuk2::Query::NegationTerm::operator=( const NegationTerm& term )
 {
     d_ptr = term.d_ptr;
     return *this;
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::NegationTerm::negateTerm( const Term& term )
+Nepomuk2::Query::Term Nepomuk2::Query::NegationTerm::negateTerm( const Term& term )
 {
     if ( term.isNegationTerm() ) {
         return term.toNegationTerm().subTerm();

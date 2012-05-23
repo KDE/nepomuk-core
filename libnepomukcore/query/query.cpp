@@ -71,7 +71,7 @@ ORDER BY  desc (?
 */
 
 
-Nepomuk::Query::Term Nepomuk::Query::QueryPrivate::createFolderFilter() const
+Nepomuk2::Query::Term Nepomuk2::Query::QueryPrivate::createFolderFilter() const
 {
     Term mainTerm;
 
@@ -86,7 +86,7 @@ Nepomuk::Query::Term Nepomuk::Query::QueryPrivate::createFolderFilter() const
                 includeFilter.append( QString::fromLatin1("(^%1[^/]*$)").arg( urlStr ) );
         }
         mainTerm = mainTerm && ComparisonTerm(
-                    Nepomuk::Vocabulary::NIE::url(),
+                    Nepomuk2::Vocabulary::NIE::url(),
                     LiteralTerm(includeFilter.join( "|" )),
                     ComparisonTerm::Regexp);
     }
@@ -94,7 +94,7 @@ Nepomuk::Query::Term Nepomuk::Query::QueryPrivate::createFolderFilter() const
     if ( !m_excludeFolders.isEmpty() ) {
         mainTerm = mainTerm && NegationTerm::negateTerm(
                     ComparisonTerm(
-                        Nepomuk::Vocabulary::NIE::url(),
+                        Nepomuk2::Vocabulary::NIE::url(),
                         LiteralTerm(QString::fromLatin1("^(%1)").arg( m_excludeFolders.toStringList(KUrl::AddTrailingSlash).join( "|" ) )),
                         ComparisonTerm::Regexp));
     }
@@ -102,9 +102,9 @@ Nepomuk::Query::Term Nepomuk::Query::QueryPrivate::createFolderFilter() const
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::QueryPrivate::optimizeEvenMore(const Nepomuk::Query::Term& term) const
+Nepomuk2::Query::Term Nepomuk2::Query::QueryPrivate::optimizeEvenMore(const Nepomuk2::Query::Term& term) const
 {
-    using namespace Nepomuk::Query;
+    using namespace Nepomuk2::Query;
 
     //
     // Merge ResourceTypeTerms which are combined in an OrTerm
@@ -153,7 +153,7 @@ Nepomuk::Query::Term Nepomuk::Query::QueryPrivate::optimizeEvenMore(const Nepomu
         // the same property (for details see QueryBuilderData::uniqueVarName)
         //
         QList<Term> sortedSubTerms;
-        foreach( const Nepomuk::Query::Term &t, term.toAndTerm().subTerms() ) {
+        foreach( const Nepomuk2::Query::Term &t, term.toAndTerm().subTerms() ) {
             if(t.isComparisonTerm() && !t.toComparisonTerm().variableName().isEmpty()) {
                 sortedSubTerms.prepend(t);
             }
@@ -188,14 +188,14 @@ Nepomuk::Query::Term Nepomuk::Query::QueryPrivate::optimizeEvenMore(const Nepomu
 }
 
 
-class Nepomuk::Query::Query::RequestProperty::Private : public QSharedData
+class Nepomuk2::Query::Query::RequestProperty::Private : public QSharedData
 {
 public:
-    Nepomuk::Types::Property m_property;
+    Nepomuk2::Types::Property m_property;
     bool m_optional;
 };
 
-Nepomuk::Query::Query::RequestProperty::RequestProperty( const Nepomuk::Types::Property& property,
+Nepomuk2::Query::Query::RequestProperty::RequestProperty( const Nepomuk2::Types::Property& property,
                                                          bool optional )
     : d(new Private())
 {
@@ -203,184 +203,184 @@ Nepomuk::Query::Query::RequestProperty::RequestProperty( const Nepomuk::Types::P
     d->m_optional = optional;
 }
 
-Nepomuk::Query::Query::RequestProperty::RequestProperty( const RequestProperty& other )
+Nepomuk2::Query::Query::RequestProperty::RequestProperty( const RequestProperty& other )
 {
     d = other.d;
 }
 
-Nepomuk::Query::Query::RequestProperty::~RequestProperty()
+Nepomuk2::Query::Query::RequestProperty::~RequestProperty()
 {
 }
 
-Nepomuk::Query::Query::RequestProperty& Nepomuk::Query::Query::RequestProperty::operator=( const RequestProperty& other )
+Nepomuk2::Query::Query::RequestProperty& Nepomuk2::Query::Query::RequestProperty::operator=( const RequestProperty& other )
 {
     d = other.d;
     return *this;
 }
 
-Nepomuk::Types::Property Nepomuk::Query::Query::RequestProperty::property() const
+Nepomuk2::Types::Property Nepomuk2::Query::Query::RequestProperty::property() const
 {
     return d->m_property;
 }
 
-bool Nepomuk::Query::Query::RequestProperty::optional() const
+bool Nepomuk2::Query::Query::RequestProperty::optional() const
 {
     return d->m_optional;
 }
 
-bool Nepomuk::Query::Query::RequestProperty::operator==( const RequestProperty& other ) const
+bool Nepomuk2::Query::Query::RequestProperty::operator==( const RequestProperty& other ) const
 {
     return d->m_property == other.d->m_property && d->m_optional == other.d->m_optional;
 }
 
 
-Nepomuk::Query::Query::Query()
+Nepomuk2::Query::Query::Query()
     : d( new QueryPrivate() )
 {
 }
 
 
-Nepomuk::Query::Query::Query( const Query& other )
+Nepomuk2::Query::Query::Query( const Query& other )
 {
     d = other.d;
 }
 
 
-Nepomuk::Query::Query::Query( const Term& term )
+Nepomuk2::Query::Query::Query( const Term& term )
     : d ( new QueryPrivate() )
 {
     d->m_term = term;
 }
 
 
-Nepomuk::Query::Query::~Query()
+Nepomuk2::Query::Query::~Query()
 {
 }
 
 
-Nepomuk::Query::Query& Nepomuk::Query::Query::operator=( const Query& other )
+Nepomuk2::Query::Query& Nepomuk2::Query::Query::operator=( const Query& other )
 {
     d = other.d;
     return *this;
 }
 
 
-Nepomuk::Query::Query& Nepomuk::Query::Query::operator=( const Term& term )
+Nepomuk2::Query::Query& Nepomuk2::Query::Query::operator=( const Term& term )
 {
     d->m_term = term;
     return *this;
 }
 
 
-bool Nepomuk::Query::Query::isValid() const
+bool Nepomuk2::Query::Query::isValid() const
 {
     return( d->m_term.isValid() || isFileQuery() );
 }
 
 
-bool Nepomuk::Query::Query::isFileQuery() const
+bool Nepomuk2::Query::Query::isFileQuery() const
 {
     return d->m_isFileQuery;
 }
 
 
-Nepomuk::Query::FileQuery Nepomuk::Query::Query::toFileQuery() const
+Nepomuk2::Query::FileQuery Nepomuk2::Query::Query::toFileQuery() const
 {
     return FileQuery( *this );
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::Query::term() const
+Nepomuk2::Query::Term Nepomuk2::Query::Query::term() const
 {
     return d->m_term;
 }
 
 
-int Nepomuk::Query::Query::limit() const
+int Nepomuk2::Query::Query::limit() const
 {
     return d->m_limit;
 }
 
 
-int Nepomuk::Query::Query::offset() const
+int Nepomuk2::Query::Query::offset() const
 {
     return d->m_offset;
 }
 
 
-void Nepomuk::Query::Query::setTerm( const Term& term )
+void Nepomuk2::Query::Query::setTerm( const Term& term )
 {
     d->m_term = term;
 }
 
 
-void Nepomuk::Query::Query::setLimit( int limit )
+void Nepomuk2::Query::Query::setLimit( int limit )
 {
     d->m_limit = limit;
 }
 
 
-void Nepomuk::Query::Query::setOffset( int offset )
+void Nepomuk2::Query::Query::setOffset( int offset )
 {
     d->m_offset = offset;
 }
 
 
-void Nepomuk::Query::Query::setFullTextScoringEnabled( bool enabled )
+void Nepomuk2::Query::Query::setFullTextScoringEnabled( bool enabled )
 {
     d->m_fullTextScoringEnabled = enabled;
 }
 
 
-void Nepomuk::Query::Query::setFullTextScoringSortOrder( Qt::SortOrder order )
+void Nepomuk2::Query::Query::setFullTextScoringSortOrder( Qt::SortOrder order )
 {
     d->m_fullTextScoringSortOrder = order;
 }
 
 
-bool Nepomuk::Query::Query::fullTextScoringEnabled() const
+bool Nepomuk2::Query::Query::fullTextScoringEnabled() const
 {
     return d->m_fullTextScoringEnabled;
 }
 
 
-Qt::SortOrder Nepomuk::Query::Query::fullTextScoringSortOrder() const
+Qt::SortOrder Nepomuk2::Query::Query::fullTextScoringSortOrder() const
 {
     return d->m_fullTextScoringSortOrder;
 }
 
 
-void Nepomuk::Query::Query::setQueryFlags( QueryFlags flags )
+void Nepomuk2::Query::Query::setQueryFlags( QueryFlags flags )
 {
     d->m_flags = flags;
 }
 
 
-Nepomuk::Query::Query::QueryFlags Nepomuk::Query::Query::queryFlags() const
+Nepomuk2::Query::Query::QueryFlags Nepomuk2::Query::Query::queryFlags() const
 {
     return d->m_flags;
 }
 
 
-void Nepomuk::Query::Query::addRequestProperty( const RequestProperty& property )
+void Nepomuk2::Query::Query::addRequestProperty( const RequestProperty& property )
 {
     d->m_requestProperties.append( property );
 }
 
 
-void Nepomuk::Query::Query::setRequestProperties( const QList<RequestProperty>& properties )
+void Nepomuk2::Query::Query::setRequestProperties( const QList<RequestProperty>& properties )
 {
     d->m_requestProperties = properties;
 }
 
 
-QList<Nepomuk::Query::Query::RequestProperty> Nepomuk::Query::Query::requestProperties() const
+QList<Nepomuk2::Query::Query::RequestProperty> Nepomuk2::Query::Query::requestProperties() const
 {
     return d->m_requestProperties;
 }
 
 
-bool Nepomuk::Query::Query::operator==( const Query& other ) const
+bool Nepomuk2::Query::Query::operator==( const Query& other ) const
 {
     return( d->m_limit == other.d->m_limit &&
             d->m_offset == other.d->m_offset &&
@@ -393,7 +393,7 @@ bool Nepomuk::Query::Query::operator==( const Query& other ) const
 }
 
 
-bool Nepomuk::Query::Query::operator!=( const Query& other ) const
+bool Nepomuk2::Query::Query::operator!=( const Query& other ) const
 {
     return( d->m_limit != other.d->m_limit ||
             d->m_offset != other.d->m_offset ||
@@ -406,7 +406,7 @@ bool Nepomuk::Query::Query::operator!=( const Query& other ) const
 }
 
 
-QString Nepomuk::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
+QString Nepomuk2::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
 {
     Term term = d->m_term;
 
@@ -532,7 +532,7 @@ QString Nepomuk::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
 }
 
 
-KUrl Nepomuk::Query::Query::toSearchUrl( SparqlFlags flags ) const
+KUrl Nepomuk2::Query::Query::toSearchUrl( SparqlFlags flags ) const
 {
     return toSearchUrl( QString(), flags );
 }
@@ -542,7 +542,7 @@ KUrl Nepomuk::Query::Query::toSearchUrl( SparqlFlags flags ) const
 // otherwise the serialized query (which allows for more power in the kio slave). It would
 // probably be nicer to somehow put the flags in the URL. But new query items in the URL
 // would make the URL handling in the kio slave more complicated.... oh, well.
-KUrl Nepomuk::Query::Query::toSearchUrl( const QString& customTitle, SparqlFlags flags ) const
+KUrl Nepomuk2::Query::Query::toSearchUrl( const QString& customTitle, SparqlFlags flags ) const
 {
     // the nepomuksearch:/ KIO slave does not handle count or ask queries
     flags &= ~CreateCountQuery;
@@ -573,7 +573,7 @@ KUrl Nepomuk::Query::Query::toSearchUrl( const QString& customTitle, SparqlFlags
 }
 
 
-Nepomuk::Query::RequestPropertyMap Nepomuk::Query::Query::requestPropertyMap() const
+Nepomuk2::Query::RequestPropertyMap Nepomuk2::Query::Query::requestPropertyMap() const
 {
     RequestPropertyMap rpm;
     for ( int i = 0; i < d->m_requestProperties.count(); ++i ) {
@@ -583,13 +583,13 @@ Nepomuk::Query::RequestPropertyMap Nepomuk::Query::Query::requestPropertyMap() c
 }
 
 
-QString Nepomuk::Query::Query::toString() const
+QString Nepomuk2::Query::Query::toString() const
 {
-    return Nepomuk::Query::serializeQuery( *this );
+    return Nepomuk2::Query::serializeQuery( *this );
 }
 
 
-Nepomuk::Query::Query Nepomuk::Query::Query::optimized() const
+Nepomuk2::Query::Query Nepomuk2::Query::Query::optimized() const
 {
     Query newQuery( *this );
     newQuery.setTerm( term().optimized() );
@@ -598,9 +598,9 @@ Nepomuk::Query::Query Nepomuk::Query::Query::optimized() const
 
 
 // static
-Nepomuk::Query::Query Nepomuk::Query::Query::fromString( const QString& queryString )
+Nepomuk2::Query::Query Nepomuk2::Query::Query::fromString( const QString& queryString )
 {
-    return Nepomuk::Query::parseQuery( queryString );
+    return Nepomuk2::Query::parseQuery( queryString );
 }
 
 
@@ -622,7 +622,7 @@ namespace {
 }
 
 // static
-Nepomuk::Query::Query Nepomuk::Query::Query::fromQueryUrl( const KUrl& url )
+Nepomuk2::Query::Query Nepomuk2::Query::Query::fromQueryUrl( const KUrl& url )
 {
     if( url.protocol() != QLatin1String("nepomuksearch") ) {
         kDebug() << "No nepomuksearch:/ URL:" << url;
@@ -638,14 +638,14 @@ Nepomuk::Query::Query Nepomuk::Query::Query::fromQueryUrl( const KUrl& url )
     }
     else {
         Query query = QueryParser::parseQuery( extractPlainQuery(url) );
-        query.setRequestProperties( QList<RequestProperty>() << Nepomuk::Query::Query::RequestProperty( Nepomuk::Vocabulary::NIE::url(), true ) );
+        query.setRequestProperties( QList<RequestProperty>() << Nepomuk2::Query::Query::RequestProperty( Nepomuk2::Vocabulary::NIE::url(), true ) );
         return query;
     }
 }
 
 
 // static
-QString Nepomuk::Query::Query::sparqlFromQueryUrl( const KUrl& url )
+QString Nepomuk2::Query::Query::sparqlFromQueryUrl( const KUrl& url )
 {
     if( url.protocol() != QLatin1String("nepomuksearch") ) {
         kDebug() << "No nepomuksearch:/ URL:" << url;
@@ -658,7 +658,7 @@ QString Nepomuk::Query::Query::sparqlFromQueryUrl( const KUrl& url )
     else {
         Query query = fromQueryUrl( url );
         if( query.isValid() ) {
-            query.setRequestProperties( QList<RequestProperty>() << Nepomuk::Query::Query::RequestProperty( Nepomuk::Vocabulary::NIE::url(), true ) );
+            query.setRequestProperties( QList<RequestProperty>() << Nepomuk2::Query::Query::RequestProperty( Nepomuk2::Vocabulary::NIE::url(), true ) );
             return query.toSparqlQuery();
         }
         else {
@@ -669,7 +669,7 @@ QString Nepomuk::Query::Query::sparqlFromQueryUrl( const KUrl& url )
 
 
 // static
-QString Nepomuk::Query::Query::titleFromQueryUrl( const KUrl& url )
+QString Nepomuk2::Query::Query::titleFromQueryUrl( const KUrl& url )
 {
     if( url.protocol() != QLatin1String("nepomuksearch") ) {
         kDebug() << "No nepomuksearch:/ URL:" << url;
@@ -697,7 +697,7 @@ QString Nepomuk::Query::Query::titleFromQueryUrl( const KUrl& url )
 }
 
 
-Nepomuk::Query::Query Nepomuk::Query::operator&&( const Query& query, const Term& term )
+Nepomuk2::Query::Query Nepomuk2::Query::operator&&( const Query& query, const Term& term )
 {
     Query newQuery( query );
     newQuery.setTerm( query.term() && term );
@@ -705,7 +705,7 @@ Nepomuk::Query::Query Nepomuk::Query::operator&&( const Query& query, const Term
 }
 
 
-Nepomuk::Query::Query Nepomuk::Query::operator||( const Query& query, const Term& term )
+Nepomuk2::Query::Query Nepomuk2::Query::operator||( const Query& query, const Term& term )
 {
     Query newQuery( query );
     newQuery.setTerm( query.term() || term );
@@ -713,7 +713,7 @@ Nepomuk::Query::Query Nepomuk::Query::operator||( const Query& query, const Term
 }
 
 
-Nepomuk::Query::Query Nepomuk::Query::operator!( const Query& query )
+Nepomuk2::Query::Query Nepomuk2::Query::operator!( const Query& query )
 {
     Query newQuery( query );
     newQuery.setTerm( !query.term() );
@@ -721,13 +721,13 @@ Nepomuk::Query::Query Nepomuk::Query::operator!( const Query& query )
 }
 
 
-QDebug operator<<( QDebug dbg, const Nepomuk::Query::Query& query )
+QDebug operator<<( QDebug dbg, const Nepomuk2::Query::Query& query )
 {
     return dbg << query.toString();
 }
 
 
-uint Nepomuk::Query::qHash( const Nepomuk::Query::Query& query )
+uint Nepomuk2::Query::qHash( const Nepomuk2::Query::Query& query )
 {
     return qHash( query.term() );
 }

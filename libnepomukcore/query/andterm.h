@@ -26,10 +26,10 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
-         * \class AndTerm andterm.h Nepomuk/Query/AndTerm
+         * \class AndTerm andterm.h Nepomuk2/Query/AndTerm
          *
          * \brief Match resource that match all sub terms.
          *

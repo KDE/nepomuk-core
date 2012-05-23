@@ -36,7 +36,7 @@
 #include <QtGui/QGroupBox>
 #include <QtGui/QLineEdit>
 
-Nepomuk::IntroPage::IntroPage(QWidget* parent)
+Nepomuk2::IntroPage::IntroPage(QWidget* parent)
     : QWizardPage( parent )
 {
     setupUi( this );
@@ -44,7 +44,7 @@ Nepomuk::IntroPage::IntroPage(QWidget* parent)
     setSubTitle( i18n("Please choose one of the following options") );
 }
 
-int Nepomuk::IntroPage::nextId() const
+int Nepomuk2::IntroPage::nextId() const
 {
     if( m_backup->isChecked() )
         return BackupWizard::Id_BackupSettingsPage;
@@ -58,7 +58,7 @@ int Nepomuk::IntroPage::nextId() const
 //
 // Backup Page
 //
-Nepomuk::BackupPage::BackupPage(QWidget* parent)
+Nepomuk2::BackupPage::BackupPage(QWidget* parent)
     : QWizardPage(parent),
       m_backupDone(false)
 {
@@ -73,7 +73,7 @@ Nepomuk::BackupPage::BackupPage(QWidget* parent)
     connect( m_backupManager, SIGNAL(backupDone()), this, SLOT(slotBackupDone()) );
 }
 
-void Nepomuk::BackupPage::initializePage()
+void Nepomuk2::BackupPage::initializePage()
 {
     m_backupDone = false;
     KUrl backupUrl = field(QLatin1String("backupUrl")).value<KUrl>();
@@ -83,17 +83,17 @@ void Nepomuk::BackupPage::initializePage()
     m_backupManager->backup( backupUrl.toLocalFile() );
 }
 
-bool Nepomuk::BackupPage::isComplete() const
+bool Nepomuk2::BackupPage::isComplete() const
 {
     return m_backupDone;
 }
 
-int Nepomuk::BackupPage::nextId() const
+int Nepomuk2::BackupPage::nextId() const
 {
     return -1;
 }
 
-void Nepomuk::BackupPage::slotBackupDone()
+void Nepomuk2::BackupPage::slotBackupDone()
 {
     m_backupDone = true;
     m_status->setText( i18nc("@info","Backup of the Nepomuk database successfully written to <filename>%1</filename>.",
@@ -109,12 +109,12 @@ void Nepomuk::BackupPage::slotBackupDone()
 // Restore Selection Page
 //
 
-Nepomuk::RestoreSelectionPage::RestoreSelectionPage(QWidget* parent): QWizardPage(parent)
+Nepomuk2::RestoreSelectionPage::RestoreSelectionPage(QWidget* parent): QWizardPage(parent)
 {
     setupUi( this );
 }
 
-void Nepomuk::RestoreSelectionPage::initializePage()
+void Nepomuk2::RestoreSelectionPage::initializePage()
 {
     QDir dir( KStandardDirs::locateLocal( "data", "nepomuk/backupsync/backups/" ) );
     QStringList backupFiles = dir.entryList( QDir::Files | QDir::NoDotAndDotDot, QDir::Name );
@@ -140,18 +140,18 @@ void Nepomuk::RestoreSelectionPage::initializePage()
     registerField( "backupToRestorePath", this, "backupFilePath" );
 }
 
-bool Nepomuk::RestoreSelectionPage::isComplete() const
+bool Nepomuk2::RestoreSelectionPage::isComplete() const
 {
     return QFile::exists(m_backupFilePath);
 }
 
-int Nepomuk::RestoreSelectionPage::nextId() const
+int Nepomuk2::RestoreSelectionPage::nextId() const
 {
     return BackupWizard::Id_RestorePage;
 }
 
 
-void Nepomuk::RestoreSelectionPage::slotSelectionChanged()
+void Nepomuk2::RestoreSelectionPage::slotSelectionChanged()
 {
     if( QListWidgetItem* item = m_listWidget->currentItem() )
         m_backupFilePath = KStandardDirs::locateLocal("data", QLatin1String("nepomuk/backupsync/backups/") + item->data( Qt::DisplayRole ).toString() );
@@ -161,7 +161,7 @@ void Nepomuk::RestoreSelectionPage::slotSelectionChanged()
     emit completeChanged();
 }
 
-void Nepomuk::RestoreSelectionPage::slotCustomBackupUrl()
+void Nepomuk2::RestoreSelectionPage::slotCustomBackupUrl()
 {
     m_backupFilePath = KFileDialog::getOpenFileName( KUrl(), QString(), this );
     kDebug() << "NEW BACKUP URL : " << m_backupFilePath;
@@ -174,7 +174,7 @@ void Nepomuk::RestoreSelectionPage::slotCustomBackupUrl()
 //
 // Restore Page
 //
-Nepomuk::RestorePage::RestorePage(QWidget* parent)
+Nepomuk2::RestorePage::RestorePage(QWidget* parent)
     : QWizardPage(parent)
 {
     // Page Properties
@@ -191,7 +191,7 @@ Nepomuk::RestorePage::RestorePage(QWidget* parent)
 }
 
 
-void Nepomuk::RestorePage::initializePage()
+void Nepomuk2::RestorePage::initializePage()
 {
     QString backupUrl = field("backupToRestorePath").toString();
     kDebug() << "Restoring : " << backupUrl;
@@ -220,18 +220,18 @@ void Nepomuk::RestorePage::initializePage()
     layout->addWidget( m_identifierWidget );
 }
 
-int Nepomuk::RestorePage::nextId() const
+int Nepomuk2::RestorePage::nextId() const
 {
     return BackupWizard::Id_RestoreFinalPage;
 }
 
-bool Nepomuk::RestorePage::validatePage()
+bool Nepomuk2::RestorePage::validatePage()
 {
     m_identifier->completeIdentification( m_id );
     return true;
 }
 
-void Nepomuk::RestorePage::slotIdentificationDone(int id, int unidentified)
+void Nepomuk2::RestorePage::slotIdentificationDone(int id, int unidentified)
 {
     if( id == m_id && unidentified == 0 ) {
         wizard()->next();
@@ -242,7 +242,7 @@ void Nepomuk::RestorePage::slotIdentificationDone(int id, int unidentified)
 // Backup Settings Page
 //
 
-Nepomuk::BackupSettingsPage::BackupSettingsPage(QWidget *parent)
+Nepomuk2::BackupSettingsPage::BackupSettingsPage(QWidget *parent)
     : QWizardPage(parent)
 {
     setupUi(this);
@@ -256,18 +256,18 @@ Nepomuk::BackupSettingsPage::BackupSettingsPage(QWidget *parent)
     registerField(QLatin1String("backupUrl"), this, "backupUrl");
 }
 
-KUrl Nepomuk::BackupSettingsPage::backupUrl() const
+KUrl Nepomuk2::BackupSettingsPage::backupUrl() const
 {
     return m_editBackupUrl->url();
 }
 
-bool Nepomuk::BackupSettingsPage::isComplete() const
+bool Nepomuk2::BackupSettingsPage::isComplete() const
 {
     const KUrl url = m_editBackupUrl->url();
     return  QDir( url.directory() ).exists() && url.isValid();
 }
 
-int Nepomuk::BackupSettingsPage::nextId() const
+int Nepomuk2::BackupSettingsPage::nextId() const
 {
     return BackupWizard::Id_BackupPage;
 }
@@ -277,7 +277,7 @@ int Nepomuk::BackupSettingsPage::nextId() const
 // Backup Final Page
 //
 
-Nepomuk::RestoreFinalPage::RestoreFinalPage(QWidget* parent): QWizardPage(parent)
+Nepomuk2::RestoreFinalPage::RestoreFinalPage(QWidget* parent): QWizardPage(parent)
 {
     setupUi( this );
     setCommitPage( true );
@@ -290,17 +290,17 @@ Nepomuk::RestoreFinalPage::RestoreFinalPage(QWidget* parent): QWizardPage(parent
     m_status->setText( i18nc("@info", "Merging the backup into the local Nepomuk database...") );
 }
 
-void Nepomuk::RestoreFinalPage::initializePage()
+void Nepomuk2::RestoreFinalPage::initializePage()
 {
     QWizardPage::initializePage();
 }
 
-int Nepomuk::RestoreFinalPage::nextId() const
+int Nepomuk2::RestoreFinalPage::nextId() const
 {
     return -1;
 }
 
-void Nepomuk::RestoreFinalPage::slotDone(int per)
+void Nepomuk2::RestoreFinalPage::slotDone(int per)
 {
     m_progressBar->setValue( per );
     if( per == 100 ) {
@@ -309,7 +309,7 @@ void Nepomuk::RestoreFinalPage::slotDone(int per)
 }
 
 
-Nepomuk::ErrorPage::ErrorPage( QWidget* parent )
+Nepomuk2::ErrorPage::ErrorPage( QWidget* parent )
     : QWizardPage(parent)
 {
     setupUi(this);
@@ -318,12 +318,12 @@ Nepomuk::ErrorPage::ErrorPage( QWidget* parent )
     registerField( QLatin1String("errorMessage"), this, "errorMessage" );
 }
 
-QString Nepomuk::ErrorPage::message() const
+QString Nepomuk2::ErrorPage::message() const
 {
     return m_labelMessage->text();
 }
 
-void Nepomuk::ErrorPage::setMessage(const QString& s)
+void Nepomuk2::ErrorPage::setMessage(const QString& s)
 {
     m_labelMessage->setText(s);
 }

@@ -31,15 +31,15 @@
 
 #include "simpleresource.h"
 
-Q_DECLARE_METATYPE(Nepomuk::PropertyHash)
-Q_DECLARE_METATYPE(Nepomuk::SimpleResource)
-Q_DECLARE_METATYPE(QList<Nepomuk::SimpleResource>)
+Q_DECLARE_METATYPE(Nepomuk2::PropertyHash)
+Q_DECLARE_METATYPE(Nepomuk2::SimpleResource)
+Q_DECLARE_METATYPE(QList<Nepomuk2::SimpleResource>)
 
 //CAUTION: Q_DECLARE_METATYPE doesn't accept template arguments like QHash<T, T>
 typedef QHash<QString, QString> __nepomuk_QHashQStringQString;
 Q_DECLARE_METATYPE( __nepomuk_QHashQStringQString )
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace DBus {
         QString convertUri(const QUrl& uri);
         QStringList convertUriList(const QList<QUrl>& uris);
@@ -57,9 +57,9 @@ namespace Nepomuk {
 
 QDBusArgument& operator<<( QDBusArgument& arg, const QUrl& url );
 const QDBusArgument& operator>>( const QDBusArgument& arg, QUrl& url );
-QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk::PropertyHash& ph );
-const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk::PropertyHash& ph );
-QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk::SimpleResource& res );
-const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk::SimpleResource& res );
+QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk2::PropertyHash& ph );
+const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk2::PropertyHash& ph );
+QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk2::SimpleResource& res );
+const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk2::SimpleResource& res );
 
 #endif // DBUSTYPES_H

@@ -24,7 +24,7 @@
 
 #include "term.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
 
         class QueryBuilderData;

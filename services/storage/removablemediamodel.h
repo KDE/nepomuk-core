@@ -34,7 +34,7 @@ namespace Solid {
 
 class KUrl;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 class RemovableMediaCache;
 
 /**

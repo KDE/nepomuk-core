@@ -28,7 +28,7 @@
 #include <QtCore/QUrl>
 #include <QtCore/QSet>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         class ResourceTypeTermPrivate : public TermPrivate
         {

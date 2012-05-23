@@ -29,7 +29,7 @@
 
 #include "regexpcache.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
      * Active config class which emits signals if the config
      * was changed, for example if the KCM saved the config file.

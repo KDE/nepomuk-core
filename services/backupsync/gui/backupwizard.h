@@ -29,7 +29,7 @@
 #include "identifier.h"
 #include "merger.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class BackupWizard : public QWizard
     {

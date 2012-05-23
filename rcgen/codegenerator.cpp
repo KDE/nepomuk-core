@@ -181,7 +181,7 @@ bool CodeGenerator::writeHeader( const ResourceClass *resourceClass, QTextStream
     }
     else {
         if ( m_mode == SafeMode )
-            s.replace( "NEPOMUK_PARENT_INCLUDE", QString("<nepomuk/%1.h>").arg( parent->name().toLower() ) );
+            s.replace( "NEPOMUK_PARENT_INCLUDE", QString("<nepomuk2/%1.h>").arg( parent->name().toLower() ) );
         else
             s.replace( "NEPOMUK_PARENT_INCLUDE", QString("\"resource.h\"") );
     }

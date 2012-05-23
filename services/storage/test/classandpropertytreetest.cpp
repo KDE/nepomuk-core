@@ -46,7 +46,7 @@ void ClassAndPropertyTreeTest::initTestCase()
     m_model = backend->createModel( Soprano::BackendSettings() << Soprano::BackendSetting(Soprano::BackendOptionStorageDir, m_storageDir->name()) );
     QVERIFY( m_model );
 
-    m_typeTree = new Nepomuk::ClassAndPropertyTree( this );
+    m_typeTree = new Nepomuk2::ClassAndPropertyTree( this );
 }
 
 void ClassAndPropertyTreeTest::cleanupTestCase()

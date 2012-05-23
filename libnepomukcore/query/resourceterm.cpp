@@ -27,7 +27,7 @@
 #include <Soprano/Node>
 
 
-bool Nepomuk::Query::ResourceTermPrivate::equals( const TermPrivate* other ) const
+bool Nepomuk2::Query::ResourceTermPrivate::equals( const TermPrivate* other ) const
 {
     if ( other->m_type == m_type ) {
         const ResourceTermPrivate* rtp = static_cast<const ResourceTermPrivate*>( other );
@@ -39,7 +39,7 @@ bool Nepomuk::Query::ResourceTermPrivate::equals( const TermPrivate* other ) con
 }
 
 
-QString Nepomuk::Query::ResourceTermPrivate::toSparqlGraphPattern( const QString& varName, const TermPrivate* parentTerm, const QString& additionalFilters, QueryBuilderData* qbd ) const
+QString Nepomuk2::Query::ResourceTermPrivate::toSparqlGraphPattern( const QString& varName, const TermPrivate* parentTerm, const QString& additionalFilters, QueryBuilderData* qbd ) const
 {
     //
     // A negation is expressed via a filter. Since filters can only work on a "real" graph pattern
@@ -76,39 +76,39 @@ QString Nepomuk::Query::ResourceTermPrivate::toSparqlGraphPattern( const QString
 }
 
 
-Nepomuk::Query::ResourceTerm::ResourceTerm( const ResourceTerm& term )
+Nepomuk2::Query::ResourceTerm::ResourceTerm( const ResourceTerm& term )
     : Term( term )
 {
 }
 
 
-Nepomuk::Query::ResourceTerm::ResourceTerm( const Nepomuk::Resource& resource )
+Nepomuk2::Query::ResourceTerm::ResourceTerm( const Nepomuk2::Resource& resource )
     : Term( new ResourceTermPrivate() )
 {
     setResource( resource );
 }
 
 
-Nepomuk::Query::ResourceTerm::~ResourceTerm()
+Nepomuk2::Query::ResourceTerm::~ResourceTerm()
 {
 }
 
 
-Nepomuk::Query::ResourceTerm& Nepomuk::Query::ResourceTerm::operator=( const ResourceTerm& term )
+Nepomuk2::Query::ResourceTerm& Nepomuk2::Query::ResourceTerm::operator=( const ResourceTerm& term )
 {
     d_ptr = term.d_ptr;
     return *this;
 }
 
 
-Nepomuk::Resource Nepomuk::Query::ResourceTerm::resource() const
+Nepomuk2::Resource Nepomuk2::Query::ResourceTerm::resource() const
 {
     N_D_CONST( ResourceTerm );
     return d->m_resource;
 }
 
 
-void Nepomuk::Query::ResourceTerm::setResource( const Nepomuk::Resource& resource )
+void Nepomuk2::Query::ResourceTerm::setResource( const Nepomuk2::Resource& resource )
 {
     N_D( ResourceTerm );
     d->m_resource = resource;

@@ -33,56 +33,56 @@
 #include <KUrl>
 
 
-KJob* Nepomuk::addProperty(const QList<QUrl>& resources,
+KJob* Nepomuk2::addProperty(const QList<QUrl>& resources,
                            const QUrl& property,
                            const QVariantList& values,
                            const KComponentData& component)
 {
     return new GenericDataManagementJob("addProperty",
-                                        Q_ARG(QStringList, Nepomuk::DBus::convertUriList(resources)),
+                                        Q_ARG(QStringList, Nepomuk2::DBus::convertUriList(resources)),
                                         Q_ARG(QString, DBus::convertUri(property)),
-                                        Q_ARG(QVariantList, Nepomuk::DBus::normalizeVariantList(values)),
+                                        Q_ARG(QVariantList, Nepomuk2::DBus::normalizeVariantList(values)),
                                         Q_ARG(QString, component.componentName()));
 }
 
-KJob* Nepomuk::setProperty(const QList<QUrl>& resources,
+KJob* Nepomuk2::setProperty(const QList<QUrl>& resources,
                            const QUrl& property,
                            const QVariantList& values,
                            const KComponentData& component)
 {
     return new GenericDataManagementJob("setProperty",
-                                        Q_ARG(QStringList, Nepomuk::DBus::convertUriList(resources)),
+                                        Q_ARG(QStringList, Nepomuk2::DBus::convertUriList(resources)),
                                         Q_ARG(QString, DBus::convertUri(property)),
-                                        Q_ARG(QVariantList, Nepomuk::DBus::normalizeVariantList(values)),
+                                        Q_ARG(QVariantList, Nepomuk2::DBus::normalizeVariantList(values)),
                                         Q_ARG(QString, component.componentName()));
 }
 
 
-KJob* Nepomuk::removeProperty(const QList<QUrl>& resources,
+KJob* Nepomuk2::removeProperty(const QList<QUrl>& resources,
                               const QUrl& property,
                               const QVariantList& values,
                               const KComponentData& component)
 {
     return new GenericDataManagementJob("removeProperty",
-                                        Q_ARG(QStringList, Nepomuk::DBus::convertUriList(resources)),
+                                        Q_ARG(QStringList, Nepomuk2::DBus::convertUriList(resources)),
                                         Q_ARG(QString, DBus::convertUri(property)),
-                                        Q_ARG(QVariantList, Nepomuk::DBus::normalizeVariantList(values)),
+                                        Q_ARG(QVariantList, Nepomuk2::DBus::normalizeVariantList(values)),
                                         Q_ARG(QString, component.componentName()));
 }
 
 
-KJob* Nepomuk::removeProperties(const QList<QUrl>& resources,
+KJob* Nepomuk2::removeProperties(const QList<QUrl>& resources,
                                 const QList<QUrl>& properties,
                                 const KComponentData& component)
 {
     return new GenericDataManagementJob("removeProperties",
-                                        Q_ARG(QStringList, Nepomuk::DBus::convertUriList(resources)),
-                                        Q_ARG(QStringList, Nepomuk::DBus::convertUriList(properties)),
+                                        Q_ARG(QStringList, Nepomuk2::DBus::convertUriList(resources)),
+                                        Q_ARG(QStringList, Nepomuk2::DBus::convertUriList(properties)),
                                         Q_ARG(QString, component.componentName()));
 }
 
 
-Nepomuk::CreateResourceJob* Nepomuk::createResource(const QList<QUrl>& types,
+Nepomuk2::CreateResourceJob* Nepomuk2::createResource(const QList<QUrl>& types,
                                                     const QString& label,
                                                     const QString& description,
                                                     const KComponentData& component)
@@ -91,29 +91,29 @@ Nepomuk::CreateResourceJob* Nepomuk::createResource(const QList<QUrl>& types,
 }
 
 
-KJob* Nepomuk::removeResources(const QList<QUrl>& resources,
+KJob* Nepomuk2::removeResources(const QList<QUrl>& resources,
                                RemovalFlags flags,
                                const KComponentData& component)
 {
     return new GenericDataManagementJob("removeResources",
-                                        Q_ARG(QStringList, Nepomuk::DBus::convertUriList(resources)),
+                                        Q_ARG(QStringList, Nepomuk2::DBus::convertUriList(resources)),
                                         Q_ARG(int, int(flags)),
                                         Q_ARG(QString, component.componentName()));
 }
 
 
-KJob* Nepomuk::removeDataByApplication(const QList<QUrl>& resources,
+KJob* Nepomuk2::removeDataByApplication(const QList<QUrl>& resources,
                                        RemovalFlags flags,
                                        const KComponentData& component)
 {
     return new GenericDataManagementJob("removeDataByApplication",
-                                        Q_ARG(QStringList, Nepomuk::DBus::convertUriList(resources)),
+                                        Q_ARG(QStringList, Nepomuk2::DBus::convertUriList(resources)),
                                         Q_ARG(int, int(flags)),
                                         Q_ARG(QString, component.componentName()));
 }
 
 
-KJob* Nepomuk::removeDataByApplication(RemovalFlags flags,
+KJob* Nepomuk2::removeDataByApplication(RemovalFlags flags,
                                        const KComponentData& component)
 {
     return new GenericDataManagementJob("removeDataByApplication",
@@ -122,20 +122,20 @@ KJob* Nepomuk::removeDataByApplication(RemovalFlags flags,
 }
 
 
-KJob* Nepomuk::mergeResources(const QUrl& resource1,
+KJob* Nepomuk2::mergeResources(const QUrl& resource1,
                               const QUrl& resource2,
                               const KComponentData& component)
 {
     return new GenericDataManagementJob("mergeResources",
-                                        Q_ARG(QString, Nepomuk::DBus::convertUri(resource1)),
-                                        Q_ARG(QString, Nepomuk::DBus::convertUri(resource2)),
+                                        Q_ARG(QString, Nepomuk2::DBus::convertUri(resource1)),
+                                        Q_ARG(QString, Nepomuk2::DBus::convertUri(resource2)),
                                         Q_ARG(QString, component.componentName()));
 }
 
 
-Nepomuk::StoreResourcesJob* Nepomuk::storeResources(const Nepomuk::SimpleResourceGraph& resources,
-                                                    Nepomuk::StoreIdentificationMode identificationMode,
-                                                    Nepomuk::StoreResourcesFlags flags,
+Nepomuk2::StoreResourcesJob* Nepomuk2::storeResources(const Nepomuk2::SimpleResourceGraph& resources,
+                                                    Nepomuk2::StoreIdentificationMode identificationMode,
+                                                    Nepomuk2::StoreResourcesFlags flags,
                                                     const QHash<QUrl, QVariant>& additionalMetadata,
                                                     const KComponentData& component)
 {
@@ -143,7 +143,7 @@ Nepomuk::StoreResourcesJob* Nepomuk::storeResources(const Nepomuk::SimpleResourc
                                   additionalMetadata, component );
 }
 
-KJob* Nepomuk::importResources(const KUrl& url,
+KJob* Nepomuk2::importResources(const KUrl& url,
                                Soprano::RdfSerialization serialization,
                                const QString& userSerialization,
                                StoreIdentificationMode identificationMode,
@@ -152,15 +152,15 @@ KJob* Nepomuk::importResources(const KUrl& url,
                                const KComponentData& component)
 {
     return new GenericDataManagementJob("importResources",
-                                        Q_ARG(QString, Nepomuk::DBus::convertUri(url)),
+                                        Q_ARG(QString, Nepomuk2::DBus::convertUri(url)),
                                         Q_ARG(QString, Soprano::serializationMimeType(serialization, userSerialization)),
                                         Q_ARG(int, int(identificationMode)),
                                         Q_ARG(int, int(flags)),
-                                        Q_ARG(Nepomuk::PropertyHash, additionalMetadata),
+                                        Q_ARG(Nepomuk2::PropertyHash, additionalMetadata),
                                         Q_ARG(QString, component.componentName()));
 }
 
-Nepomuk::DescribeResourcesJob* Nepomuk::describeResources(const QList<QUrl>& resources,
+Nepomuk2::DescribeResourcesJob* Nepomuk2::describeResources(const QList<QUrl>& resources,
                                                           DescribeResourcesFlags flags,
                                                           const QList<QUrl>& targetParties )
 {

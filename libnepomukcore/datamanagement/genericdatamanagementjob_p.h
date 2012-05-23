@@ -35,7 +35,7 @@
 class QDBusPendingCallWatcher;
 class OrgKdeNepomukDataManagementInterface;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 class GenericDataManagementJob : public KJob
 {
     Q_OBJECT

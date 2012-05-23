@@ -27,7 +27,7 @@
 #include <Soprano/Vocabulary/RDFS>
 
 
-bool Nepomuk::Query::ResourceTypeTermPrivate::equals( const TermPrivate* other ) const
+bool Nepomuk2::Query::ResourceTypeTermPrivate::equals( const TermPrivate* other ) const
 {
     if ( other->m_type == m_type ) {
         const ResourceTypeTermPrivate* rtp = static_cast<const ResourceTypeTermPrivate*>( other );
@@ -39,7 +39,7 @@ bool Nepomuk::Query::ResourceTypeTermPrivate::equals( const TermPrivate* other )
 }
 
 
-QString Nepomuk::Query::ResourceTypeTermPrivate::toSparqlGraphPattern( const QString& resName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
+QString Nepomuk2::Query::ResourceTypeTermPrivate::toSparqlGraphPattern( const QString& resName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
 {
     Q_UNUSED(parentTerm);
 
@@ -66,32 +66,32 @@ QString Nepomuk::Query::ResourceTypeTermPrivate::toSparqlGraphPattern( const QSt
 }
 
 
-Nepomuk::Query::ResourceTypeTerm::ResourceTypeTerm( const ResourceTypeTerm& term )
+Nepomuk2::Query::ResourceTypeTerm::ResourceTypeTerm( const ResourceTypeTerm& term )
     : Term( term )
 {
 }
 
 
-Nepomuk::Query::ResourceTypeTerm::ResourceTypeTerm( const Nepomuk::Types::Class& type )
+Nepomuk2::Query::ResourceTypeTerm::ResourceTypeTerm( const Nepomuk2::Types::Class& type )
     : Term( new ResourceTypeTermPrivate() )
 {
     setType( type );
 }
 
 
-Nepomuk::Query::ResourceTypeTerm::~ResourceTypeTerm()
+Nepomuk2::Query::ResourceTypeTerm::~ResourceTypeTerm()
 {
 }
 
 
-Nepomuk::Query::ResourceTypeTerm& Nepomuk::Query::ResourceTypeTerm::operator=( const ResourceTypeTerm& term )
+Nepomuk2::Query::ResourceTypeTerm& Nepomuk2::Query::ResourceTypeTerm::operator=( const ResourceTypeTerm& term )
 {
     d_ptr = term.d_ptr;
     return *this;
 }
 
 
-Nepomuk::Types::Class Nepomuk::Query::ResourceTypeTerm::type() const
+Nepomuk2::Types::Class Nepomuk2::Query::ResourceTypeTerm::type() const
 {
     N_D_CONST( ResourceTypeTerm );
     if(!d->m_types.isEmpty())
@@ -101,7 +101,7 @@ Nepomuk::Types::Class Nepomuk::Query::ResourceTypeTerm::type() const
 }
 
 
-void Nepomuk::Query::ResourceTypeTerm::setType( const Nepomuk::Types::Class& type )
+void Nepomuk2::Query::ResourceTypeTerm::setType( const Nepomuk2::Types::Class& type )
 {
     N_D( ResourceTypeTerm );
     d->m_types.clear();

@@ -28,14 +28,14 @@ namespace Strigi {
     class IndexManager;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class IndexScheduler;
 
     /**
      * Service controlling the strigidaemon
      */
-    class FileIndexer : public Nepomuk::Service
+    class FileIndexer : public Nepomuk2::Service
     {
         Q_OBJECT
         Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.Strigi")

@@ -33,9 +33,9 @@
 #include <QtDBus/QDBusConnection>
 
 
-Nepomuk::Server* Nepomuk::Server::s_self = 0;
+Nepomuk2::Server* Nepomuk2::Server::s_self = 0;
 
-Nepomuk::Server::Server( QObject* parent )
+Nepomuk2::Server::Server( QObject* parent )
     : QObject( parent ),
       m_fileIndexerServiceName( "nepomukfileindexer" ),
       m_currentState(StateDisabled)
@@ -63,21 +63,21 @@ Nepomuk::Server::Server( QObject* parent )
 }
 
 
-Nepomuk::Server::~Server()
+Nepomuk2::Server::~Server()
 {
     NepomukServerSettings::self()->writeConfig();
     QDBusConnection::sessionBus().unregisterService( "org.kde.NepomukServer" );
 }
 
 
-void Nepomuk::Server::init()
+void Nepomuk2::Server::init()
 {
     // no need to start the file indexer explicetely. it is done in enableNepomuk
     enableNepomuk( NepomukServerSettings::self()->startNepomuk() );
 }
 
 
-void Nepomuk::Server::enableNepomuk( bool enabled )
+void Nepomuk2::Server::enableNepomuk( bool enabled )
 {
     kDebug() << "enableNepomuk" << enabled;
     if ( enabled != isNepomukEnabled() ) {
@@ -105,7 +105,7 @@ void Nepomuk::Server::enableNepomuk( bool enabled )
 }
 
 
-void Nepomuk::Server::enableFileIndexer( bool enabled )
+void Nepomuk2::Server::enableFileIndexer( bool enabled )
 {
     kDebug() << enabled;
     if ( isNepomukEnabled() ) {
@@ -119,25 +119,25 @@ void Nepomuk::Server::enableFileIndexer( bool enabled )
 }
 
 
-bool Nepomuk::Server::isNepomukEnabled() const
+bool Nepomuk2::Server::isNepomukEnabled() const
 {
     return m_currentState == StateEnabled || m_currentState == StateEnabling;
 }
 
 
-bool Nepomuk::Server::isFileIndexerEnabled() const
+bool Nepomuk2::Server::isFileIndexerEnabled() const
 {
     return m_serviceManager->runningServices().contains( m_fileIndexerServiceName );
 }
 
 
-QString Nepomuk::Server::defaultRepository() const
+QString Nepomuk2::Server::defaultRepository() const
 {
     return QLatin1String("main");
 }
 
 
-void Nepomuk::Server::reconfigure()
+void Nepomuk2::Server::reconfigure()
 {
     NepomukServerSettings::self()->config()->sync();
     NepomukServerSettings::self()->readConfig();
@@ -145,7 +145,7 @@ void Nepomuk::Server::reconfigure()
 }
 
 
-void Nepomuk::Server::quit()
+void Nepomuk2::Server::quit()
 {
     if( isNepomukEnabled() &&
         !m_serviceManager->runningServices().isEmpty() ) {
@@ -159,18 +159,18 @@ void Nepomuk::Server::quit()
 }
 
 
-KSharedConfig::Ptr Nepomuk::Server::config() const
+KSharedConfig::Ptr Nepomuk2::Server::config() const
 {
     return m_config;
 }
 
 
-Nepomuk::Server* Nepomuk::Server::self()
+Nepomuk2::Server* Nepomuk2::Server::self()
 {
     return s_self;
 }
 
-void Nepomuk::Server::slotServiceStopped(const QString &name)
+void Nepomuk2::Server::slotServiceStopped(const QString &name)
 {
     Q_UNUSED(name);
 
@@ -186,7 +186,7 @@ void Nepomuk::Server::slotServiceStopped(const QString &name)
     }
 }
 
-void Nepomuk::Server::slotServiceInitialized(const QString &name)
+void Nepomuk2::Server::slotServiceInitialized(const QString &name)
 {
     Q_UNUSED(name);
 

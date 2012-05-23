@@ -24,7 +24,7 @@
 
 #include <QtCore/QThread>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
      * Once started cleans up file resource entries for
      * files that do not exist anymore.

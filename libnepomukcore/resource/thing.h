@@ -24,12 +24,12 @@
 #include "resource.h"
 #include "nepomuk_export.h"
 
-// FIXME: (Would it even make sense to check in Nepomuk::Resource if a resource is a pimo:Thing and if so,
-//         use the PIMO context? Or should we handle that through the Nepomuk::PimoThing class?)
+// FIXME: (Would it even make sense to check in Nepomuk2::Resource if a resource is a pimo:Thing and if so,
+//         use the PIMO context? Or should we handle that through the Nepomuk2::PimoThing class?)
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
-     * \class Thing thing.h Nepomuk/Thing
+     * \class Thing thing.h Nepomuk2/Thing
      *
      * \brief A Nepomuk PIMO Thing resource.
      *

@@ -28,7 +28,7 @@
 #include <QtCore/QUrl>
 #include <QtCore/QSharedData>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Types {
         class Class;
         class Property;

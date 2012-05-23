@@ -40,7 +40,7 @@ class RegExpCache;
 class ActiveFileQueue;
 class QThread;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class MetadataMover;
 
@@ -91,7 +91,7 @@ namespace Nepomuk {
          * cleans up the index with respect to removed files, and optionally
          * tells the indexer service to run on the mount path.
          */
-        void slotDeviceMounted( const Nepomuk::RemovableMediaCache::Entry* );
+        void slotDeviceMounted( const Nepomuk2::RemovableMediaCache::Entry* );
 
         void slotActiveFileQueueTimeout(const KUrl& url);
 

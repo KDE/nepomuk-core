@@ -39,7 +39,7 @@ namespace {
 }
 
 
-class Nepomuk::ServiceController::Private
+class Nepomuk2::ServiceController::Private
 {
 public:
     Private()
@@ -78,7 +78,7 @@ public:
 };
 
 
-void Nepomuk::ServiceController::Private::init( KService::Ptr s )
+void Nepomuk2::ServiceController::Private::init( KService::Ptr s )
 {
     service = s;
     autostart = service->property( "X-KDE-Nepomuk-autostart", QVariant::Bool ).toBool();
@@ -95,7 +95,7 @@ void Nepomuk::ServiceController::Private::init( KService::Ptr s )
 }
 
 
-void Nepomuk::ServiceController::Private::reset()
+void Nepomuk2::ServiceController::Private::reset()
 {
     initialized = false;
     attached = false;
@@ -107,7 +107,7 @@ void Nepomuk::ServiceController::Private::reset()
 }
 
 
-Nepomuk::ServiceController::ServiceController( KService::Ptr service, QObject* parent )
+Nepomuk2::ServiceController::ServiceController( KService::Ptr service, QObject* parent )
     : QObject( parent ),
       d(new Private())
 {
@@ -124,25 +124,25 @@ Nepomuk::ServiceController::ServiceController( KService::Ptr service, QObject* p
 }
 
 
-Nepomuk::ServiceController::~ServiceController()
+Nepomuk2::ServiceController::~ServiceController()
 {
     delete d;
 }
 
 
-KService::Ptr Nepomuk::ServiceController::service() const
+KService::Ptr Nepomuk2::ServiceController::service() const
 {
     return d->service;
 }
 
 
-QString Nepomuk::ServiceController::name() const
+QString Nepomuk2::ServiceController::name() const
 {
     return d->service->desktopEntryName();
 }
 
 
-QStringList Nepomuk::ServiceController::dependencies() const
+QStringList Nepomuk2::ServiceController::dependencies() const
 {
     QStringList deps = d->service->property( "X-KDE-Nepomuk-dependencies", QVariant::StringList ).toStringList();
     if ( deps.isEmpty() ) {
@@ -153,32 +153,32 @@ QStringList Nepomuk::ServiceController::dependencies() const
 }
 
 
-void Nepomuk::ServiceController::setAutostart( bool enable )
+void Nepomuk2::ServiceController::setAutostart( bool enable )
 {
     KConfigGroup cg( Server::self()->config(), QString("Service-%1").arg(name()) );
     cg.writeEntry( "autostart", enable );
 }
 
 
-bool Nepomuk::ServiceController::autostart() const
+bool Nepomuk2::ServiceController::autostart() const
 {
     return d->autostart;
 }
 
 
-bool Nepomuk::ServiceController::startOnDemand() const
+bool Nepomuk2::ServiceController::startOnDemand() const
 {
     return d->startOnDemand;
 }
 
 
-bool Nepomuk::ServiceController::runOnce() const
+bool Nepomuk2::ServiceController::runOnce() const
 {
     return d->runOnce;
 }
 
 
-void Nepomuk::ServiceController::start()
+void Nepomuk2::ServiceController::start()
 {
     if( d->currentState == StateStopped ) {
         d->reset();
@@ -212,7 +212,7 @@ void Nepomuk::ServiceController::start()
 }
 
 
-void Nepomuk::ServiceController::stop()
+void Nepomuk2::ServiceController::stop()
 {
     if( d->currentState == StateRunning ||
         d->currentState == StateStarting ) {
@@ -239,19 +239,19 @@ void Nepomuk::ServiceController::stop()
 }
 
 
-bool Nepomuk::ServiceController::isRunning() const
+bool Nepomuk2::ServiceController::isRunning() const
 {
     return( d->attached || ( d->processControl ? d->processControl->isRunning() : false ) );
 }
 
 
-bool Nepomuk::ServiceController::isInitialized() const
+bool Nepomuk2::ServiceController::isInitialized() const
 {
     return d->initialized;
 }
 
 
-void Nepomuk::ServiceController::slotProcessFinished( bool /*clean*/ )
+void Nepomuk2::ServiceController::slotProcessFinished( bool /*clean*/ )
 {
     kDebug() << "Service" << name() << "went down";
     d->reset();
@@ -259,7 +259,7 @@ void Nepomuk::ServiceController::slotProcessFinished( bool /*clean*/ )
 }
 
 
-void Nepomuk::ServiceController::slotServiceRegistered( const QString& serviceName )
+void Nepomuk2::ServiceController::slotServiceRegistered( const QString& serviceName )
 {
     if( serviceName == dbusServiceName( name() ) ) {
         d->currentState = StateRunning;
@@ -271,7 +271,7 @@ void Nepomuk::ServiceController::slotServiceRegistered( const QString& serviceNa
     }
 }
 
-void Nepomuk::ServiceController::slotServiceUnregistered( const QString& serviceName )
+void Nepomuk2::ServiceController::slotServiceUnregistered( const QString& serviceName )
 {
     // an attached service was not started through ProcessControl. Thus, we cannot rely
     // on its restart-on-crash feature and have to do it manually. Afterwards it is back
@@ -291,7 +291,7 @@ void Nepomuk::ServiceController::slotServiceUnregistered( const QString& service
 }
 
 
-void Nepomuk::ServiceController::createServiceControlInterface()
+void Nepomuk2::ServiceController::createServiceControlInterface()
 {
     if(!d->attached && !d->started)
         return;
@@ -308,7 +308,7 @@ void Nepomuk::ServiceController::createServiceControlInterface()
 }
 
 
-void Nepomuk::ServiceController::slotServiceInitialized( bool success )
+void Nepomuk2::ServiceController::slotServiceInitialized( bool success )
 {
     if ( !d->initialized ) {
         if ( success ) {
@@ -330,12 +330,12 @@ void Nepomuk::ServiceController::slotServiceInitialized( bool success )
     }
 }
 
-Nepomuk::ServiceController::State Nepomuk::ServiceController::state() const
+Nepomuk2::ServiceController::State Nepomuk2::ServiceController::state() const
 {
     return d->currentState;
 }
 
-void Nepomuk::ServiceController::slotIsInitializedDBusCallFinished(QDBusPendingCallWatcher *watcher)
+void Nepomuk2::ServiceController::slotIsInitializedDBusCallFinished(QDBusPendingCallWatcher *watcher)
 {
     QDBusPendingReply<bool> isInitializedReply = *watcher;
     if( isInitializedReply.isError() ) {

@@ -30,7 +30,7 @@ class QDateTime;
 class QDataStream;
 class QFileInfo;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class Resource;
 

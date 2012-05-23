@@ -35,7 +35,7 @@ class KJob;
 class QFileInfo;
 class QByteArray;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class IndexCleaner;
     class Indexer;
@@ -249,7 +249,7 @@ namespace Nepomuk {
     QDebug operator<<( QDebug dbg, IndexScheduler::IndexingSpeed speed );
 }
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(Nepomuk::IndexScheduler::UpdateDirFlags)
+Q_DECLARE_OPERATORS_FOR_FLAGS(Nepomuk2::IndexScheduler::UpdateDirFlags)
 
 #endif
 

@@ -41,7 +41,7 @@ namespace Soprano {
     class Model;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Sync {
 
         class ResourceIdentifier::Private
@@ -52,7 +52,7 @@ namespace Nepomuk {
              * It will initialize all pointers with NULL and all values that
              * has a incorrect value with this value.
              */
-            Private( Nepomuk::Sync::ResourceIdentifier* parent );
+            Private( Nepomuk2::Sync::ResourceIdentifier* parent );
 
             ResourceIdentifier * q;
 

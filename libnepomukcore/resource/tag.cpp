@@ -28,61 +28,61 @@
 #include <Soprano/Vocabulary/NAO>
 
 
-Nepomuk::Tag::Tag()
+Nepomuk2::Tag::Tag()
     : Resource()
 {
 }
 
 
-Nepomuk::Tag::Tag( const Tag& res )
+Nepomuk2::Tag::Tag( const Tag& res )
     : Resource( res )
 {
 }
 
 
-Nepomuk::Tag::Tag( const Nepomuk::Resource& res )
+Nepomuk2::Tag::Tag( const Nepomuk2::Resource& res )
     : Resource( res )
 {
 }
 
 
-Nepomuk::Tag::Tag( const QString& uri )
+Nepomuk2::Tag::Tag( const QString& uri )
     : Resource( uri, Soprano::Vocabulary::NAO::Tag() )
 {
 }
 
 
-Nepomuk::Tag::Tag( const QUrl& uri )
+Nepomuk2::Tag::Tag( const QUrl& uri )
     : Resource( uri, Soprano::Vocabulary::NAO::Tag() )
 {
 }
 
 
-Nepomuk::Tag::Tag( const QString& uri, const QUrl& type )
+Nepomuk2::Tag::Tag( const QString& uri, const QUrl& type )
     : Resource( uri, type )
 {
 }
 
 
-Nepomuk::Tag::Tag( const QUrl& uri, const QUrl& type )
+Nepomuk2::Tag::Tag( const QUrl& uri, const QUrl& type )
     : Resource( uri, type )
 {
 }
 
 
-Nepomuk::Tag::~Tag()
+Nepomuk2::Tag::~Tag()
 {
 }
 
 
-Nepomuk::Tag& Nepomuk::Tag::operator=( const Tag& res )
+Nepomuk2::Tag& Nepomuk2::Tag::operator=( const Tag& res )
 {
     Resource::operator=( res );
     return *this;
 }
 
 
-QList<Nepomuk::Resource> Nepomuk::Tag::tagOf() const
+QList<Nepomuk2::Resource> Nepomuk2::Tag::tagOf() const
 {
     return convertResourceList<Resource>( ResourceManager::instance()->allResourcesWithProperty( Soprano::Vocabulary::NAO::hasTag(), *this ) );
 }

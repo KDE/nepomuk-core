@@ -192,7 +192,7 @@ QString SafeCode::resourceAllResourcesDefinition( const ResourceClass* rc ) cons
 {
     return QString( "%1\n"
                     "{\n"
-                    "    return Nepomuk::convertResourceList<%3>( ResourceManager::instance()->allResourcesOfType( QUrl::fromEncoded(\"%2\") ) );\n"
+                    "    return Nepomuk2::convertResourceList<%3>( ResourceManager::instance()->allResourcesOfType( QUrl::fromEncoded(\"%2\") ) );\n"
                     "}\n" )
         .arg( resourceAllResourcesDeclaration( rc, "Nepomuk" ) )
         .arg( rc->uri().toString() )

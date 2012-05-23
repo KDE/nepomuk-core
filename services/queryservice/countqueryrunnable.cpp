@@ -35,7 +35,7 @@
 #include <QtCore/QTime>
 
 
-Nepomuk::Query::CountQueryRunnable::CountQueryRunnable( Folder* folder )
+Nepomuk2::Query::CountQueryRunnable::CountQueryRunnable( Folder* folder )
     : QRunnable(),
       m_folder( folder )
 {
@@ -43,12 +43,12 @@ Nepomuk::Query::CountQueryRunnable::CountQueryRunnable( Folder* folder )
 }
 
 
-Nepomuk::Query::CountQueryRunnable::~CountQueryRunnable()
+Nepomuk2::Query::CountQueryRunnable::~CountQueryRunnable()
 {
 }
 
 
-void Nepomuk::Query::CountQueryRunnable::cancel()
+void Nepomuk2::Query::CountQueryRunnable::cancel()
 {
     // "detach" us from the folder which will most likely be deleted now
     QMutexLocker lock( &m_folderMutex );
@@ -56,7 +56,7 @@ void Nepomuk::Query::CountQueryRunnable::cancel()
 }
 
 
-void Nepomuk::Query::CountQueryRunnable::run()
+void Nepomuk2::Query::CountQueryRunnable::run()
 {
     QMutexLocker lock( &m_folderMutex );
     if( !m_folder )

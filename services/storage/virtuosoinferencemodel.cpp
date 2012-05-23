@@ -38,17 +38,17 @@ namespace {
 }
 
 
-Nepomuk::VirtuosoInferenceModel::VirtuosoInferenceModel(Model *model)
+Nepomuk2::VirtuosoInferenceModel::VirtuosoInferenceModel(Model *model)
     : Soprano::FilterModel(model),
       m_haveInferenceRule(false)
 {
 }
 
-Nepomuk::VirtuosoInferenceModel::~VirtuosoInferenceModel()
+Nepomuk2::VirtuosoInferenceModel::~VirtuosoInferenceModel()
 {
 }
 
-Soprano::QueryResultIterator Nepomuk::VirtuosoInferenceModel::executeQuery(const QString &query, Soprano::Query::QueryLanguage language, const QString &userQueryLanguage) const
+Soprano::QueryResultIterator Nepomuk2::VirtuosoInferenceModel::executeQuery(const QString &query, Soprano::Query::QueryLanguage language, const QString &userQueryLanguage) const
 {
     if(language == Soprano::Query::QueryLanguageSparqlNoInference) {
         return FilterModel::executeQuery(query, Soprano::Query::QueryLanguageSparql);
@@ -62,7 +62,7 @@ Soprano::QueryResultIterator Nepomuk::VirtuosoInferenceModel::executeQuery(const
     }
 }
 
-void Nepomuk::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
+void Nepomuk2::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
 {
     int ontologyCount= 0;
 
@@ -97,7 +97,7 @@ void Nepomuk::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
     }
 }
 
-void Nepomuk::VirtuosoInferenceModel::updateTypeVisibility()
+void Nepomuk2::VirtuosoInferenceModel::updateTypeVisibility()
 {
     const QUrl visibilityGraph = QUrl::fromEncoded(s_typeVisibilityGraph);
 

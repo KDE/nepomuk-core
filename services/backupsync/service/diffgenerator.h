@@ -34,7 +34,7 @@ namespace Soprano {
     class Statement;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     namespace Sync {
         class ChangeLog;

@@ -30,40 +30,40 @@
 #include <KStandardDirs>
 #include <KDebug>
 
-Nepomuk::LogStorage::LogStorage()
+Nepomuk2::LogStorage::LogStorage()
 {
     m_dirUrl = KStandardDirs::locateLocal( "data", "nepomuk/backupsync/log/" );
     m_locked = false;
 }
 
 
-Nepomuk::LogStorage::~LogStorage()
+Nepomuk2::LogStorage::~LogStorage()
 {
     // Always save all the records on exit
     saveRecords();
 }
 
 
-class Nepomuk::LogStorageHelper
+class Nepomuk2::LogStorageHelper
 {
 public:
-    Nepomuk::LogStorage q;
+    Nepomuk2::LogStorage q;
 };
-K_GLOBAL_STATIC(Nepomuk::LogStorageHelper, instanceHelper)
+K_GLOBAL_STATIC(Nepomuk2::LogStorageHelper, instanceHelper)
 
 // static
-Nepomuk::LogStorage* Nepomuk::LogStorage::instance()
+Nepomuk2::LogStorage* Nepomuk2::LogStorage::instance()
 {
     return &(instanceHelper->q);
 }
 
 
-Nepomuk::ChangeLog Nepomuk::LogStorage::getChangeLog(const QString& minDate)
+Nepomuk2::ChangeLog Nepomuk2::LogStorage::getChangeLog(const QString& minDate)
 {
     return getChangeLog( QDateTime::fromString( minDate, ChangeLog::dateTimeFormat() ) );
 }
 
-Nepomuk::ChangeLog Nepomuk::LogStorage::getChangeLog(const QDateTime& min)
+Nepomuk2::ChangeLog Nepomuk2::LogStorage::getChangeLog(const QDateTime& min)
 {
     // Always save all the existing records before accessing them. It's like flushing the cache
     saveRecords();
@@ -94,7 +94,7 @@ Nepomuk::ChangeLog Nepomuk::LogStorage::getChangeLog(const QDateTime& min)
 }
 
 
-void Nepomuk::LogStorage::addRecord(const Nepomuk::ChangeLogRecord& record)
+void Nepomuk2::LogStorage::addRecord(const Nepomuk2::ChangeLogRecord& record)
 {
     //kDebug() << record.st();
     m_records.append( record );
@@ -110,7 +110,7 @@ void Nepomuk::LogStorage::addRecord(const Nepomuk::ChangeLogRecord& record)
 //IMPORTANT: This function doesn't actually remove ALL the records less than min
 // This has been done purposely, as otherwise one would need to read the entire contents
 // of at least one LogFile.
-void Nepomuk::LogStorage::removeRecords(const QDateTime& min)
+void Nepomuk2::LogStorage::removeRecords(const QDateTime& min)
 {
     QDir dir( m_dirUrl );
     const QStringList& entries = dir.entryList( QDir::Files, QDir::Name );
@@ -148,7 +148,7 @@ namespace {
 
 //FIXME: The code is too complicated and POSSIBLY buggy. It's buggy in the way that it makes
 // the service usage skyrocket to 50%+ for large amounts of time.
-bool Nepomuk::LogStorage::saveRecords()
+bool Nepomuk2::LogStorage::saveRecords()
 {
     if( m_records.empty() )
         return false;
@@ -204,13 +204,13 @@ bool Nepomuk::LogStorage::saveRecords()
 }
 
 
-void Nepomuk::LogStorage::lock()
+void Nepomuk2::LogStorage::lock()
 {
     m_locked = true;
     m_lockTime = QDateTime::currentDateTime();
 }
 
-void Nepomuk::LogStorage::unlock()
+void Nepomuk2::LogStorage::unlock()
 {
     m_locked = false;
 }

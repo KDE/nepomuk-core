@@ -26,14 +26,14 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Types {
         class Property;
     }
 
     namespace Query {
         /**
-         * \class ComparisonTerm comparisonterm.h Nepomuk/Query/ComparisonTerm
+         * \class ComparisonTerm comparisonterm.h Nepomuk2/Query/ComparisonTerm
          *
          * \brief A term matching the value of a property.
          *
@@ -44,7 +44,7 @@ namespace Nepomuk {
          * term. The matching is done as follows:
          *
          * \li A LiteralTerm as subTerm() is directly matched to the value of a literal
-         * property (see also Nepomuk::Types::Property::literalRangeType()) or to the
+         * property (see also Nepomuk2::Types::Property::literalRangeType()) or to the
          * labels of related resources in case of a property that has a resource range.
          * \li An invalid sub term simply matches any resource or value, effectively
          * acting as a wildcard.
