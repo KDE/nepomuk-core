@@ -39,7 +39,7 @@ configure_file(NepomukCoreConfigVersion.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Nep
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_PREFIX}/share/cmake/NepomukCore)
+  DESTINATION ${LIB_INSTALL_DIR}/cmake/NepomukCore)
 
 
 # Some definitions
