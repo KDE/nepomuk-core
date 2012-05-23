@@ -180,6 +180,8 @@ install(FILES
   datamanagement/describeresourcesjob.h
   datamanagement/resourcewatcher.h
   datamanagement/storeresourcesjob.h
+  ${CMAKE_CURRENT_BINARY_DIR}/queryinterface.h
+  ${CMAKE_CURRENT_BINARY_DIR}/queryserviceinterface.h
   ${CMAKE_CURRENT_BINARY_DIR}/nepomukversion.h
 
   # Vocabularies
