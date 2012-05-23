@@ -32,16 +32,6 @@ macro_log_feature(SHAREDDESKTOPONTOLOGIES_FOUND "Shared desktop ontologies" "Des
 macro_log_feature(STRIGI_FOUND "Strigi" "Strigi is a fast and light-weight file indexing solution" "http://strigi.sourceforge.net" TRUE ${STRIGI_MIN_VERSION} "Required for file indexing (only libstreamanalyzer is required actually)")
 
 
-# generate NepomukCoreConfig.cmake for easy utilisation of the package by other cmake build systems
-# ===============================================================================================
-configure_file(NepomukCoreConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake @ONLY)
-configure_file(NepomukCoreConfigVersion.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfigVersion.cmake @ONLY)
-install(FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfigVersion.cmake
-  DESTINATION ${LIB_INSTALL_DIR}/cmake/NepomukCore)
-
-
 # Some definitions
 # ===============================================================================================
 add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS})
@@ -79,3 +69,25 @@ add_subdirectory(includes)
 add_subdirectory(tests)
 
 macro_display_feature_log()
+
+# generate NepomukCoreConfig.cmake for easy utilisation of the package by other cmake build systems
+# ===============================================================================================
+configure_file(NepomukCoreConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake @ONLY)
+
+# Generate NepomukCoreConfigVersion.cmake
+macro_write_basic_cmake_version_file(${nepomuk-core_BINARY_DIR}/NepomukCoreConfigVersion.cmake
+                                     ${CMAKE_NEPOMUK_CORE_VERSION_MAJOR}
+                                     ${CMAKE_NEPOMUK_CORE_VERSION_MINOR}
+                                     ${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}
+                                     )
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfigVersion.cmake
+  DESTINATION ${LIB_INSTALL_DIR}/cmake/NepomukCore)
+
+# install the file with the exported targets
+install(EXPORT NepomukCoreLibraryTargets
+        DESTINATION ${LIB_INSTALL_DIR}/cmake/NepomukCore
+        FILE NepomukCoreTargetsWithPrefix.cmake
+        )

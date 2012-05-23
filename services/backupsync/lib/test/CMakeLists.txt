@@ -28,6 +28,6 @@ target_link_libraries(nepomuksynctest
   ${QT_QTTEST_LIBRARY}
   ${QT_QTGUI_LIBRARY}
   ${SOPRANO_LIBRARIES}
-  kdecore
+  ${KDE4_KDECORE_LIBS}
   nepomuksync
 )

@@ -38,10 +38,10 @@ target_link_libraries(nepomuksync
   ${SOPRANO_LIBRARIES}
   nepomukcore
   ${KDE4_KIO_LIBS}
-  kdecore
+  ${KDE4_KDECORE_LIBS}
   )
 
-install(TARGETS nepomuksync EXPORT kdelibsLibraryTargets ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS nepomuksync EXPORT NepomukCoreLibraryTargets ${INSTALL_TARGETS_DEFAULT_ARGS})
 #
 # install(FILES
 #     resourceidentifier.h

@@ -15,6 +15,6 @@ target_link_libraries(nepomukcommon
   nepomukcore
   )
 
-install(TARGETS nepomukcommon EXPORT ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS nepomukcommon ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 # Note: no headers installed since this is a private shared lib
