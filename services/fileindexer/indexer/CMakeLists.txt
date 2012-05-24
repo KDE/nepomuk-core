@@ -25,7 +25,6 @@ include_directories(
   ${NEPOMUK_INCLUDE_DIR}
   ${LIBSTREAMS_INCLUDE_DIRS}
   ${LIBSTREAMANALYZER_INCLUDE_DIRS}
-  ../../storage/lib/
   )
 
 set(indexer_SRCS

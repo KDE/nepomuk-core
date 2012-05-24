@@ -10,7 +10,6 @@ include_directories(
   ${SOPRANO_INCLUDE_DIR}
   ${NEPOMUK_INCLUDE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/../fileindexer
-  ${CMAKE_CURRENT_SOURCE_DIR}/../storage/lib/
   )
 
 set(SRCS

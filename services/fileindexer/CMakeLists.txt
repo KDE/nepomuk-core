@@ -8,7 +8,6 @@ include_directories(
   ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
   ${NEPOMUK_INCLUDE_DIR}
-  ../storage/lib/
   )
 
 set(nepomukfileindexer_SRCS
