@@ -48,10 +48,8 @@
 #include "resourcemanager.h"
 
 #include <KDebug>
-#include <Soprano/Vocabulary/NRL>
 
 using namespace Soprano::Vocabulary;
-using namespace Nepomuk::Vocabulary;
 
 namespace {
     class IdentificationSetGenerator {
@@ -143,37 +141,37 @@ namespace {
 }
 
 
-class Nepomuk::IdentificationSet::Private : public QSharedData {
+class Nepomuk2::IdentificationSet::Private : public QSharedData {
 public:
     QList<Soprano::Statement> m_statements;
 };
 
 
-Nepomuk::IdentificationSet::IdentificationSet()
-    : d( new Nepomuk::IdentificationSet::Private )
+Nepomuk2::IdentificationSet::IdentificationSet()
+    : d( new Nepomuk2::IdentificationSet::Private )
 {
 }
 
 
-Nepomuk::IdentificationSet::IdentificationSet(const Nepomuk::IdentificationSet& rhs)
+Nepomuk2::IdentificationSet::IdentificationSet(const Nepomuk2::IdentificationSet& rhs)
     : d( rhs.d )
 {
 }
 
 
-Nepomuk::IdentificationSet& Nepomuk::IdentificationSet::operator=(const Nepomuk::IdentificationSet& rhs)
+Nepomuk2::IdentificationSet& Nepomuk2::IdentificationSet::operator=(const Nepomuk2::IdentificationSet& rhs)
 {
     d = rhs.d;
     return *this;
 }
 
 
-Nepomuk::IdentificationSet::~IdentificationSet()
+Nepomuk2::IdentificationSet::~IdentificationSet()
 {
 }
 
 
-Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromUrl(const QUrl& url)
+Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromUrl(const QUrl& url)
 {
     QFile file( url.toLocalFile() );
     if( !file.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
@@ -186,7 +184,7 @@ Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromUrl(const QUrl& url)
 }
 
 
-Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromTextStream(QTextStream& ts)
+Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromTextStream(QTextStream& ts)
 {
     //
     // Parse all the statements
@@ -211,9 +209,9 @@ namespace {
     // Separate all the unique URIs of scheme "nepomuk" from the subject and object in all the statements.
     //
     // vHanda: Maybe we should separate the graphs as well. Identification isn't meant for graphs.
-    QSet<QUrl> getUniqueUris( const QList<Nepomuk::ChangeLogRecord> records ) {
+    QSet<QUrl> getUniqueUris( const QList<Nepomuk2::ChangeLogRecord> records ) {
         QSet<QUrl> uniqueUris;
-        foreach( const Nepomuk::ChangeLogRecord & r, records ) {
+        foreach( const Nepomuk2::ChangeLogRecord & r, records ) {
             QUrl sub = r.st().subject().uri();
             uniqueUris.insert( sub );
 
@@ -229,7 +227,7 @@ namespace {
     }
 }
 
-Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromChangeLog(const Nepomuk::ChangeLog& log, Soprano::Model* model, const QSet<QUrl> & ignoreList)
+Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromChangeLog(const Nepomuk2::ChangeLog& log, Soprano::Model* model, const QSet<QUrl> & ignoreList)
 {
     QSet<QUrl> uniqueUris = getUniqueUris( log.toList() );
 
@@ -239,7 +237,7 @@ Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromChangeLog(const Nepom
     return is;
 }
 
-Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromResource(const QUrl & resourceUrl, Soprano::Model* model, const QSet<QUrl> &  ignoreList)
+Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromResource(const QUrl & resourceUrl, Soprano::Model* model, const QSet<QUrl> &  ignoreList)
 {
     QSet<QUrl> uniqueUris;
     uniqueUris.insert(resourceUrl);
@@ -251,7 +249,7 @@ Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromResource(const QUrl &
 }
 
 
-Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromResourceList(const QList<QUrl> resList, Soprano::Model* model)
+Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromResourceList(const QList<QUrl> resList, Soprano::Model* model)
 {
     IdentificationSetGenerator ifg( resList.toSet(), model );
     IdentificationSet is;
@@ -261,8 +259,6 @@ Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromResourceList(const QL
 
 
 namespace {
-
-    //TODO: Use Nepomuk::Type::Property
     bool isIdentifyingProperty( QUrl prop, Soprano::Model * model ) {
         QString query = QString::fromLatin1( "ask { %1 %2 %3 }" )
         .arg( Soprano::Node::resourceToN3( prop ) )
@@ -273,7 +269,7 @@ namespace {
 }
 
 
-Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromOnlyChangeLog(const Nepomuk::ChangeLog& log )
+Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromOnlyChangeLog(const Nepomuk2::ChangeLog& log )
 {
     Soprano::Model * model = ResourceManager::instance()->mainModel();
     IdentificationSet is;
@@ -287,7 +283,7 @@ Nepomuk::IdentificationSet Nepomuk::IdentificationSet::fromOnlyChangeLog(const N
 }
 
 
-bool Nepomuk::IdentificationSet::save( const QUrl& output ) const
+bool Nepomuk2::IdentificationSet::save( const QUrl& output ) const
 {
     QFile file( output.path() );
     if( !file.open( QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate ) ) {
@@ -301,7 +297,7 @@ bool Nepomuk::IdentificationSet::save( const QUrl& output ) const
 
 
 //TODO: We could probably use some kind of error return codes
-bool Nepomuk::IdentificationSet::save( QTextStream& out ) const
+bool Nepomuk2::IdentificationSet::save( QTextStream& out ) const
 {
     if( d->m_statements.isEmpty() )
         return false;
@@ -331,30 +327,30 @@ bool Nepomuk::IdentificationSet::save( QTextStream& out ) const
 }
 
 
-QList< Soprano::Statement > Nepomuk::IdentificationSet::toList() const
+QList< Soprano::Statement > Nepomuk2::IdentificationSet::toList() const
 {
     return d->m_statements;
 }
 
 
-void Nepomuk::IdentificationSet::clear()
+void Nepomuk2::IdentificationSet::clear()
 {
     d->m_statements.clear();
 }
 
-Nepomuk::IdentificationSet& Nepomuk::IdentificationSet::operator<<(const Nepomuk::IdentificationSet& rhs)
+Nepomuk2::IdentificationSet& Nepomuk2::IdentificationSet::operator<<(const Nepomuk2::IdentificationSet& rhs)
 {
     d->m_statements << rhs.d->m_statements;
     return *this;
 }
 
-void Nepomuk::IdentificationSet::mergeWith(const IdentificationSet & rhs)
+void Nepomuk2::IdentificationSet::mergeWith(const IdentificationSet & rhs)
 {
     this->d->m_statements << rhs.d->m_statements;
     return;
 }
 
-void Nepomuk::IdentificationSet::createIdentificationSet(Soprano::Model* model, const QSet< QUrl >& uniqueUris, const QUrl& outputUrl)
+void Nepomuk2::IdentificationSet::createIdentificationSet(Soprano::Model* model, const QSet< QUrl >& uniqueUris, const QUrl& outputUrl)
 {
     QFile file( outputUrl.path() );
     if( !file.open( QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate ) ) {

@@ -36,24 +36,22 @@
 #include <KUrl>
 
 
-class Nepomuk::CreateResourceJob::Private
+class Nepomuk2::CreateResourceJob::Private
 {
 public:
     QUrl m_resourceUri;
 };
 
-Nepomuk::CreateResourceJob::CreateResourceJob(const QList<QUrl>& types,
+Nepomuk2::CreateResourceJob::CreateResourceJob(const QList<QUrl>& types,
                                      const QString& label,
                                      const QString& description,
                                      const KComponentData& component)
     : KJob(0),
       d(new Private)
 {
-    org::kde::nepomuk::DataManagement dms(QLatin1String(DMS_DBUS_SERVICE),
-                                          QLatin1String("/datamanagement"),
-                                          KDBusConnectionPool::threadConnection());
+    org::kde::nepomuk::DataManagement* dms = Nepomuk2::dataManagementDBusInterface();
     QDBusPendingCallWatcher* dbusCallWatcher
-            = new QDBusPendingCallWatcher(dms.createResource(Nepomuk::DBus::convertUriList(types),
+           = new QDBusPendingCallWatcher(dms->createResource(Nepomuk2::DBus::convertUriList(types),
                                                              label,
                                                              description,
                                                              component.componentName()));
@@ -61,17 +59,17 @@ Nepomuk::CreateResourceJob::CreateResourceJob(const QList<QUrl>& types,
             this, SLOT(slotDBusCallFinished(QDBusPendingCallWatcher*)));
 }
 
-Nepomuk::CreateResourceJob::~CreateResourceJob()
+Nepomuk2::CreateResourceJob::~CreateResourceJob()
 {
     delete d;
 }
 
-void Nepomuk::CreateResourceJob::start()
+void Nepomuk2::CreateResourceJob::start()
 {
     // do nothing, we do everything in the constructor
 }
 
-void Nepomuk::CreateResourceJob::slotDBusCallFinished(QDBusPendingCallWatcher *watcher)
+void Nepomuk2::CreateResourceJob::slotDBusCallFinished(QDBusPendingCallWatcher *watcher)
 {
     QDBusPendingReply<QString> reply = *watcher;
     if (reply.isError()) {
@@ -86,7 +84,7 @@ void Nepomuk::CreateResourceJob::slotDBusCallFinished(QDBusPendingCallWatcher *w
     emitResult();
 }
 
-QUrl Nepomuk::CreateResourceJob::resourceUri() const
+QUrl Nepomuk2::CreateResourceJob::resourceUri() const
 {
     return d->m_resourceUri;
 }

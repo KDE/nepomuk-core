@@ -26,7 +26,7 @@
 #include <QtCore/QObject>
 #include <Soprano/Model>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class DiffGenerator;
 

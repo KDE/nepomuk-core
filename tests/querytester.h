@@ -1,5 +1,4 @@
 /*
-   This file is part of the Nepomuk KDE project.
    Copyright (C) 2010 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
@@ -19,43 +18,25 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef CRAPPYINFERENCER2TEST_H
-#define CRAPPYINFERENCER2TEST_H
+#ifndef _TVDB_TEST_APP_H_
+#define _TVDB_TEST_APP_H_
 
-#include <QObject>
+#include <QWidget>
+#include <QTextBrowser>
+#include <QLineEdit>
 
-class KTempDir;
-class CrappyInferencer2;
-namespace Soprano {
-class Model;
-}
-namespace Nepomuk {
-class ClassAndPropertyTree;
-}
+#include "ui_querytester.h"
 
-class CrappyInferencer2Test : public QObject
+class QueryTester : public QWidget, private Ui::QueryTesterWidget
 {
     Q_OBJECT
 
-private Q_SLOTS:
-    void initTestCase();
-    void cleanupTestCase();
-    void init();
-    void testAddAnyStatement();
-    void testAddTypeStatement();
-    void testAddSubClassOfStatement();
-    void testRemoveAnyStatement();
-    void testRemoveTypeStatement();
-    void testRemoveSubClassOfStatement();
-    void testRemoveAllStatements();
-    void testCyclicSubClassRelation();
-    void testUpdateAllResources();
+public:
+    QueryTester( QWidget* parent = 0 );
+    ~QueryTester();
 
-private:
-    KTempDir* m_storageDir;
-    Soprano::Model* m_baseModel;
-    Nepomuk::ClassAndPropertyTree* m_typeTree;
-    CrappyInferencer2* m_model;
+private Q_SLOTS:
+    void slotConvert();
 };
 
 #endif

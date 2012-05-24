@@ -1,12 +1,12 @@
 project(nepomuk-core)
 
 
-# set the version to be used by NepomukExtrasConfig.cmake and the lib version
+# set the version to be used by NepomukCoreConfig.cmake and the lib version
 # ===============================================================================================
-set(CMAKE_NEPOMUK_VERSION_MAJOR 0)
-set(CMAKE_NEPOMUK_VERSION_MINOR 1)
-set(CMAKE_NEPOMUK_VERSION_RELEASE 0)
-set(CMAKE_NEPOMUK_VERSION_STRING "${CMAKE_NEPOMUK_VERSION_MAJOR}.${CMAKE_NEPOMUK_VERSION_MINOR}.${CMAKE_NEPOMUK_VERSION_RELEASE}")
+set(CMAKE_NEPOMUK_CORE_VERSION_MAJOR 0)
+set(CMAKE_NEPOMUK_CORE_VERSION_MINOR 1)
+set(CMAKE_NEPOMUK_CORE_VERSION_RELEASE 0)
+set(CMAKE_NEPOMUK_CORE_VERSION_STRING "${CMAKE_NEPOMUK_CORE_VERSION_MAJOR}.${CMAKE_NEPOMUK_CORE_VERSION_MINOR}.${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}")
 
 
 # search required packages
@@ -19,7 +19,7 @@ include(MacroLibrary)
 
 set(SDO_MIN_VERSION "0.7")
 find_package(SharedDesktopOntologies)
-set(SOPRANO_MIN_VERSION "2.7.53")
+set(SOPRANO_MIN_VERSION "2.7.56")
 find_package(Soprano)
 set(STRIGI_MIN_VERSION "0.7.3")
 find_package(Strigi)
@@ -65,5 +65,29 @@ add_subdirectory(services)
 add_subdirectory(servicestub)
 add_subdirectory(interfaces)
 add_subdirectory(removed-services)
+add_subdirectory(includes)
+add_subdirectory(tests)
 
 macro_display_feature_log()
+
+# generate NepomukCoreConfig.cmake for easy utilisation of the package by other cmake build systems
+# ===============================================================================================
+configure_file(NepomukCoreConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake @ONLY)
+
+# Generate NepomukCoreConfigVersion.cmake
+macro_write_basic_cmake_version_file(${nepomuk-core_BINARY_DIR}/NepomukCoreConfigVersion.cmake
+                                     ${CMAKE_NEPOMUK_CORE_VERSION_MAJOR}
+                                     ${CMAKE_NEPOMUK_CORE_VERSION_MINOR}
+                                     ${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}
+                                     )
+
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfigVersion.cmake
+  DESTINATION ${LIB_INSTALL_DIR}/cmake/NepomukCore)
+
+# install the file with the exported targets
+install(EXPORT NepomukCoreLibraryTargets
+        DESTINATION ${LIB_INSTALL_DIR}/cmake/NepomukCore
+        FILE NepomukCoreTargetsWithPrefix.cmake
+        )

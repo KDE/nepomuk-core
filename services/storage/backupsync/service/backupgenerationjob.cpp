@@ -24,21 +24,21 @@
 
 #include <QtCore/QTimer>
 
-Nepomuk::BackupGenerationJob::BackupGenerationJob(Soprano::Model *model, const QUrl& url, QObject* parent)
+Nepomuk2::BackupGenerationJob::BackupGenerationJob(Soprano::Model *model, const QUrl& url, QObject* parent)
     : KJob(parent),
       m_model(model),
       m_url( url )
 {
 }
 
-void Nepomuk::BackupGenerationJob::start()
+void Nepomuk2::BackupGenerationJob::start()
 {
     QTimer::singleShot( 0, this, SLOT(doWork()) );
 }
 
-void Nepomuk::BackupGenerationJob::doWork()
+void Nepomuk2::BackupGenerationJob::doWork()
 {
-    Nepomuk::saveBackupSyncFile( m_model, m_url );
+    Nepomuk2::saveBackupSyncFile( m_model, m_url );
     emitResult();
 }
 

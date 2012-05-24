@@ -44,15 +44,14 @@
 using namespace Soprano;
 using namespace Soprano::Vocabulary;
 
-Nepomuk::ClassAndPropertyTree* Nepomuk::ClassAndPropertyTree::s_self = 0;
+Nepomuk2::ClassAndPropertyTree* Nepomuk2::ClassAndPropertyTree::s_self = 0;
 
-class Nepomuk::ClassAndPropertyTree::ClassOrProperty
+class Nepomuk2::ClassAndPropertyTree::ClassOrProperty
 {
 public:
     ClassOrProperty()
         : isProperty(false),
           maxCardinality(0),
-          userVisible(0),
           defining(0) {
     }
 
@@ -71,9 +70,6 @@ public:
     /// the max cardinality if this is a property with a max cardinality set, 0 otherwise
     int maxCardinality;
 
-    /// 0 - undecided, 1 - visible, -1 - non-visible
-    int userVisible;
-
     /// 0 - undecided, 1 - defining, -1 - non-defining
     int defining;
 
@@ -82,7 +78,7 @@ public:
     QUrl range;
 };
 
-Nepomuk::ClassAndPropertyTree::ClassAndPropertyTree(QObject *parent)
+Nepomuk2::ClassAndPropertyTree::ClassAndPropertyTree(QObject *parent)
     : QObject(parent),
       m_mutex(QMutex::Recursive)
 {
@@ -90,13 +86,13 @@ Nepomuk::ClassAndPropertyTree::ClassAndPropertyTree(QObject *parent)
     s_self = this;
 }
 
-Nepomuk::ClassAndPropertyTree::~ClassAndPropertyTree()
+Nepomuk2::ClassAndPropertyTree::~ClassAndPropertyTree()
 {
     qDeleteAll(m_tree);
     s_self = 0;
 }
 
-bool Nepomuk::ClassAndPropertyTree::isKnownClass(const QUrl &uri) const
+bool Nepomuk2::ClassAndPropertyTree::isKnownClass(const QUrl &uri) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(uri))
@@ -105,7 +101,7 @@ bool Nepomuk::ClassAndPropertyTree::isKnownClass(const QUrl &uri) const
         return false;
 }
 
-QSet<QUrl> Nepomuk::ClassAndPropertyTree::allParents(const QUrl &uri) const
+QSet<QUrl> Nepomuk2::ClassAndPropertyTree::allParents(const QUrl &uri) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(uri))
@@ -114,7 +110,7 @@ QSet<QUrl> Nepomuk::ClassAndPropertyTree::allParents(const QUrl &uri) const
         return QSet<QUrl>();
 }
 
-bool Nepomuk::ClassAndPropertyTree::isChildOf(const QUrl &type, const QUrl &superClass) const
+bool Nepomuk2::ClassAndPropertyTree::isChildOf(const QUrl &type, const QUrl &superClass) const
 {
     if( type == superClass )
         return true;
@@ -126,7 +122,7 @@ bool Nepomuk::ClassAndPropertyTree::isChildOf(const QUrl &type, const QUrl &supe
         return 0;
 }
 
-bool Nepomuk::ClassAndPropertyTree::isChildOf(const QList< QUrl >& types, const QUrl& superClass) const
+bool Nepomuk2::ClassAndPropertyTree::isChildOf(const QList< QUrl >& types, const QUrl& superClass) const
 {
     if(superClass == RDFS::Resource()) {
         return true;
@@ -139,7 +135,7 @@ bool Nepomuk::ClassAndPropertyTree::isChildOf(const QList< QUrl >& types, const 
     return false;
 }
 
-int Nepomuk::ClassAndPropertyTree::maxCardinality(const QUrl &type) const
+int Nepomuk2::ClassAndPropertyTree::maxCardinality(const QUrl &type) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(type))
@@ -148,16 +144,7 @@ int Nepomuk::ClassAndPropertyTree::maxCardinality(const QUrl &type) const
         return 0;
 }
 
-bool Nepomuk::ClassAndPropertyTree::isUserVisible(const QUrl &type) const
-{
-    QMutexLocker lock(&m_mutex);
-    if(const ClassOrProperty* cop = findClassOrProperty(type))
-        return cop->userVisible == 1;
-    else
-        return true;
-}
-
-QUrl Nepomuk::ClassAndPropertyTree::propertyDomain(const QUrl &uri) const
+QUrl Nepomuk2::ClassAndPropertyTree::propertyDomain(const QUrl &uri) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(uri))
@@ -166,7 +153,7 @@ QUrl Nepomuk::ClassAndPropertyTree::propertyDomain(const QUrl &uri) const
         return QUrl();
 }
 
-QUrl Nepomuk::ClassAndPropertyTree::propertyRange(const QUrl &uri) const
+QUrl Nepomuk2::ClassAndPropertyTree::propertyRange(const QUrl &uri) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(uri))
@@ -175,7 +162,7 @@ QUrl Nepomuk::ClassAndPropertyTree::propertyRange(const QUrl &uri) const
         return QUrl();
 }
 
-bool Nepomuk::ClassAndPropertyTree::hasLiteralRange(const QUrl &uri) const
+bool Nepomuk2::ClassAndPropertyTree::hasLiteralRange(const QUrl &uri) const
 {
     // TODO: this is a rather crappy check for literal range
     QMutexLocker lock(&m_mutex);
@@ -186,7 +173,7 @@ bool Nepomuk::ClassAndPropertyTree::hasLiteralRange(const QUrl &uri) const
         return false;
 }
 
-bool Nepomuk::ClassAndPropertyTree::isDefiningProperty(const QUrl &uri) const
+bool Nepomuk2::ClassAndPropertyTree::isDefiningProperty(const QUrl &uri) const
 {
     QMutexLocker lock(&m_mutex);
     if(const ClassOrProperty* cop = findClassOrProperty(uri))
@@ -195,7 +182,7 @@ bool Nepomuk::ClassAndPropertyTree::isDefiningProperty(const QUrl &uri) const
         return true; // we default to true for unknown properties to ensure that we never perform invalid merges
 }
 
-Soprano::Node Nepomuk::ClassAndPropertyTree::variantToNode(const QVariant &value, const QUrl &property) const
+Soprano::Node Nepomuk2::ClassAndPropertyTree::variantToNode(const QVariant &value, const QUrl &property) const
 {
     QSet<Soprano::Node> nodes = variantListToNodeSet(QVariantList() << value, property);
     if(nodes.isEmpty())
@@ -215,7 +202,7 @@ namespace Vocabulary {
 }
 }
 
-QSet<Soprano::Node> Nepomuk::ClassAndPropertyTree::variantListToNodeSet(const QVariantList &vl, const QUrl &property) const
+QSet<Soprano::Node> Nepomuk2::ClassAndPropertyTree::variantListToNodeSet(const QVariantList &vl, const QUrl &property) const
 {
     clearError();
 
@@ -328,7 +315,7 @@ QSet<Soprano::Node> Nepomuk::ClassAndPropertyTree::variantListToNodeSet(const QV
     return nodes;
 }
 
-void Nepomuk::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
+void Nepomuk2::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
 {
     QMutexLocker lock(&m_mutex);
 
@@ -345,14 +332,12 @@ void Nepomuk::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
                                   "OPTIONAL { ?r rdfs:subPropertyOf ?p . ?p a rdf:Property . } . } "
                                   "OPTIONAL { ?r %1 ?mc . } . "
                                   "OPTIONAL { ?r %2 ?c . } . "
-                                  "OPTIONAL { ?r %3 ?v . } . "
-                                  "OPTIONAL { ?r %4 ?domain . } . "
-                                  "OPTIONAL { ?r %5 ?range . } . "
-                                  "FILTER(?r!=%6) . "
+                                  "OPTIONAL { ?r %3 ?domain . } . "
+                                  "OPTIONAL { ?r %4 ?range . } . "
+                                  "FILTER(?r!=%5) . "
                                   "}" )
             .arg(Soprano::Node::resourceToN3(NRL::maxCardinality()),
                  Soprano::Node::resourceToN3(NRL::cardinality()),
-                 Soprano::Node::resourceToN3(NAO::userVisible()),
                  Soprano::Node::resourceToN3(RDFS::domain()),
                  Soprano::Node::resourceToN3(RDFS::range()),
                  Soprano::Node::resourceToN3(RDFS::Resource()));
@@ -380,10 +365,6 @@ void Nepomuk::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
         }
 
         r_cop->isProperty = it["pt"].isValid();
-
-        if( v.isLiteral() ) {
-            r_cop->userVisible = (v.literal().toBool() ? 1 : -1);
-        }
 
         if(mc > 0 || c > 0) {
             r_cop->maxCardinality = qMax(mc, c);
@@ -420,7 +401,7 @@ void Nepomuk::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
     if(m_tree.contains(NAO::identifier()))
         m_tree[NAO::identifier()]->range = XMLSchema::string();
 
-    // make sure rdfs:Resource is visible by default
+    // add rdfs:Resource as parent for all top-level classes
     ClassOrProperty* rdfsResourceNode = 0;
     QHash<QUrl, ClassOrProperty*>::iterator rdfsResourceIt = m_tree.find(RDFS::Resource());
     if( rdfsResourceIt == m_tree.end() ) {
@@ -431,22 +412,11 @@ void Nepomuk::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
     else {
         rdfsResourceNode = rdfsResourceIt.value();
     }
-    if( rdfsResourceNode->userVisible == 0 ) {
-        rdfsResourceNode->userVisible = 1;
-    }
-    // add rdfs:Resource as parent for all top-level classes
     for ( QHash<QUrl, ClassOrProperty*>::iterator it = m_tree.begin();
           it != m_tree.end(); ++it ) {
         if( it.value() != rdfsResourceNode && it.value()->directParents.isEmpty() ) {
             it.value()->directParents.insert( RDFS::Resource() );
         }
-    }
-
-    // update all visibility
-    for ( QHash<QUrl, ClassOrProperty*>::iterator it = m_tree.begin();
-          it != m_tree.end(); ++it ) {
-        QSet<QUrl> visitedNodes;
-        updateUserVisibility( it.value(), visitedNodes );
     }
 
     // complete the allParents lists
@@ -492,7 +462,7 @@ void Nepomuk::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
     }
 }
 
-const Nepomuk::ClassAndPropertyTree::ClassOrProperty * Nepomuk::ClassAndPropertyTree::findClassOrProperty(const QUrl &uri) const
+const Nepomuk2::ClassAndPropertyTree::ClassOrProperty * Nepomuk2::ClassAndPropertyTree::findClassOrProperty(const QUrl &uri) const
 {
     QHash<QUrl, ClassOrProperty*>::const_iterator it = m_tree.constFind(uri);
     if(it == m_tree.constEnd())
@@ -501,47 +471,17 @@ const Nepomuk::ClassAndPropertyTree::ClassOrProperty * Nepomuk::ClassAndProperty
         return it.value();
 }
 
-bool Nepomuk::ClassAndPropertyTree::contains(const QUrl& uri) const
+bool Nepomuk2::ClassAndPropertyTree::contains(const QUrl& uri) const
 {
     return m_tree.contains(uri);
 }
 
 
 /**
- * Set the value of nao:userVisible.
- * A class is visible if it has at least one visible direct parent class.
- */
-int Nepomuk::ClassAndPropertyTree::updateUserVisibility( ClassOrProperty* cop, QSet<QUrl>& visitedNodes )
-{
-    if ( cop->userVisible != 0 ) {
-        return cop->userVisible;
-    }
-    else {
-        for ( QSet<QUrl>::iterator it = cop->directParents.begin();
-             it != cop->directParents.end(); ++it ) {
-            // avoid endless loops
-            if( visitedNodes.contains(*it) )
-                continue;
-            visitedNodes.insert(*it);
-            if ( updateUserVisibility( m_tree[*it], visitedNodes ) == 1 ) {
-                cop->userVisible = 1;
-                break;
-            }
-        }
-        if ( cop->userVisible == 0 ) {
-            // default to invisible
-            cop->userVisible = -1;
-        }
-        //kDebug() << "Setting nao:userVisible of" << cop->uri.toString() << ( cop->userVisible == 1 );
-        return cop->userVisible;
-    }
-}
-
-/**
  * Set the value of defining.
  * An defining property has at least one defining direct parent property.
  */
-int Nepomuk::ClassAndPropertyTree::updateDefining( ClassOrProperty* cop, QSet<QUrl>& definingNodes )
+int Nepomuk2::ClassAndPropertyTree::updateDefining( ClassOrProperty* cop, QSet<QUrl>& definingNodes )
 {
     if ( cop->defining != 0 ) {
         return cop->defining;
@@ -567,7 +507,7 @@ int Nepomuk::ClassAndPropertyTree::updateDefining( ClassOrProperty* cop, QSet<QU
     }
 }
 
-QSet<QUrl> Nepomuk::ClassAndPropertyTree::getAllParents(ClassOrProperty* cop, QSet<QUrl>& visitedNodes)
+QSet<QUrl> Nepomuk2::ClassAndPropertyTree::getAllParents(ClassOrProperty* cop, QSet<QUrl>& visitedNodes)
 {
     if(cop->allParents.isEmpty()) {
         for ( QSet<QUrl>::iterator it = cop->directParents.begin();
@@ -600,7 +540,7 @@ namespace {
     }
 }
 
-QList<Soprano::Statement> Nepomuk::ClassAndPropertyTree::simpleResourceToStatementList(const Nepomuk::SimpleResource &res) const
+QList<Soprano::Statement> Nepomuk2::ClassAndPropertyTree::simpleResourceToStatementList(const Nepomuk2::SimpleResource &res) const
 {
     const Soprano::Node subject = convertIfBlankNode(res.uri());
     QList<Soprano::Statement> list;
@@ -616,7 +556,7 @@ QList<Soprano::Statement> Nepomuk::ClassAndPropertyTree::simpleResourceToStateme
     return list;
 }
 
-QList<Soprano::Statement> Nepomuk::ClassAndPropertyTree::simpleResourceGraphToStatementList(const Nepomuk::SimpleResourceGraph &graph) const
+QList<Soprano::Statement> Nepomuk2::ClassAndPropertyTree::simpleResourceGraphToStatementList(const Nepomuk2::SimpleResourceGraph &graph) const
 {
     QList<Soprano::Statement> list;
     foreach(const SimpleResource& res, graph.toList()) {
@@ -625,20 +565,7 @@ QList<Soprano::Statement> Nepomuk::ClassAndPropertyTree::simpleResourceGraphToSt
     return list;
 }
 
-QList<QUrl> Nepomuk::ClassAndPropertyTree::visibleTypes() const
-{
-    QList<QUrl> types;
-    QHash<QUrl, ClassOrProperty*>::const_iterator end = m_tree.constEnd();
-    for(QHash<QUrl, ClassOrProperty*>::const_iterator it = m_tree.constBegin(); it != end; ++it) {
-        const ClassOrProperty* cop = *it;
-        if(!cop->isProperty && cop->userVisible == 1) {
-            types << cop->uri;
-        }
-    }
-    return types;
-}
-
-Nepomuk::ClassAndPropertyTree * Nepomuk::ClassAndPropertyTree::self()
+Nepomuk2::ClassAndPropertyTree * Nepomuk2::ClassAndPropertyTree::self()
 {
     return s_self;
 }

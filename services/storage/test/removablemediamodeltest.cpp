@@ -54,8 +54,8 @@
 
 // TODO: also test mounting a different device to the same mount path
 
-using namespace Nepomuk;
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2;
+using namespace Nepomuk2::Vocabulary;
 using namespace Soprano;
 
 Q_DECLARE_METATYPE(Soprano::Node)

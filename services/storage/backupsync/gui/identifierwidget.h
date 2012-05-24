@@ -31,7 +31,7 @@
 #include "identifier.h"
 #include "ui_mergeconflictwidget.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class IdentifierModel;
 

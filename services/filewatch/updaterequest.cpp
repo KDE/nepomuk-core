@@ -23,7 +23,7 @@
 
 #include <Soprano/Node> // for qHash(QUrl)
 
-uint Nepomuk::qHash( const UpdateRequest& req )
+uint Nepomuk2::qHash( const UpdateRequest& req )
 {
     return qHash( req.source() ) ^ qHash( req.target() );
 }

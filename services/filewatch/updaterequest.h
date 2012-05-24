@@ -25,7 +25,7 @@
 #include <KUrl>
 #include <QtCore/QDateTime>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
      * One update request with a timestamp.
      */

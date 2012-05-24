@@ -39,8 +39,9 @@ class KJob;
 namespace Soprano {
 class Statement;
 class Node;
+class Graph;
 }
-namespace Nepomuk {
+namespace Nepomuk2 {
 class SimpleResource;
 class StoreResourcesJob;
 
@@ -89,6 +90,8 @@ public:
 
     SimpleResource operator[](const QUrl& uri) const;
 
+    SimpleResource& operator[](const QUrl& uri);
+
     /**
      * Get a list of the URIs of all resources in this graph.
      * The result is equivalent to:
@@ -111,6 +114,8 @@ public:
                       const Soprano::Node & predicate,
                       const Soprano::Node & object);
 
+    Soprano::Graph toStatementGraph() const;
+
     SimpleResourceGraph& operator+=( const SimpleResourceGraph & graph );
 
     /**
@@ -122,7 +127,7 @@ public:
      * \param component The component which should be given to
      * Nepomuk for it to relate the newly created data to it.
      *
-     * \sa Nepomuk::storeResources()
+     * \sa Nepomuk2::storeResources()
      */
     StoreResourcesJob* save(const KComponentData& component = KGlobal::mainComponent()) const;
 
@@ -135,13 +140,13 @@ private:
 };
 
 
-NEPOMUK_EXPORT QDataStream & operator<<(QDataStream &, const Nepomuk::SimpleResourceGraph& graph);
-NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk::SimpleResourceGraph& graph);
-NEPOMUK_EXPORT QDebug operator<<(QDebug dbg, const Nepomuk::SimpleResourceGraph& graph);
-NEPOMUK_EXPORT QDataStream & operator<<(QDataStream &, const Nepomuk::SimpleResourceGraph& graph);
-NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk::SimpleResourceGraph& graph);
+NEPOMUK_EXPORT QDataStream & operator<<(QDataStream &, const Nepomuk2::SimpleResourceGraph& graph);
+NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk2::SimpleResourceGraph& graph);
+NEPOMUK_EXPORT QDebug operator<<(QDebug dbg, const Nepomuk2::SimpleResourceGraph& graph);
+NEPOMUK_EXPORT QDataStream & operator<<(QDataStream &, const Nepomuk2::SimpleResourceGraph& graph);
+NEPOMUK_EXPORT QDataStream & operator>>(QDataStream &, Nepomuk2::SimpleResourceGraph& graph);
 }
 
-Q_DECLARE_TYPEINFO(Nepomuk::SimpleResourceGraph, Q_MOVABLE_TYPE);
+Q_DECLARE_TYPEINFO(Nepomuk2::SimpleResourceGraph, Q_MOVABLE_TYPE);
 
 #endif

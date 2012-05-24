@@ -32,7 +32,7 @@
 #include <KConfig>
 #include <KJob>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class BackupManager : public QObject
     {

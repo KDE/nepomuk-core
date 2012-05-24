@@ -32,9 +32,9 @@
 #include "variant.h"
 #include "nie.h"
 
-int Nepomuk::SyncFileIdentifier::NextId = 0;
+int Nepomuk2::SyncFileIdentifier::NextId = 0;
 
-Nepomuk::SyncFileIdentifier::SyncFileIdentifier(const Nepomuk::SyncFile& sf)
+Nepomuk2::SyncFileIdentifier::SyncFileIdentifier(const Nepomuk2::SyncFile& sf)
     : ResourceIdentifier()
 {
     m_id = NextId++;
@@ -46,7 +46,7 @@ Nepomuk::SyncFileIdentifier::SyncFileIdentifier(const Nepomuk::SyncFile& sf)
     //kDebug() << m_identificationSet.toList();
 }
 
-Nepomuk::SyncFileIdentifier::~SyncFileIdentifier()
+Nepomuk2::SyncFileIdentifier::~SyncFileIdentifier()
 {
     // What do we do over here?
 }
@@ -71,7 +71,7 @@ namespace {
     }
 }
 
-void Nepomuk::SyncFileIdentifier::load()
+void Nepomuk2::SyncFileIdentifier::load()
 {
     if( unidentified().size() > 0 )
         return;
@@ -96,7 +96,7 @@ void Nepomuk::SyncFileIdentifier::load()
 }
 
 
-Nepomuk::ChangeLog Nepomuk::SyncFileIdentifier::convertedChangeLog()
+Nepomuk2::ChangeLog Nepomuk2::SyncFileIdentifier::convertedChangeLog()
 {
     QList<ChangeLogRecord> masterLogRecords = m_changeLog.toList();
     kDebug() << "masterLogRecords : " << masterLogRecords.size();
@@ -141,24 +141,24 @@ Nepomuk::ChangeLog Nepomuk::SyncFileIdentifier::convertedChangeLog()
     return ChangeLog::fromList( identifiedRecords );
 }
 
-void Nepomuk::SyncFileIdentifier::identifyAll()
+void Nepomuk2::SyncFileIdentifier::identifyAll()
 {
-    Nepomuk::Sync::ResourceIdentifier::identifyAll();
+    Nepomuk2::Sync::ResourceIdentifier::identifyAll();
 }
 
-int Nepomuk::SyncFileIdentifier::id()
+int Nepomuk2::SyncFileIdentifier::id()
 {
     return m_id;
 }
 
 
-Nepomuk::Resource Nepomuk::SyncFileIdentifier::createNewResource(const Sync::SyncResource & simpleRes) const
+Nepomuk2::Resource Nepomuk2::SyncFileIdentifier::createNewResource(const Sync::SyncResource & simpleRes) const
 {
     kDebug();
-    Nepomuk::Resource res;
+    Nepomuk2::Resource res;
 
     if( simpleRes.isFileDataObject() ) {
-        res = Nepomuk::Resource( simpleRes.nieUrl() );
+        res = Nepomuk2::Resource( simpleRes.nieUrl() );
         if( res.exists() ) {
             // If the resource already exists. We should not create it. This is to avoid the bug where
             // a different file with the same nie:url exists. If it was the same file, identification
@@ -173,14 +173,14 @@ Nepomuk::Resource Nepomuk::SyncFileIdentifier::createNewResource(const Sync::Syn
         //kDebug() << "Prop " << prop;
 
         const QList<Soprano::Node> nodeList = simpleRes.values( prop );
-        res.setProperty( prop, Nepomuk::Variant::fromNodeList( nodeList ) );
+        res.setProperty( prop, Nepomuk2::Variant::fromNodeList( nodeList ) );
     }
-    return res.uri();
+    return res.resourceUri();
 }
 
-bool Nepomuk::SyncFileIdentifier::runIdentification(const KUrl& uri)
+bool Nepomuk2::SyncFileIdentifier::runIdentification(const KUrl& uri)
 {
-    if( Nepomuk::Sync::ResourceIdentifier::runIdentification(uri) )
+    if( Nepomuk2::Sync::ResourceIdentifier::runIdentification(uri) )
         return true;
 
     const Sync::SyncResource res = simpleResource( uri );
@@ -194,7 +194,7 @@ bool Nepomuk::SyncFileIdentifier::runIdentification(const KUrl& uri)
     }
 
     if( shouldAdd ) {
-        Nepomuk::Resource newRes = createNewResource( res );
+        Nepomuk2::Resource newRes = createNewResource( res );
         if( newRes.isValid() ) {
             forceResource( uri, newRes );
             return true;

@@ -8,7 +8,6 @@ include_directories(
   ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
   ${NEPOMUK_INCLUDE_DIR}
-  ../storage/lib/
   )
 
 set(nepomukfileindexer_SRCS
@@ -21,7 +20,7 @@ set(nepomukfileindexer_SRCS
   nepomukindexer.cpp
   )
 
-qt4_add_dbus_adaptor(nepomukfileindexer_SRCS ../../interfaces/org.kde.nepomuk.FileIndexer.xml fileindexer.h Nepomuk::FileIndexer )
+qt4_add_dbus_adaptor(nepomukfileindexer_SRCS ../../interfaces/org.kde.nepomuk.FileIndexer.xml fileindexer.h Nepomuk2::FileIndexer )
 
 qt4_add_dbus_interface(nepomukfileindexer_SRCS ../../interfaces/org.kde.nepomuk.FileWatch.xml filewatchserviceinterface)
 

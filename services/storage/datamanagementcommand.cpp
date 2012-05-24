@@ -46,18 +46,18 @@ QDBusError::ErrorType convertSopranoErrorCode(int code)
 }
 
 
-Nepomuk::DataManagementCommand::DataManagementCommand(DataManagementModel* model, const QDBusMessage& msg)
+Nepomuk2::DataManagementCommand::DataManagementCommand(DataManagementModel* model, const QDBusMessage& msg)
     : QRunnable(),
       m_model(model),
       m_msg(msg)
 {
 }
 
-Nepomuk::DataManagementCommand::~DataManagementCommand()
+Nepomuk2::DataManagementCommand::~DataManagementCommand()
 {
 }
 
-void Nepomuk::DataManagementCommand::run()
+void Nepomuk2::DataManagementCommand::run()
 {
     QVariant result = runCommand();
     Soprano::Error::Error error = model()->lastError();
@@ -92,14 +92,14 @@ void Nepomuk::DataManagementCommand::run()
 
 
 // static
-QUrl Nepomuk::decodeUrl(const QString& urlsString)
+QUrl Nepomuk2::decodeUrl(const QString& urlsString)
 {
     // we use the power of KUrl to automatically convert file paths to file:/ URLs
     return KUrl(urlsString);
 }
 
 // static
-QList<QUrl> Nepomuk::decodeUrls(const QStringList& urlStrings)
+QList<QUrl> Nepomuk2::decodeUrls(const QStringList& urlStrings)
 {
     QList<QUrl> urls;
     Q_FOREACH(const QString& urlString, urlStrings) {
@@ -109,7 +109,7 @@ QList<QUrl> Nepomuk::decodeUrls(const QStringList& urlStrings)
 }
 
 // static
-QString Nepomuk::encodeUrl(const QUrl& url)
+QString Nepomuk2::encodeUrl(const QUrl& url)
 {
     return QString::fromAscii(url.toEncoded());
 }

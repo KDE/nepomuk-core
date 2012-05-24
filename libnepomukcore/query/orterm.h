@@ -26,10 +26,10 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
-         * \class OrTerm orterm.h Nepomuk/Query/OrTerm
+         * \class OrTerm orterm.h Nepomuk2/Query/OrTerm
          *
          * \brief Match resource that match at least one of the sub terms.
          *

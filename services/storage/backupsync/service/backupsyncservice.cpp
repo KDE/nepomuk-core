@@ -32,7 +32,7 @@
 #include <KDebug>
 
 
-Nepomuk::BackupSyncService::BackupSyncService( Soprano::Model* model, QObject* parent )
+Nepomuk2::BackupSyncService::BackupSyncService( Soprano::Model* model, QObject* parent )
 	: QObject(parent)
 {
     kDebug();
@@ -43,11 +43,11 @@ Nepomuk::BackupSyncService::BackupSyncService( Soprano::Model* model, QObject* p
     m_backupManager = new BackupManager( model, this );
 }
 
-Nepomuk::BackupSyncService::~BackupSyncService()
+Nepomuk2::BackupSyncService::~BackupSyncService()
 {
 }
 
-void Nepomuk::BackupSyncService::test()
+void Nepomuk2::BackupSyncService::test()
 {
     //QUrl url("/home/vishesh/syncnew");
 

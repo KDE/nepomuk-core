@@ -29,13 +29,13 @@ void TestBase::initTestCase()
         QSKIP( "Unable to load Virtuoso backend, skipping test.", SkipAll );
     }
     m_model = backend->createModel( Soprano::BackendSettings() << Soprano::BackendSetting(Soprano::BackendOptionStorageDir, m_tmpDir->name() ));
-    Nepomuk::ResourceManager::instance()->setOverrideMainModel( m_model );
+    Nepomuk2::ResourceManager::instance()->setOverrideMainModel( m_model );
 }
 
 
 void TestBase::cleanupTestCase()
 {
-    Nepomuk::ResourceManager::instance()->setOverrideMainModel( 0 );
+    Nepomuk2::ResourceManager::instance()->setOverrideMainModel( 0 );
     delete m_model;
     delete m_tmpDir;
 }

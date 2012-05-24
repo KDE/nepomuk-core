@@ -1,6 +1,6 @@
 /*
    This file is part of the Nepomuk KDE project.
-   Copyright (C) 2009-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2009-2012 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -26,13 +26,13 @@
 #include "andterm_p.h"
 #include "comparisonterm.h"
 
-QString Nepomuk::Query::NegationTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, QueryBuilderData* qbd ) const
+QString Nepomuk2::Query::NegationTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
 {
     //
     // A small optimization: we can negate filters very easily
     //
     if(m_subTerm.isComparisonTerm() && m_subTerm.toComparisonTerm().comparator() == ComparisonTerm::Regexp)  {
-        QString term = m_subTerm.d_ptr->toSparqlGraphPattern( resourceVarName, parentTerm, qbd );
+        QString term = m_subTerm.d_ptr->toSparqlGraphPattern( resourceVarName, parentTerm, additionalFilters, qbd );
         const int pos = term.indexOf(QLatin1String("FILTER"));
         term.insert(pos+7, QLatin1Char('!'));
         return term;
@@ -52,6 +52,7 @@ QString Nepomuk::Query::NegationTermPrivate::toSparqlGraphPattern( const QString
         // is not perfect but much faster than using a wildcard for the property. And in the end all Nepomuk
         // resources should have a properly defined type.
         //
+        // FIXME: remove the type pattern. Instead perform optimization before which copies the negation into all unions
         bool haveRealTerm = false;
         if( parentTerm && parentTerm->m_type == Term::And ) {
             haveRealTerm = static_cast<const AndTermPrivate*>(parentTerm)->hasRealPattern();
@@ -63,39 +64,41 @@ QString Nepomuk::Query::NegationTermPrivate::toSparqlGraphPattern( const QString
                     .arg( resourceVarName, qbd->uniqueVarName() );
         }
 
-        term += QString( "FILTER(!bif:exists((select (1) where { %1 }))) . " )
-                .arg( m_subTerm.d_ptr->toSparqlGraphPattern( resourceVarName, this, qbd ) );
+        term += QString( "FILTER NOT EXISTS { %1 } . " )
+                .arg( m_subTerm.d_ptr->toSparqlGraphPattern( resourceVarName, this, QString(), qbd ) );
+
+        term += additionalFilters;
 
         return term;
     }
 }
 
 
-Nepomuk::Query::NegationTerm::NegationTerm()
+Nepomuk2::Query::NegationTerm::NegationTerm()
     : SimpleTerm( new NegationTermPrivate() )
 {
 }
 
 
-Nepomuk::Query::NegationTerm::NegationTerm( const NegationTerm& term )
+Nepomuk2::Query::NegationTerm::NegationTerm( const NegationTerm& term )
     : SimpleTerm( term )
 {
 }
 
 
-Nepomuk::Query::NegationTerm::~NegationTerm()
+Nepomuk2::Query::NegationTerm::~NegationTerm()
 {
 }
 
 
-Nepomuk::Query::NegationTerm& Nepomuk::Query::NegationTerm::operator=( const NegationTerm& term )
+Nepomuk2::Query::NegationTerm& Nepomuk2::Query::NegationTerm::operator=( const NegationTerm& term )
 {
     d_ptr = term.d_ptr;
     return *this;
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::NegationTerm::negateTerm( const Term& term )
+Nepomuk2::Query::Term Nepomuk2::Query::NegationTerm::negateTerm( const Term& term )
 {
     if ( term.isNegationTerm() ) {
         return term.toNegationTerm().subTerm();

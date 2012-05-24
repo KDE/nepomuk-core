@@ -36,7 +36,7 @@
 #include "identificationset.h"
 
 
-int Nepomuk::saveBackupChangeLog(Soprano::Model* model, const QUrl& url, QSet< QUrl >& uniqueUris )
+int Nepomuk2::saveBackupChangeLog(Soprano::Model* model, const QUrl& url, QSet< QUrl >& uniqueUris )
 {
     const int step = 1000;
     const QString query = QString::fromLatin1("select ?r ?p ?o ?g where { "
@@ -74,7 +74,7 @@ int Nepomuk::saveBackupChangeLog(Soprano::Model* model, const QUrl& url, QSet< Q
     return totalNumRecords;
 }
 
-bool Nepomuk::saveBackupSyncFile(Soprano::Model *model, const QUrl& url)
+bool Nepomuk2::saveBackupSyncFile(Soprano::Model *model, const QUrl& url)
 {
     kDebug() << url;
     KTemporaryFile logFile;

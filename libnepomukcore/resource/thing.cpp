@@ -22,7 +22,7 @@
 #include "pimo.h"
 #include "variant.h"
 
-Nepomuk::Thing::Thing( const QUrl& uri, const QUrl& pimoType )
+Nepomuk2::Thing::Thing( const QUrl& uri, const QUrl& pimoType )
     : Resource( uri, pimoType.isEmpty() ? Vocabulary::PIMO::Thing() : pimoType )
 {
     // FIXME: somehow ensure that pimoType is actually a pimo:Thing. Maybe
@@ -30,83 +30,83 @@ Nepomuk::Thing::Thing( const QUrl& uri, const QUrl& pimoType )
 }
 
 
-Nepomuk::Thing::Thing( const QString& uriOrName, const QUrl& pimoType )
+Nepomuk2::Thing::Thing( const QString& uriOrName, const QUrl& pimoType )
     : Resource( uriOrName, pimoType.isEmpty() ? Vocabulary::PIMO::Thing() : pimoType )
 {
     // FIXME: s.o.
 }
 
 
-Nepomuk::Thing::Thing( const Thing& other )
+Nepomuk2::Thing::Thing( const Thing& other )
     : Resource( other )
 {
     // FIXME: s.o.
 }
 
 
-Nepomuk::Thing::Thing( const Resource& other )
+Nepomuk2::Thing::Thing( const Resource& other )
     : Resource( other )
 {
     // FIXME: s.o.
 }
 
 
-Nepomuk::Thing::Thing( Nepomuk::ResourceData* data )
+Nepomuk2::Thing::Thing( Nepomuk2::ResourceData* data )
     : Resource( data )
 {
 }
 
 
-Nepomuk::Thing& Nepomuk::Thing::operator=( const Thing& res )
+Nepomuk2::Thing& Nepomuk2::Thing::operator=( const Thing& res )
 {
     Resource::operator=( res );
     return *this;
 }
 
 
-Nepomuk::Thing& Nepomuk::Thing::operator=( const Resource& res )
+Nepomuk2::Thing& Nepomuk2::Thing::operator=( const Resource& res )
 {
     Resource::operator=( res );
     return *this;
 }
 
 
-Nepomuk::Thing& Nepomuk::Thing::operator=( const QUrl& res )
+Nepomuk2::Thing& Nepomuk2::Thing::operator=( const QUrl& res )
 {
     Resource::operator=( res );
     return *this;
 }
 
 
-Nepomuk::Thing::~Thing()
+Nepomuk2::Thing::~Thing()
 {
 }
 
 
-QList<Nepomuk::Resource> Nepomuk::Thing::groundingOccurrences() const
+QList<Nepomuk2::Resource> Nepomuk2::Thing::groundingOccurrences() const
 {
     return property( Vocabulary::PIMO::groundingOccurrence() ).toResourceList();
 }
 
 
-QList<Nepomuk::Resource> Nepomuk::Thing::referencingOccurrences() const
+QList<Nepomuk2::Resource> Nepomuk2::Thing::referencingOccurrences() const
 {
     return property( Vocabulary::PIMO::referencingOccurrence() ).toResourceList();
 }
 
 
-QList<Nepomuk::Resource> Nepomuk::Thing::occurrences() const
+QList<Nepomuk2::Resource> Nepomuk2::Thing::occurrences() const
 {
     return property( Vocabulary::PIMO::occurrence() ).toResourceList();
 }
 
 
-void Nepomuk::Thing::addGroundingOccurrence( const Nepomuk::Resource &res )
+void Nepomuk2::Thing::addGroundingOccurrence( const Nepomuk2::Resource &res )
 {
-    addProperty(Nepomuk::Vocabulary::PIMO::groundingOccurrence(), res);
+    addProperty(Nepomuk2::Vocabulary::PIMO::groundingOccurrence(), res);
 }
 
 
-// void Nepomuk::Thing::merge( Thing other )
+// void Nepomuk2::Thing::merge( Thing other )
 // {
 // }

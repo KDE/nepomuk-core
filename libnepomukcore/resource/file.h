@@ -25,9 +25,9 @@
 #include "resource.h"
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
-     * \class File file.h Nepomuk/File
+     * \class File file.h Nepomuk2/File
      *
      * \brief A Nepomuk resource representing a file.
      *

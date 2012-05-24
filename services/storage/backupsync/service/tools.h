@@ -31,7 +31,7 @@ namespace Soprano {
     class Model;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     /**
      * Saves a changeLog with the list of all the statements that should be backed up.

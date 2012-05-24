@@ -1,6 +1,6 @@
 /*
    This file is part of the Nepomuk KDE project.
-   Copyright (C) 2011 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2011-2012 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,9 +28,10 @@ namespace Soprano {
 class Model;
 class NRLModel;
 }
-namespace Nepomuk {
+namespace Nepomuk2 {
 class DataManagementModel;
 class ClassAndPropertyTree;
+class VirtuosoInferenceModel;
 }
 class KTempDir;
 
@@ -99,7 +100,9 @@ private Q_SLOTS:
     void testRemoveDataByApplication9();
     void testRemoveDataByApplication10();
     void testRemoveDataByApplication11();
+    void testRemoveDataByApplication12();
     void testRemoveDataByApplication_subResourcesOfSubResources();
+    void testRemoveDataByApplication_subResourcesOfSubResources2();
     void testRemoveDataByApplication_realLife();
     void testRemoveDataByApplication_nieUrl();
     void testRemoveDataByApplication_nieUrlRelated();
@@ -123,6 +126,7 @@ private Q_SLOTS:
     void testStoreResources_file2();
     void testStoreResources_file3();
     void testStoreResources_file4();
+    void testStoreResources_file5();
     void testStoreResources_folder();
     void testStoreResources_fileExists();
     void testStoreResources_sameNieUrl();
@@ -142,6 +146,7 @@ private Q_SLOTS:
     void testStoreResources_duplicates();
     void testStoreResources_duplicateHierarchy();
     void testStoreResources_duplicates2();
+    void testStoreResources_duplicatesInMerger();
     void testStoreResources_overwriteProperties();
     void testStoreResources_correctDomainInStore();
     void testStoreResources_correctDomainInStore2();
@@ -156,6 +161,8 @@ private Q_SLOTS:
     void testStoreResources_legacyData();
     void testStoreResources_missingBlankNode();
     void testStoreResources_graphChecks();
+    void testStoreResources_nieUrlDefinesResources();
+    void testStoreResources_objectExistsIdentification();
 
     void testMergeResources();
     void testMergeResources_protectedTypes();
@@ -176,8 +183,9 @@ private:
     KTempDir* m_storageDir;
     Soprano::Model* m_model;
     Soprano::NRLModel* m_nrlModel;
-    Nepomuk::ClassAndPropertyTree* m_classAndPropertyTree;
-    Nepomuk::DataManagementModel* m_dmModel;
+    Nepomuk2::VirtuosoInferenceModel* m_inferenceModel;
+    Nepomuk2::ClassAndPropertyTree* m_classAndPropertyTree;
+    Nepomuk2::DataManagementModel* m_dmModel;
 };
 
 #endif

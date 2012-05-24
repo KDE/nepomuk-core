@@ -45,102 +45,102 @@
 #include "variant.h"
 
 
-Nepomuk::Query::Term::Term()
+Nepomuk2::Query::Term::Term()
     : d_ptr( new TermPrivate() )
 {
 }
 
 
-Nepomuk::Query::Term::Term( const Term& other )
+Nepomuk2::Query::Term::Term( const Term& other )
     : d_ptr( other.d_ptr )
 {
 }
 
 
-Nepomuk::Query::Term::Term( TermPrivate* d )
+Nepomuk2::Query::Term::Term( TermPrivate* d )
     : d_ptr( d )
 {
 }
 
 
-Nepomuk::Query::Term::~Term()
+Nepomuk2::Query::Term::~Term()
 {
 }
 
 
-Nepomuk::Query::Term& Nepomuk::Query::Term::operator=( const Term& other )
+Nepomuk2::Query::Term& Nepomuk2::Query::Term::operator=( const Term& other )
 {
     d_ptr = other.d_ptr;
     return *this;
 }
 
 
-bool Nepomuk::Query::Term::isValid() const
+bool Nepomuk2::Query::Term::isValid() const
 {
     return d_ptr->isValid();
 }
 
 
-Nepomuk::Query::Term::Type Nepomuk::Query::Term::type() const
+Nepomuk2::Query::Term::Type Nepomuk2::Query::Term::type() const
 {
     return d_ptr->m_type;
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::Term::optimized() const
+Nepomuk2::Query::Term Nepomuk2::Query::Term::optimized() const
 {
     switch( type() ) {
-    case Nepomuk::Query::Term::And:
-    case Nepomuk::Query::Term::Or: {
-        QList<Nepomuk::Query::Term> subTerms = static_cast<const Nepomuk::Query::GroupTerm&>( *this ).subTerms();
-        QList<Nepomuk::Query::Term> newSubTerms;
-        QList<Nepomuk::Query::Term>::const_iterator end( subTerms.constEnd() );
-        for ( QList<Nepomuk::Query::Term>::const_iterator it = subTerms.constBegin();
+    case Nepomuk2::Query::Term::And:
+    case Nepomuk2::Query::Term::Or: {
+        QList<Nepomuk2::Query::Term> subTerms = static_cast<const Nepomuk2::Query::GroupTerm&>( *this ).subTerms();
+        QList<Nepomuk2::Query::Term> newSubTerms;
+        QList<Nepomuk2::Query::Term>::const_iterator end( subTerms.constEnd() );
+        for ( QList<Nepomuk2::Query::Term>::const_iterator it = subTerms.constBegin();
               it != end; ++it ) {
-            const Nepomuk::Query::Term& t = *it;
-            Nepomuk::Query::Term ot = t.optimized();
-            QList<Nepomuk::Query::Term> terms;
+            const Nepomuk2::Query::Term& t = *it;
+            Nepomuk2::Query::Term ot = t.optimized();
+            QList<Nepomuk2::Query::Term> terms;
             if ( ot.type() == type() ) {
-                terms = static_cast<const Nepomuk::Query::GroupTerm&>( ot ).subTerms();
+                terms = static_cast<const Nepomuk2::Query::GroupTerm&>( ot ).subTerms();
             }
             else if( ot.isValid() ) {
                 terms += ot;
             }
-            Q_FOREACH( const Nepomuk::Query::Term& t, terms ) {
+            Q_FOREACH( const Nepomuk2::Query::Term& t, terms ) {
                 if( !newSubTerms.contains( t ) )
                     newSubTerms += t;
             }
         }
         if ( newSubTerms.count() == 0 )
-            return Nepomuk::Query::Term();
+            return Nepomuk2::Query::Term();
         else if ( newSubTerms.count() == 1 )
             return *newSubTerms.begin();
         else if ( isAndTerm() )
-            return Nepomuk::Query::AndTerm( newSubTerms );
+            return Nepomuk2::Query::AndTerm( newSubTerms );
         else
-            return Nepomuk::Query::OrTerm( newSubTerms );
+            return Nepomuk2::Query::OrTerm( newSubTerms );
     }
 
-    case Nepomuk::Query::Term::Negation: {
-        Nepomuk::Query::NegationTerm nt = toNegationTerm();
+    case Nepomuk2::Query::Term::Negation: {
+        Nepomuk2::Query::NegationTerm nt = toNegationTerm();
         // a negation in a negation
         if( nt.subTerm().isNegationTerm() )
             return nt.subTerm().toNegationTerm().subTerm().optimized();
         else
-            return Nepomuk::Query::NegationTerm::negateTerm( nt.subTerm().optimized() );
+            return Nepomuk2::Query::NegationTerm::negateTerm( nt.subTerm().optimized() );
     }
 
-    case Nepomuk::Query::Term::Optional: {
-        Nepomuk::Query::OptionalTerm ot = toOptionalTerm();
+    case Nepomuk2::Query::Term::Optional: {
+        Nepomuk2::Query::OptionalTerm ot = toOptionalTerm();
         // remove duplicate optional terms
         if( ot.subTerm().isOptionalTerm() )
             return ot.subTerm().optimized();
         else
-            return Nepomuk::Query::OptionalTerm::optionalizeTerm( ot.subTerm().optimized() );
+            return Nepomuk2::Query::OptionalTerm::optionalizeTerm( ot.subTerm().optimized() );
     }
 
-    case Nepomuk::Query::Term::Comparison: {
-        Nepomuk::Query::ComparisonTerm ct( toComparisonTerm() );
+    case Nepomuk2::Query::Term::Comparison: {
+        Nepomuk2::Query::ComparisonTerm ct( toComparisonTerm() );
         ct.setSubTerm( ct.subTerm().optimized() );
         return ct;
     }
@@ -151,55 +151,55 @@ Nepomuk::Query::Term Nepomuk::Query::Term::optimized() const
 }
 
 
-bool Nepomuk::Query::Term::isLiteralTerm() const
+bool Nepomuk2::Query::Term::isLiteralTerm() const
 {
     return type() == Literal;
 }
 
 
-bool Nepomuk::Query::Term::isResourceTerm() const
+bool Nepomuk2::Query::Term::isResourceTerm() const
 {
     return type() == Resource;
 }
 
 
-bool Nepomuk::Query::Term::isNegationTerm() const
+bool Nepomuk2::Query::Term::isNegationTerm() const
 {
     return type() == Negation;
 }
 
 
-bool Nepomuk::Query::Term::isOptionalTerm() const
+bool Nepomuk2::Query::Term::isOptionalTerm() const
 {
     return type() == Optional;
 }
 
 
-bool Nepomuk::Query::Term::isAndTerm() const
+bool Nepomuk2::Query::Term::isAndTerm() const
 {
     return type() == And;
 }
 
 
-bool Nepomuk::Query::Term::isOrTerm() const
+bool Nepomuk2::Query::Term::isOrTerm() const
 {
     return type() == Or;
 }
 
 
-bool Nepomuk::Query::Term::isComparisonTerm() const
+bool Nepomuk2::Query::Term::isComparisonTerm() const
 {
     return type() == Comparison;
 }
 
 
-bool Nepomuk::Query::Term::isResourceTypeTerm() const
+bool Nepomuk2::Query::Term::isResourceTypeTerm() const
 {
     return type() == ResourceType;
 }
 
 
-Nepomuk::Query::LiteralTerm Nepomuk::Query::Term::toLiteralTerm() const
+Nepomuk2::Query::LiteralTerm Nepomuk2::Query::Term::toLiteralTerm() const
 {
     if ( isLiteralTerm() ) {
         return *static_cast<const LiteralTerm*>( this );
@@ -209,7 +209,7 @@ Nepomuk::Query::LiteralTerm Nepomuk::Query::Term::toLiteralTerm() const
 }
 
 
-Nepomuk::Query::ResourceTerm Nepomuk::Query::Term::toResourceTerm() const
+Nepomuk2::Query::ResourceTerm Nepomuk2::Query::Term::toResourceTerm() const
 {
     if ( isResourceTerm() )
         return *static_cast<const ResourceTerm*>( this );
@@ -218,7 +218,7 @@ Nepomuk::Query::ResourceTerm Nepomuk::Query::Term::toResourceTerm() const
 }
 
 
-Nepomuk::Query::NegationTerm Nepomuk::Query::Term::toNegationTerm() const
+Nepomuk2::Query::NegationTerm Nepomuk2::Query::Term::toNegationTerm() const
 {
     if ( isNegationTerm() )
         return *static_cast<const NegationTerm*>( this );
@@ -227,7 +227,7 @@ Nepomuk::Query::NegationTerm Nepomuk::Query::Term::toNegationTerm() const
 }
 
 
-Nepomuk::Query::OptionalTerm Nepomuk::Query::Term::toOptionalTerm() const
+Nepomuk2::Query::OptionalTerm Nepomuk2::Query::Term::toOptionalTerm() const
 {
     if ( isOptionalTerm() )
         return *static_cast<const OptionalTerm*>( this );
@@ -236,7 +236,7 @@ Nepomuk::Query::OptionalTerm Nepomuk::Query::Term::toOptionalTerm() const
 }
 
 
-Nepomuk::Query::AndTerm Nepomuk::Query::Term::toAndTerm() const
+Nepomuk2::Query::AndTerm Nepomuk2::Query::Term::toAndTerm() const
 {
     if ( isAndTerm() )
         return *static_cast<const AndTerm*>( this );
@@ -245,7 +245,7 @@ Nepomuk::Query::AndTerm Nepomuk::Query::Term::toAndTerm() const
 }
 
 
-Nepomuk::Query::OrTerm Nepomuk::Query::Term::toOrTerm() const
+Nepomuk2::Query::OrTerm Nepomuk2::Query::Term::toOrTerm() const
 {
     if ( isOrTerm() )
         return *static_cast<const OrTerm*>( this );
@@ -254,7 +254,7 @@ Nepomuk::Query::OrTerm Nepomuk::Query::Term::toOrTerm() const
 }
 
 
-Nepomuk::Query::ComparisonTerm Nepomuk::Query::Term::toComparisonTerm() const
+Nepomuk2::Query::ComparisonTerm Nepomuk2::Query::Term::toComparisonTerm() const
 {
     if ( isComparisonTerm() )
         return *static_cast<const ComparisonTerm*>( this );
@@ -263,7 +263,7 @@ Nepomuk::Query::ComparisonTerm Nepomuk::Query::Term::toComparisonTerm() const
 }
 
 
-Nepomuk::Query::ResourceTypeTerm Nepomuk::Query::Term::toResourceTypeTerm() const
+Nepomuk2::Query::ResourceTypeTerm Nepomuk2::Query::Term::toResourceTypeTerm() const
 {
     if ( isResourceTypeTerm() )
         return *static_cast<const ResourceTypeTerm*>( this );
@@ -277,69 +277,69 @@ Nepomuk::Query::ResourceTypeTerm Nepomuk::Query::Term::toResourceTypeTerm() cons
         d_ptr = new Class##Private();                         \
     return *static_cast<Class*>( this )
 
-Nepomuk::Query::LiteralTerm& Nepomuk::Query::Term::toLiteralTerm()
+Nepomuk2::Query::LiteralTerm& Nepomuk2::Query::Term::toLiteralTerm()
 {
     CONVERT_AND_RETURN( LiteralTerm );
 }
 
 
-Nepomuk::Query::ResourceTerm& Nepomuk::Query::Term::toResourceTerm()
+Nepomuk2::Query::ResourceTerm& Nepomuk2::Query::Term::toResourceTerm()
 {
     CONVERT_AND_RETURN( ResourceTerm );
 }
 
 
-Nepomuk::Query::NegationTerm& Nepomuk::Query::Term::toNegationTerm()
+Nepomuk2::Query::NegationTerm& Nepomuk2::Query::Term::toNegationTerm()
 {
     CONVERT_AND_RETURN( NegationTerm );
 }
 
 
-Nepomuk::Query::OptionalTerm& Nepomuk::Query::Term::toOptionalTerm()
+Nepomuk2::Query::OptionalTerm& Nepomuk2::Query::Term::toOptionalTerm()
 {
     CONVERT_AND_RETURN( OptionalTerm );
 }
 
 
-Nepomuk::Query::AndTerm& Nepomuk::Query::Term::toAndTerm()
+Nepomuk2::Query::AndTerm& Nepomuk2::Query::Term::toAndTerm()
 {
     CONVERT_AND_RETURN( AndTerm );
 }
 
 
-Nepomuk::Query::OrTerm& Nepomuk::Query::Term::toOrTerm()
+Nepomuk2::Query::OrTerm& Nepomuk2::Query::Term::toOrTerm()
 {
     CONVERT_AND_RETURN( OrTerm );
 }
 
 
-Nepomuk::Query::ComparisonTerm& Nepomuk::Query::Term::toComparisonTerm()
+Nepomuk2::Query::ComparisonTerm& Nepomuk2::Query::Term::toComparisonTerm()
 {
     CONVERT_AND_RETURN( ComparisonTerm );
 }
 
 
-Nepomuk::Query::ResourceTypeTerm& Nepomuk::Query::Term::toResourceTypeTerm()
+Nepomuk2::Query::ResourceTypeTerm& Nepomuk2::Query::Term::toResourceTypeTerm()
 {
     CONVERT_AND_RETURN( ResourceTypeTerm );
 }
 
 
-QString Nepomuk::Query::Term::toString() const
+QString Nepomuk2::Query::Term::toString() const
 {
-    return Nepomuk::Query::serializeTerm( *this );
+    return Nepomuk2::Query::serializeTerm( *this );
 }
 
 
 // static
-Nepomuk::Query::Term Nepomuk::Query::Term::fromString( const QString& s )
+Nepomuk2::Query::Term Nepomuk2::Query::Term::fromString( const QString& s )
 {
-    return Nepomuk::Query::parseTerm( s );
+    return Nepomuk2::Query::parseTerm( s );
 }
 
 
 // static
-Nepomuk::Query::Term Nepomuk::Query::Term::fromVariant( const Variant& variant )
+Nepomuk2::Query::Term Nepomuk2::Query::Term::fromVariant( const Variant& variant )
 {
     if( variant.isResource() ) {
         return ResourceTerm( variant.toResource() );
@@ -357,7 +357,7 @@ Nepomuk::Query::Term Nepomuk::Query::Term::fromVariant( const Variant& variant )
 
 
 // static
-Nepomuk::Query::Term Nepomuk::Query::Term::fromProperty( const Nepomuk::Types::Property& property, const Nepomuk::Variant& variant )
+Nepomuk2::Query::Term Nepomuk2::Query::Term::fromProperty( const Nepomuk2::Types::Property& property, const Nepomuk2::Variant& variant )
 {
     if( variant.isList() ) {
         AndTerm andTerm;
@@ -372,25 +372,25 @@ Nepomuk::Query::Term Nepomuk::Query::Term::fromProperty( const Nepomuk::Types::P
 }
 
 
-bool Nepomuk::Query::Term::operator==( const Term& other ) const
+bool Nepomuk2::Query::Term::operator==( const Term& other ) const
 {
     return d_ptr->equals( other.d_ptr );
 }
 
 
-bool Nepomuk::Query::Term::operator!=( const Term& other ) const
+bool Nepomuk2::Query::Term::operator!=( const Term& other ) const
 {
     return !d_ptr->equals( other.d_ptr );
 }
 
 
-QDebug operator<<( QDebug dbg, const Nepomuk::Query::Term& term )
+QDebug operator<<( QDebug dbg, const Nepomuk2::Query::Term& term )
 {
     return term.operator<<( dbg );
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::operator&&( const Term& term1, const Term& term2 )
+Nepomuk2::Query::Term Nepomuk2::Query::operator&&( const Term& term1, const Term& term2 )
 {
     QList<Term> terms;
     if( term1.isAndTerm() )
@@ -411,7 +411,7 @@ Nepomuk::Query::Term Nepomuk::Query::operator&&( const Term& term1, const Term& 
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::operator||( const Term& term1, const Term& term2 )
+Nepomuk2::Query::Term Nepomuk2::Query::operator||( const Term& term1, const Term& term2 )
 {
     QList<Term> terms;
     if( term1.isOrTerm() )
@@ -432,75 +432,75 @@ Nepomuk::Query::Term Nepomuk::Query::operator||( const Term& term1, const Term& 
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::operator!( const Nepomuk::Query::Term& term )
+Nepomuk2::Query::Term Nepomuk2::Query::operator!( const Nepomuk2::Query::Term& term )
 {
     return NegationTerm::negateTerm( term );
 }
 
 
-Nepomuk::Query::ComparisonTerm Nepomuk::Query::operator<( const Nepomuk::Types::Property& property, const Nepomuk::Query::Term& term )
+Nepomuk2::Query::ComparisonTerm Nepomuk2::Query::operator<( const Nepomuk2::Types::Property& property, const Nepomuk2::Query::Term& term )
 {
     return ComparisonTerm( property, term, ComparisonTerm::Smaller );
 }
 
 
-Nepomuk::Query::ComparisonTerm Nepomuk::Query::operator>( const Nepomuk::Types::Property& property, const Nepomuk::Query::Term& term )
+Nepomuk2::Query::ComparisonTerm Nepomuk2::Query::operator>( const Nepomuk2::Types::Property& property, const Nepomuk2::Query::Term& term )
 {
     return ComparisonTerm( property, term, ComparisonTerm::Greater );
 }
 
 
-Nepomuk::Query::ComparisonTerm Nepomuk::Query::operator<=( const Nepomuk::Types::Property& property, const Nepomuk::Query::Term& term )
+Nepomuk2::Query::ComparisonTerm Nepomuk2::Query::operator<=( const Nepomuk2::Types::Property& property, const Nepomuk2::Query::Term& term )
 {
     return ComparisonTerm( property, term, ComparisonTerm::SmallerOrEqual );
 }
 
 
-Nepomuk::Query::ComparisonTerm Nepomuk::Query::operator>=( const Nepomuk::Types::Property& property, const Nepomuk::Query::Term& term )
+Nepomuk2::Query::ComparisonTerm Nepomuk2::Query::operator>=( const Nepomuk2::Types::Property& property, const Nepomuk2::Query::Term& term )
 {
     return ComparisonTerm( property, term, ComparisonTerm::GreaterOrEqual );
 }
 
 
-Nepomuk::Query::ComparisonTerm Nepomuk::Query::operator==( const Nepomuk::Types::Property& property, const Nepomuk::Query::Term& term )
+Nepomuk2::Query::ComparisonTerm Nepomuk2::Query::operator==( const Nepomuk2::Types::Property& property, const Nepomuk2::Query::Term& term )
 {
     return ComparisonTerm( property, term, ComparisonTerm::Equal );
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::operator!=( const Nepomuk::Types::Property& property, const Nepomuk::Query::Term& term )
+Nepomuk2::Query::Term Nepomuk2::Query::operator!=( const Nepomuk2::Types::Property& property, const Nepomuk2::Query::Term& term )
 {
     return !( property == term );
 }
 
 
-uint Nepomuk::Query::qHash( const Nepomuk::Query::Term& term )
+uint Nepomuk2::Query::qHash( const Nepomuk2::Query::Term& term )
 {
     switch( term.type() ) {
-    case Nepomuk::Query::Term::Literal:
+    case Nepomuk2::Query::Term::Literal:
         return( qHash( term.toLiteralTerm().value().toString() ) );
 
-    case Nepomuk::Query::Term::Comparison:
+    case Nepomuk2::Query::Term::Comparison:
         return( qHash( term.toComparisonTerm().property().uri().toString() )<<24 |
                 qHash( term.toComparisonTerm().subTerm() )<<16 |
                 ( uint )term.toComparisonTerm().comparator()<<8 );
 
-    case Nepomuk::Query::Term::Negation:
+    case Nepomuk2::Query::Term::Negation:
         return qHash(term.toNegationTerm().subTerm());
 
-    case Nepomuk::Query::Term::Optional:
+    case Nepomuk2::Query::Term::Optional:
         return qHash(term.toOptionalTerm().subTerm());
 
-    case Nepomuk::Query::Term::Resource:
-        return qHash( term.toResourceTerm().resource().uri() );
+    case Nepomuk2::Query::Term::Resource:
+        return qHash( term.toResourceTerm().resource().resourceUri() );
 
-    case Nepomuk::Query::Term::ResourceType:
+    case Nepomuk2::Query::Term::ResourceType:
         return qHash( term.toResourceTypeTerm().type().uri() );
 
-    case Nepomuk::Query::Term::And:
-    case Nepomuk::Query::Term::Or: {
+    case Nepomuk2::Query::Term::And:
+    case Nepomuk2::Query::Term::Or: {
         uint h = ( uint )term.type();
-        QList<Nepomuk::Query::Term> subTerms = static_cast<const GroupTerm&>( term ).subTerms();
+        QList<Nepomuk2::Query::Term> subTerms = static_cast<const GroupTerm&>( term ).subTerms();
         for ( int i = 0; i < subTerms.count(); ++i ) {
             h |= ( qHash( subTerms[i] )<<i );
         }
@@ -515,13 +515,13 @@ uint Nepomuk::Query::qHash( const Nepomuk::Query::Term& term )
 
 /// We need to overload QSharedDataPointer::clone to make sure the correct subclasses are created
 /// when detaching. The default implementation would always call TermPrivate( const TermPrivate& )
-template<> Nepomuk::Query::TermPrivate* QSharedDataPointer<Nepomuk::Query::TermPrivate>::clone()
+template<> Nepomuk2::Query::TermPrivate* QSharedDataPointer<Nepomuk2::Query::TermPrivate>::clone()
 {
     return d->clone();
 }
 
 
-QDebug Nepomuk::Query::Term::operator<<( QDebug dbg ) const
+QDebug Nepomuk2::Query::Term::operator<<( QDebug dbg ) const
 {
     return dbg << toString();
 }

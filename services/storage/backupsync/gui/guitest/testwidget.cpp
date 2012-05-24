@@ -32,7 +32,7 @@ TestWidget::TestWidget(QWidget* parent, Qt::WindowFlags f)
 : QWidget( parent )
 {
     m_resNum = 0;
-    m_model = new Nepomuk::IdentifierModel( this );
+    m_model = new Nepomuk2::IdentifierModel( this );
     QTreeView * view = new QTreeView( this );
     m_delegate = new MergeConflictDelegate( view, this );
 
@@ -55,15 +55,15 @@ TestWidget::~TestWidget()
 void TestWidget::notIdentified(const QString& resUri, const QString& nieUrl)
 {
     Soprano::Statement st( Soprano::Node( QUrl(resUri) ),
-                           Soprano::Node( Nepomuk::Vocabulary::NIE::url() ),
+                           Soprano::Node( Nepomuk2::Vocabulary::NIE::url() ),
                            Soprano::Node( QUrl(nieUrl) ) );
     QList<Soprano::Statement> stList;
     stList.append( st );
     if( nieUrl.endsWith('/') ) {
-        stList << Soprano::Statement( QUrl(resUri), Soprano::Vocabulary::RDF::type(), Nepomuk::Vocabulary::NFO::Folder() );
+        stList << Soprano::Statement( QUrl(resUri), Soprano::Vocabulary::RDF::type(), Nepomuk2::Vocabulary::NFO::Folder() );
     }
     else {
-        stList << Soprano::Statement( QUrl(resUri), Soprano::Vocabulary::RDF::type(), Nepomuk::Vocabulary::NFO::FileDataObject() );
+        stList << Soprano::Statement( QUrl(resUri), Soprano::Vocabulary::RDF::type(), Nepomuk2::Vocabulary::NFO::FileDataObject() );
     }
     
     m_model->notIdentified( stList );

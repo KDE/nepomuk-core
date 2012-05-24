@@ -34,7 +34,7 @@
 #include "resource.h"
 #include "variant.h"
 
-Nepomuk::SyncManager::SyncManager(QObject* parent)
+Nepomuk2::SyncManager::SyncManager(QObject* parent)
     : QObject( parent )
 {
     new SyncManagerAdaptor( this );
@@ -44,11 +44,11 @@ Nepomuk::SyncManager::SyncManager(QObject* parent)
 }
 
 
-Nepomuk::SyncManager::~SyncManager()
+Nepomuk2::SyncManager::~SyncManager()
 {
 }
 
-void Nepomuk::SyncManager::createSyncFile( const QString& url, const QString& startTime )
+void Nepomuk2::SyncManager::createSyncFile( const QString& url, const QString& startTime )
 {
     ChangeLog logFile = LogStorage::instance()->getChangeLog( startTime );
 
@@ -57,7 +57,7 @@ void Nepomuk::SyncManager::createSyncFile( const QString& url, const QString& st
 }
 
 
-void Nepomuk::SyncManager::createSyncFile( const QUrl& outputUrl, const QList<QString>& urls)
+void Nepomuk2::SyncManager::createSyncFile( const QUrl& outputUrl, const QList<QString>& urls)
 {
     QSet<QUrl> nepomukUris;
     QDateTime min = QDateTime::currentDateTime();
@@ -70,14 +70,14 @@ void Nepomuk::SyncManager::createSyncFile( const QUrl& outputUrl, const QList<QS
         if( dt < min )
             min = dt;
 
-        nepomukUris.insert( res.uri() );
+        nepomukUris.insert( res.resourceUri() );
     }
 
     createSyncFile( outputUrl, nepomukUris, min );
 }
 
 
-void Nepomuk::SyncManager::createSyncFile(const QUrl& outputUrl, QSet<QUrl> & nepomukUris, const QDateTime& min)
+void Nepomuk2::SyncManager::createSyncFile(const QUrl& outputUrl, QSet<QUrl> & nepomukUris, const QDateTime& min)
 {
     ChangeLog logFile = LogStorage::instance()->getChangeLog( min );
 
@@ -98,10 +98,10 @@ void Nepomuk::SyncManager::createSyncFile(const QUrl& outputUrl, QSet<QUrl> & ne
 }
 
 
-void Nepomuk::SyncManager::createFirstSyncFile(const QUrl& outputUrl) const
+void Nepomuk2::SyncManager::createFirstSyncFile(const QUrl& outputUrl) const
 {
     Q_UNUSED(outputUrl);
-    //SyncFile sf = Nepomuk::createFirstSyncFile();
+    //SyncFile sf = Nepomuk2::createFirstSyncFile();
     //sf.save( outputUrl );
 }
 

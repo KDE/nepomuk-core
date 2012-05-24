@@ -27,7 +27,7 @@
 #include <QDataStream>
 #include <QtTest/QTest>
 
-using namespace Nepomuk;
+using namespace Nepomuk2;
 
 void SimpleResourceSubsystemTest::initTestCase()
 {

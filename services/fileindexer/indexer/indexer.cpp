@@ -72,16 +72,17 @@ namespace {
 }
 
 
-class Nepomuk::Indexer::Private
+class Nepomuk2::Indexer::Private
 {
 public:
     StoppableConfiguration m_analyzerConfig;
     StrigiIndexWriter* m_indexWriter;
     Strigi::StreamAnalyzer* m_streamAnalyzer;
+    QString m_lastError;
 };
 
 
-Nepomuk::Indexer::Indexer( QObject* parent )
+Nepomuk2::Indexer::Indexer( QObject* parent )
     : QObject( parent ),
       d( new Private() )
 {
@@ -91,7 +92,7 @@ Nepomuk::Indexer::Indexer( QObject* parent )
 }
 
 
-Nepomuk::Indexer::~Indexer()
+Nepomuk2::Indexer::~Indexer()
 {
     delete d->m_streamAnalyzer;
     delete d->m_indexWriter;
@@ -99,17 +100,17 @@ Nepomuk::Indexer::~Indexer()
 }
 
 
-void Nepomuk::Indexer::indexFile( const KUrl& url, const KUrl resUri, uint mtime )
+bool Nepomuk2::Indexer::indexFile( const KUrl& url, const KUrl resUri, uint mtime )
 {
-    indexFile( QFileInfo( url.toLocalFile() ), resUri, mtime );
+    return indexFile( QFileInfo( url.toLocalFile() ), resUri, mtime );
 }
 
 
-void Nepomuk::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uint mtime )
+bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uint mtime )
 {
     if( !info.exists() ) {
-        kDebug() << info.filePath() << " does not exist";
-        return;
+        d->m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
+        return false;
     }
     
     d->m_analyzerConfig.setStop( false );
@@ -140,9 +141,12 @@ void Nepomuk::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uint
     else {
         analysisresult.index(0);
     }
+
+    d->m_lastError = d->m_indexWriter->lastError();
+    return d->m_lastError.isEmpty();
 }
 
-void Nepomuk::Indexer::indexStdin(const KUrl resUri, uint mtime)
+bool Nepomuk2::Indexer::indexStdin(const KUrl resUri, uint mtime)
 {
     d->m_analyzerConfig.setStop( false );
     d->m_indexWriter->forceUri( resUri );
@@ -153,6 +157,14 @@ void Nepomuk::Indexer::indexStdin(const KUrl resUri, uint mtime)
                                            *d->m_streamAnalyzer );
     Strigi::FileInputStream stream( stdin, QFile::encodeName(resUri.toLocalFile()).data() );
     analysisresult.index( &stream );
+
+    d->m_lastError = d->m_indexWriter->lastError();
+    return d->m_lastError.isEmpty();
+}
+
+QString Nepomuk2::Indexer::lastError() const
+{
+    return d->m_lastError;
 }
 
 #include "indexer.moc"

@@ -42,58 +42,58 @@
 #include <QtCore/QXmlStreamWriter>
 
 
-using namespace Nepomuk::Query;
+using namespace Nepomuk2::Query;
 
 namespace {
 
-    QString aggregateToString( Nepomuk::Query::ComparisonTerm::AggregateFunction f )
+    QString aggregateToString( Nepomuk2::Query::ComparisonTerm::AggregateFunction f )
     {
         switch( f ) {
-        case Nepomuk::Query::ComparisonTerm::Count:
+        case Nepomuk2::Query::ComparisonTerm::Count:
             return QString::fromLatin1("count");
-        case Nepomuk::Query::ComparisonTerm::DistinctCount:
+        case Nepomuk2::Query::ComparisonTerm::DistinctCount:
             return QString::fromLatin1("distinctcount");
-        case Nepomuk::Query::ComparisonTerm::Max:
+        case Nepomuk2::Query::ComparisonTerm::Max:
             return QString::fromLatin1("max");
-        case Nepomuk::Query::ComparisonTerm::Min:
+        case Nepomuk2::Query::ComparisonTerm::Min:
             return QString::fromLatin1("min");
-        case Nepomuk::Query::ComparisonTerm::Sum:
+        case Nepomuk2::Query::ComparisonTerm::Sum:
             return QString::fromLatin1("sum");
-        case Nepomuk::Query::ComparisonTerm::DistinctSum:
+        case Nepomuk2::Query::ComparisonTerm::DistinctSum:
             return QString::fromLatin1("distinctsum");
-        case Nepomuk::Query::ComparisonTerm::Average:
+        case Nepomuk2::Query::ComparisonTerm::Average:
             return QString::fromLatin1("avg");
-        case Nepomuk::Query::ComparisonTerm::DistinctAverage:
+        case Nepomuk2::Query::ComparisonTerm::DistinctAverage:
             return QString::fromLatin1("distinctavg");
         default:
             return QString();
         }
     }
 
-    Nepomuk::Query::ComparisonTerm::AggregateFunction stringToAggregate( const QStringRef& f )
+    Nepomuk2::Query::ComparisonTerm::AggregateFunction stringToAggregate( const QStringRef& f )
     {
         if( f == QString::fromLatin1("count") )
-            return Nepomuk::Query::ComparisonTerm::Count;
+            return Nepomuk2::Query::ComparisonTerm::Count;
         else if( f == QString::fromLatin1("distinctcount") )
-            return Nepomuk::Query::ComparisonTerm::DistinctCount;
+            return Nepomuk2::Query::ComparisonTerm::DistinctCount;
         else if( f == QString::fromLatin1("max") )
-            return Nepomuk::Query::ComparisonTerm::Max;
+            return Nepomuk2::Query::ComparisonTerm::Max;
         else if( f == QString::fromLatin1("min") )
-            return Nepomuk::Query::ComparisonTerm::Min;
+            return Nepomuk2::Query::ComparisonTerm::Min;
         else if( f == QString::fromLatin1("sum") )
-            return Nepomuk::Query::ComparisonTerm::Sum;
+            return Nepomuk2::Query::ComparisonTerm::Sum;
         else if( f == QString::fromLatin1("distinctsum") )
-            return Nepomuk::Query::ComparisonTerm::DistinctSum;
+            return Nepomuk2::Query::ComparisonTerm::DistinctSum;
         else if( f == QString::fromLatin1("avg") )
-            return Nepomuk::Query::ComparisonTerm::Average;
+            return Nepomuk2::Query::ComparisonTerm::Average;
         else if( f == QString::fromLatin1("distinctavg") )
-            return Nepomuk::Query::ComparisonTerm::DistinctAverage;
+            return Nepomuk2::Query::ComparisonTerm::DistinctAverage;
         else
-            return Nepomuk::Query::ComparisonTerm::NoAggregateFunction;
+            return Nepomuk2::Query::ComparisonTerm::NoAggregateFunction;
     }
 
 
-    bool doSerializeTerm( QXmlStreamWriter& xml, const Nepomuk::Query::Term& term )
+    bool doSerializeTerm( QXmlStreamWriter& xml, const Nepomuk2::Query::Term& term )
     {
         switch(term.type()) {
         case Term::Literal: {
@@ -110,7 +110,7 @@ namespace {
 
         case Term::Resource:
             xml.writeStartElement( QLatin1String("resource") );
-            xml.writeAttribute( QLatin1String("uri"), KUrl( term.toResourceTerm().resource().uri() ).url() );
+            xml.writeAttribute( QLatin1String("uri"), KUrl( term.toResourceTerm().resource().resourceUri() ).url() );
             xml.writeEndElement();
             break;
 
@@ -137,7 +137,7 @@ namespace {
 
             if( cTerm.property().isValid() )
                 xml.writeAttribute( QLatin1String("property"), KUrl(cTerm.property().uri()).url() );
-            xml.writeAttribute( QLatin1String("comparator"), Nepomuk::Query::comparatorToString(cTerm.comparator()) );
+            xml.writeAttribute( QLatin1String("comparator"), Nepomuk2::Query::comparatorToString(cTerm.comparator()) );
             if( !cTerm.variableName().isEmpty() )
                 xml.writeAttribute( QLatin1String("varname"), cTerm.variableName() );
             if( cTerm.aggregateFunction() != ComparisonTerm::NoAggregateFunction )
@@ -272,7 +272,7 @@ namespace {
                 cTerm.setProperty( KUrl(attr.value( QLatin1String("property")).toString()) );
 
             if( attr.hasAttribute( QLatin1String("comparator") ) )
-                cTerm.setComparator( Nepomuk::Query::stringToComparator(attr.value( QLatin1String("comparator"))) );
+                cTerm.setComparator( Nepomuk2::Query::stringToComparator(attr.value( QLatin1String("comparator"))) );
 
             if( attr.hasAttribute( QLatin1String("varname") ) )
                 cTerm.setVariableName( attr.value( QLatin1String("varname")).toString() );
@@ -349,7 +349,7 @@ namespace {
 }
 
 
-QString Nepomuk::Query::serializeQuery( const Query& query )
+QString Nepomuk2::Query::serializeQuery( const Query& query )
 {
     QString s;
     QXmlStreamWriter xml( &s );
@@ -408,7 +408,7 @@ QString Nepomuk::Query::serializeQuery( const Query& query )
 }
 
 
-Query Nepomuk::Query::parseQuery( const QString& s )
+Query Nepomuk2::Query::parseQuery( const QString& s )
 {
     QXmlStreamReader xml( s );
 
@@ -468,7 +468,7 @@ Query Nepomuk::Query::parseQuery( const QString& s )
 }
 
 
-QString Nepomuk::Query::serializeTerm( const Term& term )
+QString Nepomuk2::Query::serializeTerm( const Term& term )
 {
     QString s;
     QXmlStreamWriter xml( &s );
@@ -482,7 +482,7 @@ QString Nepomuk::Query::serializeTerm( const Term& term )
 }
 
 
-Term Nepomuk::Query::parseTerm( const QString& s )
+Term Nepomuk2::Query::parseTerm( const QString& s )
 {
     QXmlStreamReader xml( s );
     if( xml.readNextStartElement() )

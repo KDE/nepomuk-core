@@ -28,7 +28,7 @@ class KUrl;
 class QUrl;
 class QString;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class Resource;
 
@@ -74,6 +74,11 @@ namespace Nepomuk {
         void finishAnalysis( const Strigi::AnalysisResult* );
 
         void forceUri( const QUrl & uri );
+
+        /**
+         * Retrieve the last error that occurred or an empty string if there was none.
+         */
+        QString lastError() const;
 
     private:
         static QString extractTextFromPdf(const QString& path);

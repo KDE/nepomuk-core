@@ -29,7 +29,7 @@
 
 #include "regexpcache.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
      * Active config class which emits signals if the config
      * was changed, for example if the KCM saved the config file.
@@ -138,6 +138,13 @@ namespace Nepomuk {
          * be indexed according to the configuration.
          */
         bool shouldFileBeIndexed( const QString& fileName ) const;
+
+        /**
+         * Check if the debug mode is enabled. The debug mode is a hidden
+         * configuration option (without any GUI) that will make the indexer
+         * log errors in a dedicated file.
+         */
+        bool isDebugModeEnabled() const;
 
     Q_SIGNALS:
         void configChanged();

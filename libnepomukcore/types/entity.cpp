@@ -33,7 +33,7 @@
 #include <kicon.h>
 
 
-Nepomuk::Types::EntityPrivate::EntityPrivate( const QUrl& uri_ )
+Nepomuk2::Types::EntityPrivate::EntityPrivate( const QUrl& uri_ )
     : mutex(QMutex::Recursive),
       uri( uri_ ),
       userVisible( true ),
@@ -43,7 +43,7 @@ Nepomuk::Types::EntityPrivate::EntityPrivate( const QUrl& uri_ )
 }
 
 
-void Nepomuk::Types::EntityPrivate::init()
+void Nepomuk2::Types::EntityPrivate::init()
 {
     QMutexLocker lock( &mutex );
 
@@ -53,7 +53,7 @@ void Nepomuk::Types::EntityPrivate::init()
 }
 
 
-void Nepomuk::Types::EntityPrivate::initAncestors()
+void Nepomuk2::Types::EntityPrivate::initAncestors()
 {
     QMutexLocker lock( &mutex );
 
@@ -63,7 +63,7 @@ void Nepomuk::Types::EntityPrivate::initAncestors()
 }
 
 
-bool Nepomuk::Types::EntityPrivate::load()
+bool Nepomuk2::Types::EntityPrivate::load()
 {
     const QString query = QString::fromLatin1( "select ?p ?o where { "
                                                "graph ?g { <%1> ?p ?o . } . "
@@ -113,7 +113,7 @@ bool Nepomuk::Types::EntityPrivate::load()
 }
 
 
-bool Nepomuk::Types::EntityPrivate::loadAncestors()
+bool Nepomuk2::Types::EntityPrivate::loadAncestors()
 {
     const QString query = QString::fromLatin1( "select ?s ?p where { "
                                                "graph ?g { ?s ?p <%1> . } . "
@@ -133,7 +133,7 @@ bool Nepomuk::Types::EntityPrivate::loadAncestors()
 
 
 
-void Nepomuk::Types::EntityPrivate::reset( bool )
+void Nepomuk2::Types::EntityPrivate::reset( bool )
 {
     QMutexLocker lock( &mutex );
 
@@ -149,42 +149,42 @@ void Nepomuk::Types::EntityPrivate::reset( bool )
 }
 
 
-Nepomuk::Types::Entity::Entity()
+Nepomuk2::Types::Entity::Entity()
 {
 }
 
 
-Nepomuk::Types::Entity::Entity( const Entity& other )
+Nepomuk2::Types::Entity::Entity( const Entity& other )
 {
     d = other.d;
 }
 
 
-Nepomuk::Types::Entity::~Entity()
+Nepomuk2::Types::Entity::~Entity()
 {
 }
 
 
-Nepomuk::Types::Entity& Nepomuk::Types::Entity::operator=( const Entity& other )
+Nepomuk2::Types::Entity& Nepomuk2::Types::Entity::operator=( const Entity& other )
 {
     d = other.d;
     return *this;
 }
 
 
-QUrl Nepomuk::Types::Entity::uri() const
+QUrl Nepomuk2::Types::Entity::uri() const
 {
     return d ? d->uri : QUrl();
 }
 
 
-QString Nepomuk::Types::Entity::name() const
+QString Nepomuk2::Types::Entity::name() const
 {
     return d ? (d->uri.fragment().isEmpty() ? d->uri.toString().section('/',-1) : d->uri.fragment() ) : QString();
 }
 
 
-QString Nepomuk::Types::Entity::label( const QString& language )
+QString Nepomuk2::Types::Entity::label( const QString& language )
 {
     if ( d ) {
         d->init();
@@ -206,13 +206,13 @@ QString Nepomuk::Types::Entity::label( const QString& language )
 }
 
 
-QString Nepomuk::Types::Entity::label( const QString& language ) const
+QString Nepomuk2::Types::Entity::label( const QString& language ) const
 {
     return const_cast<Entity*>(this)->label( language );
 }
 
 
-QString Nepomuk::Types::Entity::comment( const QString& language )
+QString Nepomuk2::Types::Entity::comment( const QString& language )
 {
     if ( d ) {
         d->init();
@@ -231,13 +231,13 @@ QString Nepomuk::Types::Entity::comment( const QString& language )
 }
 
 
-QString Nepomuk::Types::Entity::comment( const QString& language ) const
+QString Nepomuk2::Types::Entity::comment( const QString& language ) const
 {
     return const_cast<Entity*>(this)->comment( language );
 }
 
 
-QIcon Nepomuk::Types::Entity::icon()
+QIcon Nepomuk2::Types::Entity::icon()
 {
     if ( d ) {
         d->init();
@@ -250,19 +250,19 @@ QIcon Nepomuk::Types::Entity::icon()
 }
 
 
-QIcon Nepomuk::Types::Entity::icon() const
+QIcon Nepomuk2::Types::Entity::icon() const
 {
     return const_cast<Entity*>(this)->icon();
 }
 
 
-bool Nepomuk::Types::Entity::isValid() const
+bool Nepomuk2::Types::Entity::isValid() const
 {
     return d ? d->uri.isValid() : false;
 }
 
 
-bool Nepomuk::Types::Entity::isAvailable()
+bool Nepomuk2::Types::Entity::isAvailable()
 {
     if ( d ) {
         d->init();
@@ -274,20 +274,20 @@ bool Nepomuk::Types::Entity::isAvailable()
 }
 
 
-bool Nepomuk::Types::Entity::isAvailable() const
+bool Nepomuk2::Types::Entity::isAvailable() const
 {
     return const_cast<Entity*>(this)->isAvailable();
 }
 
 
-void Nepomuk::Types::Entity::reset( bool recursive )
+void Nepomuk2::Types::Entity::reset( bool recursive )
 {
     if( d )
         d->reset( recursive );
 }
 
 
-bool Nepomuk::Types::Entity::userVisible() const
+bool Nepomuk2::Types::Entity::userVisible() const
 {
     if ( d ) {
         d->init();
@@ -299,7 +299,7 @@ bool Nepomuk::Types::Entity::userVisible() const
 }
 
 
-bool Nepomuk::Types::Entity::operator==( const Entity& other ) const
+bool Nepomuk2::Types::Entity::operator==( const Entity& other ) const
 {
     // since we use one instace cache we can improve comparation operations
     // intensly by not comparing URLs but pointers.
@@ -307,7 +307,7 @@ bool Nepomuk::Types::Entity::operator==( const Entity& other ) const
 }
 
 
-bool Nepomuk::Types::Entity::operator==( const QUrl& other ) const
+bool Nepomuk2::Types::Entity::operator==( const QUrl& other ) const
 {
     if( d )
         return( d->uri == other );
@@ -316,7 +316,7 @@ bool Nepomuk::Types::Entity::operator==( const QUrl& other ) const
 }
 
 
-bool Nepomuk::Types::Entity::operator!=( const Entity& other ) const
+bool Nepomuk2::Types::Entity::operator!=( const Entity& other ) const
 {
     // since we use one instace cache we can improve comparation operations
     // intensly by not comparing URLs but pointers.
@@ -324,7 +324,7 @@ bool Nepomuk::Types::Entity::operator!=( const Entity& other ) const
 }
 
 
-bool Nepomuk::Types::Entity::operator!=( const QUrl& other ) const
+bool Nepomuk2::Types::Entity::operator!=( const QUrl& other ) const
 {
     if( d )
         return( d->uri != other );

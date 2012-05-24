@@ -45,7 +45,7 @@
 #include <KCalendarSystem>
 
 
-Nepomuk::BackupManager::BackupManager(Soprano::Model* model, QObject* parent)
+Nepomuk2::BackupManager::BackupManager(Soprano::Model* model, QObject* parent)
     : QObject( parent ),
       m_config( "nepomukbackuprc" ),
       m_model( model )
@@ -71,12 +71,12 @@ Nepomuk::BackupManager::BackupManager(Soprano::Model* model, QObject* parent)
 }
 
 
-Nepomuk::BackupManager::~BackupManager()
+Nepomuk2::BackupManager::~BackupManager()
 {
 }
 
 
-void Nepomuk::BackupManager::backup(const QString& oldUrl)
+void Nepomuk2::BackupManager::backup(const QString& oldUrl)
 {
     QString url = oldUrl;
     if( url.isEmpty() )
@@ -92,7 +92,7 @@ void Nepomuk::BackupManager::backup(const QString& oldUrl)
     job->start();
 }
 
-void Nepomuk::BackupManager::automatedBackup()
+void Nepomuk2::BackupManager::automatedBackup()
 {
     QDate today = QDate::currentDate();
     backup( m_backupLocation + today.toString(Qt::ISODate) );
@@ -101,7 +101,7 @@ void Nepomuk::BackupManager::automatedBackup()
     removeOldBackups();
 }
 
-void Nepomuk::BackupManager::slotConfigDirty()
+void Nepomuk2::BackupManager::slotConfigDirty()
 {
     kDebug();
     m_config.reparseConfiguration();
@@ -158,7 +158,7 @@ void Nepomuk::BackupManager::slotConfigDirty()
     removeOldBackups();
 }
 
-void Nepomuk::BackupManager::resetTimer()
+void Nepomuk2::BackupManager::resetTimer()
 {
     if( m_backupTime.isNull() && m_daysBetweenBackups == 0 ) {
         // Never perform automated backups
@@ -180,7 +180,7 @@ void Nepomuk::BackupManager::resetTimer()
     kDebug() << "Setting timer for " << msecs/1000.0/60/60 << " hours";
 }
 
-void Nepomuk::BackupManager::removeOldBackups()
+void Nepomuk2::BackupManager::removeOldBackups()
 {
     QDir dir( m_backupLocation );
     QStringList infoList = dir.entryList( QDir::Files | QDir::NoDotAndDotDot, QDir::Name );
@@ -193,7 +193,7 @@ void Nepomuk::BackupManager::removeOldBackups()
     }
 }
 
-void Nepomuk::BackupManager::slotBackupDone(KJob* job)
+void Nepomuk2::BackupManager::slotBackupDone(KJob* job)
 {
     if( !job->error() ) {
         emit backupDone();

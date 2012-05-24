@@ -61,6 +61,11 @@ namespace {
         ".histfile.*",
         ".xsession-errors*",
 
+        // Compiled files
+        "*.class", // Java
+        "*.pyc",   // Python
+        "*.elc",   // Emacs Lisp
+
         // end of list
         0
     };
@@ -95,7 +100,7 @@ namespace {
 }
 
 
-QStringList Nepomuk::defaultExcludeFilterList()
+QStringList Nepomuk2::defaultExcludeFilterList()
 {
     QStringList l;
     for ( int i = 0; s_defaultFileExcludeFilters[i]; ++i )
@@ -105,7 +110,7 @@ QStringList Nepomuk::defaultExcludeFilterList()
     return l;
 }
 
-int Nepomuk::defaultExcludeFilterListVersion()
+int Nepomuk2::defaultExcludeFilterListVersion()
 {
     return qMax(s_defaultFileExcludeFiltersVersion, s_defaultFolderExcludeFiltersVersion);
 }

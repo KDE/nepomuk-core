@@ -33,7 +33,7 @@ namespace Soprano {
     class QueryResultIterator;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         class Folder;
 
@@ -49,13 +49,13 @@ namespace Nepomuk {
             void cancel();
 
         Q_SIGNALS:
-            void newResult( const Nepomuk::Query::Result& result );
+            void newResult( const Nepomuk2::Query::Result& result );
 
         protected:
             void run();
 
         private:
-            Nepomuk::Query::Result extractResult( const Soprano::QueryResultIterator& it ) const;
+            Nepomuk2::Query::Result extractResult( const Soprano::QueryResultIterator& it ) const;
 
             QPointer<Folder> m_folder;
             mutable QMutex m_folderMutex;

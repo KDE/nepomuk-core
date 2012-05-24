@@ -25,7 +25,7 @@
 
 #include <QtCore/QStringList>
 
-bool Nepomuk::Query::GroupTermPrivate::equals( const TermPrivate* other ) const
+bool Nepomuk2::Query::GroupTermPrivate::equals( const TermPrivate* other ) const
 {
     if ( other->m_type == m_type ) {
         const GroupTermPrivate* gtp = static_cast<const GroupTermPrivate*>( other );
@@ -37,7 +37,7 @@ bool Nepomuk::Query::GroupTermPrivate::equals( const TermPrivate* other ) const
 }
 
 
-bool Nepomuk::Query::GroupTermPrivate::isValid() const
+bool Nepomuk2::Query::GroupTermPrivate::isValid() const
 {
     if ( m_subTerms.count() ) {
         foreach( const Term& t, m_subTerms ) {
@@ -52,19 +52,19 @@ bool Nepomuk::Query::GroupTermPrivate::isValid() const
 }
 
 
-Nepomuk::Query::GroupTerm::GroupTerm( const Term& term )
+Nepomuk2::Query::GroupTerm::GroupTerm( const Term& term )
     : Term( term )
 {
 }
 
 
-Nepomuk::Query::GroupTerm::GroupTerm( TermPrivate* d )
+Nepomuk2::Query::GroupTerm::GroupTerm( TermPrivate* d )
     : Term( d )
 {
 }
 
 
-Nepomuk::Query::GroupTerm::GroupTerm( TermPrivate* d,
+Nepomuk2::Query::GroupTerm::GroupTerm( TermPrivate* d,
                                       const Term& term1,
                                       const Term& term2,
                                       const Term& term3,
@@ -86,26 +86,26 @@ Nepomuk::Query::GroupTerm::GroupTerm( TermPrivate* d,
 }
 
 
-Nepomuk::Query::GroupTerm::~GroupTerm()
+Nepomuk2::Query::GroupTerm::~GroupTerm()
 {
 }
 
 
-QList<Nepomuk::Query::Term> Nepomuk::Query::GroupTerm::subTerms() const
+QList<Nepomuk2::Query::Term> Nepomuk2::Query::GroupTerm::subTerms() const
 {
     N_D_CONST( GroupTerm );
     return d->m_subTerms;
 }
 
 
-void Nepomuk::Query::GroupTerm::setSubTerms( const QList<Term>& terms )
+void Nepomuk2::Query::GroupTerm::setSubTerms( const QList<Term>& terms )
 {
     N_D( GroupTerm );
     d->m_subTerms = terms;
 }
 
 
-void Nepomuk::Query::GroupTerm::addSubTerm( const Term& term )
+void Nepomuk2::Query::GroupTerm::addSubTerm( const Term& term )
 {
     N_D( GroupTerm );
     d->m_subTerms << term;

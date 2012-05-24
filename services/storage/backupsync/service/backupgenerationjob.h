@@ -25,7 +25,7 @@
 #include <QtCore/QUrl>
 #include <Soprano/Model>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class BackupGenerationJob : public KJob
     {

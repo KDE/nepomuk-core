@@ -1,6 +1,6 @@
 /*
    This file is part of the Nepomuk KDE project.
-   Copyright (C) 2009-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2009-2012 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,13 +27,13 @@
 #include <Soprano/Node>
 #include <Soprano/Vocabulary/RDFS>
 
-Nepomuk::Query::LiteralTermPrivate::LiteralTermPrivate()
+Nepomuk2::Query::LiteralTermPrivate::LiteralTermPrivate()
 {
     m_type = Term::Literal;
 }
 
 
-bool Nepomuk::Query::LiteralTermPrivate::equals( const TermPrivate* other ) const
+bool Nepomuk2::Query::LiteralTermPrivate::equals( const TermPrivate* other ) const
 {
     if ( other->m_type == m_type ) {
         const LiteralTermPrivate* rtp = static_cast<const LiteralTermPrivate*>( other );
@@ -50,7 +50,7 @@ bool Nepomuk::Query::LiteralTermPrivate::equals( const TermPrivate* other ) cons
 // But since many relations like nao:hasTag or nmm:performer or similar are considered as plain text fields we extend the pattern by adding
 // relations to resources that have labels containing the query text.
 //
-QString Nepomuk::Query::LiteralTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, QueryBuilderData* qbd ) const
+QString Nepomuk2::Query::LiteralTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
 {
     Q_UNUSED(parentTerm);
 
@@ -58,24 +58,21 @@ QString Nepomuk::Query::LiteralTermPrivate::toSparqlGraphPattern( const QString&
         return QString();
 
     const QString p1 = qbd->uniqueVarName();
-    const QString p2 = qbd->uniqueVarName();
     const QString v1 = qbd->uniqueVarName();
     const QString r2 = qbd->uniqueVarName();
     const QString containsPattern = createContainsPattern( v1, m_value.toString(), qbd );
 
     // { ?r ?p1 ?v1 . containsPattern(v1) }
     // UNION
-    // { ?r ?p1 ?r2 . ?r2 ?p2 ?v1 . ?v1 rdfs:subPropertyOf rdfs:label . containsPattern(v1) } .
+    // { ?r ?p1 ?r2 . ?r2 rdfs:label ?v1 . containsPattern(v1) } .
     return QString::fromLatin1( "{ %1 %2 %3 . %4 } "
                                 "UNION "
-                                "{ %1 %2 %5 . %5 %6 %3 . %6 %7 %8 . %4 } . " )
+                                "{ %1 %2 %5 . %5 %6 %3 . %4 } . " )
         .arg( resourceVarName,
               p1,
               v1,
-              containsPattern,
+              containsPattern + additionalFilters,
               r2,
-              p2,
-              Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::subPropertyOf()),
               Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::label()) );
 }
 
@@ -92,7 +89,7 @@ QString prepareRegexText( const QString& text )
 }
 
 
-QString Nepomuk::Query::LiteralTermPrivate::createContainsPattern( const QString& varName, const QString& text, Nepomuk::Query::QueryBuilderData* qbd )
+QString Nepomuk2::Query::LiteralTermPrivate::createContainsPattern( const QString& varName, const QString& text, Nepomuk2::Query::QueryBuilderData* qbd )
 {
     if( text.isEmpty() )
         return QString();
@@ -235,39 +232,39 @@ QString Nepomuk::Query::LiteralTermPrivate::createContainsPattern( const QString
 }
 
 
-Nepomuk::Query::LiteralTerm::LiteralTerm( const LiteralTerm& term )
+Nepomuk2::Query::LiteralTerm::LiteralTerm( const LiteralTerm& term )
     : Term( term )
 {
 }
 
 
-Nepomuk::Query::LiteralTerm::LiteralTerm( const Soprano::LiteralValue& value )
+Nepomuk2::Query::LiteralTerm::LiteralTerm( const Soprano::LiteralValue& value )
     : Term( new LiteralTermPrivate() )
 {
     setValue( value );
 }
 
 
-Nepomuk::Query::LiteralTerm::~LiteralTerm()
+Nepomuk2::Query::LiteralTerm::~LiteralTerm()
 {
 }
 
 
-Nepomuk::Query::LiteralTerm& Nepomuk::Query::LiteralTerm::operator=( const LiteralTerm& term )
+Nepomuk2::Query::LiteralTerm& Nepomuk2::Query::LiteralTerm::operator=( const LiteralTerm& term )
 {
     d_ptr = term.d_ptr;
     return *this;
 }
 
 
-Soprano::LiteralValue Nepomuk::Query::LiteralTerm::value() const
+Soprano::LiteralValue Nepomuk2::Query::LiteralTerm::value() const
 {
     N_D_CONST( LiteralTerm );
     return d->m_value;
 }
 
 
-void Nepomuk::Query::LiteralTerm::setValue( const Soprano::LiteralValue& value )
+void Nepomuk2::Query::LiteralTerm::setValue( const Soprano::LiteralValue& value )
 {
     N_D( LiteralTerm );
     d->m_value = value;

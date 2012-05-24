@@ -1,5 +1,5 @@
 /* This file is part of the KDE Project
-   Copyright (c) 2008 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2008-2012 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -17,7 +17,6 @@
 */
 
 #include "ontologymanagermodel.h"
-#include "crappyinferencer.h"
 
 #include <QtCore/QUrl>
 #include <QtCore/QDateTime>
@@ -216,7 +215,7 @@ namespace {
         tmpModel->addStatement( Soprano::Statement( metaDataGraphUri, Soprano::Vocabulary::NRL::coreGraphMetadataFor(), dataGraphUri, metaDataGraphUri ) );
         tmpModel->addStatement( Soprano::Statement( dataGraphUri, Soprano::Vocabulary::RDF::type(), graphType, metaDataGraphUri ) );
         if ( graphType == Soprano::Vocabulary::NRL::KnowledgeBase() ) {
-            // we do not have inference in Nepomuk yet and this way libnepomuk does not get confused when reading types
+            // just to make sure. TODO: Since we now have inference in Nepomuk we could probably remove this.
             tmpModel->addStatement( Soprano::Statement( dataGraphUri, Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::NRL::Ontology(), metaDataGraphUri ) );
             tmpModel->addStatement( Soprano::Statement( dataGraphUri, Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::NRL::InstanceBase(), metaDataGraphUri ) );
         }
@@ -225,14 +224,12 @@ namespace {
 }
 
 
-class Nepomuk::OntologyManagerModel::Private
+class Nepomuk2::OntologyManagerModel::Private
 {
 public:
     Private( OntologyManagerModel* p )
         : q( p ) {
     }
-
-    CrappyInferencer m_inferenceModel;
 
 private:
     OntologyManagerModel* q;
@@ -242,29 +239,21 @@ private:
 
 
 
-Nepomuk::OntologyManagerModel::OntologyManagerModel( Soprano::Model* parentModel, QObject* parent )
-    : FilterModel(),
+Nepomuk2::OntologyManagerModel::OntologyManagerModel( Soprano::Model* parentModel, QObject* parent )
+    : FilterModel(parentModel),
       d( new Private( this ) )
 {
     setParent( parent );
-    FilterModel::setParentModel( &d->m_inferenceModel );
-    setParentModel( parentModel );
 }
 
 
-Nepomuk::OntologyManagerModel::~OntologyManagerModel()
+Nepomuk2::OntologyManagerModel::~OntologyManagerModel()
 {
     delete d;
 }
 
 
-void Nepomuk::OntologyManagerModel::setParentModel( Soprano::Model* parentModel )
-{
-    d->m_inferenceModel.setParentModel( parentModel );
-}
-
-
-bool Nepomuk::OntologyManagerModel::updateOntology( Soprano::StatementIterator data, const QUrl& ns )
+bool Nepomuk2::OntologyManagerModel::updateOntology( Soprano::StatementIterator data, const QUrl& ns )
 {
     clearError();
 
@@ -374,7 +363,7 @@ bool Nepomuk::OntologyManagerModel::updateOntology( Soprano::StatementIterator d
 }
 
 
-bool Nepomuk::OntologyManagerModel::removeOntology( const QUrl& ns )
+bool Nepomuk2::OntologyManagerModel::removeOntology( const QUrl& ns )
 {
     clearError();
 
@@ -395,7 +384,7 @@ bool Nepomuk::OntologyManagerModel::removeOntology( const QUrl& ns )
 }
 
 
-QDateTime Nepomuk::OntologyManagerModel::ontoModificationDate( const QUrl& uri )
+QDateTime Nepomuk2::OntologyManagerModel::ontoModificationDate( const QUrl& uri )
 {
     // We use a FILTER(STR(?ns)...) to support both Soprano 2.3 (with plain literals) and earlier (with only typed ones)
     QString query = QString( "select ?date where { "
@@ -418,7 +407,7 @@ QDateTime Nepomuk::OntologyManagerModel::ontoModificationDate( const QUrl& uri )
 }
 
 
-QUrl Nepomuk::OntologyManagerModel::findOntologyContext( const QUrl& uri )
+QUrl Nepomuk2::OntologyManagerModel::findOntologyContext( const QUrl& uri )
 {
     QUrl dataGraphUri, metaDataGraphUri;
     if ( findGraphUris( parentModel(), uri, dataGraphUri, metaDataGraphUri ) ) {

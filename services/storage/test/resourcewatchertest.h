@@ -29,7 +29,7 @@ namespace Soprano {
 class Model;
 class NRLModel;
 }
-namespace Nepomuk {
+namespace Nepomuk2 {
 class DataManagementModel;
 class ClassAndPropertyTree;
 }
@@ -49,6 +49,22 @@ private Q_SLOTS:
     void testResourceRemovedSignal();
 
     void testStoreResources_createResources();
+
+    // test that make sure each method results in the correct signals
+    void testSetProperty();
+    void testAddProperty();
+    void testRemoveProperty();
+    void testRemoveProperties();
+    void testRemoveResources();
+    void testCreateResources();
+    void testRemoveDataByApplication();
+    void testRemoveAllDataByApplication();
+    void testStoreResources_resourceCreated();
+    void testStoreResources_propertyChanged();
+    void testStoreResources_typeAdded();
+    void testRemoveProperty_typeRemoved();
+    void testMergeResources();
+
 private:
     KTempDir* createNieUrlTestData();
 
@@ -58,8 +74,8 @@ private:
     KTempDir* m_storageDir;
     Soprano::Model* m_model;
     Soprano::NRLModel* m_nrlModel;
-    Nepomuk::ClassAndPropertyTree* m_classAndPropertyTree;
-    Nepomuk::DataManagementModel* m_dmModel;
+    Nepomuk2::ClassAndPropertyTree* m_classAndPropertyTree;
+    Nepomuk2::DataManagementModel* m_dmModel;
 };
 
 #endif

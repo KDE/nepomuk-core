@@ -13,14 +13,12 @@ set(nepomuk_resource_SRCS
   resource/variant.cpp
   resource/resourcedata.cpp
   resource/resourcemanager.cpp
-  resource/resourcefiltermodel.cpp
   resource/nepomukmainmodel.cpp
   resource/resource.cpp
   resource/thing.cpp
   resource/file.cpp
   resource/tag.cpp
   resource/nepomukservice.cpp
-  resource/graphwrapper.cpp
 )
 
 set(nepomuk_types_SRCS
@@ -105,17 +103,17 @@ set(nepomuk_LIB_SRCS
   stuff-to-remove-for-kdelibs-5.0/kdbusconnectionpool.cpp
 )
 
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nie.trig" "NIE" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nfo.trig" "NFO" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/ncal.trig" "NCAL" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nco.trig" "NCO" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nmo.trig" "NMO" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nmm.trig" "NMM" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nexif.trig" "NEXIF" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/pimo/pimo.trig" "PIMO" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/pimo/tmo.trig" "TMO" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nepomuk/nuao.trig" "NUAO" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
-soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nepomuk/ndo.trig" "NDO" "Nepomuk::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nie.trig" "NIE" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nfo.trig" "NFO" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/ncal.trig" "NCAL" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nco.trig" "NCO" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nmo.trig" "NMO" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nmm.trig" "NMM" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nexif.trig" "NEXIF" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/pimo/pimo.trig" "PIMO" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/pimo/tmo.trig" "TMO" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nepomuk/nuao.trig" "NUAO" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
+soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nepomuk/ndo.trig" "NDO" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
 
 kde4_add_library(nepomukcore SHARED ${nepomuk_LIB_SRCS})
 
@@ -140,7 +138,7 @@ set_target_properties(nepomukcore PROPERTIES
    SOVERSION ${GENERIC_LIB_SOVERSION}
 )
 
-install(TARGETS nepomukcore EXPORT kdelibsLibraryTargets ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS nepomukcore EXPORT NepomukCoreLibraryTargets ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 install(FILES
   nepomuk_export.h
@@ -182,6 +180,8 @@ install(FILES
   datamanagement/describeresourcesjob.h
   datamanagement/resourcewatcher.h
   datamanagement/storeresourcesjob.h
+  ${CMAKE_CURRENT_BINARY_DIR}/queryinterface.h
+  ${CMAKE_CURRENT_BINARY_DIR}/queryserviceinterface.h
   ${CMAKE_CURRENT_BINARY_DIR}/nepomukversion.h
 
   # Vocabularies
@@ -197,7 +197,7 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/nuao.h
   ${CMAKE_CURRENT_BINARY_DIR}/ndo.h
 
-  DESTINATION ${INCLUDE_INSTALL_DIR}/nepomuk COMPONENT Devel
+  DESTINATION ${INCLUDE_INSTALL_DIR}/nepomuk2 COMPONENT Devel
 )
 
 add_subdirectory(test)

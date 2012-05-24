@@ -26,12 +26,12 @@
 
 #include <KUrl>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
 class ResourceIdentifier : public Sync::ResourceIdentifier
 {
 public:
-    ResourceIdentifier( Nepomuk::StoreIdentificationMode mode, Soprano::Model *model);
+    ResourceIdentifier( Nepomuk2::StoreIdentificationMode mode, Soprano::Model *model);
 
 protected:
     virtual KUrl duplicateMatch(const KUrl& uri, const QSet< KUrl >& matchedUris );
@@ -43,7 +43,7 @@ private:
     /// Returns true if a resource with uri \p uri exists
     bool exists( const KUrl& uri );
 
-    Nepomuk::StoreIdentificationMode m_mode;
+    Nepomuk2::StoreIdentificationMode m_mode;
 };
 
 }

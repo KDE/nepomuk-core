@@ -33,46 +33,46 @@
 
 #include <QtCore/QSharedData>
 
-class Nepomuk::Sync::SyncResource::Private : public QSharedData {
+class Nepomuk2::Sync::SyncResource::Private : public QSharedData {
 public:
     KUrl uri;
 };
 
 
-Nepomuk::Sync::SyncResource::SyncResource()
-    : d( new Nepomuk::Sync::SyncResource::Private )
+Nepomuk2::Sync::SyncResource::SyncResource()
+    : d( new Nepomuk2::Sync::SyncResource::Private )
 {
 }
 
-Nepomuk::Sync::SyncResource::SyncResource(const KUrl& uri)
-    : d( new Nepomuk::Sync::SyncResource::Private )
+Nepomuk2::Sync::SyncResource::SyncResource(const KUrl& uri)
+    : d( new Nepomuk2::Sync::SyncResource::Private )
 {
     setUri( uri );
 }
 
-Nepomuk::Sync::SyncResource::SyncResource(const Nepomuk::Sync::SyncResource& rhs)
+Nepomuk2::Sync::SyncResource::SyncResource(const Nepomuk2::Sync::SyncResource& rhs)
     : QMultiHash< KUrl, Soprano::Node >(rhs),
       d( rhs.d )
 {
 }
 
-Nepomuk::Sync::SyncResource::~SyncResource()
+Nepomuk2::Sync::SyncResource::~SyncResource()
 {
 }
 
-Nepomuk::Sync::SyncResource& Nepomuk::Sync::SyncResource::operator=(const Nepomuk::Sync::SyncResource& rhs)
+Nepomuk2::Sync::SyncResource& Nepomuk2::Sync::SyncResource::operator=(const Nepomuk2::Sync::SyncResource& rhs)
 {
     d = rhs.d;
     return *this;
 }
 
-bool Nepomuk::Sync::SyncResource::operator==(const Nepomuk::Sync::SyncResource& res) const
+bool Nepomuk2::Sync::SyncResource::operator==(const Nepomuk2::Sync::SyncResource& res) const
 {
     return d->uri == res.d->uri &&
     this->QHash<KUrl, Soprano::Node>::operator==( res );
 }
 
-QList< Soprano::Statement > Nepomuk::Sync::SyncResource::toStatementList() const
+QList< Soprano::Statement > Nepomuk2::Sync::SyncResource::toStatementList() const
 {
     QList<Soprano::Statement> list;
     const QList<KUrl> & keys = uniqueKeys();
@@ -92,21 +92,21 @@ QList< Soprano::Statement > Nepomuk::Sync::SyncResource::toStatementList() const
 }
 
 
-bool Nepomuk::Sync::SyncResource::isFolder() const
+bool Nepomuk2::Sync::SyncResource::isFolder() const
 {
-    return values( Soprano::Vocabulary::RDF::type() ).contains( Soprano::Node( Nepomuk::Vocabulary::NFO::Folder() ) );
+    return values( Soprano::Vocabulary::RDF::type() ).contains( Soprano::Node( Nepomuk2::Vocabulary::NFO::Folder() ) );
 }
 
 
-bool Nepomuk::Sync::SyncResource::isFileDataObject() const
+bool Nepomuk2::Sync::SyncResource::isFileDataObject() const
 {
-    return values( Soprano::Vocabulary::RDF::type() ).contains( Soprano::Node( Nepomuk::Vocabulary::NFO::FileDataObject() ) );
+    return values( Soprano::Vocabulary::RDF::type() ).contains( Soprano::Node( Nepomuk2::Vocabulary::NFO::FileDataObject() ) );
 }
 
 
-KUrl Nepomuk::Sync::SyncResource::nieUrl() const
+KUrl Nepomuk2::Sync::SyncResource::nieUrl() const
 {
-    const QHash<KUrl, Soprano::Node>::const_iterator it = constFind( Nepomuk::Vocabulary::NIE::url() );
+    const QHash<KUrl, Soprano::Node>::const_iterator it = constFind( Nepomuk2::Vocabulary::NIE::url() );
     if( it == constEnd() )
         return KUrl();
     else
@@ -114,7 +114,7 @@ KUrl Nepomuk::Sync::SyncResource::nieUrl() const
 }
 
 
-void Nepomuk::Sync::SyncResource::setUri(const Soprano::Node& node)
+void Nepomuk2::Sync::SyncResource::setUri(const Soprano::Node& node)
 {
     if( node.isResource() ) {
         d->uri = node.uri();
@@ -124,17 +124,17 @@ void Nepomuk::Sync::SyncResource::setUri(const Soprano::Node& node)
     }
 }
 
-KUrl Nepomuk::Sync::SyncResource::uri() const
+KUrl Nepomuk2::Sync::SyncResource::uri() const
 {
     return d->uri;
 }
 
-QList< Soprano::Node > Nepomuk::Sync::SyncResource::property(const KUrl& url) const
+QList< Soprano::Node > Nepomuk2::Sync::SyncResource::property(const KUrl& url) const
 {
     return values(url);
 }
 
-void Nepomuk::Sync::SyncResource::removeObject(const KUrl& uri)
+void Nepomuk2::Sync::SyncResource::removeObject(const KUrl& uri)
 {
     QMutableHashIterator<KUrl, Soprano::Node> iter( *this );
     while( iter.hasNext() ) {
@@ -155,7 +155,7 @@ namespace {
     }
 }
 // static
-Nepomuk::Sync::SyncResource Nepomuk::Sync::SyncResource::fromStatementList(const QList< Soprano::Statement >& list)
+Nepomuk2::Sync::SyncResource Nepomuk2::Sync::SyncResource::fromStatementList(const QList< Soprano::Statement >& list)
 {
     if( list.isEmpty() )
         return SyncResource();
@@ -183,13 +183,13 @@ Nepomuk::Sync::SyncResource Nepomuk::Sync::SyncResource::fromStatementList(const
 //
 
 // static
-Nepomuk::Sync::ResourceHash Nepomuk::Sync::ResourceHash::fromGraph(const Soprano::Graph& graph)
+Nepomuk2::Sync::ResourceHash Nepomuk2::Sync::ResourceHash::fromGraph(const Soprano::Graph& graph)
 {
     return fromStatementList( graph.listStatements().allStatements() );
 }
 
 // static
-Nepomuk::Sync::ResourceHash Nepomuk::Sync::ResourceHash::fromStatementList(const QList< Soprano::Statement >& allStatements)
+Nepomuk2::Sync::ResourceHash Nepomuk2::Sync::ResourceHash::fromStatementList(const QList< Soprano::Statement >& allStatements)
 {
     //
     // Convert into multi hash for easier look up
@@ -218,7 +218,7 @@ Nepomuk::Sync::ResourceHash Nepomuk::Sync::ResourceHash::fromStatementList(const
 }
 
 
-QList< Soprano::Statement > Nepomuk::Sync::ResourceHash::toStatementList() const
+QList< Soprano::Statement > Nepomuk2::Sync::ResourceHash::toStatementList() const
 {
     QList<Soprano::Statement> stList;
     Q_FOREACH( const KUrl& uri, uniqueKeys() ) {
@@ -230,12 +230,12 @@ QList< Soprano::Statement > Nepomuk::Sync::ResourceHash::toStatementList() const
 }
 
 
-bool Nepomuk::Sync::SyncResource::isValid() const
+bool Nepomuk2::Sync::SyncResource::isValid() const
 {
     return !d->uri.isEmpty() && !isEmpty();
 }
 
-uint Nepomuk::Sync::qHash(const Nepomuk::Sync::SyncResource& res)
+uint Nepomuk2::Sync::qHash(const Nepomuk2::Sync::SyncResource& res)
 {
     // WARNING: Do not use the uri to generate the hash.
     // StoreResources depends on the fact that the uri is not used while generating the hash
@@ -249,4 +249,9 @@ uint Nepomuk::Sync::qHash(const Nepomuk::Sync::SyncResource& res)
     }
 
     return hash;
+}
+
+QDebug Nepomuk2::Sync::operator<<(QDebug dbg, const Nepomuk2::Sync::SyncResource& res)
+{
+    return dbg << res.uri() << QMultiHash<KUrl, Soprano::Node>(res);
 }

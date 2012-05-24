@@ -44,7 +44,7 @@
 #include <Soprano/NRLModel>
 
 
-Nepomuk::DataManagementAdaptor::DataManagementAdaptor(Nepomuk::DataManagementModel *parent)
+Nepomuk2::DataManagementAdaptor::DataManagementAdaptor(Nepomuk2::DataManagementModel *parent)
     : QObject(parent),
       m_model(parent),
       m_namespacePrefixRx(QLatin1String("(\\w+)\\:(\\w+)"))
@@ -64,25 +64,25 @@ Nepomuk::DataManagementAdaptor::DataManagementAdaptor(Nepomuk::DataManagementMod
     m_threadPool->setMaxThreadCount(10);
 }
 
-Nepomuk::DataManagementAdaptor::~DataManagementAdaptor()
+Nepomuk2::DataManagementAdaptor::~DataManagementAdaptor()
 {
     // make sure all commands are done before letting deletion continue
     m_threadPool->waitForDone();
 }
 
-void Nepomuk::DataManagementAdaptor::addProperty(const QStringList &resources, const QString &property, const QVariantList &values, const QString &app)
+void Nepomuk2::DataManagementAdaptor::addProperty(const QStringList &resources, const QString &property, const QVariantList &values, const QString &app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
-    enqueueCommand(new AddPropertyCommand(decodeUris(resources), decodeUri(property), Nepomuk::DBus::resolveDBusArguments(values), app, m_model, message()));
+    enqueueCommand(new AddPropertyCommand(decodeUris(resources), decodeUri(property), Nepomuk2::DBus::resolveDBusArguments(values), app, m_model, message()));
 }
 
-void Nepomuk::DataManagementAdaptor::addProperty(const QString &resource, const QString &property, const QDBusVariant &value, const QString &app)
+void Nepomuk2::DataManagementAdaptor::addProperty(const QString &resource, const QString &property, const QDBusVariant &value, const QString &app)
 {
-    addProperty(QStringList() << resource, property, QVariantList() << Nepomuk::DBus::resolveDBusArguments(value.variant()), app);
+    addProperty(QStringList() << resource, property, QVariantList() << Nepomuk2::DBus::resolveDBusArguments(value.variant()), app);
 }
 
-QString Nepomuk::DataManagementAdaptor::createResource(const QStringList &types, const QString &label, const QString &description, const QString &app)
+QString Nepomuk2::DataManagementAdaptor::createResource(const QStringList &types, const QString &label, const QString &description, const QString &app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
@@ -91,21 +91,21 @@ QString Nepomuk::DataManagementAdaptor::createResource(const QStringList &types,
     return QString();
 }
 
-QString Nepomuk::DataManagementAdaptor::createResource(const QString &type, const QString &label, const QString &description, const QString &app)
+QString Nepomuk2::DataManagementAdaptor::createResource(const QString &type, const QString &label, const QString &description, const QString &app)
 {
     return createResource(QStringList() << type, label, description, app);
 }
 
-QList<Nepomuk::SimpleResource> Nepomuk::DataManagementAdaptor::describeResources(const QStringList &resources, int flags, const QStringList& targetParties)
+QList<Nepomuk2::SimpleResource> Nepomuk2::DataManagementAdaptor::describeResources(const QStringList &resources, int flags, const QStringList& targetParties)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
-    enqueueCommand(new DescribeResourcesCommand(decodeUris(resources), Nepomuk::DescribeResourcesFlags(flags), decodeUris(targetParties), m_model, message()));
+    enqueueCommand(new DescribeResourcesCommand(decodeUris(resources), Nepomuk2::DescribeResourcesFlags(flags), decodeUris(targetParties), m_model, message()));
     // QtDBus will ignore this return value
     return QList<SimpleResource>();
 }
 
-QHash< QString, QString > Nepomuk::DataManagementAdaptor::storeResources(const QList< Nepomuk::SimpleResource >& resources, int identificationMode, int flags, const Nepomuk::PropertyHash& additionalMetadata, const QString& app)
+QHash< QString, QString > Nepomuk2::DataManagementAdaptor::storeResources(const QList< Nepomuk2::SimpleResource >& resources, int identificationMode, int flags, const Nepomuk2::PropertyHash& additionalMetadata, const QString& app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
@@ -114,81 +114,81 @@ QHash< QString, QString > Nepomuk::DataManagementAdaptor::storeResources(const Q
     return QHash<QString, QString>();
 }
 
-void Nepomuk::DataManagementAdaptor::mergeResources(const QString &resource1, const QString &resource2, const QString &app)
+void Nepomuk2::DataManagementAdaptor::mergeResources(const QString &resource1, const QString &resource2, const QString &app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
     enqueueCommand(new MergeResourcesCommand(decodeUri(resource1), decodeUri(resource2), app, m_model, message()));
 }
 
-void Nepomuk::DataManagementAdaptor::removeDataByApplication(int flags, const QString &app)
+void Nepomuk2::DataManagementAdaptor::removeDataByApplication(int flags, const QString &app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
     enqueueCommand(new RemoveDataByApplicationCommand(app, flags, m_model, message()));
 }
 
-void Nepomuk::DataManagementAdaptor::removeDataByApplication(const QStringList &resources, int flags, const QString &app)
+void Nepomuk2::DataManagementAdaptor::removeDataByApplication(const QStringList &resources, int flags, const QString &app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
     enqueueCommand(new RemoveResourcesByApplicationCommand(decodeUris(resources), app, flags, m_model, message()));
 }
 
-void Nepomuk::DataManagementAdaptor::removeProperties(const QStringList &resources, const QStringList &properties, const QString &app)
+void Nepomuk2::DataManagementAdaptor::removeProperties(const QStringList &resources, const QStringList &properties, const QString &app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
     enqueueCommand(new RemovePropertiesCommand(decodeUris(resources), decodeUris(properties), app, m_model, message()));
 }
 
-void Nepomuk::DataManagementAdaptor::removeProperties(const QString &resource, const QString &property, const QString &app)
+void Nepomuk2::DataManagementAdaptor::removeProperties(const QString &resource, const QString &property, const QString &app)
 {
     removeProperties(QStringList() << resource, QStringList() << property, app);
 }
 
-void Nepomuk::DataManagementAdaptor::removeProperty(const QStringList &resources, const QString &property, const QVariantList &values, const QString &app)
+void Nepomuk2::DataManagementAdaptor::removeProperty(const QStringList &resources, const QString &property, const QVariantList &values, const QString &app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
-    enqueueCommand(new RemovePropertyCommand(decodeUris(resources), decodeUri(property), Nepomuk::DBus::resolveDBusArguments(values), app, m_model, message()));
+    enqueueCommand(new RemovePropertyCommand(decodeUris(resources), decodeUri(property), Nepomuk2::DBus::resolveDBusArguments(values), app, m_model, message()));
 }
 
-void Nepomuk::DataManagementAdaptor::removeProperty(const QString &resource, const QString &property, const QDBusVariant &value, const QString &app)
+void Nepomuk2::DataManagementAdaptor::removeProperty(const QString &resource, const QString &property, const QDBusVariant &value, const QString &app)
 {
-    removeProperty(QStringList() << resource, property, QVariantList() << Nepomuk::DBus::resolveDBusArguments(value.variant()), app);
+    removeProperty(QStringList() << resource, property, QVariantList() << Nepomuk2::DBus::resolveDBusArguments(value.variant()), app);
 }
 
-void Nepomuk::DataManagementAdaptor::removeResources(const QStringList &resources, int flags, const QString &app)
+void Nepomuk2::DataManagementAdaptor::removeResources(const QStringList &resources, int flags, const QString &app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
     enqueueCommand(new RemoveResourcesCommand(decodeUris(resources), app, flags, m_model, message()));
 }
 
-void Nepomuk::DataManagementAdaptor::removeResources(const QString &resource, int flags, const QString &app)
+void Nepomuk2::DataManagementAdaptor::removeResources(const QString &resource, int flags, const QString &app)
 {
     removeResources(QStringList() << resource, flags, app);
 }
 
-void Nepomuk::DataManagementAdaptor::setProperty(const QStringList &resources, const QString &property, const QVariantList &values, const QString &app)
+void Nepomuk2::DataManagementAdaptor::setProperty(const QStringList &resources, const QString &property, const QVariantList &values, const QString &app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
-    enqueueCommand(new SetPropertyCommand(decodeUris(resources), decodeUri(property), Nepomuk::DBus::resolveDBusArguments(values), app, m_model, message()));
+    enqueueCommand(new SetPropertyCommand(decodeUris(resources), decodeUri(property), Nepomuk2::DBus::resolveDBusArguments(values), app, m_model, message()));
 }
 
-void Nepomuk::DataManagementAdaptor::setProperty(const QString &resource, const QString &property, const QDBusVariant &value, const QString &app)
+void Nepomuk2::DataManagementAdaptor::setProperty(const QString &resource, const QString &property, const QDBusVariant &value, const QString &app)
 {
-    setProperty(QStringList() << resource, property, QVariantList() << Nepomuk::DBus::resolveDBusArguments(value.variant()), app);
+    setProperty(QStringList() << resource, property, QVariantList() << Nepomuk2::DBus::resolveDBusArguments(value.variant()), app);
 }
 
-void Nepomuk::DataManagementAdaptor::enqueueCommand(DataManagementCommand *cmd)
+void Nepomuk2::DataManagementAdaptor::enqueueCommand(DataManagementCommand *cmd)
 {
     m_threadPool->start(cmd);
 }
 
-QUrl Nepomuk::DataManagementAdaptor::decodeUri(const QString &s, bool namespaceAbbrExpansion) const
+QUrl Nepomuk2::DataManagementAdaptor::decodeUri(const QString &s, bool namespaceAbbrExpansion) const
 {
     if(namespaceAbbrExpansion) {
         if(m_namespacePrefixRx.exactMatch(s)) {
@@ -202,33 +202,44 @@ QUrl Nepomuk::DataManagementAdaptor::decodeUri(const QString &s, bool namespaceA
     }
 
     // fallback
-    return Nepomuk::decodeUrl(s);
+    return Nepomuk2::decodeUrl(s);
 }
 
-QList<QUrl> Nepomuk::DataManagementAdaptor::decodeUris(const QStringList &urlStrings, bool namespaceAbbrExpansions) const
+QList<QUrl> Nepomuk2::DataManagementAdaptor::decodeUris(const QStringList &urlStrings, bool namespaceAbbrExpansions) const
 {
     QList<QUrl> urls;
     Q_FOREACH(const QString& urlString, urlStrings) {
-        urls << decodeUri(urlString, namespaceAbbrExpansions);
+        if(!urlString.isEmpty()) {
+            urls << decodeUri(urlString, namespaceAbbrExpansions);
+        }
     }
     return urls;
 }
 
-void Nepomuk::DataManagementAdaptor::setPrefixes(const QHash<QString, QString>& prefixes)
+void Nepomuk2::DataManagementAdaptor::setPrefixes(const QHash<QString, QString>& prefixes)
 {
     m_namespaces = prefixes;
 }
 
-void Nepomuk::DataManagementAdaptor::importResources(const QString &url, const QString &serialization, int identificationMode, int flags, const QString &app)
+void Nepomuk2::DataManagementAdaptor::importResources(const QString &url, const QString &serialization, int identificationMode, int flags, const QString &app)
 {
     importResources(url, serialization, identificationMode, flags, PropertyHash(), app);
 }
 
-void Nepomuk::DataManagementAdaptor::importResources(const QString &url, const QString &serialization, int identificationMode, int flags, const Nepomuk::PropertyHash &additionalMetadata, const QString &app)
+void Nepomuk2::DataManagementAdaptor::importResources(const QString &url, const QString &serialization, int identificationMode, int flags, const Nepomuk2::PropertyHash &additionalMetadata, const QString &app)
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
     enqueueCommand(new ImportResourcesCommand(decodeUri(url), Soprano::mimeTypeToSerialization(serialization), serialization, identificationMode, flags, additionalMetadata, app, m_model, message()));
+}
+
+QString Nepomuk2::DataManagementAdaptor::exportResources(const QStringList &resources, const QString &mimeType, int flags, const QStringList &targetParties)
+{
+    Q_ASSERT(calledFromDBus());
+    setDelayedReply(true);
+    enqueueCommand(new ExportResourcesCommand(decodeUris(resources), Soprano::mimeTypeToSerialization(mimeType), mimeType, Nepomuk2::DescribeResourcesFlags(flags), decodeUris(targetParties), m_model, message()));
+    // QtDBus will ignore this return value
+    return QString();
 }
 
 #include "datamanagementadaptor.moc"

@@ -15,8 +15,6 @@ set(storage_SRCS
   ontologyloader.cpp
   ontologymanagermodel.cpp
   graphretriever.cpp
-  crappyinferencer.cpp
-  crappyinferencer2.cpp
   removablemediamodel.cpp
   datamanagementmodel.cpp
   datamanagementadaptor.cpp
@@ -27,18 +25,19 @@ set(storage_SRCS
   resourcewatchermanager.cpp
   resourcewatcherconnection.cpp
   graphmaintainer.cpp
+  virtuosoinferencemodel.cpp
   ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
   )
 
 qt4_add_dbus_adaptor(storage_SRCS
   ../../interfaces/org.kde.nepomuk.OntologyManager.xml
   ontologyloader.h
-  Nepomuk::OntologyLoader)
+  Nepomuk2::OntologyLoader)
 
 qt4_add_dbus_adaptor(storage_SRCS
   ../../interfaces/org.kde.nepomuk.ResourceWatcherConnection.xml
   resourcewatcherconnection.h
-  Nepomuk::ResourceWatcherConnection)
+  Nepomuk2::ResourceWatcherConnection)
 
 set( BackupSyncService_SRCS
   # BackupSync Service
@@ -58,10 +57,10 @@ set( BackupSyncService_SRCS
 
 qt4_add_dbus_adaptor( BackupSyncService_SRCS
                       ../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
-                      backupsync/service/backupmanager.h Nepomuk::BackupManager )
+                      backupsync/service/backupmanager.h Nepomuk2::BackupManager )
 qt4_add_dbus_adaptor( BackupSyncService_SRCS
                       ../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.syncmanager.xml
-                      backupsync/service/syncmanager.h Nepomuk::SyncManager )
+                      backupsync/service/syncmanager.h Nepomuk2::SyncManager )
 
 #--------- Ontologies -------#
 soprano_add_ontology(BackupSyncService_SRCS

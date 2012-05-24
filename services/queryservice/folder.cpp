@@ -1,5 +1,5 @@
 /*
-   Copyright (c) 2008-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2008-2012 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -31,9 +31,10 @@
 
 #include <QtCore/QThreadPool>
 #include <QtCore/QMutexLocker>
+#include <QtDBus/QDBusConnection>
 
 
-Nepomuk::Query::Folder::Folder( const Query& query, QObject* parent )
+Nepomuk2::Query::Folder::Folder( const Query& query, QObject* parent )
     : QObject( parent ),
       m_isSparqlQueryFolder( false ),
       m_query( query ),
@@ -45,7 +46,7 @@ Nepomuk::Query::Folder::Folder( const Query& query, QObject* parent )
 }
 
 
-Nepomuk::Query::Folder::Folder( const QString& query, const RequestPropertyMap& requestProps, QObject* parent )
+Nepomuk2::Query::Folder::Folder( const QString& query, const RequestPropertyMap& requestProps, QObject* parent )
     : QObject( parent ),
       m_isSparqlQueryFolder( true ),
       m_sparqlQuery( query ),
@@ -58,7 +59,7 @@ Nepomuk::Query::Folder::Folder( const QString& query, const RequestPropertyMap& 
 }
 
 
-void Nepomuk::Query::Folder::init()
+void Nepomuk2::Query::Folder::init()
 {
     m_resultCount = -1;
     m_initialListingDone = false;
@@ -67,16 +68,18 @@ void Nepomuk::Query::Folder::init()
     m_updateTimer.setSingleShot( true );
     m_updateTimer.setInterval( 2000 );
 
-    connect( ResourceManager::instance()->mainModel(), SIGNAL( statementsAdded() ),
-             this, SLOT( slotStorageChanged() ) );
-    connect( ResourceManager::instance()->mainModel(), SIGNAL( statementsRemoved() ),
-             this, SLOT( slotStorageChanged() ) );
+    // use the special signal from the ResourceWatcher which is not exposed in the public API (yet)
+    QDBusConnection::sessionBus().connect(QLatin1String("org.kde.NepomukStorage"),
+                                          QLatin1String("/resourcewatcher"),
+                                          QLatin1String("org.kde.nepomuk.ResourceWatcher"),
+                                          QLatin1String("somethingChanged"),
+                                          this, SLOT( slotStorageChanged() ) );
     connect( &m_updateTimer, SIGNAL( timeout() ),
              this, SLOT( slotUpdateTimeout() ) );
 }
 
 
-Nepomuk::Query::Folder::~Folder()
+Nepomuk2::Query::Folder::~Folder()
 {
     QMutexLocker lock(&m_runnableMutex);
     if( m_currentSearchRunnable )
@@ -90,7 +93,7 @@ Nepomuk::Query::Folder::~Folder()
 }
 
 
-void Nepomuk::Query::Folder::update()
+void Nepomuk2::Query::Folder::update()
 {
     QMutexLocker lock(&m_runnableMutex);
     if ( !m_currentSearchRunnable ) {
@@ -109,21 +112,21 @@ void Nepomuk::Query::Folder::update()
 }
 
 
-QList<Nepomuk::Query::Result> Nepomuk::Query::Folder::entries() const
+QList<Nepomuk2::Query::Result> Nepomuk2::Query::Folder::entries() const
 {
     QMutexLocker lock(&m_runnableMutex);
     return m_results.values();
 }
 
 
-bool Nepomuk::Query::Folder::initialListingDone() const
+bool Nepomuk2::Query::Folder::initialListingDone() const
 {
     QMutexLocker lock(&m_runnableMutex);
     return m_initialListingDone;
 }
 
 
-QString Nepomuk::Query::Folder::sparqlQuery() const
+QString Nepomuk2::Query::Folder::sparqlQuery() const
 {
     if ( !m_isSparqlQueryFolder )
         return m_query.toSparqlQuery();
@@ -132,7 +135,7 @@ QString Nepomuk::Query::Folder::sparqlQuery() const
 }
 
 
-Nepomuk::Query::RequestPropertyMap Nepomuk::Query::Folder::requestPropertyMap() const
+Nepomuk2::Query::RequestPropertyMap Nepomuk2::Query::Folder::requestPropertyMap() const
 {
     if ( !m_isSparqlQueryFolder )
         return m_query.requestPropertyMap();
@@ -141,21 +144,21 @@ Nepomuk::Query::RequestPropertyMap Nepomuk::Query::Folder::requestPropertyMap() 
 }
 
 
-// called from SearchRunnable in the search thread
-void Nepomuk::Query::Folder::addResults( const QList<Nepomuk::Query::Result>& results )
+// called from SearchRunnable in the main thread
+void Nepomuk2::Query::Folder::addResults( const QList<Nepomuk2::Query::Result>& results )
 {
     QMutexLocker lock(&m_runnableMutex);
 
     QSet<Result> newResults;
     Q_FOREACH( const Result& result, results ) {
-        if ( !m_results.contains( result.resource().uri() ) ) {
+        if ( !m_results.contains( result.resource().resourceUri() ) ) {
             newResults.insert( result );
         }
     }
 
     Q_FOREACH(const Result& result, results) {
-        if ( !m_newResults.contains( result.resource().uri() ) ) {
-            m_newResults.insert(result.resource().uri(), result);
+        if ( !m_newResults.contains( result.resource().resourceUri() ) ) {
+            m_newResults.insert(result.resource().resourceUri(), result);
         }
     }
 
@@ -165,8 +168,8 @@ void Nepomuk::Query::Folder::addResults( const QList<Nepomuk::Query::Result>& re
 }
 
 
-// called from SearchRunnable in the search thread
-void Nepomuk::Query::Folder::listingFinished()
+// called from SearchRunnable in the main thread
+void Nepomuk2::Query::Folder::listingFinished()
 {
     QMutexLocker lock(&m_runnableMutex);
 
@@ -177,9 +180,9 @@ void Nepomuk::Query::Folder::listingFinished()
 
     // legacy removed results
     foreach( const Result& result, m_results ) {
-        if ( !m_newResults.contains( result.resource().uri() ) ) {
+        if ( !m_newResults.contains( result.resource().resourceUri() ) ) {
             removedResults << result;
-            emit entriesRemoved( QList<QUrl>() << KUrl(result.resource().uri()).url() );
+            emit entriesRemoved( QList<QUrl>() << KUrl(result.resource().resourceUri()).url() );
         }
     }
 
@@ -205,7 +208,7 @@ void Nepomuk::Query::Folder::listingFinished()
 }
 
 
-void Nepomuk::Query::Folder::slotStorageChanged()
+void Nepomuk2::Query::Folder::slotStorageChanged()
 {
     QMutexLocker lock(&m_runnableMutex);
     if ( !m_updateTimer.isActive() && !m_currentSearchRunnable ) {
@@ -218,7 +221,7 @@ void Nepomuk::Query::Folder::slotStorageChanged()
 
 
 // if there was a change in the nepomuk store we update
-void Nepomuk::Query::Folder::slotUpdateTimeout()
+void Nepomuk2::Query::Folder::slotUpdateTimeout()
 {
     QMutexLocker lock(&m_runnableMutex);
     if ( m_storageChanged && !m_currentSearchRunnable ) {
@@ -229,7 +232,7 @@ void Nepomuk::Query::Folder::slotUpdateTimeout()
 
 
 // called from CountQueryRunnable in the search thread
-void Nepomuk::Query::Folder::countQueryFinished( int count )
+void Nepomuk2::Query::Folder::countQueryFinished( int count )
 {
     QMutexLocker lock(&m_runnableMutex);
 
@@ -242,7 +245,7 @@ void Nepomuk::Query::Folder::countQueryFinished( int count )
 }
 
 
-void Nepomuk::Query::Folder::addConnection( FolderConnection* conn )
+void Nepomuk2::Query::Folder::addConnection( FolderConnection* conn )
 {
     Q_ASSERT( conn != 0 );
     Q_ASSERT( !m_connections.contains( conn ) );
@@ -251,7 +254,7 @@ void Nepomuk::Query::Folder::addConnection( FolderConnection* conn )
 }
 
 
-void Nepomuk::Query::Folder::removeConnection( FolderConnection* conn )
+void Nepomuk2::Query::Folder::removeConnection( FolderConnection* conn )
 {
     Q_ASSERT( conn != 0 );
     Q_ASSERT( m_connections.contains( conn ) );
@@ -266,16 +269,16 @@ void Nepomuk::Query::Folder::removeConnection( FolderConnection* conn )
 }
 
 
-QList<Nepomuk::Query::FolderConnection*> Nepomuk::Query::Folder::openConnections() const
+QList<Nepomuk2::Query::FolderConnection*> Nepomuk2::Query::Folder::openConnections() const
 {
     return m_connections;
 }
 
 
-uint Nepomuk::Query::qHash( const Result& result )
+uint Nepomuk2::Query::qHash( const Result& result )
 {
     // we only use this to ensure that we do not emit duplicates
-    return qHash(result.resource().uri());
+    return qHash(result.resource().resourceUri());
 }
 
 #include "folder.moc"

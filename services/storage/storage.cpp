@@ -33,10 +33,10 @@
 #include <kpluginfactory.h>
 #include <kpluginloader.h>
 
-NEPOMUK_EXPORT_SERVICE( Nepomuk::Storage, "nepomukstorage" )
+NEPOMUK_EXPORT_SERVICE( Nepomuk2::Storage, "nepomukstorage" )
 
 
-Nepomuk::Storage::Storage( QObject* parent, const QList<QVariant>& )
+Nepomuk2::Storage::Storage( QObject* parent, const QList<QVariant>& )
     : Service( parent, true /* delayed initialization */ )
 {
     // register the fancier name for this important service
@@ -52,12 +52,12 @@ Nepomuk::Storage::Storage( QObject* parent, const QList<QVariant>& )
 }
 
 
-Nepomuk::Storage::~Storage()
+Nepomuk2::Storage::~Storage()
 {
 }
 
 
-void Nepomuk::Storage::slotNepomukCoreInitialized( bool success )
+void Nepomuk2::Storage::slotNepomukCoreInitialized( bool success )
 {
     if ( success ) {
         kDebug() << "Successfully initialized nepomuk core";
@@ -81,7 +81,7 @@ void Nepomuk::Storage::slotNepomukCoreInitialized( bool success )
 }
 
 
-QString Nepomuk::Storage::usedSopranoBackend() const
+QString Nepomuk2::Storage::usedSopranoBackend() const
 {
     if ( Repository* rep = static_cast<Repository*>( m_core->model( QLatin1String( "main" ) ) ) )
         return rep->usedSopranoBackend();

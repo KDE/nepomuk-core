@@ -20,33 +20,33 @@
 #include "filequery.h"
 #include "query_p.h"
 
-Nepomuk::Query::FileQuery::FileQuery()
+Nepomuk2::Query::FileQuery::FileQuery()
     : Query()
 {
     d->m_isFileQuery = true;
 }
 
 
-Nepomuk::Query::FileQuery::FileQuery( const Term& term )
+Nepomuk2::Query::FileQuery::FileQuery( const Term& term )
     : Query( term )
 {
     d->m_isFileQuery = true;
 }
 
 
-Nepomuk::Query::FileQuery::FileQuery( const Query& query )
+Nepomuk2::Query::FileQuery::FileQuery( const Query& query )
     : Query( query )
 {
     d->m_isFileQuery = true;
 }
 
 
-Nepomuk::Query::FileQuery::~FileQuery()
+Nepomuk2::Query::FileQuery::~FileQuery()
 {
 }
 
 
-Nepomuk::Query::FileQuery& Nepomuk::Query::FileQuery::operator=( const Query& query )
+Nepomuk2::Query::FileQuery& Nepomuk2::Query::FileQuery::operator=( const Query& query )
 {
     Query::operator=( query );
     d->m_isFileQuery = true;
@@ -54,19 +54,19 @@ Nepomuk::Query::FileQuery& Nepomuk::Query::FileQuery::operator=( const Query& qu
 }
 
 
-void Nepomuk::Query::FileQuery::addIncludeFolder( const KUrl& folder )
+void Nepomuk2::Query::FileQuery::addIncludeFolder( const KUrl& folder )
 {
     addIncludeFolder( folder, true );
 }
 
 
-void Nepomuk::Query::FileQuery::addIncludeFolder( const KUrl& folder, bool recursive )
+void Nepomuk2::Query::FileQuery::addIncludeFolder( const KUrl& folder, bool recursive )
 {
     d->m_includeFolders[folder] = recursive;
 }
 
 
-void Nepomuk::Query::FileQuery::setIncludeFolders( const KUrl::List& folders )
+void Nepomuk2::Query::FileQuery::setIncludeFolders( const KUrl::List& folders )
 {
     d->m_includeFolders.clear();
     Q_FOREACH( const KUrl& url, folders ) {
@@ -75,49 +75,49 @@ void Nepomuk::Query::FileQuery::setIncludeFolders( const KUrl::List& folders )
 }
 
 
-void Nepomuk::Query::FileQuery::setIncludeFolders( const QHash<KUrl, bool>& folders )
+void Nepomuk2::Query::FileQuery::setIncludeFolders( const QHash<KUrl, bool>& folders )
 {
     d->m_includeFolders = folders;
 }
 
 
-KUrl::List Nepomuk::Query::FileQuery::includeFolders() const
+KUrl::List Nepomuk2::Query::FileQuery::includeFolders() const
 {
     return d->m_includeFolders.keys();
 }
 
 
-QHash<KUrl, bool> Nepomuk::Query::FileQuery::allIncludeFolders() const
+QHash<KUrl, bool> Nepomuk2::Query::FileQuery::allIncludeFolders() const
 {
     return d->m_includeFolders;
 }
 
 
-void Nepomuk::Query::FileQuery::addExcludeFolder( const KUrl& folder )
+void Nepomuk2::Query::FileQuery::addExcludeFolder( const KUrl& folder )
 {
     d->m_excludeFolders << folder;
 }
 
 
-void Nepomuk::Query::FileQuery::setExcludeFolders( const KUrl::List& folders )
+void Nepomuk2::Query::FileQuery::setExcludeFolders( const KUrl::List& folders )
 {
     d->m_excludeFolders = folders;
 }
 
 
-KUrl::List Nepomuk::Query::FileQuery::excludeFolders() const
+KUrl::List Nepomuk2::Query::FileQuery::excludeFolders() const
 {
     return d->m_excludeFolders;
 }
 
 
-void Nepomuk::Query::FileQuery::setFileMode( FileMode mode )
+void Nepomuk2::Query::FileQuery::setFileMode( FileMode mode )
 {
     d->m_fileMode = mode;
 }
 
 
-Nepomuk::Query::FileQuery::FileMode Nepomuk::Query::FileQuery::fileMode() const
+Nepomuk2::Query::FileQuery::FileMode Nepomuk2::Query::FileQuery::fileMode() const
 {
     return d->m_fileMode;
 }

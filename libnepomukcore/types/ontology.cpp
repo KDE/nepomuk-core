@@ -32,16 +32,16 @@
 #include <Soprano/Vocabulary/XMLSchema>
 
 #undef D
-#define D static_cast<Nepomuk::Types::OntologyPrivate*>( d.data() )
+#define D static_cast<Nepomuk2::Types::OntologyPrivate*>( d.data() )
 
-Nepomuk::Types::OntologyPrivate::OntologyPrivate( const QUrl& uri )
+Nepomuk2::Types::OntologyPrivate::OntologyPrivate( const QUrl& uri )
     : EntityPrivate( uri ),
       entitiesAvailable( uri.isValid() ? -1 : 0 )
 {
 }
 
 
-void Nepomuk::Types::OntologyPrivate::initEntities()
+void Nepomuk2::Types::OntologyPrivate::initEntities()
 {
     if ( entitiesAvailable < 0 ) {
         entitiesAvailable = loadEntities() ? 1 : 0;
@@ -49,7 +49,7 @@ void Nepomuk::Types::OntologyPrivate::initEntities()
 }
 
 
-bool Nepomuk::Types::OntologyPrivate::loadEntities()
+bool Nepomuk2::Types::OntologyPrivate::loadEntities()
 {
     // load classes
     // We use a FILTER(STR(?ns)...) to support both Soprano 2.3 (with plain literals) and earlier (with only typed ones)
@@ -84,19 +84,19 @@ bool Nepomuk::Types::OntologyPrivate::loadEntities()
 }
 
 
-bool Nepomuk::Types::OntologyPrivate::addProperty( const QUrl&, const Soprano::Node& )
+bool Nepomuk2::Types::OntologyPrivate::addProperty( const QUrl&, const Soprano::Node& )
 {
     return false;
 }
 
 
-bool Nepomuk::Types::OntologyPrivate::addAncestorProperty( const QUrl&, const QUrl& )
+bool Nepomuk2::Types::OntologyPrivate::addAncestorProperty( const QUrl&, const QUrl& )
 {
     return false;
 }
 
 
-void Nepomuk::Types::OntologyPrivate::reset( bool recursive )
+void Nepomuk2::Types::OntologyPrivate::reset( bool recursive )
 {
     QMutexLocker lock( &mutex );
 
@@ -120,44 +120,44 @@ void Nepomuk::Types::OntologyPrivate::reset( bool recursive )
 
 
 
-Nepomuk::Types::Ontology::Ontology()
+Nepomuk2::Types::Ontology::Ontology()
 {
     d = new OntologyPrivate();
 }
 
 
-Nepomuk::Types::Ontology::Ontology( const QUrl& uri )
+Nepomuk2::Types::Ontology::Ontology( const QUrl& uri )
 {
     d = EntityManager::self()->getOntology( uri );
 }
 
 
-Nepomuk::Types::Ontology::Ontology( const Ontology& other )
+Nepomuk2::Types::Ontology::Ontology( const Ontology& other )
     : Entity( other )
 {
 }
 
 
-Nepomuk::Types::Ontology::~Ontology()
+Nepomuk2::Types::Ontology::~Ontology()
 {
 }
 
 
-Nepomuk::Types::Ontology& Nepomuk::Types::Ontology::operator=( const Ontology& other )
+Nepomuk2::Types::Ontology& Nepomuk2::Types::Ontology::operator=( const Ontology& other )
 {
     d = other.d;
     return *this;
 }
 
 
-QList<Nepomuk::Types::Class> Nepomuk::Types::Ontology::allClasses()
+QList<Nepomuk2::Types::Class> Nepomuk2::Types::Ontology::allClasses()
 {
     D->initEntities();
     return D->classes;
 }
 
 
-Nepomuk::Types::Class Nepomuk::Types::Ontology::findClassByName( const QString& name )
+Nepomuk2::Types::Class Nepomuk2::Types::Ontology::findClassByName( const QString& name )
 {
     D->initEntities();
     for ( QList<Class>::const_iterator it = D->classes.constBegin();
@@ -172,7 +172,7 @@ Nepomuk::Types::Class Nepomuk::Types::Ontology::findClassByName( const QString& 
 }
 
 
-Nepomuk::Types::Class Nepomuk::Types::Ontology::findClassByLabel( const QString& label, const QString& language )
+Nepomuk2::Types::Class Nepomuk2::Types::Ontology::findClassByLabel( const QString& label, const QString& language )
 {
     D->initEntities();
     for ( QList<Class>::iterator it = D->classes.begin();
@@ -187,14 +187,14 @@ Nepomuk::Types::Class Nepomuk::Types::Ontology::findClassByLabel( const QString&
 }
 
 
-QList<Nepomuk::Types::Property> Nepomuk::Types::Ontology::allProperties()
+QList<Nepomuk2::Types::Property> Nepomuk2::Types::Ontology::allProperties()
 {
     D->initEntities();
     return D->properties;
 }
 
 
-Nepomuk::Types::Property Nepomuk::Types::Ontology::findPropertyByName( const QString& name )
+Nepomuk2::Types::Property Nepomuk2::Types::Ontology::findPropertyByName( const QString& name )
 {
     D->initEntities();
     for ( QList<Property>::const_iterator it = D->properties.constBegin();
@@ -209,7 +209,7 @@ Nepomuk::Types::Property Nepomuk::Types::Ontology::findPropertyByName( const QSt
 }
 
 
-Nepomuk::Types::Property Nepomuk::Types::Ontology::findPropertyByLabel( const QString& label, const QString& language )
+Nepomuk2::Types::Property Nepomuk2::Types::Ontology::findPropertyByLabel( const QString& label, const QString& language )
 {
     D->initEntities();
     for ( QList<Property>::iterator it = D->properties.begin();

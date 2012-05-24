@@ -1,6 +1,6 @@
 /*
    This file is part of the Nepomuk KDE project.
-   Copyright (C) 2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2010-2012 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -23,40 +23,40 @@
 #include "optionalterm_p.h"
 #include "querybuilderdata_p.h"
 
-QString Nepomuk::Query::OptionalTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, QueryBuilderData* qbd ) const
+QString Nepomuk2::Query::OptionalTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
 {
     Q_UNUSED(parentTerm);
 
     return QString( "OPTIONAL { %1} " )
-        .arg( m_subTerm.d_ptr->toSparqlGraphPattern( resourceVarName, this, qbd ) );
+        .arg( m_subTerm.d_ptr->toSparqlGraphPattern( resourceVarName, this, additionalFilters, qbd ) );
 }
 
 
-Nepomuk::Query::OptionalTerm::OptionalTerm()
+Nepomuk2::Query::OptionalTerm::OptionalTerm()
     : SimpleTerm( new OptionalTermPrivate() )
 {
 }
 
 
-Nepomuk::Query::OptionalTerm::OptionalTerm( const OptionalTerm& term )
+Nepomuk2::Query::OptionalTerm::OptionalTerm( const OptionalTerm& term )
     : SimpleTerm( term )
 {
 }
 
 
-Nepomuk::Query::OptionalTerm::~OptionalTerm()
+Nepomuk2::Query::OptionalTerm::~OptionalTerm()
 {
 }
 
 
-Nepomuk::Query::OptionalTerm& Nepomuk::Query::OptionalTerm::operator=( const OptionalTerm& term )
+Nepomuk2::Query::OptionalTerm& Nepomuk2::Query::OptionalTerm::operator=( const OptionalTerm& term )
 {
     d_ptr = term.d_ptr;
     return *this;
 }
 
 
-Nepomuk::Query::Term Nepomuk::Query::OptionalTerm::optionalizeTerm( const Term& term )
+Nepomuk2::Query::Term Nepomuk2::Query::OptionalTerm::optionalizeTerm( const Term& term )
 {
     if ( !term.isOptionalTerm() ) {
         OptionalTerm ot;

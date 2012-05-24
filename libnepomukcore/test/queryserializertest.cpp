@@ -47,14 +47,14 @@
 #include <kdebug.h>
 #include <qtest_kde.h>
 
-Q_DECLARE_METATYPE( Nepomuk::Query::Query )
+Q_DECLARE_METATYPE( Nepomuk2::Query::Query )
 
-using namespace Nepomuk::Query;
+using namespace Nepomuk2::Query;
 
 
 void QuerySerializerTest::testSerialization_data()
 {
-    QTest::addColumn<Nepomuk::Query::Query>( "query" );
+    QTest::addColumn<Nepomuk2::Query::Query>( "query" );
 
     QTest::newRow( "simple literal query" )
         << Query( LiteralTerm( "Hello" ) );
@@ -77,7 +77,7 @@ void QuerySerializerTest::testSerialization_data()
 
     QDateTime now = QDateTime::currentDateTime();
     QTest::newRow( "nie:lastModified" )
-        << Query( ComparisonTerm( Nepomuk::Vocabulary::NIE::lastModified(), LiteralTerm( now ), ComparisonTerm::GreaterOrEqual ) );
+        << Query( ComparisonTerm( Nepomuk2::Vocabulary::NIE::lastModified(), LiteralTerm( now ), ComparisonTerm::GreaterOrEqual ) );
 
     QTest::newRow( "hastag with literal term" )
         << Query( ComparisonTerm( Soprano::Vocabulary::NAO::hasTag(), LiteralTerm( QLatin1String("nepomuk")) ) );
@@ -151,13 +151,13 @@ void QuerySerializerTest::testSerialization_data()
         << Query( orderByTerm1 );
 
     QTest::newRow( "ComparisonTerm with invalid property" )
-        << Query( ComparisonTerm( Nepomuk::Types::Property(), ResourceTerm( QUrl("nepomuk:/res/foobar") ) ));
+        << Query( ComparisonTerm( Nepomuk2::Types::Property(), ResourceTerm( QUrl("nepomuk:/res/foobar") ) ));
 
     QTest::newRow( "ComparisonTerm with invalid subterm" )
         << Query( ComparisonTerm( Soprano::Vocabulary::NAO::hasTag(), Term() ) );
 
     QTest::newRow( "ComparisonTerm with invalid property and subterm" )
-        << Query( ComparisonTerm( Nepomuk::Types::Property(), Term() ) );
+        << Query( ComparisonTerm( Nepomuk2::Types::Property(), Term() ) );
 
     ComparisonTerm orderByTerm5( Soprano::Vocabulary::NAO::numericRating(), Term() );
     orderByTerm5.setSortWeight( 1 );
@@ -200,10 +200,10 @@ void QuerySerializerTest::testSerialization_data()
     QUrl res("nepomuk:/res/foobar");
     AndTerm mainTerm;
     OrTerm typeOr;
-    typeOr.addSubTerm( ResourceTypeTerm( Nepomuk::Vocabulary::NFO::RasterImage() ) );
-    typeOr.addSubTerm( ResourceTypeTerm( Nepomuk::Vocabulary::NFO::Audio() ) );
+    typeOr.addSubTerm( ResourceTypeTerm( Nepomuk2::Vocabulary::NFO::RasterImage() ) );
+    typeOr.addSubTerm( ResourceTypeTerm( Nepomuk2::Vocabulary::NFO::Audio() ) );
     mainTerm.addSubTerm( typeOr );
-    mainTerm.addSubTerm( NegationTerm::negateTerm( ComparisonTerm( Nepomuk::Types::Property(), ResourceTerm( res ) ).inverted() ) );
+    mainTerm.addSubTerm( NegationTerm::negateTerm( ComparisonTerm( Nepomuk2::Types::Property(), ResourceTerm( res ) ).inverted() ) );
 
     // an empty comparisonterm results in "?r ?v1 ?v2"
     ComparisonTerm ct;
@@ -230,9 +230,9 @@ void QuerySerializerTest::testSerialization_data()
                             LiteralTerm("hello 2"),
                             ResourceTerm( QUrl("nepomuk:/res/foobar") ),
                             ResourceTypeTerm( Soprano::Vocabulary::NAO::Tag() ),
-                            ComparisonTerm( Nepomuk::Types::Property(),
+                            ComparisonTerm( Nepomuk2::Types::Property(),
                                             ResourceTerm( QUrl("nepomuk:/res/foobar") ) ),
-                            ComparisonTerm( Nepomuk::Types::Property(),
+                            ComparisonTerm( Nepomuk2::Types::Property(),
                                             OrTerm( ResourceTerm( QUrl("nepomuk:/res/foobar1") ),
                                                     ResourceTerm( QUrl("nepomuk:/res/foobar2") ) ) ) ) ) );
     allQuery.setLimit( 10 );
@@ -277,7 +277,7 @@ void QuerySerializerTest::testSerialization_data()
 
 void QuerySerializerTest::testSerialization()
 {
-    QFETCH( Nepomuk::Query::Query, query );
+    QFETCH( Nepomuk2::Query::Query, query );
 
 //     qDebug() << "Before:" << serializeQuery( query );
 //     qDebug() << "After: " << serializeQuery( parseQuery( serializeQuery( query ) ) );

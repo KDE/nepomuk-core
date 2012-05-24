@@ -26,7 +26,7 @@
 #include <QtCore/QTimer>
 
 
-class Nepomuk::ModelCopyJob::Private : public QThread
+class Nepomuk2::ModelCopyJob::Private : public QThread
 {
 public:
     void run();
@@ -43,7 +43,7 @@ public:
 };
 
 
-void Nepomuk::ModelCopyJob::Private::run()
+void Nepomuk2::ModelCopyJob::Private::run()
 {
     m_stopped = false;
     unsigned long size = m_source->statementCount();
@@ -78,7 +78,7 @@ void Nepomuk::ModelCopyJob::Private::run()
 }
 
 
-Nepomuk::ModelCopyJob::ModelCopyJob( Soprano::Model* source, Soprano::Model* dest, QObject* parent )
+Nepomuk2::ModelCopyJob::ModelCopyJob( Soprano::Model* source, Soprano::Model* dest, QObject* parent )
     : KJob( parent ),
       d( new Private() )
 {
@@ -98,7 +98,7 @@ Nepomuk::ModelCopyJob::ModelCopyJob( Soprano::Model* source, Soprano::Model* des
 }
 
 
-Nepomuk::ModelCopyJob::~ModelCopyJob()
+Nepomuk2::ModelCopyJob::~ModelCopyJob()
 {
     if ( d->isRunning() ) {
         kill();
@@ -108,19 +108,19 @@ Nepomuk::ModelCopyJob::~ModelCopyJob()
 }
 
 
-Soprano::Model* Nepomuk::ModelCopyJob::source() const
+Soprano::Model* Nepomuk2::ModelCopyJob::source() const
 {
     return d->m_source;
 }
 
 
-Soprano::Model* Nepomuk::ModelCopyJob::dest() const
+Soprano::Model* Nepomuk2::ModelCopyJob::dest() const
 {
     return d->m_dest;
 }
 
 
-void Nepomuk::ModelCopyJob::start()
+void Nepomuk2::ModelCopyJob::start()
 {
     kDebug();
     emit description( this,
@@ -131,7 +131,7 @@ void Nepomuk::ModelCopyJob::start()
 }
 
 
-void Nepomuk::ModelCopyJob::slotThreadFinished()
+void Nepomuk2::ModelCopyJob::slotThreadFinished()
 {
     if ( !d->m_stopped ) {
         emitResult();
@@ -139,7 +139,7 @@ void Nepomuk::ModelCopyJob::slotThreadFinished()
 }
 
 
-bool Nepomuk::ModelCopyJob::doKill()
+bool Nepomuk2::ModelCopyJob::doKill()
 {
     if ( d->isRunning() ) {
         d->m_stopped = true;

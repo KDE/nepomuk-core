@@ -41,10 +41,10 @@
 #include <KConfigGroup>
 
 
-Nepomuk::DiffGenerator::DiffGenerator( QObject* parent )
+Nepomuk2::DiffGenerator::DiffGenerator( QObject* parent )
     : QThread(parent)
 {
-    m_model = Nepomuk::ResourceManager::instance()->mainModel();
+    m_model = Nepomuk2::ResourceManager::instance()->mainModel();
 
     // vhanda:
     // Disabled cause this hogs up too many resources. Specially when loads
@@ -59,7 +59,7 @@ Nepomuk::DiffGenerator::DiffGenerator( QObject* parent )
 }
 
 
-Nepomuk::DiffGenerator::~DiffGenerator()
+Nepomuk2::DiffGenerator::~DiffGenerator()
 {
     //stop();
     //wait();
@@ -67,10 +67,10 @@ Nepomuk::DiffGenerator::~DiffGenerator()
 
 
 namespace {
-    const Nepomuk::Types::Property identifyingProperty( Soprano::Vocabulary::NRL::DefiningProperty() );
+    const Nepomuk2::Types::Property identifyingProperty( Soprano::Vocabulary::NRL::DefiningProperty() );
 }
 
-bool Nepomuk::DiffGenerator::backupStatement(const Soprano::Statement& st)
+bool Nepomuk2::DiffGenerator::backupStatement(const Soprano::Statement& st)
 {
     // Subject
     const QUrl& subjectUri = st.subject().uri();
@@ -96,7 +96,7 @@ bool Nepomuk::DiffGenerator::backupStatement(const Soprano::Statement& st)
                           Soprano::Node::resourceToN3( Soprano::Vocabulary::NRL::Ontology() ),
                           Soprano::Node::resourceToN3( Soprano::Vocabulary::NRL::GraphMetadata() ) );
 
-    Soprano::Model * model = Nepomuk::ResourceManager::instance()->mainModel();
+    Soprano::Model * model = Nepomuk2::ResourceManager::instance()->mainModel();
 
     // If it is a DiscardableInstanceBase, Ontology or GraphMetadata,
     // then we DO NOT want to back it up.
@@ -107,14 +107,14 @@ bool Nepomuk::DiffGenerator::backupStatement(const Soprano::Statement& st)
     return shouldBackup;
 }
 
-void Nepomuk::DiffGenerator::statementAdded(const Soprano::Statement & st)
+void Nepomuk2::DiffGenerator::statementAdded(const Soprano::Statement & st)
 {
     QMutexLocker locker( &m_queueMutex );
     m_recordQueue.enqueue( ChangeLogRecord( QDateTime::currentDateTime()/*.toUTC()*/, true, st ) );
     m_queueWaiter.wakeAll();
 }
 
-void Nepomuk::DiffGenerator::statementRemoved(const Soprano::Statement & st)
+void Nepomuk2::DiffGenerator::statementRemoved(const Soprano::Statement & st)
 {
     QMutexLocker locker( &m_queueMutex );
     m_recordQueue.enqueue( ChangeLogRecord( QDateTime::currentDateTime()/*.toUTC()*/, false, st ) );
@@ -122,14 +122,14 @@ void Nepomuk::DiffGenerator::statementRemoved(const Soprano::Statement & st)
 }
 
 
-void Nepomuk::DiffGenerator::stop()
+void Nepomuk2::DiffGenerator::stop()
 {
     m_stopped = true;
     m_queueWaiter.wakeAll();
 }
 
 /*
-void Nepomuk::DiffGenerator::removeOldRecords()
+void Nepomuk2::DiffGenerator::removeOldRecords()
 {
     KConfig config( "nepomukbackupsyncrc" );
     int days = config.group( "diffgenerator" ).readEntry<int>("days", 300);
@@ -140,7 +140,7 @@ void Nepomuk::DiffGenerator::removeOldRecords()
     ChangeLog::removeRecords( date );
 }*/
 
-void Nepomuk::DiffGenerator::run()
+void Nepomuk2::DiffGenerator::run()
 {
     m_stopped = false;
     LogStorage * storage = LogStorage::instance();

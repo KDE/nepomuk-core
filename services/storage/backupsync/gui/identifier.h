@@ -35,7 +35,7 @@ namespace Soprano {
     class Model;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class SyncFile;
     class ChangeLog;
@@ -58,7 +58,7 @@ namespace Nepomuk {
         void notIdentified( int id, const QString & serializedStatements );
 
         void identificationDone( int id, int unidentified );
-        void processed( const Nepomuk::ChangeLog & logFile );
+        void processed( const Nepomuk2::ChangeLog & logFile );
 
         void completed( int id, int progress );
     public Q_SLOTS:

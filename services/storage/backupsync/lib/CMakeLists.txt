@@ -26,7 +26,7 @@ set(nepomuksync_SRCS
 soprano_add_ontology(nepomuksync_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ontologies/nrio.trig
   "NRIO"
-  "Nepomuk::Vocabulary"
+  "Nepomuk2::Vocabulary"
   "trig")
 
 kde4_add_library(nepomuksync SHARED ${nepomuksync_SRCS})
@@ -38,10 +38,10 @@ target_link_libraries(nepomuksync
   ${SOPRANO_LIBRARIES}
   nepomukcore
   ${KDE4_KIO_LIBS}
-  kdecore
+  ${KDE4_KDECORE_LIBS}
   )
 
-install(TARGETS nepomuksync EXPORT kdelibsLibraryTargets ${INSTALL_TARGETS_DEFAULT_ARGS})
+install(TARGETS nepomuksync EXPORT NepomukCoreLibraryTargets ${INSTALL_TARGETS_DEFAULT_ARGS})
 #
 # install(FILES
 #     resourceidentifier.h

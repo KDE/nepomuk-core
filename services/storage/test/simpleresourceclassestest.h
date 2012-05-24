@@ -36,7 +36,7 @@ class SimpleResourceSubsystemTest : public QObject
        void testSimpleResourceGraphAdd();
        void initTestCase();
     private:
-       Nepomuk::SimpleResource resource1,resource2;
+       Nepomuk2::SimpleResource resource1,resource2;
 
 };
 

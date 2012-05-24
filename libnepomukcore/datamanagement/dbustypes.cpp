@@ -30,12 +30,12 @@
 #include <KUrl>
 #include <KDebug>
 
-QString Nepomuk::DBus::convertUri(const QUrl& uri)
+QString Nepomuk2::DBus::convertUri(const QUrl& uri)
 {
     return KUrl(uri).url();
 }
 
-QStringList Nepomuk::DBus::convertUriList(const QList<QUrl>& uris)
+QStringList Nepomuk2::DBus::convertUriList(const QList<QUrl>& uris)
 {
     QStringList uriStrings;
     foreach(const QUrl& uri, uris)
@@ -43,7 +43,7 @@ QStringList Nepomuk::DBus::convertUriList(const QList<QUrl>& uris)
     return uriStrings;
 }
 
-QVariantList Nepomuk::DBus::normalizeVariantList(const QVariantList& l)
+QVariantList Nepomuk2::DBus::normalizeVariantList(const QVariantList& l)
 {
     QVariantList newL;
     QListIterator<QVariant> it(l);
@@ -59,7 +59,7 @@ QVariantList Nepomuk::DBus::normalizeVariantList(const QVariantList& l)
     return newL;
 }
 
-QVariant Nepomuk::DBus::resolveDBusArguments(const QVariant& v)
+QVariant Nepomuk2::DBus::resolveDBusArguments(const QVariant& v)
 {
     //
     // trueg: QDBus does not automatically convert non-basic types but gives us a QDBusArgument in a QVariant.
@@ -99,7 +99,7 @@ QVariant Nepomuk::DBus::resolveDBusArguments(const QVariant& v)
     }
 }
 
-QVariantList Nepomuk::DBus::resolveDBusArguments(const QVariantList& l)
+QVariantList Nepomuk2::DBus::resolveDBusArguments(const QVariantList& l)
 {
     QVariantList newL;
     QListIterator<QVariant> it(l);
@@ -109,19 +109,19 @@ QVariantList Nepomuk::DBus::resolveDBusArguments(const QVariantList& l)
     return newL;
 }
 
-void Nepomuk::DBus::registerDBusTypes()
+void Nepomuk2::DBus::registerDBusTypes()
 {
     // we need QUrl to be able to pass it in a QVariant
     qDBusRegisterMetaType<QUrl>();
 
     // the central struct for storeResources and describeResources
-    qDBusRegisterMetaType<Nepomuk::SimpleResource>();
+    qDBusRegisterMetaType<Nepomuk2::SimpleResource>();
 
     // we use a list instead of a struct for SimpleResourceGraph
-    qDBusRegisterMetaType<QList<Nepomuk::SimpleResource> >();
+    qDBusRegisterMetaType<QList<Nepomuk2::SimpleResource> >();
 
     // required for the additional metadata in storeResources
-    qDBusRegisterMetaType<Nepomuk::PropertyHash>();
+    qDBusRegisterMetaType<Nepomuk2::PropertyHash>();
 
     // required for returning the mappings in storeResources
     qDBusRegisterMetaType< QHash<QString, QString> >();
@@ -147,10 +147,10 @@ const QDBusArgument& operator>>( const QDBusArgument& arg, QUrl& url )
     return arg;
 }
 
-QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk::PropertyHash& ph )
+QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk2::PropertyHash& ph )
 {
     arg.beginMap( QVariant::String, qMetaTypeId<QDBusVariant>());
-    for(Nepomuk::PropertyHash::const_iterator it = ph.constBegin();
+    for(Nepomuk2::PropertyHash::const_iterator it = ph.constBegin();
         it != ph.constEnd(); ++it) {
         arg.beginMapEntry();
         arg << QString::fromAscii(it.key().toEncoded());
@@ -167,7 +167,7 @@ QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk::PropertyHash& ph )
     return arg;
 }
 
-const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk::PropertyHash& ph )
+const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk2::PropertyHash& ph )
 {
     ph.clear();
     arg.beginMap();
@@ -178,7 +178,7 @@ const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk::PropertyHash
         arg >> key >> value;
 
         const QUrl p = QUrl::fromEncoded(key.toAscii());
-        const QVariant v = Nepomuk::DBus::resolveDBusArguments(value.variant());
+        const QVariant v = Nepomuk2::DBus::resolveDBusArguments(value.variant());
 
         ph.insertMulti(p, v);
 
@@ -188,7 +188,7 @@ const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk::PropertyHash
     return arg;
 }
 
-QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk::SimpleResource& res )
+QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk2::SimpleResource& res )
 {
     arg.beginStructure();
     arg << QString::fromAscii(res.uri().toEncoded());
@@ -197,11 +197,11 @@ QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk::SimpleResource& re
     return arg;
 }
 
-const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk::SimpleResource& res )
+const QDBusArgument& operator>>( const QDBusArgument& arg, Nepomuk2::SimpleResource& res )
 {
     arg.beginStructure();
     QString uriS;
-    Nepomuk::PropertyHash props;
+    Nepomuk2::PropertyHash props;
     arg >> uriS;
     res.setUri( QUrl::fromEncoded(uriS.toAscii()) );
     arg >> props;

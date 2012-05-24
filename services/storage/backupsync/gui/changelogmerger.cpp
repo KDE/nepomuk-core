@@ -50,21 +50,21 @@
 
 #include <KDebug>
 
-int Nepomuk::ChangeLogMerger::NextId = 0;
+int Nepomuk2::ChangeLogMerger::NextId = 0;
 
-Nepomuk::ChangeLogMerger::ChangeLogMerger(Nepomuk::ChangeLog log)
+Nepomuk2::ChangeLogMerger::ChangeLogMerger(Nepomuk2::ChangeLog log)
     : ResourceMerger(),
       m_logFile( log )
 {
     m_id = NextId++;
 }
 
-int Nepomuk::ChangeLogMerger::id()
+int Nepomuk2::ChangeLogMerger::id()
 {
     return m_id;
 }
 
-void Nepomuk::ChangeLogMerger::load()
+void Nepomuk2::ChangeLogMerger::load()
 {
     kDebug() << "Loading the ChangeLog..." << m_logFile.size();
     m_hash = ResourceLogMap::fromChangeLog( m_logFile );
@@ -84,14 +84,14 @@ namespace {
         //
         // trueg: hardcoding the non-mergeable properties here since there are only 2 defined
         //
-        return prop != Soprano::Vocabulary::RDF::type() && prop != Nepomuk::Vocabulary::NIE::url();
+        return prop != Soprano::Vocabulary::RDF::type() && prop != Nepomuk2::Vocabulary::NIE::url();
     }
 
-    QList<Nepomuk::ChangeLogRecord> getRecords( const Nepomuk::ResourceLogMap & hash, const KUrl resUri, const KUrl & propUri ) {
+    QList<Nepomuk2::ChangeLogRecord> getRecords( const Nepomuk2::ResourceLogMap & hash, const KUrl resUri, const KUrl & propUri ) {
 
-        Nepomuk::ResourceLogMap::const_iterator it = hash.constFind( resUri );
+        Nepomuk2::ResourceLogMap::const_iterator it = hash.constFind( resUri );
         if( it == hash.constEnd() ) {
-            return QList<Nepomuk::ChangeLogRecord>();
+            return QList<Nepomuk2::ChangeLogRecord>();
         }
 
         return it->prop.values( propUri );
@@ -99,7 +99,7 @@ namespace {
 }
 
 //TODO: Add completed signal
-void Nepomuk::ChangeLogMerger::mergeChangeLog()
+void Nepomuk2::ChangeLogMerger::mergeChangeLog()
 {
     m_theGraph = createGraph();
 
@@ -143,7 +143,7 @@ void Nepomuk::ChangeLogMerger::mergeChangeLog()
                 continue;
             }
 
-            Nepomuk::Types::Property prop( propUri );
+            Nepomuk2::Types::Property prop( propUri );
             int cardinality = prop.maxCardinality();
 
             QList<ChangeLogRecord> theirRecords = resLog.prop.values( propUri );
@@ -174,16 +174,16 @@ void Nepomuk::ChangeLogMerger::mergeChangeLog()
 
 namespace {
 
-    Nepomuk::ChangeLogRecord maxRecord( const QList<Nepomuk::ChangeLogRecord> & records ) {
-        QList<Nepomuk::ChangeLogRecord>::const_iterator it = std::max_element( records.begin(), records.end() );
+    Nepomuk2::ChangeLogRecord maxRecord( const QList<Nepomuk2::ChangeLogRecord> & records ) {
+        QList<Nepomuk2::ChangeLogRecord>::const_iterator it = std::max_element( records.begin(), records.end() );
         if( it != records.constEnd() )
             return *it;
-        return Nepomuk::ChangeLogRecord();
+        return Nepomuk2::ChangeLogRecord();
     }
 }
 
 
-void Nepomuk::ChangeLogMerger::resolveSingleCardinality(const QList< Nepomuk::ChangeLogRecord >& theirRecords, const QList< Nepomuk::ChangeLogRecord >& ownRecords)
+void Nepomuk2::ChangeLogMerger::resolveSingleCardinality(const QList< Nepomuk2::ChangeLogRecord >& theirRecords, const QList< Nepomuk2::ChangeLogRecord >& ownRecords)
 {
     kDebug() << "O: " << ownRecords.size() << " " << "T:" << theirRecords.size();
 
@@ -229,7 +229,7 @@ namespace {
 
 }
 
-void Nepomuk::ChangeLogMerger::resolveMultipleCardinality( const QList<Nepomuk::ChangeLogRecord>& theirRecords, const QList<Nepomuk::ChangeLogRecord>& ownRecords)
+void Nepomuk2::ChangeLogMerger::resolveMultipleCardinality( const QList<Nepomuk2::ChangeLogRecord>& theirRecords, const QList<Nepomuk2::ChangeLogRecord>& ownRecords)
 {
     kDebug() << "MULTIPLE";
     kDebug() << "O: " << ownRecords.size() << " " << "T:" << theirRecords.size();
@@ -297,12 +297,12 @@ void Nepomuk::ChangeLogMerger::resolveMultipleCardinality( const QList<Nepomuk::
                                                   Soprano::Node() ) );
 }
 
-QList< Soprano::Statement > Nepomuk::ChangeLogMerger::multipleMergers() const
+QList< Soprano::Statement > Nepomuk2::ChangeLogMerger::multipleMergers() const
 {
     return m_multipleMergers;
 }
 
-bool Nepomuk::ChangeLogMerger::handleResourceDeletion(const KUrl& resUri)
+bool Nepomuk2::ChangeLogMerger::handleResourceDeletion(const KUrl& resUri)
 {
     ResourceLog & log = m_hash[ resUri ];
     const KUrl& rdfTypeProp = Soprano::Vocabulary::RDF::type();

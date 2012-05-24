@@ -26,11 +26,11 @@ kde4_add_kcfg_files(nepomukserver_SRCS nepomukserversettings.kcfgc)
 qt4_add_dbus_adaptor(nepomukserver_SRCS
   ../interfaces/org.kde.NepomukServer.xml
   nepomukserver.h
-  Nepomuk::Server)
+  Nepomuk2::Server)
 qt4_add_dbus_adaptor(nepomukserver_SRCS
   ../interfaces/org.kde.nepomuk.ServiceManager.xml
   servicemanager.h
-  Nepomuk::ServiceManager)
+  Nepomuk2::ServiceManager)
 
 qt4_add_dbus_interface(nepomukserver_SRCS
   ../interfaces/org.kde.nepomuk.ServiceControl.xml

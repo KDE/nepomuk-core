@@ -25,28 +25,33 @@
 
 #include <QtCore/QStringList>
 
-QString Nepomuk::Query::AndTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, QueryBuilderData* qbd ) const
+QString Nepomuk2::Query::AndTermPrivate::toSparqlGraphPattern( const QString& resourceVarName, const TermPrivate* parentTerm, const QString &additionalFilters, QueryBuilderData *qbd ) const
 {
     Q_UNUSED(parentTerm);
 
     QStringList pattern;
 
+    const bool haveRealPattern = hasRealPattern();
+
     qbd->pushGroupTerm(this);
-    foreach( const Nepomuk::Query::Term &t, m_subTerms ) {
-        pattern += t.d_ptr->toSparqlGraphPattern( resourceVarName, this, qbd );
+    foreach( const Nepomuk2::Query::Term &t, m_subTerms ) {
+        pattern += t.d_ptr->toSparqlGraphPattern( resourceVarName, this, haveRealPattern ? QString() : additionalFilters, qbd );
     }
     qbd->popGroupTerm();
+
+    if(haveRealPattern && !additionalFilters.isEmpty()) {
+        pattern += additionalFilters;
+    }
 
     return QLatin1String( "{ " ) + pattern.join(QString()) + QLatin1String( "} . " );
 }
 
 
-bool Nepomuk::Query::AndTermPrivate::hasRealPattern() const
+bool Nepomuk2::Query::AndTermPrivate::hasRealPattern() const
 {
-    Q_FOREACH( const Nepomuk::Query::Term& term, m_subTerms ) {
+    Q_FOREACH( const Nepomuk2::Query::Term& term, m_subTerms ) {
         if( term.isComparisonTerm() ||
-                term.isResourceTypeTerm() ||
-                term.isLiteralTerm() ) {
+            term.isResourceTypeTerm() ) {
             return true;
         }
     }
@@ -54,19 +59,19 @@ bool Nepomuk::Query::AndTermPrivate::hasRealPattern() const
 }
 
 
-Nepomuk::Query::AndTerm::AndTerm()
+Nepomuk2::Query::AndTerm::AndTerm()
     : GroupTerm( new AndTermPrivate() )
 {
 }
 
 
-Nepomuk::Query::AndTerm::AndTerm( const AndTerm& term )
+Nepomuk2::Query::AndTerm::AndTerm( const AndTerm& term )
     : GroupTerm( term )
 {
 }
 
 
-Nepomuk::Query::AndTerm::AndTerm( const Term& term1,
+Nepomuk2::Query::AndTerm::AndTerm( const Term& term1,
                                   const Term& term2,
                                   const Term& term3,
                                   const Term& term4,
@@ -83,19 +88,19 @@ Nepomuk::Query::AndTerm::AndTerm( const Term& term1,
 }
 
 
-Nepomuk::Query::AndTerm::AndTerm( const QList<Term>& terms )
+Nepomuk2::Query::AndTerm::AndTerm( const QList<Term>& terms )
     : GroupTerm( new AndTermPrivate() )
 {
     setSubTerms( terms );
 }
 
 
-Nepomuk::Query::AndTerm::~AndTerm()
+Nepomuk2::Query::AndTerm::~AndTerm()
 {
 }
 
 
-Nepomuk::Query::AndTerm& Nepomuk::Query::AndTerm::operator=( const AndTerm& term )
+Nepomuk2::Query::AndTerm& Nepomuk2::Query::AndTerm::operator=( const AndTerm& term )
 {
     d_ptr = term.d_ptr;
     return *this;

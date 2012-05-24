@@ -34,8 +34,7 @@ namespace Soprano {
     class Model;
 }
 
-namespace Nepomuk {
-
+namespace Nepomuk2 {
         class ChangeLog;
 
         class IdentificationSet
@@ -66,19 +65,19 @@ namespace Nepomuk {
              *              By default the Nepomuk mainModel is used.
              * \param ignoreList The resources that shall be ignored ( not considered )
              */
-            static IdentificationSet fromChangeLog(const ChangeLog& log, Soprano::Model* model = Nepomuk::ResourceManager::instance()->mainModel(), const QSet<QUrl> & ignoreList = QSet<QUrl>());
+            static IdentificationSet fromChangeLog(const ChangeLog& log, Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel(), const QSet<QUrl> & ignoreList = QSet<QUrl>());
 
             /**
              * Creates an IdentificationSet which only contains the properties for the Resource
              * with resource uri \p resourceUri.
              */
-            static IdentificationSet fromResource(const QUrl & resourceUri, Soprano::Model* model = Nepomuk::ResourceManager::instance()->mainModel(), const QSet<QUrl> & ignoreList = QSet<QUrl>());
+            static IdentificationSet fromResource(const QUrl & resourceUri, Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel(), const QSet<QUrl> & ignoreList = QSet<QUrl>());
 
             /**
              * Creates an IdentificationSet for all the resources present in \p resList
              */
-            static IdentificationSet fromResourceList( const QList<QUrl> resList, Soprano::Model* model = Nepomuk::ResourceManager::instance()->mainModel() );
-
+            static IdentificationSet fromResourceList( const QList<QUrl> resList, Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel() );
+            
             /**
              * Creates an IdentificationSet which contains all the identification properties
              * of all the resources present in the \p log. No model is queried to get these

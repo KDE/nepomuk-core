@@ -38,7 +38,7 @@
 #include <KDebug>
 
 using namespace Soprano::Vocabulary;
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 namespace {
     /// used to handle sets and lists of QUrls
@@ -51,9 +51,9 @@ namespace {
     }
 }
 
-Nepomuk::ResourceIdentifier::ResourceIdentifier( Nepomuk::StoreIdentificationMode mode,
+Nepomuk2::ResourceIdentifier::ResourceIdentifier( Nepomuk2::StoreIdentificationMode mode,
                                                  Soprano::Model *model)
-    : Nepomuk::Sync::ResourceIdentifier( model ),
+    : Nepomuk2::Sync::ResourceIdentifier( model ),
       m_mode( mode )
 {
     // Resource Metadata
@@ -64,13 +64,13 @@ Nepomuk::ResourceIdentifier::ResourceIdentifier( Nepomuk::StoreIdentificationMod
 }
 
 
-bool Nepomuk::ResourceIdentifier::exists(const KUrl& uri)
+bool Nepomuk2::ResourceIdentifier::exists(const KUrl& uri)
 {
     QString query = QString::fromLatin1("ask { %1 ?p ?o . } ").arg( Soprano::Node::resourceToN3(uri) );
     return model()->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
 }
 
-KUrl Nepomuk::ResourceIdentifier::duplicateMatch(const KUrl& origUri,
+KUrl Nepomuk2::ResourceIdentifier::duplicateMatch(const KUrl& origUri,
                                                  const QSet<KUrl>& matchedUris )
 {
     Q_UNUSED( origUri );
@@ -92,7 +92,7 @@ KUrl Nepomuk::ResourceIdentifier::duplicateMatch(const KUrl& origUri,
     }
 }
 
-bool Nepomuk::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
+bool Nepomuk2::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
 {
     if( uri == NAO::created()
             || uri == NAO::creator()
@@ -106,7 +106,7 @@ bool Nepomuk::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
 }
 
 
-bool Nepomuk::ResourceIdentifier::runIdentification(const KUrl& uri)
+bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
 {
     if( m_mode == IdentifyNone )
         return false;

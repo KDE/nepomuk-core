@@ -37,14 +37,14 @@ namespace Soprano {
     class Graph;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class DataManagementModel;
     class ResourceWatcherManager;
 
     class ResourceMerger : public Soprano::Error::ErrorCache
     {
     public:
-        ResourceMerger( Nepomuk::DataManagementModel * model, const QString & app,
+        ResourceMerger( Nepomuk2::DataManagementModel * model, const QString & app,
                         const QHash<QUrl, QVariant>& additionalMetadata,
                         const StoreResourcesFlags& flags );
         virtual ~ResourceMerger();
@@ -74,16 +74,22 @@ namespace Nepomuk {
         Soprano::Node resolveUnmappedNode( const Soprano::Node& node );
 
         /// This modifies the list
-        void resolveBlankNodesInList( QList<Soprano::Statement> *stList );
+        void resolveBlankNodesInSet( QSet<Soprano::Statement> *stList );
 
         /**
          * Removes all the statements that already exist in the model
          * and adds them to m_duplicateStatements
          */
-        void removeDuplicatesInList( QList<Soprano::Statement> *stList );
+        void removeDuplicatesInList( QSet<Soprano::Statement> *stList );
         QMultiHash<QUrl, Soprano::Statement> m_duplicateStatements;
 
         QHash<QUrl, QUrl> m_mappings;
+
+        /// a set of graphs which we change and which are candidates for empty graphs
+        QSet<QUrl> m_trailingGraphCandidates;
+
+        /// a list of all the statements that have been removed (only used for the resource watcher)
+        QList<Soprano::Statement> m_removedStatements;
 
         /// Can set the error
         QMultiHash<QUrl, Soprano::Node> toNodeHash( const QHash<QUrl, QVariant> &hash );
@@ -105,7 +111,7 @@ namespace Nepomuk {
         QUrl m_graph;
 
         StoreResourcesFlags m_flags;
-        Nepomuk::DataManagementModel * m_model;
+        Nepomuk2::DataManagementModel * m_model;
 
         QUrl mergeGraphs( const QUrl& oldGraph );
 

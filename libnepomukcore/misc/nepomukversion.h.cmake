@@ -1,6 +1,6 @@
 /*
    This file is part of the Nepomuk KDE project.
-   Copyright (C) 2011 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2011-2012 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,22 +19,22 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_VERSION_H_
-#define _NEPOMUK_VERSION_H_
+#ifndef _NEPOMUK_CORE_VERSION_H_
+#define _NEPOMUK_CORE_VERSION_H_
 
 #include "nepomuk_export.h"
 
 /// @brief Nepomuk version as string at compile time.
-#define NEPOMUK_VERSION_STRING "${CMAKE_NEPOMUK_VERSION_STRING}"
+#define NEPOMUK_VERSION_STRING "${CMAKE_NEPOMUK_CORE_VERSION_STRING}"
 
 /// @brief The major Nepomuk version number at compile time
-#define NEPOMUK_VERSION_MAJOR ${CMAKE_NEPOMUK_VERSION_MAJOR}
+#define NEPOMUK_VERSION_MAJOR ${CMAKE_NEPOMUK_CORE_VERSION_MAJOR}
 
 /// @brief The minor Nepomuk version number at compile time
-#define NEPOMUK_VERSION_MINOR ${CMAKE_NEPOMUK_VERSION_MINOR}
+#define NEPOMUK_VERSION_MINOR ${CMAKE_NEPOMUK_CORE_VERSION_MINOR}
 
 /// @brief The Nepomuk release version number at compile time
-#define NEPOMUK_VERSION_RELEASE ${CMAKE_NEPOMUK_VERSION_RELEASE}
+#define NEPOMUK_VERSION_RELEASE ${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}
 
 /**
  * \brief Create a unique number from the major, minor and release number of a %NEPOMUK version
@@ -72,7 +72,7 @@
 #define NEPOMUK_IS_VERSION(a,b,c) ( NEPOMUK_VERSION >= NEPOMUK_MAKE_VERSION(a,b,c) )
 
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
      * @brief Returns the major number of %Nepomuk's version, e.g.
      * 1 for %Nepomuk 1.0.2.
@@ -97,7 +97,7 @@ namespace Nepomuk {
     /**
      * @brief Returns the %Nepomuk version as string, e.g. "1.0.2".
      *
-     * On contrary to the macro NEPOMUK_VERSION_STRING this function returns
+     * On contrary to the macro NEPOMUK_CORE_VERSION_STRING this function returns
      * the version number of %Nepomuk at runtime.
      * @return the %Nepomuk version. You can keep the string forever
      */

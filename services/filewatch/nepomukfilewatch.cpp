@@ -47,7 +47,7 @@
 #include <Soprano/Node>
 
 
-NEPOMUK_EXPORT_SERVICE( Nepomuk::FileWatch, "nepomukfilewatch")
+NEPOMUK_EXPORT_SERVICE( Nepomuk2::FileWatch, "nepomukfilewatch")
 
 
 #ifdef BUILD_KINOTIFY
@@ -96,7 +96,7 @@ namespace {
         Q_UNUSED( flags );
 
         // Only watch the index folders for file creation and change.
-        if( Nepomuk::FileIndexerConfig::self()->shouldFolderBeIndexed( path ) ) {
+        if( Nepomuk2::FileIndexerConfig::self()->shouldFolderBeIndexed( path ) ) {
             modes |= KInotify::EventCloseWrite;
             modes |= KInotify::EventCreate;
         }
@@ -111,7 +111,7 @@ namespace {
 #endif // BUILD_KINOTIFY
 
 
-Nepomuk::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
+Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
     : Service( parent )
 {
     // Create the configuration instance singleton (for thread-safety)
@@ -171,8 +171,8 @@ Nepomuk::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
 
     // we automatically watch newly mounted media - it is very unlikely that anything non-interesting is mounted
     m_removableMediaCache = new RemovableMediaCache(this);
-    connect(m_removableMediaCache, SIGNAL(deviceMounted(const Nepomuk::RemovableMediaCache::Entry*)),
-            this, SLOT(slotDeviceMounted(const Nepomuk::RemovableMediaCache::Entry*)));
+    connect(m_removableMediaCache, SIGNAL(deviceMounted(const Nepomuk2::RemovableMediaCache::Entry*)),
+            this, SLOT(slotDeviceMounted(const Nepomuk2::RemovableMediaCache::Entry*)));
     addWatchesForMountedRemovableMedia();
 
     (new InvalidFileResourceCleaner(this))->start();
@@ -182,7 +182,7 @@ Nepomuk::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
 }
 
 
-Nepomuk::FileWatch::~FileWatch()
+Nepomuk2::FileWatch::~FileWatch()
 {
     kDebug();
     m_metadataMoverThread->quit();
@@ -191,7 +191,7 @@ Nepomuk::FileWatch::~FileWatch()
 
 
 // FIXME: listen to Create for folders!
-void Nepomuk::FileWatch::watchFolder( const QString& path )
+void Nepomuk2::FileWatch::watchFolder( const QString& path )
 {
     kDebug() << path;
 #ifdef BUILD_KINOTIFY
@@ -203,7 +203,7 @@ void Nepomuk::FileWatch::watchFolder( const QString& path )
 }
 
 
-void Nepomuk::FileWatch::slotFileMoved( const QString& urlFrom, const QString& urlTo )
+void Nepomuk2::FileWatch::slotFileMoved( const QString& urlFrom, const QString& urlTo )
 {
     if( !ignorePath( urlFrom ) || !ignorePath( urlTo ) ) {
         const KUrl from( urlFrom );
@@ -213,7 +213,7 @@ void Nepomuk::FileWatch::slotFileMoved( const QString& urlFrom, const QString& u
 }
 
 
-void Nepomuk::FileWatch::slotFilesDeleted( const QStringList& paths )
+void Nepomuk2::FileWatch::slotFilesDeleted( const QStringList& paths )
 {
     KUrl::List urls;
     foreach( const QString& path, paths ) {
@@ -229,7 +229,7 @@ void Nepomuk::FileWatch::slotFilesDeleted( const QStringList& paths )
 }
 
 
-void Nepomuk::FileWatch::slotFileDeleted( const QString& urlString, bool isDir )
+void Nepomuk2::FileWatch::slotFileDeleted( const QString& urlString, bool isDir )
 {
     // Directories must always end with a trailing slash '/'
     QString url = urlString;
@@ -240,7 +240,7 @@ void Nepomuk::FileWatch::slotFileDeleted( const QString& urlString, bool isDir )
 }
 
 
-void Nepomuk::FileWatch::slotFileCreated( const QString& path, bool isDir )
+void Nepomuk2::FileWatch::slotFileCreated( const QString& path, bool isDir )
 {
     // we only need the file creation event for folders
     // file creation is always followed by a CloseAfterWrite event
@@ -250,7 +250,7 @@ void Nepomuk::FileWatch::slotFileCreated( const QString& path, bool isDir )
 }
 
 
-void Nepomuk::FileWatch::slotFileClosedAfterWrite( const QString& path )
+void Nepomuk2::FileWatch::slotFileClosedAfterWrite( const QString& path )
 {
     if(FileIndexerConfig::self()->shouldBeIndexed(path)) {
         // we do not tell the file indexer right away but wait a short while in case the file is modified very often (irc logs for example)
@@ -258,14 +258,14 @@ void Nepomuk::FileWatch::slotFileClosedAfterWrite( const QString& path )
     }
 }
 
-void Nepomuk::FileWatch::slotMovedWithoutData( const QString& path )
+void Nepomuk2::FileWatch::slotMovedWithoutData( const QString& path )
 {
     updateFileViaFileIndexer( path );
 }
 
 
 // static
-void Nepomuk::FileWatch::updateFileViaFileIndexer(const QString &path)
+void Nepomuk2::FileWatch::updateFileViaFileIndexer(const QString &path)
 {
     if( FileIndexerConfig::self()->shouldBeIndexed(path) ) {
         org::kde::nepomuk::FileIndexer fileIndexer( "org.kde.nepomuk.services.nepomukfileindexer", "/nepomukfileindexer", QDBusConnection::sessionBus() );
@@ -277,7 +277,7 @@ void Nepomuk::FileWatch::updateFileViaFileIndexer(const QString &path)
 
 
 // static
-void Nepomuk::FileWatch::updateFolderViaFileIndexer( const QString& path )
+void Nepomuk2::FileWatch::updateFolderViaFileIndexer( const QString& path )
 {
     if( FileIndexerConfig::self()->shouldBeIndexed(path) ) {
         //
@@ -292,7 +292,7 @@ void Nepomuk::FileWatch::updateFolderViaFileIndexer( const QString& path )
 }
 
 
-void Nepomuk::FileWatch::connectToKDirWatch()
+void Nepomuk2::FileWatch::connectToKDirWatch()
 {
     // monitor KIO for changes
     QDBusConnection::sessionBus().connect( QString(), QString(), "org.kde.KDirNotify", "FileMoved",
@@ -303,7 +303,7 @@ void Nepomuk::FileWatch::connectToKDirWatch()
 
 
 #ifdef BUILD_KINOTIFY
-void Nepomuk::FileWatch::slotInotifyWatchUserLimitReached()
+void Nepomuk2::FileWatch::slotInotifyWatchUserLimitReached()
 {
     // we do it the brutal way for now hoping with new kernels and defaults this will never happen
     delete m_dirWatch;
@@ -313,7 +313,7 @@ void Nepomuk::FileWatch::slotInotifyWatchUserLimitReached()
 #endif
 
 
-bool Nepomuk::FileWatch::ignorePath( const QString& path )
+bool Nepomuk2::FileWatch::ignorePath( const QString& path )
 {
     // when using KInotify there is no need to check the folder since
     // we only watch interesting folders to begin with.
@@ -321,7 +321,7 @@ bool Nepomuk::FileWatch::ignorePath( const QString& path )
 }
 
 
-void Nepomuk::FileWatch::updateIndexedFoldersWatches()
+void Nepomuk2::FileWatch::updateIndexedFoldersWatches()
 {
 #ifdef BUILD_KINOTIFY
     if( m_dirWatch ) {
@@ -335,7 +335,7 @@ void Nepomuk::FileWatch::updateIndexedFoldersWatches()
 }
 
 
-void Nepomuk::FileWatch::addWatchesForMountedRemovableMedia()
+void Nepomuk2::FileWatch::addWatchesForMountedRemovableMedia()
 {
     Q_FOREACH(const RemovableMediaCache::Entry* entry, m_removableMediaCache->allMedia()) {
         if(entry->isMounted())
@@ -343,7 +343,7 @@ void Nepomuk::FileWatch::addWatchesForMountedRemovableMedia()
     }
 }
 
-void Nepomuk::FileWatch::slotDeviceMounted(const Nepomuk::RemovableMediaCache::Entry* entry)
+void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache::Entry* entry)
 {
     //
     // now that the device is mounted we can clean up our db - in case we have any
@@ -392,7 +392,7 @@ void Nepomuk::FileWatch::slotDeviceMounted(const Nepomuk::RemovableMediaCache::E
     watchFolder(entry->mountPath());
 }
 
-void Nepomuk::FileWatch::slotActiveFileQueueTimeout(const KUrl &url)
+void Nepomuk2::FileWatch::slotActiveFileQueueTimeout(const KUrl &url)
 {
     updateFileViaFileIndexer(url.toLocalFile());
 }

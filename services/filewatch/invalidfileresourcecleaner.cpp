@@ -38,7 +38,7 @@
 #include <KUrl>
 
 
-Nepomuk::InvalidFileResourceCleaner::InvalidFileResourceCleaner( QObject* parent )
+Nepomuk2::InvalidFileResourceCleaner::InvalidFileResourceCleaner( QObject* parent )
     : QThread( parent ),
       m_stopped( false )
 {
@@ -46,7 +46,7 @@ Nepomuk::InvalidFileResourceCleaner::InvalidFileResourceCleaner( QObject* parent
 }
 
 
-Nepomuk::InvalidFileResourceCleaner::~InvalidFileResourceCleaner()
+Nepomuk2::InvalidFileResourceCleaner::~InvalidFileResourceCleaner()
 {
     // gently terminate the thread
     m_stopped = true;
@@ -54,7 +54,7 @@ Nepomuk::InvalidFileResourceCleaner::~InvalidFileResourceCleaner()
 }
 
 
-void Nepomuk::InvalidFileResourceCleaner::run()
+void Nepomuk2::InvalidFileResourceCleaner::run()
 {
     kDebug() << "Searching for invalid local file entries";
 #ifndef NDEBUG
@@ -74,10 +74,10 @@ void Nepomuk::InvalidFileResourceCleaner::run()
     const QString query
             = QString::fromLatin1( "select distinct ?r ?url where { "
                                    "?r %1 ?url . %2}" )
-            .arg( Soprano::Node::resourceToN3( Nepomuk::Vocabulary::NIE::url() ),
+            .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ),
                   basePathFilter );
     Soprano::QueryResultIterator it
-            = Nepomuk::ResourceManager::instance()->mainModel()->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+            = Nepomuk2::ResourceManager::instance()->mainModel()->executeQuery( query, Soprano::Query::QueryLanguageSparql );
 
     while( it.next() && !m_stopped ) {
         QUrl url( it["url"].uri() );
@@ -93,8 +93,8 @@ void Nepomuk::InvalidFileResourceCleaner::run()
         if ( m_stopped )
             break;
         // TODO: use DMS here instead of Soprano
-        Nepomuk::ResourceManager::instance()->mainModel()->removeAllStatements( r, Soprano::Node(), Soprano::Node() );
-        Nepomuk::ResourceManager::instance()->mainModel()->removeAllStatements( Soprano::Node(), Soprano::Node(), r );
+        Nepomuk2::ResourceManager::instance()->mainModel()->removeAllStatements( r, Soprano::Node(), Soprano::Node() );
+        Nepomuk2::ResourceManager::instance()->mainModel()->removeAllStatements( Soprano::Node(), Soprano::Node(), r );
     }
     kDebug() << "Done searching for invalid local file entries";
 #ifndef NDEBUG
@@ -102,7 +102,7 @@ void Nepomuk::InvalidFileResourceCleaner::run()
 #endif
 }
 
-void Nepomuk::InvalidFileResourceCleaner::start(const QString &basePath)
+void Nepomuk2::InvalidFileResourceCleaner::start(const QString &basePath)
 {
     m_basePath = basePath;
     start();

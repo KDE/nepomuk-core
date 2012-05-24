@@ -21,7 +21,7 @@
 
 #include <Soprano/FilterModel>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     /**
      * \class OntologyManagerModel ontologymanagermodel.h ontologymanagermodel.h
      *
@@ -47,11 +47,6 @@ namespace Nepomuk {
          */
         ~OntologyManagerModel();
 
-        /**
-         * Reimplemented from FilterModel. The API is not affected.
-         */
-        void setParentModel( Soprano::Model* parentModel );
-        
         /**
          * Update an ontology.
          *

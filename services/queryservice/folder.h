@@ -37,7 +37,7 @@ namespace Soprano {
     }
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
 
         uint qHash( const Result& );
@@ -93,20 +93,19 @@ namespace Nepomuk {
              */
             int getResultCount() const { return m_resultCount; }
 
-            void addResults( const QList<Result>& result );
-
-            void listingFinished();
-
             /// called by the CountQueryRunnable
             void countQueryFinished( int count );
 
         public Q_SLOTS:
+            void addResults( const QList<Nepomuk2::Query::Result>& result );
+            void listingFinished();
+
             void update();
 
         Q_SIGNALS:
-            void newEntries( const QList<Nepomuk::Query::Result>& entries );
+            void newEntries( const QList<Nepomuk2::Query::Result>& entries );
             void entriesRemoved( const QList<QUrl>& entries );
-            void entriesRemoved( const QList<Nepomuk::Query::Result>& entries );
+            void entriesRemoved( const QList<Nepomuk2::Query::Result>& entries );
 
             /**
              * Emitted once the result count is available.
@@ -116,7 +115,7 @@ namespace Nepomuk {
             void resultCount( int count );
 
             void finishedListing();
-            void aboutToBeDeleted( Nepomuk::Query::Folder* );
+            void aboutToBeDeleted( Nepomuk2::Query::Folder* );
 
         private Q_SLOTS:
             void slotStorageChanged();

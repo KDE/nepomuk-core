@@ -30,9 +30,8 @@ namespace Soprano {
 }
 
 class KJob;
-class CrappyInferencer2;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class RemovableMediaModel;
     class ResourceWatcherModel;
     class ModelCopyJob;
@@ -40,6 +39,7 @@ namespace Nepomuk {
     class DataManagementAdaptor;
     class ClassAndPropertyTree;
     class GraphMaintainer;
+    class VirtuosoInferenceModel;
 
     /**
      * Represents the main Nepomuk model. While it looks as if there could be more than
@@ -52,16 +52,9 @@ namespace Nepomuk {
      *     purpose it is exported via DBus.
      * \li The Soprano::NRLModel provides query prefix expansion and graph cleanup features
      *     that are required by the DMM.
-     * \li The Soprano::Utils::SignalCacheModel is used to compact the several statementsAdded()
-     *     and statementsRemoved() signals.
      * \li RemovableMediaModel is used to automatically convert the URLs of files
      *     on USB keys, network shares, and so on from and into mount-point independant URLs
      *     like nfs://<HOST>/<HOST-PATH>/local/path.ext.
-     * \li CrappyInferencer2 keeps rdfs:subClassOf and nao:userVisible inference up-to-date.
-     *
-     * On construction it checks for and optionally performs conversion from an old repository
-     * type (pre-Virtuoso times) and runs CrappyInferencer2::updateAllResources() which is
-     * performed in a separate thread.
      *
      * \author Sebastian Trueg <trueg@kde.org>
      */
@@ -92,7 +85,7 @@ namespace Nepomuk {
         void open();
         void close();
 
-        void updateInference();
+        void updateInference(bool ontologiesChanged);
 
     Q_SIGNALS:
         void opened( Repository*, bool success );
@@ -109,11 +102,11 @@ namespace Nepomuk {
         State m_state;
 
         Soprano::Model* m_model;
-        Nepomuk::ClassAndPropertyTree* m_classAndPropertyTree;
-        CrappyInferencer2* m_inferencer;
+        Nepomuk2::ClassAndPropertyTree* m_classAndPropertyTree;
         RemovableMediaModel* m_removableStorageModel;
+        VirtuosoInferenceModel* m_inferenceModel;
         DataManagementModel* m_dataManagementModel;
-        Nepomuk::DataManagementAdaptor* m_dataManagementAdaptor;
+        Nepomuk2::DataManagementAdaptor* m_dataManagementAdaptor;
         Soprano::NRLModel* m_nrlModel;
         const Soprano::Backend* m_backend;
 

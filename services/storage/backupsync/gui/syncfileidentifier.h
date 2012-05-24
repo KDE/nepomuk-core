@@ -28,7 +28,7 @@
 #include "identificationset.h"
 #include "syncfile.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class SyncFileIdentifier : public Sync::ResourceIdentifier
     {
@@ -52,7 +52,7 @@ namespace Nepomuk {
         static int NextId;
         int m_id;
 
-        Resource createNewResource(const Nepomuk::Sync::SyncResource& simpleRes) const;
+        Resource createNewResource(const Nepomuk2::Sync::SyncResource& simpleRes) const;
 
     };
 }

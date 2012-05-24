@@ -38,7 +38,7 @@ namespace Soprano {
     class Node;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class Resource;
     class ResourceManager;

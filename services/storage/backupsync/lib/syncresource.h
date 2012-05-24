@@ -37,7 +37,7 @@ namespace Soprano {
     class Graph;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Sync {
 
         /**
@@ -114,6 +114,8 @@ namespace Nepomuk {
         };
 
         uint NEPOMUKSYNC_EXPORT qHash(const SyncResource& res);
+        NEPOMUKSYNC_EXPORT QDebug operator<<(QDebug dbg, const Nepomuk2::Sync::SyncResource& res);
     }
 }
+
 #endif // NEPOMUK_SIMPLERESOURCEH_H

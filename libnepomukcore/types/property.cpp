@@ -29,9 +29,9 @@
 #include <Soprano/Vocabulary/XMLSchema>
 
 #undef D
-#define D static_cast<Nepomuk::Types::PropertyPrivate*>( d.data() )
+#define D static_cast<Nepomuk2::Types::PropertyPrivate*>( d.data() )
 
-Nepomuk::Types::PropertyPrivate::PropertyPrivate( const QUrl& uri )
+Nepomuk2::Types::PropertyPrivate::PropertyPrivate( const QUrl& uri )
     : EntityPrivate( uri ),
       minCardinality( -1 ),
       maxCardinality( -1 ),
@@ -40,7 +40,7 @@ Nepomuk::Types::PropertyPrivate::PropertyPrivate( const QUrl& uri )
 }
 
 
-bool Nepomuk::Types::PropertyPrivate::addProperty( const QUrl& property, const Soprano::Node& value )
+bool Nepomuk2::Types::PropertyPrivate::addProperty( const QUrl& property, const Soprano::Node& value )
 {
     // we avoid subclassing loops (as created for crappy inferencing) by checking for our own uri
     if( value.isResource() &&
@@ -92,7 +92,7 @@ bool Nepomuk::Types::PropertyPrivate::addProperty( const QUrl& property, const S
 }
 
 
-bool Nepomuk::Types::PropertyPrivate::addAncestorProperty( const QUrl& ancestorResource, const QUrl& property )
+bool Nepomuk2::Types::PropertyPrivate::addAncestorProperty( const QUrl& ancestorResource, const QUrl& property )
 {
     // we avoid subclassing loops (as created for crappy inferencing) by checking for our own uri
     if( property == Soprano::Vocabulary::RDFS::subPropertyOf() &&
@@ -109,7 +109,7 @@ bool Nepomuk::Types::PropertyPrivate::addAncestorProperty( const QUrl& ancestorR
 }
 
 
-void Nepomuk::Types::PropertyPrivate::reset( bool recursive )
+void Nepomuk2::Types::PropertyPrivate::reset( bool recursive )
 {
     QMutexLocker lock( &mutex );
 
@@ -143,75 +143,75 @@ void Nepomuk::Types::PropertyPrivate::reset( bool recursive )
 
 
 
-Nepomuk::Types::Property::Property()
+Nepomuk2::Types::Property::Property()
     : Entity()
 {
     d = 0;
 }
 
 
-Nepomuk::Types::Property::Property( const QUrl& uri )
+Nepomuk2::Types::Property::Property( const QUrl& uri )
     : Entity()
 {
     d = EntityManager::self()->getProperty( uri );
 }
 
 
-Nepomuk::Types::Property::Property( const Property& other )
+Nepomuk2::Types::Property::Property( const Property& other )
     : Entity( other )
 {
 }
 
 
-Nepomuk::Types::Property::~Property()
+Nepomuk2::Types::Property::~Property()
 {
 }
 
 
-Nepomuk::Types::Property& Nepomuk::Types::Property::operator=( const Property& other )
+Nepomuk2::Types::Property& Nepomuk2::Types::Property::operator=( const Property& other )
 {
     d = other.d;
     return *this;
 }
 
 
-QList<Nepomuk::Types::Property> Nepomuk::Types::Property::parentProperties()
+QList<Nepomuk2::Types::Property> Nepomuk2::Types::Property::parentProperties()
 {
     if ( d ) {
         D->init();
         return D->parents;
     }
     else {
-        return QList<Nepomuk::Types::Property>();
+        return QList<Nepomuk2::Types::Property>();
     }
 }
 
 
-QList<Nepomuk::Types::Property> Nepomuk::Types::Property::parentProperties() const
+QList<Nepomuk2::Types::Property> Nepomuk2::Types::Property::parentProperties() const
 {
     return const_cast<Property*>(this)->parentProperties();
 }
 
 
-QList<Nepomuk::Types::Property> Nepomuk::Types::Property::subProperties()
+QList<Nepomuk2::Types::Property> Nepomuk2::Types::Property::subProperties()
 {
     if ( d ) {
         D->initAncestors();
         return D->children;
     }
     else {
-        return QList<Nepomuk::Types::Property>();
+        return QList<Nepomuk2::Types::Property>();
     }
 }
 
 
-QList<Nepomuk::Types::Property> Nepomuk::Types::Property::subProperties() const
+QList<Nepomuk2::Types::Property> Nepomuk2::Types::Property::subProperties() const
 {
     return const_cast<Property*>(this)->subProperties();
 }
 
 
-Nepomuk::Types::Property Nepomuk::Types::Property::inverseProperty()
+Nepomuk2::Types::Property Nepomuk2::Types::Property::inverseProperty()
 {
     if ( d ) {
         D->init();
@@ -224,13 +224,13 @@ Nepomuk::Types::Property Nepomuk::Types::Property::inverseProperty()
 }
 
 
-Nepomuk::Types::Property Nepomuk::Types::Property::inverseProperty() const
+Nepomuk2::Types::Property Nepomuk2::Types::Property::inverseProperty() const
 {
     return const_cast<Property*>(this)->inverseProperty();
 }
 
 
-Nepomuk::Types::Class Nepomuk::Types::Property::range()
+Nepomuk2::Types::Class Nepomuk2::Types::Property::range()
 {
     if ( d ) {
         D->init();
@@ -262,13 +262,13 @@ Nepomuk::Types::Class Nepomuk::Types::Property::range()
 }
 
 
-Nepomuk::Types::Class Nepomuk::Types::Property::range() const
+Nepomuk2::Types::Class Nepomuk2::Types::Property::range() const
 {
     return const_cast<Property*>(this)->range();
 }
 
 
-Nepomuk::Types::Literal Nepomuk::Types::Property::literalRangeType()
+Nepomuk2::Types::Literal Nepomuk2::Types::Property::literalRangeType()
 {
     if ( d ) {
         D->init();
@@ -298,13 +298,13 @@ Nepomuk::Types::Literal Nepomuk::Types::Property::literalRangeType()
 }
 
 
-Nepomuk::Types::Literal Nepomuk::Types::Property::literalRangeType() const
+Nepomuk2::Types::Literal Nepomuk2::Types::Property::literalRangeType() const
 {
     return const_cast<Property*>(this)->literalRangeType();
 }
 
 
-Nepomuk::Types::Class Nepomuk::Types::Property::domain()
+Nepomuk2::Types::Class Nepomuk2::Types::Property::domain()
 {
     if ( d ) {
         D->init();
@@ -331,13 +331,13 @@ Nepomuk::Types::Class Nepomuk::Types::Property::domain()
 }
 
 
-Nepomuk::Types::Class Nepomuk::Types::Property::domain() const
+Nepomuk2::Types::Class Nepomuk2::Types::Property::domain() const
 {
     return const_cast<Property*>(this)->domain();
 }
 
 
-int Nepomuk::Types::Property::cardinality()
+int Nepomuk2::Types::Property::cardinality()
 {
     if ( d ) {
         D->init();
@@ -349,13 +349,13 @@ int Nepomuk::Types::Property::cardinality()
 }
 
 
-int Nepomuk::Types::Property::cardinality() const
+int Nepomuk2::Types::Property::cardinality() const
 {
     return const_cast<Property*>(this)->cardinality();
 }
 
 
-int Nepomuk::Types::Property::minCardinality()
+int Nepomuk2::Types::Property::minCardinality()
 {
     if ( d ) {
         D->init();
@@ -372,13 +372,13 @@ int Nepomuk::Types::Property::minCardinality()
 }
 
 
-int Nepomuk::Types::Property::minCardinality() const
+int Nepomuk2::Types::Property::minCardinality() const
 {
     return const_cast<Property*>(this)->minCardinality();
 }
 
 
-int Nepomuk::Types::Property::maxCardinality()
+int Nepomuk2::Types::Property::maxCardinality()
 {
     if ( d ) {
         D->init();
@@ -395,13 +395,13 @@ int Nepomuk::Types::Property::maxCardinality()
 }
 
 
-int Nepomuk::Types::Property::maxCardinality() const
+int Nepomuk2::Types::Property::maxCardinality() const
 {
     return const_cast<Property*>(this)->maxCardinality();
 }
 
 
-bool Nepomuk::Types::Property::isParentOf( const Property& other )
+bool Nepomuk2::Types::Property::isParentOf( const Property& other )
 {
     if ( d ) {
         D->initAncestors();
@@ -410,7 +410,7 @@ bool Nepomuk::Types::Property::isParentOf( const Property& other )
             return true;
         }
         else {
-            for ( QList<Nepomuk::Types::Property>::iterator it = D->children.begin();
+            for ( QList<Nepomuk2::Types::Property>::iterator it = D->children.begin();
                   it != D->children.end(); ++it ) {
                 if ( ( *it ).isParentOf( other ) ) {
                     return true;
@@ -423,13 +423,13 @@ bool Nepomuk::Types::Property::isParentOf( const Property& other )
 }
 
 
-bool Nepomuk::Types::Property::isParentOf( const Property& other ) const
+bool Nepomuk2::Types::Property::isParentOf( const Property& other ) const
 {
     return const_cast<Property*>(this)->isParentOf( other );
 }
 
 
-bool Nepomuk::Types::Property::isSubPropertyOf( const Property& other )
+bool Nepomuk2::Types::Property::isSubPropertyOf( const Property& other )
 {
     if ( d ) {
         D->init();
@@ -438,7 +438,7 @@ bool Nepomuk::Types::Property::isSubPropertyOf( const Property& other )
             return true;
         }
         else {
-            for ( QList<Nepomuk::Types::Property>::iterator it = D->parents.begin();
+            for ( QList<Nepomuk2::Types::Property>::iterator it = D->parents.begin();
                   it != D->parents.end(); ++it ) {
                 if ( ( *it ).isSubPropertyOf( other ) ) {
                     return true;
@@ -451,7 +451,7 @@ bool Nepomuk::Types::Property::isSubPropertyOf( const Property& other )
 }
 
 
-bool Nepomuk::Types::Property::isSubPropertyOf( const Property& other ) const
+bool Nepomuk2::Types::Property::isSubPropertyOf( const Property& other ) const
 {
     return const_cast<Property*>(this)->isSubPropertyOf( other );
 }

@@ -9,16 +9,6 @@ include_directories(
   ${libnepomukcore_BINARY_DIR}
   )
 
-kde4_add_unit_test(crappyinferencer2test
-  crappyinferencer2test.cpp
-  ../crappyinferencer2.cpp
-  ../classandpropertytree.cpp)
-target_link_libraries(crappyinferencer2test
-  ${QT_QTTEST_LIBRARY}
-  ${SOPRANO_LIBRARIES}
-  ${KDE4_KDECORE_LIBS}
-  nepomukcore)
-
 kde4_add_unit_test(removablemediamodeltest
   removablemediamodeltest.cpp
   ../removablemediamodel.cpp
@@ -42,7 +32,7 @@ set( DMTEST
   ../datamanagementcommand.cpp
   ../resourcemerger.cpp
   ../resourceidentifier.cpp
-  ../crappyinferencer.cpp
+  ../virtuosoinferencemodel.cpp
   ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
   qtest_dms.cpp
 )
@@ -50,7 +40,7 @@ set( DMTEST
 qt4_add_dbus_adaptor(DMTEST
   ../../../interfaces/org.kde.nepomuk.ResourceWatcherConnection.xml
   resourcewatcherconnection.h
-  Nepomuk::ResourceWatcherConnection)
+  Nepomuk2::ResourceWatcherConnection)
 
 
 kde4_add_library( datamanagementtestlib STATIC ${DMTEST} )
@@ -126,7 +116,6 @@ target_link_libraries(fakedms
 kde4_add_unit_test(asyncclientapitest
   asyncclientapitest.cpp
   qtest_dms.cpp
-  ../crappyinferencer.cpp
 )
 
 target_link_libraries(asyncclientapitest

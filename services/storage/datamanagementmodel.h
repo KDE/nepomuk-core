@@ -28,7 +28,7 @@
 
 #include <QtCore/QDateTime>
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
 class ClassAndPropertyTree;
 class ResourceMerger;
@@ -105,7 +105,7 @@ public Q_SLOTS:
      * other resources.
      */
     void removeResources(const QList<QUrl>& resources,
-                         Nepomuk::RemovalFlags flags,
+                         Nepomuk2::RemovalFlags flags,
                          const QString& app);
     //@}
 
@@ -154,8 +154,8 @@ public Q_SLOTS:
      */
     QHash<QUrl,QUrl> storeResources(const SimpleResourceGraph& resources,
                         const QString& app,
-                        Nepomuk::StoreIdentificationMode identificationMode = Nepomuk::IdentifyNew,
-                        Nepomuk::StoreResourcesFlags flags = Nepomuk::NoStoreResourcesFlags,
+                        Nepomuk2::StoreIdentificationMode identificationMode = Nepomuk2::IdentifyNew,
+                        Nepomuk2::StoreResourcesFlags flags = Nepomuk2::NoStoreResourcesFlags,
                         const QHash<QUrl, QVariant>& additionalMetadata = QHash<QUrl, QVariant>() );
 
     /**
@@ -186,8 +186,8 @@ public Q_SLOTS:
     void importResources(const QUrl& url, const QString& app,
                          Soprano::RdfSerialization serialization,
                          const QString& userSerialization = QString(),
-                         Nepomuk::StoreIdentificationMode identificationMode = Nepomuk::IdentifyNew,
-                         Nepomuk::StoreResourcesFlags flags = Nepomuk::NoStoreResourcesFlags,
+                         Nepomuk2::StoreIdentificationMode identificationMode = Nepomuk2::IdentifyNew,
+                         Nepomuk2::StoreResourcesFlags flags = Nepomuk2::NoStoreResourcesFlags,
                          const QHash<QUrl, QVariant>& additionalMetadata = QHash<QUrl, QVariant>());
 
     /**
@@ -201,6 +201,27 @@ public Q_SLOTS:
     SimpleResourceGraph describeResources(const QList<QUrl>& resources,
                                           DescribeResourcesFlags flags = NoDescribeResourcesFlags,
                                           const QList<QUrl>& targetParties = QList<QUrl>() ) const;
+
+    /**
+     * Export a set of resources, i.e. retrieve their properties.
+     * \param resources The resource URIs of the resources to describe. Non-existing resources are ignored.
+     * \param serialization The RDF serialization used for the result.
+     * \param userSerialization If \p serialization is Soprano::SerializationUser this value is used. See Soprano::Parser
+     * for details.
+     * \param flags Optional flags to modify the data which is returned.
+     * \param targetParties This optional list can be used to specify the parties (nao:Party) which should
+     * receive the returned data. This will result in a filtering of the result according to configured
+     * permissions. Only data which is set as being public or readable by the specified parties is returned.
+     *
+     * \return A serialized representation of the requested resources.
+     *
+     * \sa describeResources
+     */
+    QString exportResources(const QList<QUrl>& resources,
+                            Soprano::RdfSerialization serialization,
+                            const QString& userSerialization = QString(),
+                            DescribeResourcesFlags flags = NoDescribeResourcesFlags,
+                            const QList<QUrl>& targetParties = QList<QUrl>() ) const;
     //@}
 
 private:
@@ -250,9 +271,9 @@ private:
      *              this hash might contain empty values which refer to non-existing file resources. This cannot be empty.
      * \param app The calling application.
      *
-     * \return list of all the resolved nodes
+     * \return A mapping from changed resources to actually newly added values.
      */
-    QList<Soprano::Node> addProperty(const QHash<QUrl, QUrl>& resources, const QUrl& property, const QHash<Soprano::Node, Soprano::Node>& nodes, const QString& app);
+    QHash<QUrl, QList<Soprano::Node> > addProperty(const QHash<QUrl, QUrl>& resources, const QUrl& property, const QHash<Soprano::Node, Soprano::Node>& nodes, const QString& app, bool signalPropertyChanged = false);
 
     /**
      * Removes the given resources without any additional checks. The provided list needs to contain already resolved valid resource URIs.
@@ -319,6 +340,8 @@ private:
      * If the method returns \p true it has already set an appropriate error.
      */
     bool containsResourceWithProtectedType(const QSet<QUrl>& resources) const;
+
+    bool isProtectedProperty(const QUrl& prop) const;
 
     class Private;
     Private* const d;

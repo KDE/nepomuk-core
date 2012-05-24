@@ -29,7 +29,7 @@
 
 //extern QDBUS_EXPORT void qDBusAddSpyHook(void (*)(const QDBusMessage&));
 
-Nepomuk::ServiceManager* Nepomuk::ServiceManager::s_self = 0;
+Nepomuk2::ServiceManager* Nepomuk2::ServiceManager::s_self = 0;
 
 namespace {
     class DependencyTree : public QHash<QString, QStringList>
@@ -127,7 +127,7 @@ namespace {
 }
 
 
-class Nepomuk::ServiceManager::Private
+class Nepomuk2::ServiceManager::Private
 {
 public:
     Private( ServiceManager* p )
@@ -179,7 +179,7 @@ private:
 };
 
 
-void Nepomuk::ServiceManager::Private::buildServiceMap()
+void Nepomuk2::ServiceManager::Private::buildServiceMap()
 {
     if( !m_initialized ) {
         const KService::List modules = KServiceTypeTrader::self()->query( "NepomukService" );
@@ -212,7 +212,7 @@ void Nepomuk::ServiceManager::Private::buildServiceMap()
 }
 
 
-Nepomuk::ServiceController* Nepomuk::ServiceManager::Private::findService( const QString& name )
+Nepomuk2::ServiceController* Nepomuk2::ServiceManager::Private::findService( const QString& name )
 {
     QHash<QString, ServiceController*>::iterator it = services.find( name );
     if( it != services.end() ) {
@@ -222,7 +222,7 @@ Nepomuk::ServiceController* Nepomuk::ServiceManager::Private::findService( const
 }
 
 
-void Nepomuk::ServiceManager::Private::startService( ServiceController* sc )
+void Nepomuk2::ServiceManager::Private::startService( ServiceController* sc )
 {
     kDebug() << sc->name();
 
@@ -252,7 +252,7 @@ void Nepomuk::ServiceManager::Private::startService( ServiceController* sc )
 }
 
 
-void Nepomuk::ServiceManager::Private::stopService( ServiceController* service )
+void Nepomuk2::ServiceManager::Private::stopService( ServiceController* service )
 {
     pendingServices.remove(service);
 
@@ -280,7 +280,7 @@ void Nepomuk::ServiceManager::Private::stopService( ServiceController* service )
 }
 
 
-void Nepomuk::ServiceManager::Private::_k_serviceInitialized( ServiceController* sc )
+void Nepomuk2::ServiceManager::Private::_k_serviceInitialized( ServiceController* sc )
 {
     kDebug() << "Service initialized:" << sc->name();
 
@@ -299,7 +299,7 @@ void Nepomuk::ServiceManager::Private::_k_serviceInitialized( ServiceController*
 }
 
 
-void Nepomuk::ServiceManager::Private::_k_serviceStopped( ServiceController* sc )
+void Nepomuk2::ServiceManager::Private::_k_serviceStopped( ServiceController* sc )
 {
     kDebug() << "Service stopped:" << sc->name();
 
@@ -331,7 +331,7 @@ void Nepomuk::ServiceManager::Private::_k_serviceStopped( ServiceController* sc 
 }
 
 
-Nepomuk::ServiceManager::ServiceManager( QObject* parent )
+Nepomuk2::ServiceManager::ServiceManager( QObject* parent )
     : QObject(parent),
       d(new Private(this))
 {
@@ -340,14 +340,14 @@ Nepomuk::ServiceManager::ServiceManager( QObject* parent )
 }
 
 
-Nepomuk::ServiceManager::~ServiceManager()
+Nepomuk2::ServiceManager::~ServiceManager()
 {
     qDeleteAll(d->services);
     delete d;
 }
 
 
-void Nepomuk::ServiceManager::startAllServices()
+void Nepomuk2::ServiceManager::startAllServices()
 {
     d->buildServiceMap();
 
@@ -362,7 +362,7 @@ void Nepomuk::ServiceManager::startAllServices()
 }
 
 
-void Nepomuk::ServiceManager::stopAllServices()
+void Nepomuk2::ServiceManager::stopAllServices()
 {
     d->pendingServices.clear();
     for( QHash<QString, ServiceController*>::iterator it = d->services.begin();
@@ -373,7 +373,7 @@ void Nepomuk::ServiceManager::stopAllServices()
 }
 
 
-bool Nepomuk::ServiceManager::startService( const QString& name )
+bool Nepomuk2::ServiceManager::startService( const QString& name )
 {
     if( ServiceController* sc = d->findService( name ) ) {
         d->startService( sc );
@@ -386,7 +386,7 @@ bool Nepomuk::ServiceManager::startService( const QString& name )
 }
 
 
-bool Nepomuk::ServiceManager::stopService( const QString& name )
+bool Nepomuk2::ServiceManager::stopService( const QString& name )
 {
     if( ServiceController* sc = d->findService( name ) ) {
         d->stopService( sc );
@@ -396,7 +396,7 @@ bool Nepomuk::ServiceManager::stopService( const QString& name )
 }
 
 
-QStringList Nepomuk::ServiceManager::runningServices() const
+QStringList Nepomuk2::ServiceManager::runningServices() const
 {
     QStringList sl;
     for( QHash<QString, ServiceController*>::iterator it = d->services.begin();
@@ -410,7 +410,7 @@ QStringList Nepomuk::ServiceManager::runningServices() const
 }
 
 
-QStringList Nepomuk::ServiceManager::pendingServices() const
+QStringList Nepomuk2::ServiceManager::pendingServices() const
 {
     QStringList sl;
     foreach(ServiceController* sc, d->pendingServices) {
@@ -419,13 +419,13 @@ QStringList Nepomuk::ServiceManager::pendingServices() const
     return sl;
 }
 
-QStringList Nepomuk::ServiceManager::availableServices() const
+QStringList Nepomuk2::ServiceManager::availableServices() const
 {
     return d->services.keys();
 }
 
 
-bool Nepomuk::ServiceManager::isServiceInitialized( const QString& service ) const
+bool Nepomuk2::ServiceManager::isServiceInitialized( const QString& service ) const
 {
     if ( ServiceController* sc = d->findService( service ) ) {
         return sc->isInitialized();
@@ -436,7 +436,7 @@ bool Nepomuk::ServiceManager::isServiceInitialized( const QString& service ) con
 }
 
 
-bool Nepomuk::ServiceManager::isServiceRunning( const QString& service ) const
+bool Nepomuk2::ServiceManager::isServiceRunning( const QString& service ) const
 {
     if ( ServiceController* sc = d->findService( service ) ) {
         return sc->isRunning();
@@ -447,7 +447,7 @@ bool Nepomuk::ServiceManager::isServiceRunning( const QString& service ) const
 }
 
 
-bool Nepomuk::ServiceManager::isServiceAutostarted( const QString& name )
+bool Nepomuk2::ServiceManager::isServiceAutostarted( const QString& name )
 {
     if ( ServiceController* sc = d->findService( name ) ) {
         return sc->autostart();
@@ -458,7 +458,7 @@ bool Nepomuk::ServiceManager::isServiceAutostarted( const QString& name )
 }
 
 
-void Nepomuk::ServiceManager::setServiceAutostarted( const QString& name, bool autostart )
+void Nepomuk2::ServiceManager::setServiceAutostarted( const QString& name, bool autostart )
 {
     if ( ServiceController* sc = d->findService( name ) ) {
         sc->setAutostart( autostart );
@@ -472,7 +472,7 @@ void Nepomuk::ServiceManager::setServiceAutostarted( const QString& name, bool a
 // on-demand module loading
 // this function is called by the D-Bus message processing function before
 // calls are delivered to objects
-// void Nepomuk::ServiceManager::messageFilter( const QDBusMessage& message )
+// void Nepomuk2::ServiceManager::messageFilter( const QDBusMessage& message )
 // {
 //     if ( message.type() != QDBusMessage::MethodCallMessage )
 //         return;

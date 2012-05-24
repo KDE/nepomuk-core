@@ -31,18 +31,18 @@
 
 #include "types/class.h"
 
-Nepomuk::IdentifierModelTreeItem::IdentifierModelTreeItem(const QString& url, bool isFolder)
+Nepomuk2::IdentifierModelTreeItem::IdentifierModelTreeItem(const QString& url, bool isFolder)
     : FileSystemTreeItem( url, isFolder )
 {
     m_discarded = false;
 }
 
-QUrl Nepomuk::IdentifierModelTreeItem::type() const
+QUrl Nepomuk2::IdentifierModelTreeItem::type() const
 {
     return m_type;
 }
 
-QString Nepomuk::IdentifierModelTreeItem::toString() const
+QString Nepomuk2::IdentifierModelTreeItem::toString() const
 {
     if( !parent() ) {
         return url();
@@ -54,28 +54,28 @@ QString Nepomuk::IdentifierModelTreeItem::toString() const
     return ownString.mid( parentString.size() );
 }
 
-QUrl Nepomuk::IdentifierModelTreeItem::identifiedUri() const
+QUrl Nepomuk2::IdentifierModelTreeItem::identifiedUri() const
 {
     return m_identifiedUrl;
 }
 
-bool Nepomuk::IdentifierModelTreeItem::discarded() const
+bool Nepomuk2::IdentifierModelTreeItem::discarded() const
 {
     return m_discarded;
 }
 
-void Nepomuk::IdentifierModelTreeItem::setDiscarded(bool status)
+void Nepomuk2::IdentifierModelTreeItem::setDiscarded(bool status)
 {
     m_discarded = status;
 }
 
 
 // static
-Nepomuk::IdentifierModelTreeItem* Nepomuk::IdentifierModelTreeItem::fromStatementList( const QList< Soprano::Statement >& stList)
+Nepomuk2::IdentifierModelTreeItem* Nepomuk2::IdentifierModelTreeItem::fromStatementList( const QList< Soprano::Statement >& stList)
 {
-    const QUrl nieUrl = Nepomuk::Vocabulary::NIE::url();
+    const QUrl nieUrl = Nepomuk2::Vocabulary::NIE::url();
     const QUrl rdfType = Soprano::Vocabulary::RDF::type();
-    const QUrl nfoFolder = Nepomuk::Vocabulary::NFO::Folder();
+    const QUrl nfoFolder = Nepomuk2::Vocabulary::NFO::Folder();
     
     bool isFolder = false;
     QString url;
@@ -109,7 +109,7 @@ Nepomuk::IdentifierModelTreeItem* Nepomuk::IdentifierModelTreeItem::fromStatemen
     return item;
 }
 
-QUrl Nepomuk::IdentifierModelTreeItem::resourceUri() const
+QUrl Nepomuk2::IdentifierModelTreeItem::resourceUri() const
 {
     if( m_statements.isEmpty() )
         return QUrl();
@@ -118,22 +118,22 @@ QUrl Nepomuk::IdentifierModelTreeItem::resourceUri() const
 }
 
 
-bool Nepomuk::IdentifierModelTreeItem::identified() const
+bool Nepomuk2::IdentifierModelTreeItem::identified() const
 {
     return !m_identifiedUrl.isEmpty();
 }
 
-void Nepomuk::IdentifierModelTreeItem::setIdentified(const QUrl& newUri)
+void Nepomuk2::IdentifierModelTreeItem::setIdentified(const QUrl& newUri)
 {
     m_identifiedUrl = newUri;
 }
 
-void Nepomuk::IdentifierModelTreeItem::setUnidentified()
+void Nepomuk2::IdentifierModelTreeItem::setUnidentified()
 {
     m_identifiedUrl.clear();
 }
 
-void Nepomuk::IdentifierModelTreeItem::discardAll()
+void Nepomuk2::IdentifierModelTreeItem::discardAll()
 {
     setDiscarded( true );
     foreach( FileSystemTreeItem* item, children() ) {
@@ -147,12 +147,12 @@ void Nepomuk::IdentifierModelTreeItem::discardAll()
 // IdentifierModelTree
 //
 
-Nepomuk::IdentifierModelTree::IdentifierModelTree()
+Nepomuk2::IdentifierModelTree::IdentifierModelTree()
     : FileSystemTree()
 {
 }
 
-void Nepomuk::IdentifierModelTree::add(FileSystemTreeItem* fileItem)
+void Nepomuk2::IdentifierModelTree::add(FileSystemTreeItem* fileItem)
 {
     IdentifierModelTreeItem * item = dynamic_cast<IdentifierModelTreeItem *>( fileItem );
     
@@ -165,7 +165,7 @@ void Nepomuk::IdentifierModelTree::add(FileSystemTreeItem* fileItem)
     FileSystemTree::add(item);
 }
 
-Nepomuk::IdentifierModelTreeItem* Nepomuk::IdentifierModelTree::findByUri(const QUrl& uri)
+Nepomuk2::IdentifierModelTreeItem* Nepomuk2::IdentifierModelTree::findByUri(const QUrl& uri)
 {
     QHash<QUrl, QString>::const_iterator it = m_resUrlHash.constFind( uri );
     if( it != m_resUrlHash.constEnd() ) {
@@ -176,7 +176,7 @@ Nepomuk::IdentifierModelTreeItem* Nepomuk::IdentifierModelTree::findByUri(const 
     return 0;
 }
 
-void Nepomuk::IdentifierModelTree::discardAll()
+void Nepomuk2::IdentifierModelTree::discardAll()
 {
     foreach( FileSystemTreeItem* item, rootNodes() ) {
         IdentifierModelTreeItem* i = dynamic_cast<IdentifierModelTreeItem*>(item);

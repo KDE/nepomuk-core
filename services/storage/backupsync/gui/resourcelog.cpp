@@ -29,7 +29,7 @@
 #include <algorithm>
 
 
-Nepomuk::ResourceLogMap Nepomuk::ResourceLogMap::fromChangeLogRecordList(const QList<ChangeLogRecord>& records)
+Nepomuk2::ResourceLogMap Nepomuk2::ResourceLogMap::fromChangeLogRecordList(const QList<ChangeLogRecord>& records)
 {
     ResourceLogMap hash;
 
@@ -61,7 +61,7 @@ Nepomuk::ResourceLogMap Nepomuk::ResourceLogMap::fromChangeLogRecordList(const Q
 }
 
 
-Nepomuk::ResourceLogMap Nepomuk::ResourceLogMap::fromChangeLog(const Nepomuk::ChangeLog& log)
+Nepomuk2::ResourceLogMap Nepomuk2::ResourceLogMap::fromChangeLog(const Nepomuk2::ChangeLog& log)
 {
     return fromChangeLogRecordList( log.toList() );
 }
@@ -69,19 +69,19 @@ Nepomuk::ResourceLogMap Nepomuk::ResourceLogMap::fromChangeLog(const Nepomuk::Ch
 
 namespace {
 
-    Nepomuk::ChangeLogRecord maxRecord( const QList<Nepomuk::ChangeLogRecord> & records ) {
-        QList<Nepomuk::ChangeLogRecord>::const_iterator it = std::max_element( records.begin(), records.end() );
+    Nepomuk2::ChangeLogRecord maxRecord( const QList<Nepomuk2::ChangeLogRecord> & records ) {
+        QList<Nepomuk2::ChangeLogRecord>::const_iterator it = std::max_element( records.begin(), records.end() );
         if( it != records.constEnd() )
             return *it;
-        return Nepomuk::ChangeLogRecord();
+        return Nepomuk2::ChangeLogRecord();
     }
 
-    typedef QHash<Soprano::Node, Nepomuk::ChangeLogRecord> OptimizeHash;
+    typedef QHash<Soprano::Node, Nepomuk2::ChangeLogRecord> OptimizeHash;
 
 }
 
 
-void Nepomuk::ResourceLogMap::optimize()
+void Nepomuk2::ResourceLogMap::optimize()
 {
     QMutableHashIterator<KUrl, ResourceLog> it( *this );
     while( it.hasNext() ) {

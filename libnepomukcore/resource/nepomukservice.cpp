@@ -22,13 +22,13 @@
 #include <QtCore/QTimer>
 
 
-class Nepomuk::Service::Private
+class Nepomuk2::Service::Private
 {
 public:
 };
 
 
-Nepomuk::Service::Service( QObject* parent, bool delayedInitialization )
+Nepomuk2::Service::Service( QObject* parent, bool delayedInitialization )
     : QObject( parent ),
       d( new Private() )
 {
@@ -38,19 +38,19 @@ Nepomuk::Service::Service( QObject* parent, bool delayedInitialization )
 }
 
 
-Nepomuk::Service::~Service()
+Nepomuk2::Service::~Service()
 {
     delete d;
 }
 
 
-Soprano::Model* Nepomuk::Service::mainModel()
+Soprano::Model* Nepomuk2::Service::mainModel()
 {
     return ResourceManager::instance()->mainModel();
 }
 
 
-void Nepomuk::Service::setServiceInitialized( bool success )
+void Nepomuk2::Service::setServiceInitialized( bool success )
 {
     // the parent will always be a control class in the service stub
     QMetaObject::invokeMethod( parent(),

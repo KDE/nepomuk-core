@@ -26,10 +26,10 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
-         * \class NegationTerm negationterm.h Nepomuk/Query/NegationTerm
+         * \class NegationTerm negationterm.h Nepomuk2/Query/NegationTerm
          *
          * \brief Negate an arbitrary term.
          *

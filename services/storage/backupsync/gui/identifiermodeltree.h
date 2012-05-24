@@ -29,7 +29,7 @@ namespace Soprano {
     class Statement;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class IdentifierModelTreeItem : public FileSystemTreeItem {
     public:

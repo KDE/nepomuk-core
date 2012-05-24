@@ -1,7 +1,7 @@
 /*
    This file is part of the Nepomuk KDE project.
    Copyright (C) 2010-11 Vishesh Handa <handa.vish@gmail.com>
-   Copyright (C) 2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2010-2011 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -32,6 +32,7 @@
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
+#include <QtCore/QTextStream>
 
 #include <KDebug>
 #include <KUrl>
@@ -46,7 +47,7 @@ int main(int argc, char *argv[])
                          NEPOMUK_VERSION_STRING,
                          ki18n("NepomukIndexer indexes the contents of a file and saves the results in Nepomuk"),
                          KAboutData::License_LGPL_V2,
-                         ki18n("(C) 2011, Vishesh Handa"));
+                         ki18n("(C) 2011, Vishesh Handa, Sebastian Trueg"));
     aboutData.addAuthor(ki18n("Vishesh Handa"), ki18n("Current maintainer"), "handa.vish@gmail.com");
     aboutData.addCredit(ki18n("Sebastian Trüg"), ki18n("Developer"), "trueg@kde.org");
     
@@ -69,19 +70,31 @@ int main(int argc, char *argv[])
     const uint mtime = args->getOption("mtime").toUInt();
 
     if( args->count() == 0 ) {
-        Nepomuk::Indexer indexer;
-        indexer.indexStdin( uri, mtime );
-        return 0;
+        Nepomuk2::Indexer indexer;
+        if( !indexer.indexStdin( uri, mtime ) ) {
+            QTextStream s(stdout);
+            s << indexer.lastError();
+            return 1;
+        }
+        else {
+            return 0;
+        }
     }
     else if( args->isSet("clear") ) {
-        Nepomuk::clearIndexedData( args->url(0) );
+        Nepomuk2::clearIndexedData( args->url(0) );
         kDebug() << "Removed indexed data for" << args->url(0);
         return 0;
     }
     else {
-        Nepomuk::Indexer indexer;
-        indexer.indexFile( args->url(0), uri, mtime );
-        kDebug() << "Indexed data for" << args->url(0);
-        return 0;
+        Nepomuk2::Indexer indexer;
+        if( !indexer.indexFile( args->url(0), uri, mtime ) ) {
+            QTextStream s(stdout);
+            s << indexer.lastError();
+            return 1;
+        }
+        else {
+            kDebug() << "Indexed data for" << args->url(0);
+            return 0;
+        }
     }
 }

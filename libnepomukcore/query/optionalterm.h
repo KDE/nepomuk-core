@@ -26,10 +26,10 @@
 
 #include "nepomuk_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     namespace Query {
         /**
-         * \class OptionalTerm optionalterm.h Nepomuk/Query/OptionalTerm
+         * \class OptionalTerm optionalterm.h Nepomuk2/Query/OptionalTerm
          *
          * \brief Make a term optional.
          *

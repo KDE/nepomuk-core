@@ -31,7 +31,7 @@
 
 static const char s_repositoryName[] = "main";
 
-Nepomuk::Core::Core( QObject* parent )
+Nepomuk2::Core::Core( QObject* parent )
     : Soprano::Server::ServerCore( parent ),
       m_repository( 0 ),
       m_ontologyLoader( 0 ),
@@ -43,13 +43,13 @@ Nepomuk::Core::Core( QObject* parent )
 }
 
 
-Nepomuk::Core::~Core()
+Nepomuk2::Core::~Core()
 {
     kDebug() << "Shutting down Nepomuk storage core.";
 }
 
 
-void Nepomuk::Core::init()
+void Nepomuk2::Core::init()
 {
     // TODO: export the main model on org.kde.NepomukRepository via Soprano::Server::DBusExportModel
 
@@ -58,13 +58,13 @@ void Nepomuk::Core::init()
 }
 
 
-bool Nepomuk::Core::initialized() const
+bool Nepomuk2::Core::initialized() const
 {
     return m_initialized;
 }
 
 
-void Nepomuk::Core::slotRepositoryOpened( Repository* repo, bool success )
+void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
 {
     if( !success ) {
         emit initializationDone( success );
@@ -75,24 +75,23 @@ void Nepomuk::Core::slotRepositoryOpened( Repository* repo, bool success )
         // TODO: fail the initialization in case loading the ontologies
         // failed.
         m_ontologyLoader = new OntologyLoader( repo, this );
-        connect( m_ontologyLoader, SIGNAL(ontologyLoadingFinished(Nepomuk::OntologyLoader*)),
-                 this, SLOT(slotOntologiesLoaded()) );
+        connect( m_ontologyLoader, SIGNAL(ontologyUpdateFinished(bool)),
+                 this, SLOT(slotOntologiesLoaded(bool)) );
         m_ontologyLoader->updateLocalOntologies();
     }
 }
 
 
-void Nepomuk::Core::slotRepositoryClosed(Nepomuk::Repository*)
+void Nepomuk2::Core::slotRepositoryClosed(Nepomuk2::Repository*)
 {
     delete m_ontologyLoader;
     m_ontologyLoader = 0;
 }
 
 
-void Nepomuk::Core::slotOntologiesLoaded()
+void Nepomuk2::Core::slotOntologiesLoaded(bool somethingChanged)
 {
-    // the first time this is a very long procedure. Thus, we do it while Nepomuk is active although then some queries might return invalid results
-    m_repository->updateInference();
+    m_repository->updateInference(somethingChanged);
 
     if ( !m_initialized ) {
         // and finally we are done: the repository is online and the ontologies are loaded.
@@ -102,7 +101,7 @@ void Nepomuk::Core::slotOntologiesLoaded()
 }
 
 
-Soprano::Model* Nepomuk::Core::model( const QString& name )
+Soprano::Model* Nepomuk2::Core::model( const QString& name )
 {
     // we only allow the one model
     if ( name == QLatin1String( s_repositoryName ) ) {
@@ -116,13 +115,13 @@ Soprano::Model* Nepomuk::Core::model( const QString& name )
     }
 }
 
-Soprano::Model* Nepomuk::Core::model()
+Soprano::Model* Nepomuk2::Core::model()
 {
     return model(s_repositoryName);
 }
 
 
-Soprano::Model* Nepomuk::Core::createModel( const Soprano::BackendSettings& )
+Soprano::Model* Nepomuk2::Core::createModel( const Soprano::BackendSettings& )
 {
     if ( !m_repository ) {
         m_repository = new Repository( QLatin1String( s_repositoryName ) );

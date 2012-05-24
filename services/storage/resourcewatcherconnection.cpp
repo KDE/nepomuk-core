@@ -1,6 +1,6 @@
 /*
     Copyright (C) 2010-11 Vishesh handa <handa.vish@gmail.com>
-    Copyright (C) 2011 Sebastian Trueg <trueg@kde.org>
+    Copyright (C) 2011-2012 Sebastian Trueg <trueg@kde.org>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,24 +26,18 @@
 #include <QtDBus/QDBusObjectPath>
 #include <QtDBus/QDBusServiceWatcher>
 
-Nepomuk::ResourceWatcherConnection::ResourceWatcherConnection( ResourceWatcherManager* parent, bool hasProperties )
+Nepomuk2::ResourceWatcherConnection::ResourceWatcherConnection( ResourceWatcherManager* parent )
     : QObject( parent ),
-      m_hasProperties( hasProperties ),
       m_manager(parent)
 {
 }
 
-Nepomuk::ResourceWatcherConnection::~ResourceWatcherConnection()
+Nepomuk2::ResourceWatcherConnection::~ResourceWatcherConnection()
 {
     m_manager->removeConnection(this);
 }
 
-bool Nepomuk::ResourceWatcherConnection::hasProperties() const
-{
-    return m_hasProperties;
-}
-
-QDBusObjectPath Nepomuk::ResourceWatcherConnection::registerDBusObject( const QString& dbusClient, int id )
+QDBusObjectPath Nepomuk2::ResourceWatcherConnection::registerDBusObject( const QString& dbusClient, int id )
 {
     // build the dbus object path from the id and register the connection as a Query dbus object
     new ResourceWatcherConnectionAdaptor( this );
@@ -62,9 +56,54 @@ QDBusObjectPath Nepomuk::ResourceWatcherConnection::registerDBusObject( const QS
     return QDBusObjectPath( dbusObjectPath );
 }
 
-void Nepomuk::ResourceWatcherConnection::close()
+void Nepomuk2::ResourceWatcherConnection::close()
 {
     deleteLater();
+}
+
+void Nepomuk2::ResourceWatcherConnection::setResources(const QStringList &resources)
+{
+    m_manager->setResources(this, resources);
+}
+
+void Nepomuk2::ResourceWatcherConnection::addResource(const QString &resource)
+{
+    m_manager->addResource(this, resource);
+}
+
+void Nepomuk2::ResourceWatcherConnection::removeResource(const QString &resource)
+{
+    m_manager->removeResource(this, resource);
+}
+
+void Nepomuk2::ResourceWatcherConnection::setProperties(const QStringList &properties)
+{
+    m_manager->setProperties(this, properties);
+}
+
+void Nepomuk2::ResourceWatcherConnection::addProperty(const QString &property)
+{
+    m_manager->addProperty(this, property);
+}
+
+void Nepomuk2::ResourceWatcherConnection::removeProperty(const QString &property)
+{
+    m_manager->removeProperty(this, property);
+}
+
+void Nepomuk2::ResourceWatcherConnection::setTypes(const QStringList &types)
+{
+    m_manager->setTypes(this, types);
+}
+
+void Nepomuk2::ResourceWatcherConnection::addType(const QString &type)
+{
+    m_manager->addType(this, type);
+}
+
+void Nepomuk2::ResourceWatcherConnection::removeType(const QString &type)
+{
+    m_manager->removeType(this, type);
 }
 
 #include "resourcewatcherconnection.moc"

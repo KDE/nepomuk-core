@@ -27,7 +27,7 @@ namespace Soprano {
     class Backend;
 }
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     class ServiceManager;
 

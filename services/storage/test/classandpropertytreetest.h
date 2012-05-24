@@ -1,6 +1,6 @@
 /*
    This file is part of the Nepomuk KDE project.
-   Copyright (C) 2010-2011 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2010-2012 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,7 @@ class KTempDir;
 namespace Soprano {
 class Model;
 }
-namespace Nepomuk {
+namespace Nepomuk2 {
 class ClassAndPropertyTree;
 }
 
@@ -40,17 +40,15 @@ private Q_SLOTS:
     void initTestCase();
     void cleanupTestCase();
     void init();
-    void testVisibility();
     void testParents();
     void testVariantToNode_data();
     void testVariantToNode();
     void testProperties();
-    void testVisibleType();
 
 private:
     KTempDir* m_storageDir;
     Soprano::Model* m_model;
-    Nepomuk::ClassAndPropertyTree* m_typeTree;
+    Nepomuk2::ClassAndPropertyTree* m_typeTree;
 };
 
 #endif

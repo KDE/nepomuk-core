@@ -24,7 +24,7 @@
 
 class QDBusPendingCallWatcher;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
     class ServiceController : public QObject
     {
         Q_OBJECT
