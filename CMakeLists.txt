@@ -14,8 +14,8 @@ set(CMAKE_NEPOMUK_CORE_VERSION_STRING "${CMAKE_NEPOMUK_CORE_VERSION_MAJOR}.${CMA
 set(KDE_MIN_VERSION "4.7.00")
 find_package(KDE4 4.7.00 REQUIRED)
 include(KDE4Defaults)
-find_package(KDE4Workspace)
-include(MacroLibrary)
+#find_package(KDE4Workspace)
+#include(MacroLibrary)
 
 set(SDO_MIN_VERSION "0.7")
 find_package(SharedDesktopOntologies)
