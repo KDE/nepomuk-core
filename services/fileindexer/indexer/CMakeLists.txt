@@ -1,9 +1,7 @@
 project(nepomukindexer)
 
-find_package(KDE4 REQUIRED)
 find_package(Nepomuk REQUIRED)
 
-include(KDE4Defaults)
 include(SopranoAddOntology)
 
 # Check if Strigi has the FileInputStream::open method which was introduced between versions 0.7.2 and 0.7.3
