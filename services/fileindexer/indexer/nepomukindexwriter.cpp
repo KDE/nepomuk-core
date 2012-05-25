@@ -533,6 +533,12 @@ void Nepomuk2::StrigiIndexWriter::finishAnalysis( const AnalysisResult* idx )
         }
     }
 
+    //
+    // Another amall hack for Epubs: strigi doesn't recognize them as documents, but only as nfo:Archive
+    //
+    if(md->data.contains(NIE::mimeType(), QLatin1String("application/epub+zip"))) {
+        md->data.addType(NFO::Document());
+    }
 
     //
     // Finally push all the information to Nepomuk
