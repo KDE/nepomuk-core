@@ -57,8 +57,6 @@ include_directories(
 )
 
 add_subdirectory(libnepomukcore)
-# Do not install rcgen, it's installed by kdelibs
-# If it needs to be installed then we need to change the name
 add_subdirectory(rcgen)
 add_subdirectory(ontologies)
 add_subdirectory(common)

@@ -6,7 +6,6 @@ include_directories(
 
 set(nepomuk2_rcgen_SRCS
   codegenerator.cpp
-  fastcode.cpp
   property.cpp
   rcgen.cpp
   resourceclass.cpp

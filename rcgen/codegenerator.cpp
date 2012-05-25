@@ -15,7 +15,6 @@
 #include "codegenerator.h"
 
 #include "abstractcode.h"
-#include "fastcode.h"
 #include "property.h"
 #include "resourceclass.h"
 #include "safecode.h"
@@ -103,10 +102,7 @@ CodeGenerator::CodeGenerator( Mode mode, const QList<ResourceClass*>& classes )
     if ( m_mode == SafeMode ) {
         m_code = new SafeCode;
         m_nameSpace = QLatin1String("Nepomuk2");
-    } else {
-        m_code = new FastCode;
-        m_nameSpace = QLatin1String("NepomukFast");
-    }
+    } 
 }
 
 CodeGenerator::~CodeGenerator()
@@ -138,25 +134,7 @@ bool CodeGenerator::write( const ResourceClass* resourceClass, const QString& fo
 
 bool CodeGenerator::writeDummyClasses( const QString &folder ) const
 {
-    if ( m_mode == FastMode ) {
-        QFile headerOutput( folder + "resource.h" );
-        if ( !headerOutput.open( QIODevice::WriteOnly ) )
-            return false;
-
-        QFile sourceOutput( folder + "resource.cpp" );
-        if ( !sourceOutput.open( QIODevice::WriteOnly ) )
-            return false;
-
-        QFile headerInput( ":dummyresource_header_fast.tpl" );
-        headerInput.open( QIODevice::ReadOnly );
-
-        QFile sourceInput( ":dummyresource_source_fast.tpl" );
-        sourceInput.open( QIODevice::ReadOnly );
-
-        headerOutput.write( headerInput.readAll() );
-        sourceOutput.write( sourceInput.readAll() );
-    }
-
+    //FIXME: What do we do over here?
     return true;
 }
 
@@ -169,10 +147,7 @@ bool CodeGenerator::writeHeader( const ResourceClass *resourceClass, QTextStream
     s.replace( "NEPOMUK_RESOURCECOMMENT", writeComment( resourceClass->comment(), 4 ) );
     s.replace( "NEPOMUK_RESOURCENAMEUPPER", resourceClass->name().toUpper() );
     s.replace( "NEPOMUK_RESOURCENAME", resourceClass->name() );
-    if ( m_mode == FastMode && parent->name() == "Resource" )
-        s.replace( "NEPOMUK_PARENTRESOURCE", "NepomukFast::Resource" );
-    else
-        s.replace( "NEPOMUK_PARENTRESOURCE", parent->name() );
+    s.replace( "NEPOMUK_PARENTRESOURCE", parent->name() );
 
     // A resource that is not part of the currently generated stuff is supposed
     // to be installed in include/nepomuk
@@ -180,10 +155,7 @@ bool CodeGenerator::writeHeader( const ResourceClass *resourceClass, QTextStream
         s.replace( "NEPOMUK_PARENT_INCLUDE", QString("\"%1.h\"").arg( parent->name().toLower() ) );
     }
     else {
-        if ( m_mode == SafeMode )
-            s.replace( "NEPOMUK_PARENT_INCLUDE", QString("<nepomuk2/%1.h>").arg( parent->name().toLower() ) );
-        else
-            s.replace( "NEPOMUK_PARENT_INCLUDE", QString("\"resource.h\"") );
+        s.replace( "NEPOMUK_PARENT_INCLUDE", QString("\"resource.h\"") );
     }
 
     QString methods;
@@ -336,10 +308,7 @@ bool CodeGenerator::writeSource( const ResourceClass* resourceClass, QTextStream
     s.replace( "NEPOMUK_RESOURCENAMELOWER", resourceClass->name().toLower() );
     s.replace( "NEPOMUK_RESOURCENAME", resourceClass->name() );
     s.replace( "NEPOMUK_RESOURCETYPEURI", resourceClass->uri().toString() );
-    if ( m_mode == FastMode && resourceClass->parentClass()->name() == "Resource" )
-        s.replace( "NEPOMUK_PARENTRESOURCE", "NepomukFast::Resource" );
-    else
-        s.replace( "NEPOMUK_PARENTRESOURCE", resourceClass->parentClass()->name() );
+    s.replace( "NEPOMUK_PARENTRESOURCE", resourceClass->parentClass()->name() );
 
     QString methods;
     QStringList includes;

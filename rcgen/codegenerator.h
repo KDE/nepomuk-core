@@ -29,7 +29,6 @@ class CodeGenerator
 public:
     enum Mode {
         SafeMode,
-        FastMode
     };
 
     CodeGenerator( Mode mode, const QList<ResourceClass*>& classes );
