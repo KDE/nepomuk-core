@@ -255,11 +255,11 @@ void QuerySerializerTest::testSerialization_data()
     QTest::newRow( "flags" )
         << flagsQuery;
 
-    flagsQuery.setQueryFlags( Query::WithoutFullTextExcerpt );
+    flagsQuery.setQueryFlags( Query::WithFullTextExcerpt );
     QTest::newRow( "flags2" )
         << flagsQuery;
 
-    flagsQuery.setQueryFlags( Query::NoResultRestrictions|Query::WithoutFullTextExcerpt );
+    flagsQuery.setQueryFlags( Query::NoResultRestrictions|Query::WithFullTextExcerpt );
     QTest::newRow( "flags3" )
         << flagsQuery;
 
