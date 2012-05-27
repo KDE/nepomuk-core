@@ -172,7 +172,6 @@ install(FILES
   query/queryserviceclient.h
   query/queryparser.h
   query/standardqueries.h
-  query/standardqueries.h
   datamanagement/simpleresource.h
   datamanagement/simpleresourcegraph.h
   datamanagement/datamanagement.h
