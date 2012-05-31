@@ -185,7 +185,7 @@ bool Nepomuk2::RemovableMediaModel::containsAnyStatement(const Soprano::Statemen
 
 Soprano::StatementIterator Nepomuk2::RemovableMediaModel::listStatements(const Soprano::Statement &partial) const
 {
-    return new StatementIteratorBackend(this, FilterModel::listStatements(partial));
+    return new StatementIteratorBackend(this, FilterModel::listStatements(convertFileUrls(partial)));
 }
 
 Soprano::QueryResultIterator Nepomuk2::RemovableMediaModel::executeQuery(const QString &query, Soprano::Query::QueryLanguage language, const QString &userQueryLanguage) const
