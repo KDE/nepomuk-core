@@ -256,17 +256,22 @@ Nepomuk2::RemovableMediaCache::Entry::Entry(const Solid::Device& device)
     }
 }
 
-KUrl Nepomuk2::RemovableMediaCache::Entry::constructRelativeUrl( const QString& path ) const
+QString Nepomuk2::RemovableMediaCache::Entry::constructRelativeUrlString(const QString &path) const
 {
     if(const Solid::StorageAccess* sa = m_device.as<Solid::StorageAccess>()) {
         if(sa->isAccessible()) {
             const QString relativePath = path.mid( sa->filePath().count() );
-            return KUrl( m_urlPrefix + relativePath );
+            return m_urlPrefix + relativePath;
         }
     }
 
     // fallback
-    return KUrl();
+    return QString();
+}
+
+KUrl Nepomuk2::RemovableMediaCache::Entry::constructRelativeUrl( const QString& path ) const
+{
+    return KUrl(constructRelativeUrlString(path));
 }
 
 

@@ -101,6 +101,8 @@ private:
      */
     Soprano::Node convertFileUrl(const Soprano::Node& node, bool forRegEx = false) const;
 
+    QString convertFilePathOrUrl(const QString& pathOrUrl) const;
+
     /**
      * Converts file:/ URLs into their filex:/ counterpart if necessary.
      * This includes a simple handling of REGEX filters.

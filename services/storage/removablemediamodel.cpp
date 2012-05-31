@@ -211,6 +211,25 @@ Soprano::Node Nepomuk2::RemovableMediaModel::convertFileUrl(const Soprano::Node 
     return node;
 }
 
+QString Nepomuk2::RemovableMediaModel::convertFilePathOrUrl(const QString &pathOrUrl) const
+{
+    QString path(pathOrUrl);
+
+    // strip the file: prefix
+    if(path.startsWith(QLatin1String("file://"))) {
+        path = path.mid(7);
+    }
+
+    if(const RemovableMediaCache::Entry* entry = m_removableMediaCache->findEntryByFilePath(path)) {
+        if(entry->isMounted() &&
+           entry->mountPath().length() < path.length()) {
+            return entry->constructRelativeUrlString(path);
+        }
+    }
+
+    return pathOrUrl;
+}
+
 
 Soprano::Statement Nepomuk2::RemovableMediaModel::convertFileUrls(const Soprano::Statement &statement) const
 {
@@ -431,12 +450,12 @@ QString Nepomuk2::RemovableMediaModel::convertFileUrls(const QString &query) con
                 int pos = query.indexOf(quoteEnd, i+6);
                 if(pos > 0) {
                     // convert the file URL into a filex URL (if necessary)
-                    const KUrl fileUrl = query.mid(i, pos-i);
-                    KUrl convertedUrl = KUrl(convertFileUrl(fileUrl, true).uri());
+                    QString fileUrl = query.mid(i, pos-i);
+                    QString convertedUrl = convertFilePathOrUrl(fileUrl);
 
                     // 1. Case: we have an exact match with one of the removable media (this always includes a trailing slash)
                     if(fileUrl != convertedUrl) {
-                        newQuery += convertedUrl.url();
+                        newQuery += convertedUrl;
                         // set i to last char we handled and let the loop continue with the end of the quote
                         i = pos-1;
                         continue;
@@ -447,9 +466,10 @@ QString Nepomuk2::RemovableMediaModel::convertFileUrls(const QString &query) con
                     else {
                         // create regex filters for all of them
                         // We need to append a slash since we do not want to include a possibly unmounted medium "foobar" if only "foo" is mounted.
+                        // We also need to take care of removing the escaping backslash in the regex if any
                         QStringList filters;
-                        foreach(const RemovableMediaCache::Entry* entry, m_removableMediaCache->findEntriesByMountPath(fileUrl.toLocalFile())) {
-                            filters << QString::fromLatin1("REGEX(%1, '^%2/')").arg(variable, entry->constructRelativeUrl(QString()).url());
+                        foreach(const RemovableMediaCache::Entry* entry, m_removableMediaCache->findEntriesByMountPath(KUrl(fileUrl.remove('\\')).toLocalFile())) {
+                            filters << QString::fromLatin1("REGEX(%1, '^%2/')").arg(variable, entry->constructRelativeUrlString(QString()));
                         }
                         if(!filters.isEmpty()) {
                             // 1. copy the original regex
