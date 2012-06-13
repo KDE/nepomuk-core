@@ -178,7 +178,7 @@ QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceData
 
 bool Nepomuk2::ResourceManagerPrivate::dataCacheFull() const
 {
-    return dataCnt >= 1000;
+    return dataCnt >= 10000;
 }
 
 
