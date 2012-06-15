@@ -121,7 +121,6 @@ Nepomuk2::ResourceWatcherManager::~ResourceWatcherManager()
 void Nepomuk2::ResourceWatcherManager::addStatement(const Soprano::Statement& st)
 {
     // FIXME!
-    kError() << "FIXME";
     //addProperty( st.subject(), st.predicate().uri(), QList<Soprano::Node>() << st.object() );
 }
 
