@@ -18,7 +18,6 @@
 #include "datamanagementmodel.h"
 #include "datamanagementadaptor.h"
 #include "classandpropertytree.h"
-#include "graphmaintainer.h"
 #include "virtuosoinferencemodel.h"
 
 #include <Soprano/Backend>
@@ -89,8 +88,6 @@ void Nepomuk2::Repository::close()
     if(m_dataManagementModel) {
         emit closed(this);
     }
-
-    delete m_graphMaintainer;
 
     // delete DMS adaptor before anything else so we do not get requests while deleting the DMS
     delete m_dataManagementAdaptor;
@@ -210,12 +207,6 @@ void Nepomuk2::Repository::open()
     // Remove the old crappy inference data
     m_model->removeContext(QUrl::fromEncoded("urn:crappyinference:inferredtriples"));
     m_model->removeContext(QUrl::fromEncoded("urn:crappyinference2:inferredtriples"));
-
-    // Fire up the graph maintainer on the pure data model.
-    // =================================
-    m_graphMaintainer = new GraphMaintainer(m_model);
-    connect(m_graphMaintainer, SIGNAL(finished()), m_graphMaintainer, SLOT(deleteLater()));
-    m_graphMaintainer->start();
 
     // create the one class and property tree to be used in DMS
     // =================================
