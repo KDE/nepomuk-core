@@ -42,8 +42,12 @@
 #include <Soprano/Vocabulary/RDFS>
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
+#include <Soprano/StatementIterator>
+#include <Soprano/NodeIterator>
 
 using namespace Nepomuk2::Vocabulary;
+using namespace Soprano::Vocabulary;
+
 
 Nepomuk2::Resource::Resource()
 {
@@ -532,7 +536,12 @@ void Nepomuk2::Resource::setRating( const quint32& value )
 
 QList<Nepomuk2::Resource> Nepomuk2::Resource::isRelatedOf() const
 {
-    return convertResourceList<Resource>( ResourceManager::instance()->allResourcesWithProperty( Soprano::Vocabulary::NAO::isRelated(), *this ) );
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    QList<Soprano::Node> list = model->listStatements( Soprano::Node(), NAO::isRelated(), resourceUri() ).iterateSubjects().allNodes();
+    QList<Nepomuk2::Resource> resources;
+    foreach(const Soprano::Node& node, list)
+        resources << node.uri();
+    return resources;
 }
 
 

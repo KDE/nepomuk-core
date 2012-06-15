@@ -110,66 +110,6 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::dataForResourceUri( co
 }
 
 
-QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceDataOfType( const QUrl& type )
-{
-    QList<ResourceData*> l;
-
-    if( !type.isEmpty() ) {
-        mutex.lock();
-        QSet<ResourceData*> rdl = m_uriKickoffData.values().toSet();
-        mutex.unlock();
-        for( QSet<ResourceData*>::iterator rdIt = rdl.begin();
-             rdIt != rdl.end(); ++rdIt ) {
-            ResourceData* rd = *rdIt;
-            //
-            // make sure we do not trigger a load here since
-            // 1. that could result in the deletion of values from the iterated list (m_cache.clear() in ResourceData::load)
-            // 2. We only need to check non-existing resources anyway, since the rest is queried from the db below
-            //
-            if( rd->constHasType( type ) ) {
-                l.append( rd );
-            }
-        }
-    }
-
-    return l;
-}
-
-
-QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceDataWithProperty( const QUrl& uri, const Variant& v )
-{
-    QList<ResourceData*> l;
-
-    //
-    // We need to cache m_uriKickoffData since it might be changed
-    // in the loop by ResourceData::load()
-    //
-    mutex.lock();
-    QSet<ResourceData*> rdl = m_uriKickoffData.values().toSet();
-    mutex.unlock();
-
-    //
-    // make sure none of the ResourceData objects are deleted by ResourceData::load below
-    // which would result in a crash since we have them cached.
-    //
-    QList<Resource> tmp;
-    foreach( ResourceData* rd, rdl ) {
-        tmp << Resource( rd );
-    }
-
-    for( QSet<ResourceData*>::iterator rdIt = rdl.begin();
-         rdIt != rdl.end(); ++rdIt ) {
-        ResourceData* rd = *rdIt;
-        if( rd->hasProperty( uri ) &&
-            rd->property( uri ) == v ) {
-            l.append( rd );
-        }
-    }
-
-    return l;
-}
-
-
 QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceData()
 {
     return m_uriKickoffData.values().toSet().toList();
@@ -299,12 +239,6 @@ Nepomuk2::ResourceManager::~ResourceManager()
 }
 
 
-void Nepomuk2::ResourceManager::deleteInstance()
-{
-    delete this;
-}
-
-
 Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::instance()
 {
     if(!s_instance) {
@@ -336,13 +270,6 @@ bool Nepomuk2::ResourceManager::initialized() const
 }
 
 
-#ifndef KDE_NO_DEPRECATED
-Nepomuk2::Resource Nepomuk2::ResourceManager::createResourceFromUri( const QString& uri )
-{
-    return Resource( uri, QUrl() );
-}
-#endif
-
 void Nepomuk2::ResourceManager::removeResource( const QString& uri )
 {
     Resource res( uri );
@@ -356,113 +283,10 @@ void Nepomuk2::ResourceManager::notifyError( const QString& uri, int errorCode )
 }
 
 
-#ifndef KDE_NO_DEPRECATED
-QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesOfType( const QString& type )
-{
-    return allResourcesOfType( QUrl(type) );
-}
-#endif
-
-
-QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesOfType( const QUrl& type )
-{
-    QSet<Resource> set;
-
-    if( !type.isEmpty() ) {
-        // check local data
-        QList<ResourceData*> localData = d->allResourceDataOfType( type );
-        for( QList<ResourceData*>::iterator rdIt = localData.begin();
-             rdIt != localData.end(); ++rdIt ) {
-            Resource res( *rdIt );
-            set.insert(res);
-        }
-
-//        kDebug() << " added local resources: " << l.count();
-
-        Soprano::Model* model = mainModel();
-        Soprano::StatementIterator it = model->listStatements( Soprano::Statement( Soprano::Node(), Soprano::Vocabulary::RDF::type(), type ) );
-
-        while( it.next() ) {
-            Statement s = *it;
-            Resource res( s.subject().uri() );
-            set.insert(res);
-        }
-
-//        kDebug() << " added remote resources: " << l.count();
-    }
-
-    return set.toList();
-}
-
-
-QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResources()
-{
-    QList<Nepomuk2::Resource> l;
-    Q_FOREACH( ResourceData* data, d->allResourceData()) {
-        l << Resource( data );
-    }
-
-    Soprano::QueryResultIterator it = mainModel()->executeQuery( QLatin1String("select distinct ?r where { ?r a ?t . FILTER(?t != rdf:Property && ?t != rdfs:Class) . }"),
-                                                                 Soprano::Query::QueryLanguageSparql );
-    while( it.next() ) {
-        Resource r( it[0].uri() );
-        l << r;
-    }
-
-    return l;
-}
-
-
-#ifndef KDE_NO_DEPRECATED
-QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesWithProperty( const QString& uri, const Variant& v )
-{
-    return allResourcesWithProperty( QUrl(uri), v );
-}
-#endif
-
-
-QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesWithProperty( const QUrl& uri, const Variant& v )
-{
-    QSet<Resource> set;
-
-    if( v.isList() ) {
-        kDebug() << "(ResourceManager::allResourcesWithProperty) list values not supported.";
-    }
-    else {
-        // check local data
-        QList<ResourceData*> localData = d->allResourceDataWithProperty( uri, v );
-        for( QList<ResourceData*>::iterator rdIt = localData.begin();
-             rdIt != localData.end(); ++rdIt ) {
-            set.insert( Resource( *rdIt ) );
-        }
-
-        // check remote data
-        Soprano::Model* model = mainModel();
-        Soprano::StatementIterator it = model->listStatements( Soprano::Statement( Soprano::Node(), uri, v.toNode() ) );
-
-        while( it.next() ) {
-            Statement s = *it;
-            Resource res( s.subject().uri() );
-            set.insert( res );
-        }
-    }
-
-    return set.toList();
-}
-
-
 void Nepomuk2::ResourceManager::clearCache()
 {
     d->cleanupCache( -1 );
 }
-
-
-#ifndef KDE_NO_DEPRECATED
-QString Nepomuk2::ResourceManager::generateUniqueUri()
-{
-    return generateUniqueUri( QString() ).toString();
-}
-#endif
 
 
 QUrl Nepomuk2::ResourceManager::generateUniqueUri( const QString& name )
@@ -557,13 +381,4 @@ void Nepomuk2::ResourceManager::setOverrideMainModel( Soprano::Model* model )
         }
     }
 }
-
-
-Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::createManagerForModel( Soprano::Model* model )
-{
-    ResourceManager* manager = new ResourceManager();
-    manager->setOverrideMainModel( model );
-    return manager;
-}
-
 #include "resourcemanager.moc"

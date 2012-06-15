@@ -26,7 +26,11 @@
 #include "resource.h"
 
 #include <Soprano/Vocabulary/NAO>
+#include <Soprano/Model>
+#include <Soprano/StatementIterator>
+#include <Soprano/NodeIterator>
 
+using namespace Soprano::Vocabulary;
 
 Nepomuk2::Tag::Tag()
     : Resource()
@@ -84,5 +88,10 @@ Nepomuk2::Tag& Nepomuk2::Tag::operator=( const Tag& res )
 
 QList<Nepomuk2::Resource> Nepomuk2::Tag::tagOf() const
 {
-    return convertResourceList<Resource>( ResourceManager::instance()->allResourcesWithProperty( Soprano::Vocabulary::NAO::hasTag(), *this ) );
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    QList<Soprano::Node> list = model->listStatements( Soprano::Node(), NAO::hasTag(), resourceUri() ).iterateSubjects().allNodes();
+    QList<Nepomuk2::Resource> resources;
+    foreach(const Soprano::Node& node, list)
+        resources << node.uri();
+    return resources;
 }

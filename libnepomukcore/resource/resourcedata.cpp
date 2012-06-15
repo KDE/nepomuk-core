@@ -71,6 +71,8 @@ Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, c
 
     m_types << m_mainType;
 
+    //TODO: Maybe this should be done when the data is being loaded?
+    // Cause it really doesn't matter before that
     if( m_rm->dataCacheFull() )
         m_rm->cleanupCache();
 

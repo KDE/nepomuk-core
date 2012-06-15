@@ -117,16 +117,12 @@ namespace Nepomuk2 {
         void addToKickOffList( ResourceData* rd, const QSet<KUrl>& uris );
 
         QList<ResourceData*> allResourceData();
-        QList<ResourceData*> allResourceDataOfType( const QUrl& type );
-        QList<ResourceData*> allResourceDataWithProperty( const QUrl& _uri, const Variant& v );
 
         void _k_storageServiceInitialized( bool );
         void _k_dbusServiceUnregistered( const QString& serviceName );
 
     private:
         ResourceData* findData( const QUrl& uri );
-
-        QUrl m_mainContext;
     };
 }
 

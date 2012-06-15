@@ -30,22 +30,3 @@ target_link_libraries(queryserializertest nepomukcore
   ${KDE4_KDECORE_LIBS}
 )
 
-
-
-# Resource tests
-# --------------------------------------------
-
-# The basis of all the tests handling statements
-kde4_add_library(nepomuk_testbase STATIC testbase.cpp)
-target_link_libraries(nepomuk_testbase nepomukcore ${QT_QTCORE_LIBRARY} ${QT_QTTEST_LIBRARY})
-
-set(resourcetest_SRCS resourcetest.cpp)
-kde4_add_unit_test(resourcetest TESTNAME nepomuk-resourcetest ${resourcetest_SRCS})
-target_link_libraries(resourcetest
-  nepomuk_testbase
-  ${QT_QTDBUS_LIBRARY}
-  ${QT_QTTEST_LIBRARY}
-  ${QT_QTGUI_LIBRARY}
-  ${KDE4_KDECORE_LIBS}
-  ${SOPRANO_LIBRARIES}
-)
