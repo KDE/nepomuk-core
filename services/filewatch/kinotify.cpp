@@ -141,48 +141,13 @@ public:
         if ( !addWatch( path ) )
             return false;
 
-        const int len = offsetof(struct dirent, d_name) +
-                pathconf(path.data(), _PC_NAME_MAX) + 1;
-        QScopedArrayPointer<char> entryData( new char[len] );
-        struct dirent* entry = ( struct dirent* )entryData.data();
-
-        DIR* dir = opendir( path.data() );
-        if ( dir ) {
-            struct dirent *result = 0;
-            while ( !readdir_r( dir, entry, &result ) ) {
-
-                if ( !result ) {
-                    // end of folder
-                    break;
-                }
-
-                if ( ( entry->d_type == DT_UNKNOWN ||
-                      entry->d_type == DT_DIR ) &&
-                        ( watchHiddenFolders ||
-                         qstrncmp( entry->d_name, ".", 1 ) ) &&
-                        qstrcmp( entry->d_name, "." ) &&
-                        qstrcmp( entry->d_name, ".." ) ) {
-                    bool isDir = true;
-                    QByteArray subDir = concatPath( path, QByteArray::fromRawData( entry->d_name, qstrlen( entry->d_name ) ) );
-                    if ( entry->d_type == DT_UNKNOWN ) {
-                        struct stat buf;
-                        lstat( subDir.data(), &buf );
-                        isDir = S_ISDIR( buf.st_mode );
-                    }
-
-                    if ( isDir ) {
-                        pathsToWatch.enqueue( subDir );
-                    }
-                }
-            }
-
-            closedir( dir );
-            return true;
+        const QString stringPath = QFile::decodeName(path);
+        QDirIterator iter( stringPath, QDir::Dirs | QDir::NoDotAndDotDot );
+        while( iter.hasNext() ) {
+            pathsToWatch.enqueue( QFile::encodeName(iter.next()) );
         }
-        else {
-            kDebug() << "Could not open dir" << path;
-            return false;
-        }
+
+        return true;
     }
 
     void removeWatch( int wd ) {
