@@ -41,9 +41,9 @@ Nepomuk2::BackupSyncService::BackupSyncService( QObject* parent, const QList< QV
 {
     kDebug();
 
-    m_diffGenerator = new DiffGenerator( this );
+//    m_diffGenerator = new DiffGenerator( this );
 
-    m_syncManager = new SyncManager( this );
+//    m_syncManager = new SyncManager( this );
     m_backupManager = new BackupManager( this );
 }
 
