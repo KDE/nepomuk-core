@@ -2,6 +2,7 @@ install(FILES
   File
   Resource
   ResourceManager
+  ResourceWatcher
   Service
   Tag
   Thing
