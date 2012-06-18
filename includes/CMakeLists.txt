@@ -7,6 +7,12 @@ install(FILES
   Tag
   Thing
   Variant
+  CreateResourceJob
+  DataManagement
+  DescribeResourcesJob
+  SimpleResource
+  SimpleResourceGraph
+  StoreResourcesJob
 DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2 COMPONENT Devel)
 
 
