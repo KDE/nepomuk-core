@@ -17,7 +17,7 @@ include(KDE4Defaults)
 #find_package(KDE4Workspace)
 #include(MacroLibrary)
 
-set(SDO_MIN_VERSION "0.9")
+set(SDO_MIN_VERSION "0.10")
 find_package(SharedDesktopOntologies)
 set(SOPRANO_MIN_VERSION "2.7.56")
 find_package(Soprano)
