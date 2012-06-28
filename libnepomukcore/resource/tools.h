@@ -27,26 +27,9 @@
 #include "variant.h"
 #include "nepomuk_export.h"
 
-#include <soprano/node.h>
-
-#include <kdemacros.h>
+#include <Soprano/Node>
 
 namespace Nepomuk2 {
-    /**
-     * Used internally by Resource.
-     * Converts a Variant into a literal value to be used in the RDF store.
-     *
-     * \deprecated Use Nepomuk2::Varaint::toNodeList()
-     */
-    KDE_DEPRECATED NEPOMUK_EXPORT QList<Soprano::Node> valuesToRDFNodes( const Variant& );
-
-    /**
-     * Used internally by Resource.
-     * Converts a non-list Variant into a Soprano::Node.
-     *
-     * \deprecated Use Nepomuk2::Varaint::toNode()
-     */
-    KDE_DEPRECATED NEPOMUK_EXPORT Soprano::Node valueToRDFNode( const Variant& );
 
     /**
      * Used internally by Resource.
@@ -76,48 +59,6 @@ namespace Nepomuk2 {
             rl.append( Resource( r ) );
         return rl;
     }
-
-    /**
-     * \deprecated Use Variant::fromNode() instead.
-     */
-    KDE_DEPRECATED NEPOMUK_EXPORT Variant RDFLiteralToValue( const Soprano::Node& node );
-
-    /**
-     * \deprecated Has no effect anymore.
-     */
-    KDE_DEPRECATED NEPOMUK_EXPORT void setDefaultRepository( const QString& s );
-
-    /**
-     * \return The name of the default Nepomuk repository ("main").
-     *
-     * \deprecated Use Nepomuk2::ResourceManager::mainModel()
-     */
-    KDE_DEPRECATED NEPOMUK_EXPORT QString defaultGraph();
-
-    /**
-     * \deprecated Use Soprano::Vocabulary::RDF::type()
-     */
-    KDE_DEPRECATED NEPOMUK_EXPORT QString typePredicate();
-
-    /**
-     * \deprecated Use Soprano::Vocabulary::RDF::rdfNamepace()
-     */
-    KDE_DEPRECATED NEPOMUK_EXPORT QString rdfNamepace();
-
-    /**
-     * \deprecated Use Soprano::Vocabulary::RDFS::rdfsNamepace()
-     */
-    KDE_DEPRECATED NEPOMUK_EXPORT QString rdfsNamespace();
-
-    /**
-     * \deprecated Use Soprano::Vocabulary::NRL::nrlNamepace()
-     */
-    KDE_DEPRECATED NEPOMUK_EXPORT QString nrlNamespace();
-
-    /**
-     * \deprecated Use Soprano::Vocabulary::NAO::naoNamepace()
-     */
-    KDE_DEPRECATED NEPOMUK_EXPORT QString naoNamespace();
 }
 
 #endif
