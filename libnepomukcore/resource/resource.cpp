@@ -25,7 +25,6 @@
 #include "tools.h"
 #include "tag.h"
 #include "pimo.h"
-#include "thing.h"
 #include "file.h"
 #include "property.h"
 #include "nfo.h"
@@ -283,9 +282,9 @@ QString Nepomuk2::Resource::genericLabel() const
     if(!label.isEmpty())
         return label;
 
-    label = m_data->pimoThing().label();
-    if(!label.isEmpty())
-        return label;
+    //label = m_data->pimoThing().label();
+    //if(!label.isEmpty())
+    //    return label;
 
     label = property( Nepomuk2::Vocabulary::NFO::fileName() ).toString();
     if(!label.isEmpty())
@@ -354,13 +353,6 @@ QString Nepomuk2::Resource::genericIcon() const
     }
 
     return QString();
-}
-
-
-Nepomuk2::Thing Nepomuk2::Resource::pimoThing()
-{
-    determineFinalResourceData();
-    return m_data->pimoThing();
 }
 
 

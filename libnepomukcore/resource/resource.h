@@ -35,7 +35,6 @@ namespace Nepomuk2 {
     class ResourceData;
     class Variant;
     class Tag;
-    class Thing;
     class File;
     namespace Types {
         class Property;
@@ -342,16 +341,6 @@ namespace Nepomuk2 {
          * \return An icon name to be used with KIcon or an empty string if none was found.
          */
         QString genericIcon() const;
-
-        /**
-         * Get or create the PIMO thing that relates to this resource. If this resource
-         * itself is a pimo:Thing, a reference to this is returned. If a pimo:Thing exists
-         * with has as occurrence this resource, the thing is returned. Otherwise a new thing
-         * is created.
-         *
-         * \since 4.2
-         */
-        Thing pimoThing();
 
         /**
          * Operator to compare two Resource objects.

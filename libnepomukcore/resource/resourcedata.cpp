@@ -54,6 +54,8 @@ using namespace Soprano;
 
 #define MAINMODEL (m_rm->m_manager->mainModel())
 
+using namespace Soprano::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, const QUrl& type, ResourceManagerPrivate* rm )
     : m_uri(uri),
@@ -61,8 +63,6 @@ Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, c
       m_modificationMutex(QMutex::Recursive),
       m_cacheDirty(false),
       m_addedToWatcher(false),
-      m_pimoThing(0),
-      m_groundingOccurence(0),
       m_rm(rm)
 {
     if( m_mainType.isEmpty() ) {
@@ -197,9 +197,6 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
     m_cache.clear();
     m_cacheDirty = false;
     m_types.clear();
-    delete m_pimoThing;
-    m_pimoThing = 0;
-    m_groundingOccurence = 0;
 
     // when we are being deleted the value of m_mainType is not important
     // anymore. Also since ResourceManager is a global static it might be
@@ -321,13 +318,6 @@ bool Nepomuk2::ResourceData::store()
             m_rm->addToKickOffList( this, m_kickoffUris );
         }
 
-        // store our grounding occurrence in case we are a thing created by the pimoThing() method
-        if( m_groundingOccurence ) {
-            if( m_groundingOccurence != this )
-                m_groundingOccurence->store();
-            setProperty(Vocabulary::PIMO::groundingOccurrence(), Variant(m_groundingOccurence->uri()) );
-        }
-
         foreach( const KUrl& url, m_kickoffUris ) {
             if( url.scheme().isEmpty() )
                 setProperty( Soprano::Vocabulary::NAO::identifier(), Variant(url.url()) );
@@ -437,23 +427,6 @@ bool Nepomuk2::ResourceData::load()
             }
 
             m_cacheDirty = false;
-
-            delete m_pimoThing;
-            m_pimoThing = 0;
-            if( hasType( Vocabulary::PIMO::Thing() ) ) {
-                m_pimoThing = new Thing( m_uri );
-            }
-            else {
-                // TODO: somehow handle pimo:referencingOccurrence and pimo:occurrence
-                QueryResultIterator pimoIt = MAINMODEL->executeQuery( QString( "select ?r where { ?r <%1> <%2> . }")
-                                                                      .arg( Vocabulary::PIMO::groundingOccurrence().toString() )
-                                                                      .arg( QString::fromAscii( m_uri.toEncoded() ) ),
-                                                                      Soprano::Query::QueryLanguageSparqlNoInference );
-                if( pimoIt.next() ) {
-                    m_pimoThing = new Thing( pimoIt.binding("r").uri() );
-                }
-            }
-
             return true;
         }
         else {
@@ -704,32 +677,6 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceData::determineUri()
 void Nepomuk2::ResourceData::invalidateCache()
 {
     m_cacheDirty = true;
-}
-
-
-Nepomuk2::Thing Nepomuk2::ResourceData::pimoThing()
-{
-    load();
-    if( !m_pimoThing ) {
-        //
-        // We only create a new thing if we are a nie:InformationElement.
-        // All other resources will simply be converted into a pimo:Thing
-        //
-        // Files, however, are a special case in every aspect. this includes pimo things.
-        // Files are their own grounding occurrence. This makes a lot of things
-        // much simpler.
-        //
-        if( hasType( Vocabulary::PIMO::Thing() ) ||
-                isFile() ||
-                !hasType( Vocabulary::NIE::InformationElement() ) ) {
-            m_pimoThing = new Thing(this);
-        }
-        else {
-            m_pimoThing = new Thing();
-        }
-        m_pimoThing->m_data->m_groundingOccurence = this;
-    }
-    return *m_pimoThing;
 }
 
 
