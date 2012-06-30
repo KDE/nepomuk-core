@@ -43,7 +43,7 @@ kde4_add_library (nepomuktest
 target_link_libraries (nepomuktest
                        ${QT_QTCORE_LIBRARY}
                        ${QT_QTDBUS_LIBRARY}
-                        #TODO: Add more!
+                       ${NEPOMUK_CORE_LIBRARY}
 )
 
 set_target_properties (nepomuktest PROPERTIES
@@ -62,6 +62,6 @@ set( nepomuk_testlib_HEADERS
 )
 
 install (FILES ${nepomuk_testlib_HEADERS}
-         DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk
+         DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2
          COMPONENT Devel
 )

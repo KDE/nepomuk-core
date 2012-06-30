@@ -5,7 +5,7 @@ set (KDE_MIN_VERSION "4.8.0")
 
 # Find all the required packages
 find_package (KDE4 ${KDE_MIN_VERSION} REQUIRED)
-find_package (Nepomuk REQUIRED)
+find_package (NepomukCore REQUIRED)
 find_package (Soprano REQUIRED)
 find_package (SharedDesktopOntologies  REQUIRED)
 
@@ -20,7 +20,7 @@ add_definitions (${KDE4_DEFINITIONS}
 
 # Set the basic include directories
 include_directories (${KDE4_INCLUDES}
-                     ${NEPOMUK_INCLUDES}
+                     ${NEPOMUK_CORE_INCLUDE_DIR}
                      ${CMAKE_SOURCE_DIR}
                      ${CMAKE_BINARY_DIR}
                      ${CMAKE_CURRENT_SOURCE_DIR}

@@ -32,23 +32,23 @@
 #include <KTempDir>
 #include <KDebug>
 
-#include <Nepomuk/ResourceManager>
+#include <Nepomuk2/ResourceManager>
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
 #include <Soprano/NodeIterator>
 
 
-class Nepomuk::TestBase::Private {
+class Nepomuk2::TestBase::Private {
 public:
     org::kde::nepomuk::ServiceManager* m_serviceManager;
     QString m_repoLocation;
     KTempDir m_tempDir;
 };
 
-Nepomuk::TestBase::TestBase(QObject* parent)
+Nepomuk2::TestBase::TestBase(QObject* parent)
     : QObject( parent ),
-      d( new Nepomuk::TestBase::Private )
+      d( new Nepomuk2::TestBase::Private )
 {
     d->m_serviceManager = new org::kde::nepomuk::ServiceManager( "org.kde.NepomukServer", "/servicemanager", QDBusConnection::sessionBus() );
 
@@ -64,29 +64,29 @@ Nepomuk::TestBase::TestBase(QObject* parent)
         stopService( service );
 }
 
-Nepomuk::TestBase::~TestBase()
+Nepomuk2::TestBase::~TestBase()
 {
     delete d;
 }
 
 
 
-void Nepomuk::TestBase::initTestCase()
+void Nepomuk2::TestBase::initTestCase()
 {
 }
 
-void Nepomuk::TestBase::cleanupTestCase()
+void Nepomuk2::TestBase::cleanupTestCase()
 {
 }
 
-void Nepomuk::TestBase::resetRepository()
+void Nepomuk2::TestBase::resetRepository()
 {
     kDebug() << "Reseting the repository";
     QTime timer;
     timer.start();
 
     QString query = "select distinct ?r where { ?r ?p ?o. FILTER(regex(str(?r), '^nepomuk')) . }";
-    Soprano::Model * model = Nepomuk::ResourceManager::instance()->mainModel();
+    Soprano::Model * model = Nepomuk2::ResourceManager::instance()->mainModel();
 
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
     while( it.next() ) {
@@ -97,7 +97,7 @@ void Nepomuk::TestBase::resetRepository()
 }
 
 
-void Nepomuk::TestBase::waitForServiceInitialization(const QString& service)
+void Nepomuk2::TestBase::waitForServiceInitialization(const QString& service)
 {
     while( !isServiceRunning( service ) ) {
         QTest::qSleep( 100 );
@@ -110,7 +110,7 @@ void Nepomuk::TestBase::waitForServiceInitialization(const QString& service)
 }
 
 
-void Nepomuk::TestBase::startServiceAndWait(const QString& service)
+void Nepomuk2::TestBase::startServiceAndWait(const QString& service)
 {
     if( isServiceRunning( service ) )
         return;
@@ -127,14 +127,14 @@ void Nepomuk::TestBase::startServiceAndWait(const QString& service)
 // Service Manager
 //
 
-QStringList Nepomuk::TestBase::availableServices()
+QStringList Nepomuk2::TestBase::availableServices()
 {
     QDBusPendingReply< QStringList > reply = d->m_serviceManager->availableServices();
     reply.waitForFinished();
     return reply.value();
 }
 
-bool Nepomuk::TestBase::isServiceAutostarted(const QString& service)
+bool Nepomuk2::TestBase::isServiceAutostarted(const QString& service)
 {
     QDBusPendingReply< bool > reply = d->m_serviceManager->isServiceAutostarted( service );
     reply.waitForFinished();
@@ -142,40 +142,40 @@ bool Nepomuk::TestBase::isServiceAutostarted(const QString& service)
 
 }
 
-bool Nepomuk::TestBase::isServiceInitialized(const QString& name)
+bool Nepomuk2::TestBase::isServiceInitialized(const QString& name)
 {
     QDBusPendingReply< bool > reply = d->m_serviceManager->isServiceInitialized( name );
     reply.waitForFinished();
     return reply.value();
 }
 
-bool Nepomuk::TestBase::isServiceRunning(const QString& name)
+bool Nepomuk2::TestBase::isServiceRunning(const QString& name)
 {
     QDBusPendingReply< bool > reply = d->m_serviceManager->isServiceRunning( name );
     reply.waitForFinished();
     return reply.value();
 }
 
-QStringList Nepomuk::TestBase::runningServices()
+QStringList Nepomuk2::TestBase::runningServices()
 {
     QDBusPendingReply< QStringList > reply = d->m_serviceManager->runningServices();
     reply.waitForFinished();
     return reply.value();
 }
 
-void Nepomuk::TestBase::setServiceAutostarted(const QString& service, bool autostart)
+void Nepomuk2::TestBase::setServiceAutostarted(const QString& service, bool autostart)
 {
     d->m_serviceManager->setServiceAutostarted( service, autostart );
 }
 
-bool Nepomuk::TestBase::startService(const QString& name)
+bool Nepomuk2::TestBase::startService(const QString& name)
 {
     QDBusPendingReply< bool > reply = d->m_serviceManager->startService( name );
     reply.waitForFinished();
     return reply.value();
 }
 
-bool Nepomuk::TestBase::stopService(const QString& name)
+bool Nepomuk2::TestBase::stopService(const QString& name)
 {
     QDBusPendingReply< bool > reply = d->m_serviceManager->stopService( name );
     reply.waitForFinished();

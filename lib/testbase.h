@@ -26,7 +26,7 @@
 
 #include "nepomuktest_export.h"
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
     /**
      * \class TestBase testbase.h Nepomuk/TestBase
