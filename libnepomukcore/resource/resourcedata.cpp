@@ -59,17 +59,14 @@ using namespace Nepomuk2::Vocabulary;
 
 Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, const QUrl& type, ResourceManagerPrivate* rm )
     : m_uri(uri),
-      m_mainType( type ),
+      m_type(type),
       m_modificationMutex(QMutex::Recursive),
       m_cacheDirty(false),
       m_addedToWatcher(false),
       m_rm(rm)
 {
-    if( m_mainType.isEmpty() ) {
-        m_mainType = Soprano::Vocabulary::RDFS::Resource();
-    }
-
-    m_types << m_mainType;
+    if( type.isEmpty() )
+        m_type = RDFS::Resource();
 
     m_rm->dataCnt.ref();
 
@@ -107,8 +104,8 @@ bool Nepomuk2::ResourceData::isFile()
     return( m_uri.scheme() == QLatin1String("file") ||
             m_nieUrl.scheme() == QLatin1String("file") ||
             (!m_kickoffUris.isEmpty() && (*m_kickoffUris.begin()).scheme() == QLatin1String("file")) ||
-            constHasType( Soprano::Vocabulary::Xesam::File() ) ||
-            constHasType( Nepomuk2::Vocabulary::NFO::FileDataObject() ) );
+            hasProperty( RDF::type(), NFO::FileDataObject() ) );
+    // The hasProperty should be const - It shouldn't load the entire cache. Maybe
 }
 
 
@@ -121,38 +118,34 @@ QUrl Nepomuk2::ResourceData::uri() const
 QUrl Nepomuk2::ResourceData::type()
 {
     load();
-    return m_mainType;
-}
 
+    QUrl mainType = RDFS::Resource();
+    QList<QUrl> types = m_cache[RDF::type()].toUrlList();
+    foreach(const QUrl& t, types) {
+        Types::Class currentTypeClass = mainType;
+        Types::Class storedTypeClass = t;
 
-QList<QUrl> Nepomuk2::ResourceData::allTypes()
-{
-    load();
-    return m_types;
-}
-
-
-void Nepomuk2::ResourceData::setTypes( const QList<QUrl>& types )
-{
-    store();
-
-    QMutexLocker lock(&m_modificationMutex);
-
-    // reset types
-    m_types.clear();
-    m_mainType = Soprano::Vocabulary::RDFS::Resource();
-
-    QList<Node> nodes;
-    // load types (and set maintype)
-    foreach( const QUrl& url, types ) {
-        loadType( url );
-        nodes << Node( url );
+        // Keep the type that is further down the hierarchy
+        if ( storedTypeClass.isSubClassOf( currentTypeClass ) ) {
+            mainType = storedTypeClass.uri();
+        }
+        else {
+            // This is a little convenience hack since the user is most likely
+            // more interested in the file content than the actual file
+            // the same is true for nie:DataObject vs. nie:InformationElement
+            Types::Class nieInformationElementClass( NIE::InformationElement() );
+            Types::Class nieDataObjectClass( NIE::DataObject() );
+            if( ( currentTypeClass == nieDataObjectClass ||
+                  currentTypeClass.isSubClassOf( nieDataObjectClass ) ) &&
+                ( storedTypeClass == nieInformationElementClass ||
+                  storedTypeClass.isSubClassOf( nieInformationElementClass ) ) ) {
+                mainType = storedTypeClass.uri();
+            }
+        }
     }
 
-    // update the data store
-    setProperty(Soprano::Vocabulary::RDF::type(), Nepomuk2::Variant(types) );
+    return mainType;
 }
-
 
 
 void Nepomuk2::ResourceData::resetAll( bool isDelete )
@@ -191,14 +184,7 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
     m_kickoffUris.clear();
     m_cache.clear();
     m_cacheDirty = false;
-    m_types.clear();
-
-    // when we are being deleted the value of m_mainType is not important
-    // anymore. Also since ResourceManager is a global static it might be
-    // deleted after the global static behind Soprano::Vocabulary::RDFS
-    // which results in a crash.
-    if( !isDelete )
-        m_mainType = Soprano::Vocabulary::RDFS::Resource();
+    m_type.clear();
 }
 
 
@@ -236,31 +222,6 @@ bool Nepomuk2::ResourceData::hasProperty( const QUrl& p, const Variant& v )
 }
 
 
-bool Nepomuk2::ResourceData::hasType( const QUrl& uri )
-{
-    load();
-    return constHasType( uri );
-}
-
-
-bool Nepomuk2::ResourceData::constHasType( const QUrl& uri ) const
-{
-    // we need to protect the reading, too. setTypes may be triggered from another thread
-    QMutexLocker lock(&m_modificationMutex);
-
-    Types::Class requestedType( uri );
-    for ( QList<QUrl>::const_iterator it = m_types.constBegin();
-          it != m_types.constEnd(); ++it ) {
-        Types::Class availType( *it );
-        if ( availType == requestedType ||
-             availType.isSubClassOf( requestedType ) ) {
-            return true;
-        }
-    }
-    return false;
-}
-
-
 Nepomuk2::Variant Nepomuk2::ResourceData::property( const QUrl& uri )
 {
     load();
@@ -286,14 +247,15 @@ bool Nepomuk2::ResourceData::store()
     if ( m_uri.isEmpty() ) {
         QMutexLocker rmlock(&m_rm->mutex);
 
+        QList<QUrl> types;
         if ( m_nieUrl.isValid() &&
              m_nieUrl.isLocalFile() &&
-             m_mainType == Soprano::Vocabulary::RDFS::Resource() ) {
-            m_mainType = Nepomuk2::Vocabulary::NFO::FileDataObject();
-            m_types << m_mainType;
+             m_type != NFO::FileDataObject() ) {
+            types << NFO::FileDataObject();
         }
 
-        Nepomuk2::CreateResourceJob* job = Nepomuk2::createResource(m_types, QString(), QString());
+        types << m_type;
+        Nepomuk2::CreateResourceJob* job = Nepomuk2::createResource(types, QString(), QString());
         if( !job->exec() ) {
             //TODO: Set the error somehow
             kWarning() << job->errorString();
@@ -301,6 +263,7 @@ bool Nepomuk2::ResourceData::store()
         }
         else {
             m_uri = job->resourceUri();
+            m_cache.insert(RDF::type(), types);
         }
 
         // Add us to the initialized data, i.e. make us "valid"
@@ -322,48 +285,6 @@ bool Nepomuk2::ResourceData::store()
     }
 
     return true;
-}
-
-
-void Nepomuk2::ResourceData::loadType( const QUrl& storedType )
-{
-    if ( !m_types.contains( storedType ) ) {
-        m_types << storedType;
-    }
-    if ( m_mainType == Soprano::Vocabulary::RDFS::Resource() ) {
-        Q_ASSERT( !storedType.isEmpty() );
-        m_mainType = storedType;
-    }
-    else {
-        Types::Class currentTypeClass = m_mainType;
-        Types::Class storedTypeClass = storedType;
-
-        // Keep the type that is further down the hierarchy
-        if ( storedTypeClass.isSubClassOf( currentTypeClass ) ) {
-            m_mainType = storedTypeClass.uri();
-        }
-        else {
-            // This is a little convenience hack since the user is most likely
-            // more interested in the file content than the actual file
-            Types::Class xesamContentClass( Soprano::Vocabulary::Xesam::Content() );
-            if ( m_mainType == Soprano::Vocabulary::Xesam::File() &&
-                 ( storedTypeClass == xesamContentClass ||
-                   storedTypeClass.isSubClassOf( xesamContentClass ) ) ) {
-                m_mainType = storedTypeClass.uri();
-            }
-            else {
-                // the same is true for nie:DataObject vs. nie:InformationElement
-                Types::Class nieInformationElementClass( Vocabulary::NIE::InformationElement() );
-                Types::Class nieDataObjectClass( Vocabulary::NIE::DataObject() );
-                if( ( currentTypeClass == nieDataObjectClass ||
-                      currentTypeClass.isSubClassOf( nieDataObjectClass ) ) &&
-                    ( storedTypeClass == nieInformationElementClass ||
-                      storedTypeClass.isSubClassOf( nieInformationElementClass ) ) ) {
-                    m_mainType = storedTypeClass.uri();
-                }
-            }
-        }
-    }
 }
 
 
@@ -409,16 +330,9 @@ bool Nepomuk2::ResourceData::load()
             while ( it.next() ) {
                 QUrl p = it["p"].uri();
                 Soprano::Node o = it["o"];
-                if ( p == Soprano::Vocabulary::RDF::type() ) {
-                    if ( o.isResource() ) {
-                        loadType( o.uri() );
-                    }
-                }
-                else {
-                    Nepomuk2::Variant var = Variant::fromNode( o );
-                    updateKickOffLists( p, var );
-                    m_cache[p].append( var );
-                }
+                Nepomuk2::Variant var = Variant::fromNode( o );
+                updateKickOffLists( p, var );
+                m_cache[p].append( var );
             }
 
             m_cacheDirty = false;
@@ -567,7 +481,7 @@ bool Nepomuk2::ResourceData::exists()
 
 bool Nepomuk2::ResourceData::isValid() const
 {
-    return( !m_mainType.isEmpty() && ( !m_uri.isEmpty() || !m_kickoffUris.isEmpty() ) );
+    return !m_uri.isEmpty() || !m_kickoffUris.isEmpty();
 }
 
 
@@ -681,7 +595,6 @@ bool Nepomuk2::ResourceData::operator==( const ResourceData& other ) const
         return true;
 
     return( m_uri == other.m_uri &&
-            m_mainType == other.m_mainType &&
             m_kickoffUris == other.m_kickoffUris );
 }
 
@@ -689,10 +602,9 @@ bool Nepomuk2::ResourceData::operator==( const ResourceData& other ) const
 QDebug Nepomuk2::ResourceData::operator<<( QDebug dbg ) const
 {
     KUrl::List list = m_kickoffUris.toList();
-    dbg << QString::fromLatin1("[kickoffuri: %1; uri: %2; type: %3; ref: %4]")
+    dbg << QString::fromLatin1("[kickoffuri: %1; uri: %2; ref: %4]")
         .arg( list.toStringList().join(QLatin1String(",")),
-              m_uri.url(),
-              m_mainType.toString() )
+              m_uri.url() )
         .arg( m_ref );
 
     return dbg;
