@@ -52,7 +52,11 @@ void ResourceTests::newTag()
 
     // Resources are only saved when some changes are made
     // FIXME: Maybe add some save function?
-    tag.setLabel("Test");
+    {
+        Resource res;
+        res.addTag( tag );
+        res.remove();
+    }
 
     QVERIFY(tag.exists());
     QVERIFY(!tag.resourceUri().isEmpty());
@@ -60,21 +64,20 @@ void ResourceTests::newTag()
 
     // Check the statements
     Soprano::Model* model = ResourceManager::instance()->mainModel();
-    QList<Soprano::Statement> stList = model->listStatements( tag.resourceUri(), Soprano::Node(),
-                                                              Soprano::Node() ).allStatements();
 
     // One for <resUri> nao:lastModified ..
     //         <resUri> nao:created ..
     //         <resUri> rdf:type nao:Tag
     //         <resUri> nao:identifier "Test"
-    //         <resUri> nao:prefLabel "Test" - plain literal
-    QCOMPARE(stList.size(), 5);
+    const QUrl uri = tag.resourceUri();
+    QVERIFY(model->containsAnyStatement(uri, NAO::lastModified(), Soprano::Node()));
+    QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
+    QVERIFY(model->containsAnyStatement(uri, RDF::type(), NAO::Tag()));
+    QVERIFY(model->containsAnyStatement(uri, NAO::identifier(), Soprano::LiteralValue("Test")));
 
-    QVERIFY(model->containsAnyStatement(tag.resourceUri(), NAO::lastModified(), Soprano::Node()));
-    QVERIFY(model->containsAnyStatement(tag.resourceUri(), NAO::created(), Soprano::Node()));
-    QVERIFY(model->containsAnyStatement(tag.resourceUri(), RDF::type(), NAO::Tag()));
-    QVERIFY(model->containsAnyStatement(tag.resourceUri(), NAO::identifier(), Soprano::LiteralValue("Test")));
-    QVERIFY(model->containsAnyStatement(tag.resourceUri(), NAO::prefLabel(), Soprano::LiteralValue::createPlainLiteral("Test")));
+    QList<Soprano::Statement> stList = model->listStatements( tag.resourceUri(), Soprano::Node(),
+                                                              Soprano::Node() ).allStatements();
+    QCOMPARE(stList.size(), 4);
 }
 
 void ResourceTests::newContact()
@@ -90,22 +93,22 @@ void ResourceTests::newContact()
     QCOMPARE(con.property(NCO::fullname()).toString(), martin);
 
     // Cross check the statements
-    //
     Soprano::Model* model = ResourceManager::instance()->mainModel();
-    QList<Soprano::Statement> stList = model->listStatements( con.resourceUri(), Soprano::Node(),
-                                                              Soprano::Node() ).allStatements();
+
     // One for <resUri> nao:lastModified ..
     //         <resUri> nao:created ..
     //         <resUri> rdf:type nco:Contact
     //         <resUri> nco:fullname "Martin Klapetek"
-    kDebug() << stList;
-    QCOMPARE(stList.size(), 4);
-
     const QUrl uri = con.resourceUri();
     QVERIFY(model->containsAnyStatement(uri, NAO::lastModified(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, RDF::type(), NCO::Contact()));
     QVERIFY(model->containsAnyStatement(uri, NCO::fullname(), Soprano::LiteralValue(martin)));
+
+    QList<Soprano::Statement> stList = model->listStatements( con.resourceUri(), Soprano::Node(),
+                                                              Soprano::Node() ).allStatements();
+    kDebug() << stList;
+    QCOMPARE(stList.size(), 4);
 }
 
 void ResourceTests::newFile()

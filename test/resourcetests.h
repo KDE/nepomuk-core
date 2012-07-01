@@ -70,6 +70,7 @@ private Q_SLOTS:
     //    a. Make sure tags are updated - Also cross check initialization
     //    b. Check if the meta properties are updated
     //    c. Make sure direct properties like ratings
+    //    d. Make sure "new resources" are updated
     // 7. Resource Deletion
     //
 };
