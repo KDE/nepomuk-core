@@ -150,21 +150,104 @@ void ResourceTests::newFile()
                                                               Soprano::Node() ).allStatements();
     QCOMPARE(stList.size(), 4);
 }
+
+void ResourceTests::existingTag()
+{
+    // Create the tag
+    QUrl tagUri;
+    {
+        Tag t("Tag");
+        QVERIFY(!t.exists());
+        QVERIFY(t.resourceUri().isEmpty());
+
+        // Save the tag
+        Resource res;
+        res.addTag(t);
+        res.remove();
+
+        QVERIFY(t.exists());
+        QVERIFY(!t.resourceUri().isEmpty());
+        tagUri = t.resourceUri();
+    }
+    ResourceManager::instance()->clearCache();
+
+    Tag t("Tag");
+    QVERIFY(t.exists());
+    QCOMPARE(t.resourceUri(), tagUri);
+    QCOMPARE(t.genericLabel(), QString("Tag"));
 }
 
 void ResourceTests::existingFile()
 {
+    KTemporaryFile tempFile;
+    QVERIFY(tempFile.open());
+    const QUrl fileUrl(tempFile.fileName());
+    QUrl fileUri;
+    {
+        Resource fileRes( fileUrl );
+        QVERIFY(!fileRes.exists());
+        QVERIFY(fileRes.resourceUri().isEmpty());
+        QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
 
+        // Save the resource
+        fileRes.setRating( 5 );
+        QVERIFY(fileRes.rating() == 5);
+        fileRes.removeProperty(NAO::numericRating());
+        QVERIFY(!fileRes.hasProperty(NAO::numericRating()));
+        fileUri = fileRes.resourceUri();
+    }
+
+    ResourceManager::instance()->clearCache();
+
+    {
+        Resource fileRes( fileUrl );
+        QVERIFY(fileRes.exists());
+        QCOMPARE(fileRes.resourceUri(), fileUri);
+        QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
+    }
+
+    ResourceManager::instance()->clearCache();
+
+    {
+        Resource fileRes( fileUri );
+        QVERIFY(fileRes.exists());
+        QCOMPARE(fileRes.resourceUri(), fileUri);
+        QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
+    }
 }
 
 void ResourceTests::existingContact()
 {
+    QUrl contactUri;
+    QString martin("Martin Klapetek");
 
+    {
+        Resource con( QUrl(), NCO::Contact() );
+        QVERIFY(!con.exists());
+        QVERIFY(con.properties().empty());
+        QVERIFY(con.resourceUri().isEmpty());
+
+        con.setProperty(NCO::fullname(), martin);
+
+        QVERIFY(!con.resourceType().isEmpty());
+        QVERIFY(!con.resourceUri().isEmpty());
+        QCOMPARE(con.property(NCO::fullname()).toString(), martin);
+
+        contactUri = con.resourceUri();
+    }
+
+    ResourceManager::instance()->clearCache();
+
+    Resource con(contactUri);
+    QVERIFY(con.exists());
+    QCOMPARE(con.resourceUri(), contactUri);
+    QCOMPARE(con.property(NCO::fullname()).toString(), martin);
+
+    contactUri = con.resourceUri();
 }
 
-void ResourceTests::existingTag()
+void ResourceTests::checkRating()
 {
-
 }
 
 void ResourceTests::initTagChange()
@@ -177,10 +260,6 @@ void ResourceTests::initUrlChange()
 
 }
 
-void ResourceTests::checkRating()
-{
-
-}
 
 }
 
