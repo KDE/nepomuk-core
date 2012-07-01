@@ -31,6 +31,7 @@
 #include <Nepomuk2/Vocabulary/NCO>
 #include <Nepomuk2/Vocabulary/NIE>
 #include <Nepomuk2/Vocabulary/NFO>
+#include <Nepomuk2/Vocabulary/PIMO>
 
 #include <Nepomuk2/Resource>
 #include <Nepomuk2/Variant>
@@ -308,6 +309,29 @@ void ResourceTests::initUrlChange()
         QVERIFY(!fileRes.exists());
         QVERIFY(fileRes.resourceUri().isEmpty());
     }
+}
+
+void ResourceTests::typeTopMost()
+{
+    Resource res;
+    res.addType(NFO::PlainTextDocument());
+    res.addType(NFO::Document());
+    res.addType(NFO::FileDataObject());
+    res.addType(NIE::InformationElement());
+
+    QCOMPARE(res.resourceType(), NFO::PlainTextDocument());
+}
+
+void ResourceTests::typePimo()
+{
+    Resource res;
+    res.addType(NFO::PlainTextDocument());
+    res.addType(NFO::Document());
+    res.addType(NFO::FileDataObject());
+    res.addType(NIE::InformationElement());
+    res.addType(PIMO::Note());
+
+    QCOMPARE(res.resourceType(), PIMO::Note());
 }
 
 

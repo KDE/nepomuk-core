@@ -66,6 +66,10 @@ private Q_SLOTS:
     //    b. Make sure pimo type is returned when present
     //    c. Make sure tags have been given the correct type
     //    d. Make sure files and folders have the correct type
+
+    void typeTopMost();
+    void typePimo();
+
     // 6. Resource Watcher
     //    a. Make sure tags are updated - Also cross check initialization
     //    b. Check if the meta properties are updated
