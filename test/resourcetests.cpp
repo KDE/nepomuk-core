@@ -1,6 +1,6 @@
 /*
     <one line to give the program's name and a brief idea of what it does.>
-    Copyright (C) <year>  <name of author>
+    Copyright (C) 2012 Vishesh Handa <me@vhanda.in>
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,6 +29,8 @@
 #include <Soprano/Model>
 #include <Soprano/StatementIterator>
 #include <Nepomuk2/Vocabulary/NCO>
+#include <Nepomuk2/Vocabulary/NIE>
+#include <Nepomuk2/Vocabulary/NFO>
 
 #include <Nepomuk2/Resource>
 #include <Nepomuk2/Variant>
@@ -113,10 +115,41 @@ void ResourceTests::newContact()
 
 void ResourceTests::newFile()
 {
-    /*KTemporaryFile tempFile;
+    KTemporaryFile tempFile;
     QVERIFY(tempFile.open());
+    const QUrl fileUrl(tempFile.fileName());
 
-    Resource file(*/
+    Resource fileRes( fileUrl );
+    QVERIFY(!fileRes.exists());
+    QVERIFY(fileRes.resourceUri().isEmpty());
+    QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
+
+    // Save the resource
+    fileRes.setRating( 5 );
+    QVERIFY(fileRes.rating() == 5);
+    fileRes.removeProperty(NAO::numericRating());
+    QVERIFY(!fileRes.hasProperty(NAO::numericRating()));
+
+    QVERIFY(!fileRes.resourceUri().isEmpty());
+    QVERIFY(fileRes.exists());
+
+    // Cross check the statements
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+
+    // One for <resUri> nao:lastModified ..
+    //         <resUri> nao:created ..
+    //         <resUri> rdf:type nco:Contact
+    //         <resUri> nie:url fileUrl
+    const QUrl uri = fileRes.resourceUri();
+    QVERIFY(model->containsAnyStatement(uri, NAO::lastModified(), Soprano::Node()));
+    QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
+    QVERIFY(model->containsAnyStatement(uri, RDF::type(), NFO::FileDataObject()));
+    QVERIFY(model->containsAnyStatement(uri, NIE::url(), fileUrl));
+
+    QList<Soprano::Statement> stList = model->listStatements( uri, Soprano::Node(),
+                                                              Soprano::Node() ).allStatements();
+    QCOMPARE(stList.size(), 4);
+}
 }
 
 void ResourceTests::existingFile()
