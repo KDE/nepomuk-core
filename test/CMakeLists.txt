@@ -1,17 +1,16 @@
 project(nepomuksync_tests)
 
 find_package(KDE4 REQUIRED)
-find_package(Nepomuk REQUIRED)
+find_package(NepomukCore REQUIRED)
 
 include(NepomukTestLibMacros)
 
 include_directories(
   ${QT_INCLUDES}
   ${KDE4_INCLUDES}
-  ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
-  ${NEPOMUK_INCLUDE_DIR}
-  ${libnepomuksync_SOURCE_DIR}
+  ${SOPRANO_INCLUDE_DIR}
+  ${NEPOMUK_CORE_INCLUDE_DIR}
 )
 
 include (KDE4Defaults)
@@ -29,10 +28,9 @@ target_link_libraries(nepomuksynctest
   ${QT_QTTEST_LIBRARY}
   ${QT_QTGUI_LIBRARY}
   ${SOPRANO_LIBRARIES}
+  ${NEPOMUK_CORE_LIBRARY}
   kdecore
   nepomuktest
-  nepomuk
-  nepomukdatamanagement
 )
 
 add_nepomuk_test(NepomukSyncTest ${CMAKE_CURRENT_BINARY_DIR}/nepomuksynctest)

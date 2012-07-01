@@ -30,29 +30,29 @@
 #include <KJob>
 #include <KStandardDirs>
 
-#include <Nepomuk/Resource>
-#include <Nepomuk/ResourceManager>
-#include <Nepomuk/Tag>
+#include <Nepomuk2/Resource>
+#include <Nepomuk2/ResourceManager>
+#include <Nepomuk2/Tag>
 
 #include <Soprano/Model>
 #include <Soprano/StatementIterator>
 #include <Soprano/Vocabulary/NAO>
 #include <Soprano/QueryResultIterator>
-#include <Nepomuk/Vocabulary/NIE>
-#include <Nepomuk/Vocabulary/NMO>
-#include <Nepomuk/Vocabulary/NCO>
-#include <Nepomuk/Vocabulary/NCAL>
+#include <Nepomuk2/Vocabulary/NIE>
+#include <Nepomuk2/Vocabulary/NMO>
+#include <Nepomuk2/Vocabulary/NCO>
+#include <Nepomuk2/Vocabulary/NCAL>
 
-#include "nepomuk/datamanagement.h"
-#include "nepomuk/simpleresource.h"
-#include "nepomuk/simpleresourcegraph.h"
-#include "nepomuk/storeresourcesjob.h"
+#include <Nepomuk2/DataManagement>
+#include <Nepomuk2/SimpleResource>
+#include <Nepomuk2/SimpleResourceGraph>
+#include <Nepomuk2/StoreResourcesJob>
 
 using namespace Soprano::Vocabulary;
-using namespace Nepomuk::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 void listResources() {
-    Soprano::Model *model = Nepomuk::ResourceManager::instance()->mainModel();
+    Soprano::Model *model = Nepomuk2::ResourceManager::instance()->mainModel();
     const QString query = QString::fromLatin1("select distinct ?r where { ?r ?p ?o . "
                                               "FILTER(regex(str(?r), '^nepomuk:/res/')) . }");
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
@@ -69,13 +69,13 @@ void NepomukSyncTests::basicIdentification()
     QVERIFY(file.open());
 
     QUrl fileUrl = KUrl(file.fileName());
-    Nepomuk::Resource res( fileUrl );
+    Nepomuk2::Resource res( fileUrl );
     res.setRating( 5 );
 
     QVERIFY( res.exists() );
     QVERIFY( res.rating() == 5 );
 
-    KJob* job = Nepomuk::setProperty( QList<QUrl>() << fileUrl, NAO::numericRating(), QVariantList() << 2 );
+    KJob* job = Nepomuk2::setProperty( QList<QUrl>() << fileUrl, NAO::numericRating(), QVariantList() << 2 );
     job->exec();
 
     if( job->error() ) {
@@ -89,13 +89,13 @@ void NepomukSyncTests::basicIdentification()
     listResources();
 
     // This is required as resetRepository works on a the models
-    Nepomuk::ResourceManager::instance()->clearCache();
+    Nepomuk2::ResourceManager::instance()->clearCache();
     QVERIFY( !res.exists() );
 }
 
 void NepomukSyncTests::pim()
 {
-    using namespace Nepomuk;
+    using namespace Nepomuk2;
 
     SimpleResource volkerEmail;
     volkerEmail.addType( NCO::EmailAddress() );
@@ -209,7 +209,7 @@ void NepomukSyncTests::pim()
     SimpleResourceGraph graph;
     graph << ed << fd << gd << hd << id << jd << kd << ld << md << nd << od << pd << qd << rd;
 
-    KJob *job = Nepomuk::storeResources( graph );
+    KJob *job = Nepomuk2::storeResources( graph );
     job->exec();
 
     if( job->error() ) {

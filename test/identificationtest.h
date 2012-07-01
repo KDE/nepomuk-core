@@ -21,9 +21,9 @@
 #define IDENTIFICATIONTEST_H
 
 #include <QtCore/QObject>
-#include <Nepomuk/testbase.h>
+#include <Nepomuk2/testbase.h>
 
-class NepomukSyncTests : public Nepomuk::TestBase
+class NepomukSyncTests : public Nepomuk2::TestBase
 {
     Q_OBJECT
     
