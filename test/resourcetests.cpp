@@ -252,12 +252,62 @@ void ResourceTests::checkRating()
 
 void ResourceTests::initTagChange()
 {
+    Tag tag("Tag1");
+    QVERIFY(!tag.exists());
+    QVERIFY(tag.resourceUri().isEmpty());
 
+    // Save the tag
+    {
+        Resource res;
+        res.addTag(tag);
+        res.remove();
+    }
+
+    const QUrl tagUri = tag.resourceUri();
+    tag.setProperty(NAO::identifier(), QString("Tag2"));
+
+    Tag tag2("Tag2");
+    QVERIFY(tag.exists());
+    QCOMPARE(tag.resourceUri(), tagUri);
+
+    Tag tag3(tagUri);
+    QVERIFY(tag.exists());
+    QCOMPARE(tag.resourceUri(), tagUri);
 }
 
 void ResourceTests::initUrlChange()
 {
+    KTemporaryFile tempFile;
+    QVERIFY(tempFile.open());
+    const QUrl fileUrl(tempFile.fileName());
+    QUrl fileUri;
 
+    KTemporaryFile tempFile2;
+    QVERIFY(tempFile2.open());
+    const QUrl fileUrl2(tempFile2.fileName());
+
+    {
+        Resource fileRes(fileUrl);
+        fileRes.setRating(0);
+
+        QVERIFY(fileRes.exists());
+        QVERIFY(!fileRes.resourceUri().isEmpty());
+        fileUri = fileRes.resourceUri();
+
+        fileRes.setProperty(NIE::url(), fileUrl2);
+    }
+
+    {
+        Resource fileRes(fileUrl2);
+        QVERIFY(fileRes.exists());
+        QCOMPARE(fileRes.resourceUri(), fileUri);
+    }
+
+    {
+        Resource fileRes(fileUrl);
+        QVERIFY(!fileRes.exists());
+        QVERIFY(fileRes.resourceUri().isEmpty());
+    }
 }
 
 
