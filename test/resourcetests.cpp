@@ -153,6 +153,21 @@ void ResourceTests::newFile()
     QCOMPARE(stList.size(), 4);
 }
 
+void ResourceTests::newResourceMetaProperties()
+{
+    Resource res(QUrl(), NCO::Contact());
+    QVERIFY(!res.exists());
+    QVERIFY(!res.resourceUri().isEmpty());
+
+    QString name("Contact Name");
+    res.setProperty(NCO::fullname(), name);
+
+    QVERIFY(res.exists());
+    QVERIFY(res.hasProperty(NAO::lastModified()));
+    QVERIFY(res.hasProperty(NAO::created()));
+}
+
+
 void ResourceTests::existingTag()
 {
     // Create the tag

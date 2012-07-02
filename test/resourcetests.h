@@ -39,6 +39,7 @@ private Q_SLOTS:
     void newTag();
     void newContact();
     void newFile();
+    void newResourceMetaProperties();
 
     // 2. Existing resources
     //    a. Can identify existing tags
