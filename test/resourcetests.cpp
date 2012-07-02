@@ -21,6 +21,7 @@
 
 #include <KDebug>
 #include <KTemporaryFile>
+#include <KJob>
 #include <qtest_kde.h>
 
 #include <Soprano/Vocabulary/RDF>
@@ -333,6 +334,128 @@ void ResourceTests::typePimo()
 
     QCOMPARE(res.resourceType(), PIMO::Note());
 }
+
+void ResourceTests::tagsUpdate()
+{
+    Tag tag1("Tag_1");
+    Tag tag2("Tag_2");
+    Tag tag3("Tag_3");
+
+    QUrl resUri;
+    {
+        Resource res;
+        res.addTag( tag1 );
+        res.addTag( tag2 );
+        res.addTag( tag3 );
+        resUri = res.resourceUri();
+    }
+    ResourceManager::instance()->clearCache();
+
+    QVERIFY(tag1.exists());
+    QVERIFY(tag2.exists());
+    QVERIFY(tag3.exists());
+
+    Resource res(resUri);
+
+    QList<Tag> tags;
+    tags << tag1 << tag2 << tag3;
+
+    QVERIFY(res.exists());
+    QVERIFY(!res.resourceUri().isEmpty());
+    QCOMPARE(res.tags(), tags);
+
+    KJob* job = removeProperty( QList<QUrl>() <<res.resourceUri(), NAO::hasTag(),
+                                QVariantList() << tag3.resourceUri() );
+    job->exec();
+    QVERIFY(!job->error());
+    QTest::qWait(100);
+
+    kDebug() << res.tags();
+    QCOMPARE(QList<Tag>() << tag1 << tag2, res.tags());
+}
+
+void ResourceTests::metaPropertiesUpdate()
+{
+    {
+        Tag tag("Fire");
+        QVERIFY(!tag.exists());
+
+        // Save the tag
+        Resource res;
+        res.addTag(tag);
+    }
+    ResourceManager::instance()->clearCache();
+
+    Tag tag("Fire");
+
+    QDateTime modifiedDt = tag.property(NAO::lastModified()).toDateTime();
+    kDebug() << modifiedDt;
+    QVERIFY(!modifiedDt.isNull());
+
+    KJob* job = Nepomuk2::setProperty(QList<QUrl>() << tag.resourceUri(),
+                                      NAO::identifier(), QList<QVariant>() << QString("Water"));
+    job->exec();
+    QVERIFY(!job->error());
+    QTest::qWait(100);
+
+    QVERIFY(tag.property(NAO::lastModified()).toDateTime() != modifiedDt);
+}
+
+void ResourceTests::ratingUpdate()
+{
+    KTemporaryFile tempFile;
+    QVERIFY(tempFile.open());
+    const QUrl fileUrl(tempFile.fileName());
+    QUrl fileUri;
+
+    {
+        Resource fileRes( fileUrl );
+        QVERIFY(!fileRes.exists());
+        QVERIFY(fileRes.resourceUri().isEmpty());
+
+        fileRes.setRating(0);
+        QVERIFY(fileRes.exists());
+        QVERIFY(!fileRes.resourceType().isEmpty());
+
+        fileUri = fileRes.resourceUri();
+    }
+    ResourceManager::instance()->clearCache();
+
+    Resource fileRes(fileUri);
+
+    KJob* job = Nepomuk2::setProperty(QList<QUrl>() << fileRes.resourceUri(),
+                                      NAO::numericRating(), QVariantList() << 2);
+    job->exec();
+    QVERIFY(!job->error());
+
+    QTest::qWait(100);
+    QVERIFY(fileRes.rating() == 2);
+}
+
+void ResourceTests::newResourcesUpdated()
+{
+    KTemporaryFile tempFile;
+    QVERIFY(tempFile.open());
+    const QUrl fileUrl(tempFile.fileName());
+    QUrl fileUri;
+
+    Resource fileRes( fileUrl );
+    QVERIFY(!fileRes.exists());
+    QVERIFY(fileRes.resourceUri().isEmpty());
+
+    fileRes.setRating(0);
+    QVERIFY(fileRes.exists());
+    QVERIFY(!fileRes.resourceType().isEmpty());
+
+    KJob* job = Nepomuk2::setProperty(QList<QUrl>() << fileRes.resourceUri(),
+                                      NAO::numericRating(), QVariantList() << 2);
+    job->exec();
+    QVERIFY(!job->error());
+
+    QTest::qWait(100);
+    QVERIFY(fileRes.rating() == 2);
+}
+
 
 
 }

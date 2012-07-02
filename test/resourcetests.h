@@ -75,6 +75,12 @@ private Q_SLOTS:
     //    b. Check if the meta properties are updated
     //    c. Make sure direct properties like ratings
     //    d. Make sure "new resources" are updated
+
+    void tagsUpdate();
+    void metaPropertiesUpdate();
+    void ratingUpdate();
+    void newResourcesUpdated();
+
     // 7. Resource Deletion
     //
 };
