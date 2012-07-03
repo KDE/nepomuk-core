@@ -1,0 +1,4 @@
+#!/bin/bash
+
+bash @NEPOMUK_TESTLIB_TOOLS_INSTALL_DIR@/run_in_new_dbus_session.sh bash @NEPOMUK_TESTLIB_TOOLS_INSTALL_DIR@/with-nepomuk-sandbox.sh $@
+                
