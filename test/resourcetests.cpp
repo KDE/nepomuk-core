@@ -263,10 +263,6 @@ void ResourceTests::existingContact()
     contactUri = con.resourceUri();
 }
 
-void ResourceTests::checkRating()
-{
-}
-
 void ResourceTests::initTagChange()
 {
     Tag tag("Tag1");
@@ -471,6 +467,31 @@ void ResourceTests::newResourcesUpdated()
     QVERIFY(fileRes.rating() == 2);
 }
 
+void ResourceTests::resourceDeletion()
+{
+    KTemporaryFile tempFile;
+    QVERIFY(tempFile.open());
+    const QUrl fileUrl(tempFile.fileName());
+
+    Tag tag("Poop");
+    Resource fileRes( fileUrl );
+    fileRes.addTag(tag);
+
+    const QUrl tagUri = tag.resourceUri();
+    QCOMPARE(fileRes.tags(), QList<Tag>() << tag);
+
+    QVERIFY(tag.exists());
+    tag.remove();
+    QVERIFY(!tag.exists());
+    QVERIFY(!tag.resourceUri().isEmpty());
+
+    QVERIFY(fileRes.tags().isEmpty());
+
+    // Verify the statements
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    QVERIFY(!model->containsAnyStatement(tagUri, QUrl(), QUrl()));
+    QVERIFY(!model->containsAnyStatement(QUrl(), QUrl(), tagUri));
+}
 
 
 }

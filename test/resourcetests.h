@@ -52,8 +52,7 @@ private Q_SLOTS:
 
     // 3. Properties
     //    a. Make sure you can set/add/remove properties
-
-    void checkRating();
+    //    Checked by other tests
 
     // 4. Initialization
     //    a. Init via tag - Change tag name, and see if the old tag exists
@@ -84,6 +83,7 @@ private Q_SLOTS:
 
     // 7. Resource Deletion
     //
+    void resourceDeletion();
 };
 
 }
