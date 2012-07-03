@@ -65,3 +65,5 @@ install (FILES ${nepomuk_testlib_HEADERS}
          DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2
          COMPONENT Devel
 )
+
+add_subdirectory(tools)

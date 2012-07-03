@@ -40,5 +40,4 @@ set (NEPOMUK_TESTLIB_CMAKE_INSTALL_DIR
      "${DATA_INSTALL_DIR}/cmake/modules"
 )
 
-add_subdirectory( tools )
 add_subdirectory( lib )
