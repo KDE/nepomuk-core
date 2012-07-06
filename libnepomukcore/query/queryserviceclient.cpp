@@ -203,8 +203,8 @@ Nepomuk2::Query::QueryServiceClient::QueryServiceClient( QObject* parent )
     Nepomuk2::Query::registerDBusTypes();
 
     // we use our own connection to be thread-safe
-    d->queryServiceInterface = new org::kde::nepomuk::QueryService( "org.kde.nepomuk.services.nepomukqueryservice",
-                                                                    "/nepomukqueryservice",
+    d->queryServiceInterface = new org::kde::nepomuk::QueryService( QLatin1String("org.kde.nepomuk.services.nepomukqueryservice"),
+                                                                    QLatin1String("/nepomukqueryservice"),
                                                                     d->dbusConnection );
     d->queryServiceWatcher = new QDBusServiceWatcher(QLatin1String("org.kde.nepomuk.services.nepomukqueryservice"),
                                                      QDBusConnection::sessionBus(),
@@ -429,7 +429,7 @@ bool Nepomuk2::Query::QueryServiceClient::isListingFinished() const
 
 bool Nepomuk2::Query::QueryServiceClient::serviceAvailable()
 {
-    return QDBusConnection::sessionBus().interface()->isServiceRegistered( "org.kde.nepomuk.services.nepomukqueryservice" );
+    return QDBusConnection::sessionBus().interface()->isServiceRegistered( QLatin1String("org.kde.nepomuk.services.nepomukqueryservice") );
 }
 
 
