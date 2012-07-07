@@ -28,6 +28,7 @@
 #include <QtCore/QUrl>
 
 #include "nepomuk_export.h"
+#include "datamanagement.h"
 
 class KComponentData;
 class QDBusPendingCallWatcher;
