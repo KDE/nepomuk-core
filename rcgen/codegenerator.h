@@ -32,7 +32,7 @@ public:
         FastMode
     };
 
-    CodeGenerator( Mode mode, const QList<ResourceClass*>& classes );
+    CodeGenerator( Mode mode, const QList<ResourceClass*>& classes, int version = 1 );
     ~CodeGenerator();
 
     void setVisibility( const QString& v ) { m_visibility = v; }
@@ -63,6 +63,8 @@ private:
     const Mode m_mode;
     const AbstractCode* m_code;
     QString m_nameSpace;
+
+    int m_version;
 
     QList<ResourceClass*> m_classes;
     QString m_visibility;

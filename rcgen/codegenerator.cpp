@@ -31,13 +31,14 @@
 
 extern bool quiet;
 
-static QString headerTemplate( CodeGenerator::Mode mode )
+static QString headerTemplate( CodeGenerator::Mode mode, int version )
 {
     QFile gplFile( ":gpl.tpl" );
     gplFile.open( QIODevice::ReadOnly );
 
-    QFile headerFile( QString::fromLatin1( ":header_%1.tpl" )
-            .arg( mode == CodeGenerator::SafeMode ? QLatin1String( "safe" ) : QLatin1String( "fast" ) ) );
+    QFile headerFile( QString::fromLatin1( ":header_%1%2.tpl" )
+            .arg( mode == CodeGenerator::SafeMode ? QLatin1String( "safe" ) : QLatin1String( "fast" ) )
+            .arg( version > 1 ? QString::fromLatin1( "_nepomuk%1" ).arg( version ) : QString() ) );
     headerFile.open( QIODevice::ReadOnly );
 
     QString result = QString::fromLatin1( gplFile.readAll() );
@@ -46,13 +47,14 @@ static QString headerTemplate( CodeGenerator::Mode mode )
     return result;
 }
 
-static QString sourceTemplate( CodeGenerator::Mode mode )
+static QString sourceTemplate( CodeGenerator::Mode mode, int version )
 {
     QFile gplFile( ":gpl.tpl" );
     gplFile.open( QIODevice::ReadOnly );
 
-    QFile sourceFile( QString::fromLatin1( ":source_%1.tpl" )
-            .arg( mode == CodeGenerator::SafeMode ? QLatin1String( "safe" ) : QLatin1String( "fast" ) ) );
+    QFile sourceFile( QString::fromLatin1( ":source_%1%2.tpl" )
+            .arg( mode == CodeGenerator::SafeMode ? QLatin1String( "safe" ) : QLatin1String( "fast" ) )
+            .arg( version > 1 ? QString::fromLatin1( "_nepomuk%1" ).arg( version ) : QString() ) );
     sourceFile.open( QIODevice::ReadOnly );
 
     QString result = QString::fromLatin1( gplFile.readAll() );
@@ -96,13 +98,14 @@ static QString writeComment( const QString& comment, int indent )
     return s;
 }
 
-CodeGenerator::CodeGenerator( Mode mode, const QList<ResourceClass*>& classes )
+CodeGenerator::CodeGenerator( Mode mode, const QList<ResourceClass*>& classes, int version )
     : m_mode( mode ),
+      m_version(version),
       m_classes( classes )
 {
     if ( m_mode == SafeMode ) {
         m_code = new SafeCode;
-        m_nameSpace = QLatin1String("Nepomuk");
+        m_nameSpace = QLatin1String("Nepomuk2");
     } else {
         m_code = new FastCode;
         m_nameSpace = QLatin1String("NepomukFast");
@@ -162,7 +165,7 @@ bool CodeGenerator::writeDummyClasses( const QString &folder ) const
 
 bool CodeGenerator::writeHeader( const ResourceClass *resourceClass, QTextStream& stream ) const
 {
-    QString s = headerTemplate( m_mode );
+    QString s = headerTemplate( m_mode, m_version );
     ResourceClass* parent = resourceClass->parentClass( true );
     s.replace( "NEPOMUK_VISIBILITY_HEADER_INCLUDE", visibilityHeader() );
     s.replace( "NEPOMUK_VISIBILITY", visibilityExportMacro() );
@@ -332,7 +335,7 @@ void CodeGenerator::writePropertyUriHeader(const Property* p, QTextStream& ts) c
 
 bool CodeGenerator::writeSource( const ResourceClass* resourceClass, QTextStream& stream ) const
 {
-    QString s = sourceTemplate( m_mode );
+    QString s = sourceTemplate( m_mode, m_version );
     s.replace( "NEPOMUK_RESOURCENAMELOWER", resourceClass->name().toLower() );
     s.replace( "NEPOMUK_RESOURCENAME", resourceClass->name() );
     s.replace( "NEPOMUK_RESOURCETYPEURI", resourceClass->uri().toString() );
