@@ -187,6 +187,7 @@ void Nepomuk2::Query::QueryServiceClient::Private::_k_serviceRegistered(const QS
 void Nepomuk2::Query::QueryServiceClient::Private::_k_serviceUnregistered(const QString &service)
 {
     if (service == "org.kde.nepomuk.services.nepomukqueryservice") {
+        q->close();
         emit q->serviceAvailabilityChanged(false);
     }
 }
