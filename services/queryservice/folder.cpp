@@ -151,14 +151,14 @@ void Nepomuk2::Query::Folder::addResults( const QList<Nepomuk2::Query::Result>& 
 
     QSet<Result> newResults;
     Q_FOREACH( const Result& result, results ) {
-        if ( !m_results.contains( result.resource().resourceUri() ) ) {
+        if ( !m_results.contains( result.resource().uri() ) ) {
             newResults.insert( result );
         }
     }
 
     Q_FOREACH(const Result& result, results) {
-        if ( !m_newResults.contains( result.resource().resourceUri() ) ) {
-            m_newResults.insert(result.resource().resourceUri(), result);
+        if ( !m_newResults.contains( result.resource().uri() ) ) {
+            m_newResults.insert(result.resource().uri(), result);
         }
     }
 
@@ -180,9 +180,9 @@ void Nepomuk2::Query::Folder::listingFinished()
 
     // legacy removed results
     foreach( const Result& result, m_results ) {
-        if ( !m_newResults.contains( result.resource().resourceUri() ) ) {
+        if ( !m_newResults.contains( result.resource().uri() ) ) {
             removedResults << result;
-            emit entriesRemoved( QList<QUrl>() << KUrl(result.resource().resourceUri()).url() );
+            emit entriesRemoved( QList<QUrl>() << KUrl(result.resource().uri()).url() );
         }
     }
 
@@ -278,7 +278,7 @@ QList<Nepomuk2::Query::FolderConnection*> Nepomuk2::Query::Folder::openConnectio
 uint Nepomuk2::Query::qHash( const Result& result )
 {
     // we only use this to ensure that we do not emit duplicates
-    return qHash(result.resource().resourceUri());
+    return qHash(result.resource().uri());
 }
 
 #include "folder.moc"

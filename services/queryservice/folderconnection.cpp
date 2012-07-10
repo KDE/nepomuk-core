@@ -109,7 +109,7 @@ void Nepomuk2::Query::FolderConnection::slotEntriesRemoved( const QList<Nepomuk2
 {
     QStringList uris;
     for ( int i = 0; i < entries.count(); ++i ) {
-        uris.append( entries[i].resource().resourceUri().toString() );
+        uris.append( entries[i].resource().uri().toString() );
     }
     emit entriesRemoved( uris );
     emit entriesRemoved( entries );

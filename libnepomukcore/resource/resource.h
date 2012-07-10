@@ -188,7 +188,7 @@ namespace Nepomuk2 {
          *
          * \sa getIdentifiers()
          */
-        QUrl resourceUri() const;
+        QUrl uri() const;
 
         /**
          * The main type of the resource. Nepomuk tries hard to make this
@@ -199,7 +199,7 @@ namespace Nepomuk2 {
          *
          * \sa name(), hasType(), types()
          */
-        QUrl resourceType() const;
+        QUrl type() const;
 
         /**
          * \return The list of all stored types for this resource. This may
