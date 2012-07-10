@@ -392,8 +392,9 @@ bool CodeGenerator::writeSource( const ResourceClass* resourceClass, QTextStream
             continue;
         }
 
-        if ( m_mode == SafeMode )
-            ms << m_code->propertyReversePropertyGetterDefinition( p, resourceClass ) << endl;
+        //FIXME: this depends from removed (and inefficient) code
+        /*if ( m_mode == SafeMode )
+            ms << m_code->propertyReversePropertyGetterDefinition( p, resourceClass ) << endl;*/
 
         includes.append( QString( "#include \"%1\"" ).arg( p->domain(true)->headerName() ) );
     }
@@ -413,8 +414,9 @@ bool CodeGenerator::writeSource( const ResourceClass* resourceClass, QTextStream
         }
     }
 
-    if ( m_mode == SafeMode )
-        ms << m_code->resourceAllResourcesDefinition( resourceClass ) << endl;
+    //FIXME: this depends from removed (and inefficient) code
+    /*if ( m_mode == SafeMode )
+        ms << m_code->resourceAllResourcesDefinition( resourceClass ) << endl;*/
 
     // HACK: remove duplicates and resource include
     includes = includes.toSet().toList();
