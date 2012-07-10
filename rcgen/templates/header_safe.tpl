@@ -6,14 +6,14 @@ class QDateTime;
 class QDate;
 class QTime;
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 NEPOMUK_OTHERCLASSES
 }
 
 #include NEPOMUK_PARENT_INCLUDE
 NEPOMUK_VISIBILITY_HEADER_INCLUDE
 
-namespace Nepomuk {
+namespace Nepomuk2 {
 
 NEPOMUK_RESOURCECOMMENT
     class NEPOMUK_VISIBILITY NEPOMUK_RESOURCENAME : public NEPOMUK_PARENTRESOURCE
@@ -23,7 +23,6 @@ NEPOMUK_RESOURCECOMMENT
          * Create a new empty and invalid NEPOMUK_RESOURCENAME instance
          */
         NEPOMUK_RESOURCENAME();
-        NEPOMUK_RESOURCENAME( ResourceManager* );
 
         /**
          * Default copy constructor
@@ -36,14 +35,12 @@ NEPOMUK_RESOURCECOMMENT
          * referenced by \a uriOrIdentifier.
          */
         NEPOMUK_RESOURCENAME( const QString& uriOrIdentifier );
-        NEPOMUK_RESOURCENAME( const QString& uriOrIdentifier, ResourceManager* );
 
         /**
          * Create a new NEPOMUK_RESOURCENAME instance representing the resource
          * referenced by \a uri.
          */
         NEPOMUK_RESOURCENAME( const QUrl& uri );
-        NEPOMUK_RESOURCENAME( const QUrl& uri, ResourceManager* );
         ~NEPOMUK_RESOURCENAME();
 
         NEPOMUK_RESOURCENAME& operator=( const NEPOMUK_RESOURCENAME& );
@@ -58,8 +55,6 @@ NEPOMUK_METHODS
     protected:
        NEPOMUK_RESOURCENAME( const QString& uri, const QUrl& type );
        NEPOMUK_RESOURCENAME( const QUrl& uri, const QUrl& type );
-       NEPOMUK_RESOURCENAME( const QString& uri, const QUrl& type, ResourceManager* );
-       NEPOMUK_RESOURCENAME( const QUrl& uri, const QUrl& type, ResourceManager* );
     };
 }
 

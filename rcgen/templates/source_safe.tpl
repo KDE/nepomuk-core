@@ -1,7 +1,6 @@
 
-#include <nepomuk/tools.h>
-#include <nepomuk/variant.h>
-#include <nepomuk/resourcemanager.h>
+#include <nepomuk2/variant.h>
+#include <nepomuk2/resourcemanager.h>
 #include "NEPOMUK_RESOURCENAMELOWER.h"
 
 NEPOMUK_INCLUDES
@@ -11,81 +10,57 @@ NEPOMUK_INCLUDES
 #include <QtCore/QTime>
 
 
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME()
+Nepomuk2::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME()
   : NEPOMUK_PARENTRESOURCE( QUrl(), QUrl::fromEncoded("NEPOMUK_RESOURCETYPEURI") )
 {
 }
 
 
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( ResourceManager* manager )
-  : NEPOMUK_PARENTRESOURCE( QUrl(), QUrl::fromEncoded("NEPOMUK_RESOURCETYPEURI"), manager )
-{
-}
 
-
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const NEPOMUK_RESOURCENAME& res )
+Nepomuk2::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const NEPOMUK_RESOURCENAME& res )
   : NEPOMUK_PARENTRESOURCE( res )
 {
 }
 
 
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const Nepomuk::Resource& res )
+Nepomuk2::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const Nepomuk2::Resource& res )
   : NEPOMUK_PARENTRESOURCE( res )
 {
 }
 
 
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QString& uri )
+Nepomuk2::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QString& uri )
   : NEPOMUK_PARENTRESOURCE( uri, QUrl::fromEncoded("NEPOMUK_RESOURCETYPEURI") )
 {
 }
 
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QString& uri, ResourceManager* manager )
-  : NEPOMUK_PARENTRESOURCE( uri, QUrl::fromEncoded("NEPOMUK_RESOURCETYPEURI"), manager )
-{
-}
-
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QUrl& uri )
+Nepomuk2::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QUrl& uri )
   : NEPOMUK_PARENTRESOURCE( uri, QUrl::fromEncoded("NEPOMUK_RESOURCETYPEURI") )
 {
 }
 
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QUrl& uri, ResourceManager* manager )
-  : NEPOMUK_PARENTRESOURCE( uri, QUrl::fromEncoded("NEPOMUK_RESOURCETYPEURI"), manager )
-{
-}
-
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QString& uri, const QUrl& type )
+Nepomuk2::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QString& uri, const QUrl& type )
   : NEPOMUK_PARENTRESOURCE( uri, type )
 {
 }
 
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QString& uri, const QUrl& type, ResourceManager* manager )
-  : NEPOMUK_PARENTRESOURCE( uri, type, manager )
-{
-}
 
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QUrl& uri, const QUrl& type )
+Nepomuk2::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QUrl& uri, const QUrl& type )
   : NEPOMUK_PARENTRESOURCE( uri, type )
 {
 }
 
-Nepomuk::NEPOMUK_RESOURCENAME::NEPOMUK_RESOURCENAME( const QUrl& uri, const QUrl& type, ResourceManager* manager )
-  : NEPOMUK_PARENTRESOURCE( uri, type, manager )
+Nepomuk2::NEPOMUK_RESOURCENAME::~NEPOMUK_RESOURCENAME()
 {
 }
 
-Nepomuk::NEPOMUK_RESOURCENAME::~NEPOMUK_RESOURCENAME()
-{
-}
-
-Nepomuk::NEPOMUK_RESOURCENAME& Nepomuk::NEPOMUK_RESOURCENAME::operator=( const NEPOMUK_RESOURCENAME& res )
+Nepomuk2::NEPOMUK_RESOURCENAME& Nepomuk2::NEPOMUK_RESOURCENAME::operator=( const NEPOMUK_RESOURCENAME& res )
 {
     Resource::operator=( res );
     return *this;
 }
 
-QString Nepomuk::NEPOMUK_RESOURCENAME::resourceTypeUri()
+QString Nepomuk2::NEPOMUK_RESOURCENAME::resourceTypeUri()
 {
     return QLatin1String("NEPOMUK_RESOURCETYPEURI");
 }

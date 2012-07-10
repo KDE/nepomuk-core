@@ -44,8 +44,8 @@ QStringList extractOntologyFileList( const QStringList& args )
 
 int main( int argc, char** argv )
 {
-    KAboutData aboutData( "nepomuk-rcgen",
-                          "nepomuk-rcgen",
+    KAboutData aboutData( "nepomuk2-rcgen",
+                          "nepomuk2-rcgen",
                           ki18n("Nepomuk Resource Class Generator"),
                           "0.3",
                           ki18n("Nepomuk Resource Class Generator"),
@@ -63,7 +63,6 @@ int main( int argc, char** argv )
     KCmdLineOptions options;
     options.add("verbose", ki18n("Verbose output debugging mode."));
     options.add("fast", ki18n("Generate simple and fast wrapper classes not based on Nepomuk2::Resource which do not provide any data integrity checking"));
-    options.add("nepomuk2", ki18n("If set use Nepomuk2:: namespace instead on Nepomuk::"));
     options.add("writeall", ki18n("Actually generate the code."));
     options.add("listincludes", ki18n("List all includes (deprecated)."));
     options.add("listheaders", ki18n("List all header files that will be generated via the --writeall command."));
@@ -93,7 +92,6 @@ int main( int argc, char** argv )
     bool listSource = args->isSet("listsources");
     bool listIncludes = args->isSet("listincludes");
     bool fastMode = args->isSet("fast");
-    bool nepomuk2 = args->isSet("nepomuk2");
     quiet = !args->isSet("verbose");
     QStringList ontoFiles = extractOntologyFileList( args->getOptionList("ontologies") ); // backwards comp
     for(int i = 0; i < args->count(); ++i )
@@ -161,7 +159,7 @@ int main( int argc, char** argv )
     // =====================================================
     // create the code generator which will take care of the rest
     // =====================================================
-    CodeGenerator codeGen( fastMode ? CodeGenerator::FastMode : CodeGenerator::SafeMode, prsr.parsedClasses(), nepomuk2 ? 2 : 1 );
+    CodeGenerator codeGen( fastMode ? CodeGenerator::FastMode : CodeGenerator::SafeMode, prsr.parsedClasses() );
     codeGen.setVisibility( visibility );
 
     if( writeAll ) {

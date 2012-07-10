@@ -1,10 +1,10 @@
-project(nepomuk_rcgen)
+project(nepomuk2_rcgen)
 
 include_directories(
-  ${nepomuk_rcgen_SOURCE_DIR}
+  ${nepomuk2_rcgen_SOURCE_DIR}
 )
 
-set(nepomuk_rcgen_SRCS
+set(nepomuk2_rcgen_SRCS
   codegenerator.cpp
   fastcode.cpp
   property.cpp
@@ -13,13 +13,13 @@ set(nepomuk_rcgen_SRCS
   safecode.cpp
   ontologyparser.cpp)
 
-qt4_add_resources(nepomuk_rcgen_SRCS templates.qrc)
-kde4_add_executable(nepomuk-rcgen NOGUI ${nepomuk_rcgen_SRCS})
-target_link_libraries(nepomuk-rcgen
+qt4_add_resources(nepomuk2_rcgen_SRCS templates.qrc)
+kde4_add_executable(nepomuk2-rcgen NOGUI ${nepomuk2_rcgen_SRCS})
+target_link_libraries(nepomuk2-rcgen
   ${QT_QTCORE_LIBRARY}
   ${QT_QTDBUS_LIBRARY}
   ${SOPRANO_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
 )
 
-install(TARGETS nepomuk-rcgen ${INSTALL_TARGETS_DEFAULT_ARGS} )
+install(TARGETS nepomuk2-rcgen ${INSTALL_TARGETS_DEFAULT_ARGS} )
