@@ -82,6 +82,10 @@ macro_write_basic_cmake_version_file(${nepomuk-core_BINARY_DIR}/NepomukCoreConfi
                                      )
 
 install(FILES
+  Nepomuk2AddOntologyClasses.cmake
+  DESTINATION ${LIB_INSTALL_DIR}/cmake/NepomukCore)
+
+install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfigVersion.cmake
   DESTINATION ${LIB_INSTALL_DIR}/cmake/NepomukCore)
