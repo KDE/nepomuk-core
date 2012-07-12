@@ -91,7 +91,7 @@ void Nepomuk2::Query::SearchRunnable::run()
             hits.next() ) {
         Result result = extractResult( hits );
 
-        kDebug() << "Found result:" << result.resource().resourceUri() << result.score();
+        kDebug() << "Found result:" << result.resource().uri() << result.score();
 
         lock.relock();
         if( m_folder ) {

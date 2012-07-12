@@ -90,7 +90,7 @@ Nepomuk2::Tag& Nepomuk2::Tag::operator=( const Tag& res )
 QList<Nepomuk2::Resource> Nepomuk2::Tag::tagOf() const
 {
     Soprano::Model* model = ResourceManager::instance()->mainModel();
-    QList<Soprano::Node> list = model->listStatements( Soprano::Node(), NAO::hasTag(), resourceUri() ).iterateSubjects().allNodes();
+    QList<Soprano::Node> list = model->listStatements( Soprano::Node(), NAO::hasTag(), uri() ).iterateSubjects().allNodes();
     QList<Resource> resources;
     foreach(const Soprano::Node& node, list)
         resources << node.uri();

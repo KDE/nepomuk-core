@@ -47,7 +47,7 @@ QDBusArgument& operator<<( QDBusArgument& arg, const Nepomuk2::Query::Result& re
     arg.beginStructure();
 
     // resource URI and score
-    arg << QString::fromAscii( result.resource().resourceUri().toEncoded() ) << result.score();
+    arg << QString::fromAscii( result.resource().uri().toEncoded() ) << result.score();
 
     // request properties
     arg.beginMap( QVariant::String, qMetaTypeId<Soprano::Node>() );

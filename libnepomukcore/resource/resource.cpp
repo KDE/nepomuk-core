@@ -127,7 +127,7 @@ Nepomuk2::Resource& Nepomuk2::Resource::operator=( const QUrl& res )
 }
 
 
-QUrl Nepomuk2::Resource::resourceUri() const
+QUrl Nepomuk2::Resource::uri() const
 {
     if ( m_data ) {
         determineFinalResourceData();
@@ -139,7 +139,7 @@ QUrl Nepomuk2::Resource::resourceUri() const
 }
 
 
-QUrl Nepomuk2::Resource::resourceType() const
+QUrl Nepomuk2::Resource::type() const
 {
     determineFinalResourceData();
     return m_data->type();
@@ -301,7 +301,7 @@ QString Nepomuk2::Resource::genericLabel() const
     QList<Resource> go = property( Vocabulary::PIMO::groundingOccurrence() ).toResourceList();
     if( !go.isEmpty() ) {
         label = go.first().genericLabel();
-        if( label != KUrl(go.first().resourceUri()).pathOrUrl() ) {
+        if( label != KUrl(go.first().uri()).pathOrUrl() ) {
             return label;
         }
     }
@@ -311,7 +311,7 @@ QString Nepomuk2::Resource::genericLabel() const
         return hashValue;
 
     // ugly fallback
-    return KUrl(resourceUri()).pathOrUrl();
+    return KUrl(uri()).pathOrUrl();
 }
 
 
@@ -376,7 +376,7 @@ bool Nepomuk2::Resource::operator==( const Resource& other ) const
     if( m_data->uri().isEmpty() )
         return *m_data == *other.m_data;
     else
-        return resourceUri() == other.resourceUri();
+        return uri() == other.uri();
 }
 
 
@@ -529,7 +529,7 @@ void Nepomuk2::Resource::setRating( const quint32& value )
 QList<Nepomuk2::Resource> Nepomuk2::Resource::isRelatedOf() const
 {
     Soprano::Model* model = ResourceManager::instance()->mainModel();
-    QList<Soprano::Node> list = model->listStatements( Soprano::Node(), NAO::isRelated(), resourceUri() ).iterateSubjects().allNodes();
+    QList<Soprano::Node> list = model->listStatements( Soprano::Node(), NAO::isRelated(), uri() ).iterateSubjects().allNodes();
     QList<Nepomuk2::Resource> resources;
     foreach(const Soprano::Node& node, list)
         resources << node.uri();
@@ -614,5 +614,5 @@ void Nepomuk2::Resource::determineFinalResourceData() const
 
 uint Nepomuk2::qHash( const Resource& res )
 {
-    return qHash(res.resourceUri());
+    return qHash(res.uri());
 }
