@@ -79,6 +79,18 @@ namespace Nepomuk2 {
          */
         QList<Resource> tagOf() const;
 
+        /**
+         * Retrieve a list of all available Tag resources. This list consists
+         * of all resource of type Tag that are stored in the local Nepomuk
+         * meta data storage and any changes made locally. Be aware that
+         * in some cases this list can get very big.
+         *
+         * In those cases it might be better to use the asyncronous approach
+         * via Query::QueryServiceClient and a Query::ResourceTypeTerm with
+         * type Soprano::Vocabulary::NAO::Tag().
+         */
+        static QList<Tag> allTags();
+
     protected:
         Tag( const QString& uri, const QUrl& type );
         Tag( const QUrl& uri, const QUrl& type );
