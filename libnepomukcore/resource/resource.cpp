@@ -526,6 +526,59 @@ void Nepomuk2::Resource::setRating( const quint32& value )
     setProperty( Soprano::Vocabulary::NAO::numericRating(), Variant( value ) );
 }
 
+QStringList Nepomuk2::Resource::symbols() const
+{
+    QList<Resource> symbolResources = property( Soprano::Vocabulary::NAO::hasSymbol() ).toResourceList();
+
+    QStringList symbolStrings;
+    foreach(const Resource& symbolRes, symbolResources ) {
+        symbolStrings << symbolRes.label();
+    }
+
+    return symbolStrings;
+}
+
+namespace {
+    QUrl uriForSymbolName(const QString& symbolName) {
+        // Check if it exists
+        // We aren't using Soprano::Node::literalToN3 cause prefLabel has a range of a literal not
+        // of a string
+        QString query = QString::fromLatin1("select ?r where { ?r a %1 . ?r %2 \"%3\" . } LIMIT 1")
+        .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::FreeDesktopIcon()),
+              Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::prefLabel()),
+              symbolName );
+
+        Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        if( it.next() ) {
+            return it["r"].uri();
+        }
+        else {
+            Nepomuk2::Resource res(QUrl(), Soprano::Vocabulary::NAO::FreeDesktopIcon());
+            res.setLabel( symbolName );
+
+            return res.uri();
+        }
+    }
+}
+
+void Nepomuk2::Resource::setSymbols( const QStringList& value )
+{
+    QList<QUrl> symbolList;
+    foreach( const QString& symbolName, value ) {
+        symbolList << uriForSymbolName(symbolName);
+    }
+
+    setProperty( Soprano::Vocabulary::NAO::hasSymbol(), Variant(symbolList) );
+}
+
+
+void Nepomuk2::Resource::addSymbol( const QString& value )
+{
+    addProperty( Soprano::Vocabulary::NAO::hasSymbol(), uriForSymbolName(value) );
+}
+
+
 QList<Nepomuk2::Resource> Nepomuk2::Resource::isRelatedOf() const
 {
     Soprano::Model* model = ResourceManager::instance()->mainModel();
