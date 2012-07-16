@@ -33,7 +33,7 @@ set (nepomuk_testlib_SRCS
     testbase.cpp
 )
 
-qt4_add_dbus_interface(nepomuk_testlib_SRCS ${DBUS_INTERFACES_INSTALL_DIR}/org.kde.nepomuk.ServiceManager.xml nepomukservicemanagerinterface)
+qt4_add_dbus_interface(nepomuk_testlib_SRCS ../../interfaces/org.kde.nepomuk.ServiceManager.xml nepomukservicemanagerinterface)
 
 kde4_add_library (nepomuktest
                   STATIC

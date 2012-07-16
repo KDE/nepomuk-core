@@ -5,8 +5,8 @@ sandbox to avoid making a mess of the nepomuk/dbus installations running on the
 system where the tests are run.
 
 When running Nepomuk unit tests please make sure the services you require are running. If they
-are not running they can be started via the Nepomuk::TestBase::startService function. All tests
-should be derived from the Nepomuk::TestBase class.
+are not running they can be started via the Nepomuk2::TestBase::startService function. All tests
+should be derived from the Nepomuk2::TestBase class.
 
 By default only 2 services are started -
 * Storage
@@ -14,5 +14,12 @@ By default only 2 services are started -
 
 This code is based on the Telepathy Testlib which can be found - https://projects.kde.org/projects/playground/network/telepathy/ktp-testlib
 
-The tests should be run via ctest or make tests.
+WARNING: Do not run the test executables manually. This would not result in the test environment being
+         setup, and a new virtuoso database would be not be created. This would result in ALL your 
+         Nepomuk data being deleted at the end of the test.
+
+         You have been warned
+
+Run the tests with 'ctest -VV' or 'make tests'.
+
 

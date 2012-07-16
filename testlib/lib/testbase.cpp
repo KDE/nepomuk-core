@@ -32,7 +32,7 @@
 #include <KTempDir>
 #include <KDebug>
 
-#include <Nepomuk2/ResourceManager>
+#include "resourcemanager.h"
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>

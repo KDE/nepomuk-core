@@ -21,7 +21,7 @@
 #define RESOURCETESTS_H
 
 #include <QtCore/QObject>
-#include <Nepomuk2/testbase.h>
+#include "../lib/testbase.h"
 
 namespace Nepomuk2 {
 

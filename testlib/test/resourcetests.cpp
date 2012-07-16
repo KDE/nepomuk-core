@@ -19,6 +19,17 @@
 
 #include "resourcetests.h"
 
+#include "nco.h"
+#include "nie.h"
+#include "nfo.h"
+#include "pimo.h"
+
+#include "resource.h"
+#include "variant.h"
+#include "tag.h"
+#include "datamanagement.h"
+#include "resourcemanager.h"
+
 #include <KDebug>
 #include <KTemporaryFile>
 #include <KJob>
@@ -29,16 +40,7 @@
 #include <Soprano/Statement>
 #include <Soprano/Model>
 #include <Soprano/StatementIterator>
-#include <Nepomuk2/Vocabulary/NCO>
-#include <Nepomuk2/Vocabulary/NIE>
-#include <Nepomuk2/Vocabulary/NFO>
-#include <Nepomuk2/Vocabulary/PIMO>
 
-#include <Nepomuk2/Resource>
-#include <Nepomuk2/Variant>
-#include <Nepomuk2/Tag>
-#include <Nepomuk2/ResourceManager>
-#include <Nepomuk2/DataManagement>
 
 using namespace Soprano::Vocabulary;
 using namespace Nepomuk2::Vocabulary;
