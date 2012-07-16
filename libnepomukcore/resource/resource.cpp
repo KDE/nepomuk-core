@@ -127,7 +127,7 @@ Nepomuk2::Resource& Nepomuk2::Resource::operator=( const QUrl& res )
 }
 
 
-QUrl Nepomuk2::Resource::resourceUri() const
+QUrl Nepomuk2::Resource::uri() const
 {
     if ( m_data ) {
         determineFinalResourceData();
@@ -139,7 +139,7 @@ QUrl Nepomuk2::Resource::resourceUri() const
 }
 
 
-QUrl Nepomuk2::Resource::resourceType() const
+QUrl Nepomuk2::Resource::type() const
 {
     determineFinalResourceData();
     return m_data->type();
@@ -301,7 +301,7 @@ QString Nepomuk2::Resource::genericLabel() const
     QList<Resource> go = property( Vocabulary::PIMO::groundingOccurrence() ).toResourceList();
     if( !go.isEmpty() ) {
         label = go.first().genericLabel();
-        if( label != KUrl(go.first().resourceUri()).pathOrUrl() ) {
+        if( label != KUrl(go.first().uri()).pathOrUrl() ) {
             return label;
         }
     }
@@ -311,7 +311,7 @@ QString Nepomuk2::Resource::genericLabel() const
         return hashValue;
 
     // ugly fallback
-    return KUrl(resourceUri()).pathOrUrl();
+    return KUrl(uri()).pathOrUrl();
 }
 
 
@@ -376,7 +376,7 @@ bool Nepomuk2::Resource::operator==( const Resource& other ) const
     if( m_data->uri().isEmpty() )
         return *m_data == *other.m_data;
     else
-        return resourceUri() == other.resourceUri();
+        return uri() == other.uri();
 }
 
 
@@ -526,10 +526,63 @@ void Nepomuk2::Resource::setRating( const quint32& value )
     setProperty( Soprano::Vocabulary::NAO::numericRating(), Variant( value ) );
 }
 
+QStringList Nepomuk2::Resource::symbols() const
+{
+    QList<Resource> symbolResources = property( Soprano::Vocabulary::NAO::hasSymbol() ).toResourceList();
+
+    QStringList symbolStrings;
+    foreach(const Resource& symbolRes, symbolResources ) {
+        symbolStrings << symbolRes.label();
+    }
+
+    return symbolStrings;
+}
+
+namespace {
+    QUrl uriForSymbolName(const QString& symbolName) {
+        // Check if it exists
+        // We aren't using Soprano::Node::literalToN3 cause prefLabel has a range of a literal not
+        // of a string
+        QString query = QString::fromLatin1("select ?r where { ?r a %1 . ?r %2 \"%3\" . } LIMIT 1")
+        .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::FreeDesktopIcon()),
+              Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::prefLabel()),
+              symbolName );
+
+        Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        if( it.next() ) {
+            return it["r"].uri();
+        }
+        else {
+            Nepomuk2::Resource res(QUrl(), Soprano::Vocabulary::NAO::FreeDesktopIcon());
+            res.setLabel( symbolName );
+
+            return res.uri();
+        }
+    }
+}
+
+void Nepomuk2::Resource::setSymbols( const QStringList& value )
+{
+    QList<QUrl> symbolList;
+    foreach( const QString& symbolName, value ) {
+        symbolList << uriForSymbolName(symbolName);
+    }
+
+    setProperty( Soprano::Vocabulary::NAO::hasSymbol(), Variant(symbolList) );
+}
+
+
+void Nepomuk2::Resource::addSymbol( const QString& value )
+{
+    addProperty( Soprano::Vocabulary::NAO::hasSymbol(), uriForSymbolName(value) );
+}
+
+
 QList<Nepomuk2::Resource> Nepomuk2::Resource::isRelatedOf() const
 {
     Soprano::Model* model = ResourceManager::instance()->mainModel();
-    QList<Soprano::Node> list = model->listStatements( Soprano::Node(), NAO::isRelated(), resourceUri() ).iterateSubjects().allNodes();
+    QList<Soprano::Node> list = model->listStatements( Soprano::Node(), NAO::isRelated(), uri() ).iterateSubjects().allNodes();
     QList<Nepomuk2::Resource> resources;
     foreach(const Soprano::Node& node, list)
         resources << node.uri();
@@ -614,5 +667,5 @@ void Nepomuk2::Resource::determineFinalResourceData() const
 
 uint Nepomuk2::qHash( const Resource& res )
 {
-    return qHash(res.resourceUri());
+    return qHash(res.uri());
 }

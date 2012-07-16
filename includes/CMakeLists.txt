@@ -39,6 +39,7 @@ install(FILES
   Query/ResourceTerm
   Query/ResourceTypeTerm
   Query/Result
+  Query/ResultIterator
   Query/SimpleTerm
   Query/StandardQuery
   Query/Term
