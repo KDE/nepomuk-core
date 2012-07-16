@@ -54,7 +54,7 @@ void ResourceTests::newTag()
 
     //QCOMPARE(tag.label(), QString("Test"));
     QVERIFY(!tag.exists());
-    QVERIFY(tag.resourceUri().isEmpty());
+    QVERIFY(tag.uri().isEmpty());
 
     // Resources are only saved when some changes are made
     // FIXME: Maybe add some save function?
@@ -65,8 +65,8 @@ void ResourceTests::newTag()
     }
 
     QVERIFY(tag.exists());
-    QVERIFY(!tag.resourceUri().isEmpty());
-    QCOMPARE(tag.resourceType(), NAO::Tag());
+    QVERIFY(!tag.uri().isEmpty());
+    QCOMPARE(tag.type(), NAO::Tag());
 
     // Check the statements
     Soprano::Model* model = ResourceManager::instance()->mainModel();
@@ -75,13 +75,13 @@ void ResourceTests::newTag()
     //         <resUri> nao:created ..
     //         <resUri> rdf:type nao:Tag
     //         <resUri> nao:identifier "Test"
-    const QUrl uri = tag.resourceUri();
+    const QUrl uri = tag.uri();
     QVERIFY(model->containsAnyStatement(uri, NAO::lastModified(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, RDF::type(), NAO::Tag()));
     QVERIFY(model->containsAnyStatement(uri, NAO::identifier(), Soprano::LiteralValue("Test")));
 
-    QList<Soprano::Statement> stList = model->listStatements( tag.resourceUri(), Soprano::Node(),
+    QList<Soprano::Statement> stList = model->listStatements( tag.uri(), Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
     QCOMPARE(stList.size(), 4);
 }
@@ -91,11 +91,11 @@ void ResourceTests::newContact()
     Resource con( QUrl(), NCO::Contact() );
     QVERIFY(!con.exists());
     QVERIFY(con.properties().empty());
-    QVERIFY(con.resourceUri().isEmpty());
+    QVERIFY(con.uri().isEmpty());
 
     QString martin("Martin Klapetek");
     con.setProperty(NCO::fullname(), martin);
-    QVERIFY(!con.resourceType().isEmpty());
+    QVERIFY(!con.type().isEmpty());
     QCOMPARE(con.property(NCO::fullname()).toString(), martin);
 
     // Cross check the statements
@@ -105,13 +105,13 @@ void ResourceTests::newContact()
     //         <resUri> nao:created ..
     //         <resUri> rdf:type nco:Contact
     //         <resUri> nco:fullname "Martin Klapetek"
-    const QUrl uri = con.resourceUri();
+    const QUrl uri = con.uri();
     QVERIFY(model->containsAnyStatement(uri, NAO::lastModified(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, RDF::type(), NCO::Contact()));
     QVERIFY(model->containsAnyStatement(uri, NCO::fullname(), Soprano::LiteralValue(martin)));
 
-    QList<Soprano::Statement> stList = model->listStatements( con.resourceUri(), Soprano::Node(),
+    QList<Soprano::Statement> stList = model->listStatements( con.uri(), Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
     kDebug() << stList;
     QCOMPARE(stList.size(), 4);
@@ -125,7 +125,7 @@ void ResourceTests::newFile()
 
     Resource fileRes( fileUrl );
     QVERIFY(!fileRes.exists());
-    QVERIFY(fileRes.resourceUri().isEmpty());
+    QVERIFY(fileRes.uri().isEmpty());
     QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
 
     // Save the resource
@@ -134,7 +134,7 @@ void ResourceTests::newFile()
     fileRes.removeProperty(NAO::numericRating());
     QVERIFY(!fileRes.hasProperty(NAO::numericRating()));
 
-    QVERIFY(!fileRes.resourceUri().isEmpty());
+    QVERIFY(!fileRes.uri().isEmpty());
     QVERIFY(fileRes.exists());
 
     // Cross check the statements
@@ -144,7 +144,7 @@ void ResourceTests::newFile()
     //         <resUri> nao:created ..
     //         <resUri> rdf:type nco:Contact
     //         <resUri> nie:url fileUrl
-    const QUrl uri = fileRes.resourceUri();
+    const QUrl uri = fileRes.uri();
     QVERIFY(model->containsAnyStatement(uri, NAO::lastModified(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, RDF::type(), NFO::FileDataObject()));
@@ -159,7 +159,7 @@ void ResourceTests::newResourceMetaProperties()
 {
     Resource res(QUrl(), NCO::Contact());
     QVERIFY(!res.exists());
-    QVERIFY(!res.resourceUri().isEmpty());
+    QVERIFY(!res.uri().isEmpty());
 
     QString name("Contact Name");
     res.setProperty(NCO::fullname(), name);
@@ -177,7 +177,7 @@ void ResourceTests::existingTag()
     {
         Tag t("Tag");
         QVERIFY(!t.exists());
-        QVERIFY(t.resourceUri().isEmpty());
+        QVERIFY(t.uri().isEmpty());
 
         // Save the tag
         Resource res;
@@ -185,14 +185,14 @@ void ResourceTests::existingTag()
         res.remove();
 
         QVERIFY(t.exists());
-        QVERIFY(!t.resourceUri().isEmpty());
-        tagUri = t.resourceUri();
+        QVERIFY(!t.uri().isEmpty());
+        tagUri = t.uri();
     }
     ResourceManager::instance()->clearCache();
 
     Tag t("Tag");
     QVERIFY(t.exists());
-    QCOMPARE(t.resourceUri(), tagUri);
+    QCOMPARE(t.uri(), tagUri);
     QCOMPARE(t.genericLabel(), QString("Tag"));
 }
 
@@ -205,7 +205,7 @@ void ResourceTests::existingFile()
     {
         Resource fileRes( fileUrl );
         QVERIFY(!fileRes.exists());
-        QVERIFY(fileRes.resourceUri().isEmpty());
+        QVERIFY(fileRes.uri().isEmpty());
         QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
 
         // Save the resource
@@ -213,7 +213,7 @@ void ResourceTests::existingFile()
         QVERIFY(fileRes.rating() == 5);
         fileRes.removeProperty(NAO::numericRating());
         QVERIFY(!fileRes.hasProperty(NAO::numericRating()));
-        fileUri = fileRes.resourceUri();
+        fileUri = fileRes.uri();
     }
 
     ResourceManager::instance()->clearCache();
@@ -221,7 +221,7 @@ void ResourceTests::existingFile()
     {
         Resource fileRes( fileUrl );
         QVERIFY(fileRes.exists());
-        QCOMPARE(fileRes.resourceUri(), fileUri);
+        QCOMPARE(fileRes.uri(), fileUri);
         QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
     }
 
@@ -230,7 +230,7 @@ void ResourceTests::existingFile()
     {
         Resource fileRes( fileUri );
         QVERIFY(fileRes.exists());
-        QCOMPARE(fileRes.resourceUri(), fileUri);
+        QCOMPARE(fileRes.uri(), fileUri);
         QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
     }
 }
@@ -244,32 +244,32 @@ void ResourceTests::existingContact()
         Resource con( QUrl(), NCO::Contact() );
         QVERIFY(!con.exists());
         QVERIFY(con.properties().empty());
-        QVERIFY(con.resourceUri().isEmpty());
+        QVERIFY(con.uri().isEmpty());
 
         con.setProperty(NCO::fullname(), martin);
 
-        QVERIFY(!con.resourceType().isEmpty());
-        QVERIFY(!con.resourceUri().isEmpty());
+        QVERIFY(!con.type().isEmpty());
+        QVERIFY(!con.uri().isEmpty());
         QCOMPARE(con.property(NCO::fullname()).toString(), martin);
 
-        contactUri = con.resourceUri();
+        contactUri = con.uri();
     }
 
     ResourceManager::instance()->clearCache();
 
     Resource con(contactUri);
     QVERIFY(con.exists());
-    QCOMPARE(con.resourceUri(), contactUri);
+    QCOMPARE(con.uri(), contactUri);
     QCOMPARE(con.property(NCO::fullname()).toString(), martin);
 
-    contactUri = con.resourceUri();
+    contactUri = con.uri();
 }
 
 void ResourceTests::initTagChange()
 {
     Tag tag("Tag1");
     QVERIFY(!tag.exists());
-    QVERIFY(tag.resourceUri().isEmpty());
+    QVERIFY(tag.uri().isEmpty());
 
     // Save the tag
     {
@@ -278,16 +278,16 @@ void ResourceTests::initTagChange()
         res.remove();
     }
 
-    const QUrl tagUri = tag.resourceUri();
+    const QUrl tagUri = tag.uri();
     tag.setProperty(NAO::identifier(), QString("Tag2"));
 
     Tag tag2("Tag2");
     QVERIFY(tag.exists());
-    QCOMPARE(tag.resourceUri(), tagUri);
+    QCOMPARE(tag.uri(), tagUri);
 
     Tag tag3(tagUri);
     QVERIFY(tag.exists());
-    QCOMPARE(tag.resourceUri(), tagUri);
+    QCOMPARE(tag.uri(), tagUri);
 }
 
 void ResourceTests::initUrlChange()
@@ -306,8 +306,8 @@ void ResourceTests::initUrlChange()
         fileRes.setRating(0);
 
         QVERIFY(fileRes.exists());
-        QVERIFY(!fileRes.resourceUri().isEmpty());
-        fileUri = fileRes.resourceUri();
+        QVERIFY(!fileRes.uri().isEmpty());
+        fileUri = fileRes.uri();
 
         fileRes.setProperty(NIE::url(), fileUrl2);
     }
@@ -315,13 +315,13 @@ void ResourceTests::initUrlChange()
     {
         Resource fileRes(fileUrl2);
         QVERIFY(fileRes.exists());
-        QCOMPARE(fileRes.resourceUri(), fileUri);
+        QCOMPARE(fileRes.uri(), fileUri);
     }
 
     {
         Resource fileRes(fileUrl);
         QVERIFY(!fileRes.exists());
-        QVERIFY(fileRes.resourceUri().isEmpty());
+        QVERIFY(fileRes.uri().isEmpty());
     }
 }
 
@@ -333,7 +333,7 @@ void ResourceTests::typeTopMost()
     res.addType(NFO::FileDataObject());
     res.addType(NIE::InformationElement());
 
-    QCOMPARE(res.resourceType(), NFO::PlainTextDocument());
+    QCOMPARE(res.type(), NFO::PlainTextDocument());
 }
 
 void ResourceTests::typePimo()
@@ -345,7 +345,7 @@ void ResourceTests::typePimo()
     res.addType(NIE::InformationElement());
     res.addType(PIMO::Note());
 
-    QCOMPARE(res.resourceType(), PIMO::Note());
+    QCOMPARE(res.type(), PIMO::Note());
 }
 
 void ResourceTests::tagsUpdate()
@@ -360,7 +360,7 @@ void ResourceTests::tagsUpdate()
         res.addTag( tag1 );
         res.addTag( tag2 );
         res.addTag( tag3 );
-        resUri = res.resourceUri();
+        resUri = res.uri();
     }
     ResourceManager::instance()->clearCache();
 
@@ -374,11 +374,11 @@ void ResourceTests::tagsUpdate()
     tags << tag1 << tag2 << tag3;
 
     QVERIFY(res.exists());
-    QVERIFY(!res.resourceUri().isEmpty());
+    QVERIFY(!res.uri().isEmpty());
     QCOMPARE(res.tags(), tags);
 
-    KJob* job = removeProperty( QList<QUrl>() <<res.resourceUri(), NAO::hasTag(),
-                                QVariantList() << tag3.resourceUri() );
+    KJob* job = removeProperty( QList<QUrl>() <<res.uri(), NAO::hasTag(),
+                                QVariantList() << tag3.uri() );
     job->exec();
     QVERIFY(!job->error());
     QTest::qWait(100);
@@ -405,7 +405,7 @@ void ResourceTests::metaPropertiesUpdate()
     kDebug() << modifiedDt;
     QVERIFY(!modifiedDt.isNull());
 
-    KJob* job = Nepomuk2::setProperty(QList<QUrl>() << tag.resourceUri(),
+    KJob* job = Nepomuk2::setProperty(QList<QUrl>() << tag.uri(),
                                       NAO::identifier(), QList<QVariant>() << QString("Water"));
     job->exec();
     QVERIFY(!job->error());
@@ -424,19 +424,19 @@ void ResourceTests::ratingUpdate()
     {
         Resource fileRes( fileUrl );
         QVERIFY(!fileRes.exists());
-        QVERIFY(fileRes.resourceUri().isEmpty());
+        QVERIFY(fileRes.uri().isEmpty());
 
         fileRes.setRating(0);
         QVERIFY(fileRes.exists());
-        QVERIFY(!fileRes.resourceType().isEmpty());
+        QVERIFY(!fileRes.type().isEmpty());
 
-        fileUri = fileRes.resourceUri();
+        fileUri = fileRes.uri();
     }
     ResourceManager::instance()->clearCache();
 
     Resource fileRes(fileUri);
 
-    KJob* job = Nepomuk2::setProperty(QList<QUrl>() << fileRes.resourceUri(),
+    KJob* job = Nepomuk2::setProperty(QList<QUrl>() << fileRes.uri(),
                                       NAO::numericRating(), QVariantList() << 2);
     job->exec();
     QVERIFY(!job->error());
@@ -454,13 +454,13 @@ void ResourceTests::newResourcesUpdated()
 
     Resource fileRes( fileUrl );
     QVERIFY(!fileRes.exists());
-    QVERIFY(fileRes.resourceUri().isEmpty());
+    QVERIFY(fileRes.uri().isEmpty());
 
     fileRes.setRating(0);
     QVERIFY(fileRes.exists());
-    QVERIFY(!fileRes.resourceType().isEmpty());
+    QVERIFY(!fileRes.type().isEmpty());
 
-    KJob* job = Nepomuk2::setProperty(QList<QUrl>() << fileRes.resourceUri(),
+    KJob* job = Nepomuk2::setProperty(QList<QUrl>() << fileRes.uri(),
                                       NAO::numericRating(), QVariantList() << 2);
     job->exec();
     QVERIFY(!job->error());
@@ -479,13 +479,13 @@ void ResourceTests::resourceDeletion()
     Resource fileRes( fileUrl );
     fileRes.addTag(tag);
 
-    const QUrl tagUri = tag.resourceUri();
+    const QUrl tagUri = tag.uri();
     QCOMPARE(fileRes.tags(), QList<Tag>() << tag);
 
     QVERIFY(tag.exists());
     tag.remove();
     QVERIFY(!tag.exists());
-    QVERIFY(!tag.resourceUri().isEmpty());
+    QVERIFY(!tag.uri().isEmpty());
 
     QVERIFY(fileRes.tags().isEmpty());
 
