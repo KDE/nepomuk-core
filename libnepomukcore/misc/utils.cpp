@@ -98,7 +98,7 @@ QString Nepomuk2::Utils::formatPropertyValue( const Nepomuk2::Types::Property& p
             }
             else {
                 Nepomuk2::Resource res(value.toResource());
-                url = res.resourceUri();
+                url = res.uri();
                 label = res.genericLabel();
             }
 

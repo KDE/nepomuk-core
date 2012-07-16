@@ -29,7 +29,6 @@
 #include <QtCore/QSet>
 
 #include "variant.h"
-#include "thing.h"
 #include <kurl.h>
 
 #include <soprano/statement.h>
@@ -157,8 +156,6 @@ namespace Nepomuk2 {
 
         void invalidateCache();
 
-        Thing pimoThing();
-
         /**
          * Compares the properties of two ResourceData objects taking into account the Deleted flag
          */
@@ -204,12 +201,6 @@ namespace Nepomuk2 {
 
         bool m_cacheDirty;
         bool m_addedToWatcher;
-
-        // using a pointer to avoid infinite creation loop
-        Thing* m_pimoThing;
-
-        // only used for delayed storage of the pimo thing relation
-        ResourceData* m_groundingOccurence;
 
         ResourceManagerPrivate* m_rm;
     };

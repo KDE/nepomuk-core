@@ -68,7 +68,7 @@ QString Nepomuk2::Query::ResourceTermPrivate::toSparqlGraphPattern( const QStrin
 
     term += QString::fromLatin1("FILTER(%1=%2) . ")
             .arg( varName,
-                  Soprano::Node::resourceToN3( m_resource.resourceUri() ) );
+                  Soprano::Node::resourceToN3( m_resource.uri() ) );
 
     term += additionalFilters;
 
