@@ -33,6 +33,7 @@
 #include <KDebug>
 #include <KTemporaryFile>
 #include <KJob>
+#include <KTempDir>
 #include <qtest_kde.h>
 
 #include <Soprano/Vocabulary/RDF>
@@ -142,13 +143,51 @@ void ResourceTests::newFile()
 
     // One for <resUri> nao:lastModified ..
     //         <resUri> nao:created ..
-    //         <resUri> rdf:type nco:Contact
+    //         <resUri> rdf:type nfo:FileDataObject
     //         <resUri> nie:url fileUrl
     const QUrl uri = fileRes.uri();
     QVERIFY(model->containsAnyStatement(uri, NAO::lastModified(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, RDF::type(), NFO::FileDataObject()));
     QVERIFY(model->containsAnyStatement(uri, NIE::url(), fileUrl));
+
+    QList<Soprano::Statement> stList = model->listStatements( uri, Soprano::Node(),
+                                                              Soprano::Node() ).allStatements();
+    QCOMPARE(stList.size(), 4);
+}
+
+void ResourceTests::newFolder()
+{
+    KTempDir tempDir;
+    QVERIFY(tempDir.exists());
+    const QUrl dirUrl(tempDir.name());
+
+    Resource dirRes( dirUrl );
+    QVERIFY(!dirRes.exists());
+    QVERIFY(dirRes.uri().isEmpty());
+    QCOMPARE(dirRes.property(NIE::url()).toUrl(), dirUrl);
+
+    // Save the resource
+    dirRes.setRating( 5 );
+    QVERIFY(dirRes.rating() == 5);
+    dirRes.removeProperty(NAO::numericRating());
+    QVERIFY(!dirRes.hasProperty(NAO::numericRating()));
+
+    QVERIFY(!dirRes.uri().isEmpty());
+    QVERIFY(dirRes.exists());
+
+    // Cross check the statements
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+
+    // One for <resUri> nao:lastModified ..
+    //         <resUri> nao:created ..
+    //         <resUri> rdf:type nfo:Folder
+    //         <resUri> nie:url url
+    const QUrl uri = dirRes.uri();
+    QVERIFY(model->containsAnyStatement(uri, NAO::lastModified(), Soprano::Node()));
+    QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
+    QVERIFY(model->containsAnyStatement(uri, RDF::type(), NFO::Folder()));
+    QVERIFY(model->containsAnyStatement(uri, NIE::url(), dirUrl));
 
     QList<Soprano::Statement> stList = model->listStatements( uri, Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
