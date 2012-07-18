@@ -4,20 +4,15 @@
 #
 # Usage:
 #   NEPOMUK2_ADD_ONTOLOGY_CLASSES(<sources-var>
-#         [FAST]
 #         [ONTOLOGIES] <onto-file1> [<onto-file2> ...]
 #         [CLASSES <class1> [<class2> ...]]
 #         [VISIBILITY <visibility-name>]
 #       )
 #
-# If FAST is specified the rcgen parameter --fast will be used which results in resource classes
-# not based on Nepomuk::Resource but on a custom class which does not perform any checks and simply
-# writes the data to Nepomuk (hence the name fast).
-#
 # The optional CLASSES parameter allows to specify the classes to be generated (RDF URIs) in
 # case one does not want all classes in the ontologies to be generated.
 #
-# The optional VISIBILITY parameter can only be used in non-fast mode and allows to set the gcc visibility
+# The optional VISIBILITY parameter allows to set the gcc visibility in order
 # to make the generated classes usable in a publically exported API. The <visibility-name> is used to create
 # the name of the export macro and the export include file. Thus, when using "VISIBILITY foobar" include
 # file "foobar_export.h" needs to define FOOBAR_EXPORT.
@@ -37,8 +32,6 @@ macro(NEPOMUK2_ADD_ONTOLOGY_CLASSES _sources)
       set(_current_arg_type "visib")
     elseif(${_arg} STREQUAL "CLASSES")
       set(_current_arg_type "class")
-    elseif(${_arg} STREQUAL "FAST")
-      set(_fastmode "--fast")
     else(${_arg} STREQUAL "ONTOLOGIES")
       if(${_current_arg_type} STREQUAL "onto")
         list(APPEND _ontologies ${_arg})
@@ -71,7 +64,7 @@ macro(NEPOMUK2_ADD_ONTOLOGY_CLASSES _sources)
 
     # generate the list of source and header files
     execute_process(
-      COMMAND ${RCGEN} ${_fastmode} --listheaders --prefix ${_targetdir}/ ${_classes} ${_visibility} ${_ontologies}
+      COMMAND ${RCGEN} --listheaders --prefix ${_targetdir}/ ${_classes} ${_visibility} ${_ontologies}
       OUTPUT_VARIABLE _out_headers
       RESULT_VARIABLE rcgen_result
       )
@@ -80,7 +73,7 @@ macro(NEPOMUK2_ADD_ONTOLOGY_CLASSES _sources)
     endif(NOT ${rcgen_result} EQUAL 0)
 
     execute_process(
-      COMMAND ${RCGEN} ${_fastmode} --listsources --prefix ${_targetdir}/ ${_classes} ${_visibility} ${_ontologies}
+      COMMAND ${RCGEN} --listsources --prefix ${_targetdir}/ ${_classes} ${_visibility} ${_ontologies}
       OUTPUT_VARIABLE _out_sources
       RESULT_VARIABLE rcgen_result
       )
@@ -89,7 +82,7 @@ macro(NEPOMUK2_ADD_ONTOLOGY_CLASSES _sources)
     endif(NOT ${rcgen_result} EQUAL 0)
 
     add_custom_command(OUTPUT ${_out_headers} ${_out_sources}
-      COMMAND ${RCGEN} ${_fastmode} --writeall --target ${_targetdir}/ ${_classes} ${_visibility} ${_ontologies}
+      COMMAND ${RCGEN} --writeall --target ${_targetdir}/ ${_classes} ${_visibility} ${_ontologies}
       DEPENDS ${_ontologies}
       COMMENT "Generating ontology source files from ${_ontofilenames}"
       )
@@ -108,7 +101,6 @@ macro(NEPOMUK2_ADD_ONTOLOGY_CLASSES _sources)
   unset(_ontofilenames)
   unset(_classes)
   unset(_visibility)
-  unset(_fastmode)
   unset(_targetdir)
   unset(_out_headers)
   unset(_out_sources)
