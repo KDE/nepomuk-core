@@ -112,12 +112,12 @@ void KInotifyTest::testCreateFolder()
     kn.addWatch(dir.name(), KInotify::EventAll);
 
     // listen to the desired signal
-    QSignalSpy createdSpy( &kn, SIGNAL(created(QString)));
+    QSignalSpy createdSpy( &kn, SIGNAL(created(QString, bool)));
 
     // create the subdir
     const QString d1(QString::fromLatin1("%1randomJunk1").arg(dir.name()));
     mkdir(d1);
-    waitForSignal(&kn,SIGNAL(created(QString)));
+    waitForSignal(&kn,SIGNAL(created(QString, bool)));
     QCOMPARE(createdSpy.count(), 1);
     QCOMPARE(createdSpy.takeFirst().at(0).toString(), d1);
     QVERIFY(kn.watchingPath(d1));
@@ -125,7 +125,7 @@ void KInotifyTest::testCreateFolder()
     // lets go one level deeper
     const QString d2 = QString::fromLatin1("%1/subdir1").arg(d1);
     mkdir(d2);
-    waitForSignal(&kn,SIGNAL(created(QString)));
+    waitForSignal(&kn,SIGNAL(created(QString, bool)));
     QCOMPARE(createdSpy.count(), 1);
     QCOMPARE(createdSpy.takeFirst().at(0).toString(), d2);
     QVERIFY(kn.watchingPath(d2));
@@ -133,7 +133,7 @@ void KInotifyTest::testCreateFolder()
     // although we are in the folder test lets try creating a file
     const QString f1 = QString::fromLatin1("%1/somefile1").arg(d2);
     touchFile(f1);
-    waitForSignal(&kn,SIGNAL(created(QString)));
+    waitForSignal(&kn,SIGNAL(created(QString, bool)));
     QCOMPARE(createdSpy.count(), 1);
     QCOMPARE(createdSpy.takeFirst().at(0).toString(), f1);
 }
