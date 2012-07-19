@@ -38,6 +38,7 @@
 #include <Soprano/QueryResultIterator>
 #include <Soprano/NodeIterator>
 
+#include <cstdlib>
 
 class Nepomuk2::TestBase::Private {
 public:
@@ -50,6 +51,14 @@ Nepomuk2::TestBase::TestBase(QObject* parent)
     : QObject( parent ),
       d( new Nepomuk2::TestBase::Private )
 {
+    char* value = getenv("NEPOMUK_TESTLIB_RUNNING");
+    if( !value ) {
+        QString message("The Nepomuk Test Environment is not running. Running these tests without the"
+                        "test environment will delete your Nepomuk database. Aborting");
+        kError() << message;
+        QFAIL(message.toLatin1().data());
+    }
+
     d->m_serviceManager = new org::kde::nepomuk::ServiceManager( "org.kde.NepomukServer", "/servicemanager", QDBusConnection::sessionBus() );
 
     d->m_repoLocation = KStandardDirs::locateLocal( "data", "nepomuk/repository/" );
@@ -183,3 +192,4 @@ bool Nepomuk2::TestBase::stopService(const QString& name)
 }
 
 #include "testbase.moc"
+
