@@ -76,25 +76,11 @@ namespace Nepomuk2 {
          */
         QUrl type();
 
-        QList<QUrl> allTypes();
-
-        void setTypes( const QList<QUrl>& types );
-
         QHash<QUrl, Variant> allProperties();
 
         bool hasProperty( const QUrl& uri );
 
         bool hasProperty( const QUrl& p, const Variant& v );
-
-        /**
-         * Does also check for subClass relations.
-         */
-        bool hasType( const QUrl& uri );
-
-        /**
-         * Check the type without loading data from the store.
-         */
-        bool constHasType( const QUrl& type ) const;
 
         Variant property( const QUrl& uri );
 
@@ -180,8 +166,6 @@ namespace Nepomuk2 {
         void updateKickOffLists( const QUrl & prop, const Variant & v );
 
     private:
-        void loadType( const QUrl& type );
-
         /// Will reset this instance to 0 as if constructed without parameters
         /// Used by remove() and deleteData()
         void resetAll( bool isDelete = false );
@@ -192,8 +176,8 @@ namespace Nepomuk2 {
         /// the URL of file resources
         KUrl m_nieUrl;
 
-        QUrl m_mainType;
-        QList<QUrl> m_types;
+        /// Only used when creating a new Resource. It is not used in any other context
+        QUrl m_type;
 
         QAtomicInt m_ref;
 
