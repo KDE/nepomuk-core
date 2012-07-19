@@ -1,4 +1,4 @@
-include(${CMAKE_CURRENT_BINARY_DIR}/../lib/NepomukTestLibMacros.cmake)
+include(${NEPOMUK_TESTLIB_CMAKE_DIR}/NepomukTestLibMacros.cmake)
 
 #
 # Resource Tests

@@ -6,11 +6,6 @@ configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/nepomukserverrc.in"
                 IMMEDIATE @ONLY
 )
 
-install (FILES "${CMAKE_CURRENT_BINARY_DIR}/nepomukserverrc"
-         DESTINATION ${NEPOMUK_TESTLIB_DATA_INSTALL_DIR}
-         COMPONENT Devel
-)
-
 #
 # CMake Macros
 #
@@ -18,11 +13,6 @@ install (FILES "${CMAKE_CURRENT_BINARY_DIR}/nepomukserverrc"
 configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/NepomukTestLibMacros.cmake.in"
                 "${CMAKE_CURRENT_BINARY_DIR}/NepomukTestLibMacros.cmake"
                 IMMEDIATE @ONLY
-)
-
-install (FILES "${CMAKE_CURRENT_BINARY_DIR}/NepomukTestLibMacros.cmake"
-         DESTINATION ${NEPOMUK_TESTLIB_CMAKE_INSTALL_DIR}
-         COMPONENT Devel
 )
 
 #
@@ -51,19 +41,9 @@ set_target_properties (nepomuktestlib PROPERTIES
                        SOVERSION ${GENERIC_LIB_SOVERSION}
 )
 
-install (TARGETS nepomuktestlib
-         ${INSTALL_TARGETS_DEFAULT_ARGS}
-         COMPONENT Devel
-)
-
 set( nepomuk_testlib_HEADERS
      testbase.h
      nepomuktest_export.h
-)
-
-install (FILES ${nepomuk_testlib_HEADERS}
-         DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2
-         COMPONENT Devel
 )
 
 add_subdirectory(tools)

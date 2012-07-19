@@ -23,7 +23,7 @@ mkdir -p $KDEVARTMP
 
 # Copy the nepomukserverrc into place
 mkdir -p $KDEHOME/share/config
-cp @NEPOMUK_TESTLIB_DATA_INSTALL_DIR@/nepomukserverrc $KDEHOME/share/config/
+cp @NEPOMUK_TESTLIB_DATA_DIR@/nepomukserverrc $KDEHOME/share/config/
 
 # start kde basics
 echo "Starting new KDE session in $KDEHOME..."
