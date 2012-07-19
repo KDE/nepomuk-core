@@ -122,9 +122,10 @@ void ResourceTests::newFile()
 {
     KTemporaryFile tempFile;
     QVERIFY(tempFile.open());
-    const QUrl fileUrl(tempFile.fileName());
 
-    Resource fileRes( fileUrl );
+    QUrl fileUrl = QUrl::fromLocalFile(tempFile.fileName());
+
+    Resource fileRes( tempFile.fileName() );
     QVERIFY(!fileRes.exists());
     QVERIFY(fileRes.uri().isEmpty());
     QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
@@ -153,6 +154,7 @@ void ResourceTests::newFile()
 
     QList<Soprano::Statement> stList = model->listStatements( uri, Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
+    kDebug() << stList;
     QCOMPARE(stList.size(), 4);
 }
 
@@ -160,7 +162,7 @@ void ResourceTests::newFolder()
 {
     KTempDir tempDir;
     QVERIFY(tempDir.exists());
-    const QUrl dirUrl(tempDir.name());
+    QUrl dirUrl = QUrl::fromLocalFile(tempDir.name());
 
     Resource dirRes( dirUrl );
     QVERIFY(!dirRes.exists());
@@ -240,7 +242,8 @@ void ResourceTests::existingFile()
 {
     KTemporaryFile tempFile;
     QVERIFY(tempFile.open());
-    const QUrl fileUrl(tempFile.fileName());
+    QUrl fileUrl = QUrl::fromLocalFile(tempFile.fileName());
+
     QUrl fileUri;
     {
         Resource fileRes( fileUrl );
