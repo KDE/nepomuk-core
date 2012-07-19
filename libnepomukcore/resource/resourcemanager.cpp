@@ -52,6 +52,8 @@
 #include <QtDBus/QDBusMetaType>
 
 using namespace Soprano;
+using namespace Soprano::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::s_instance = 0;
 
@@ -74,11 +76,22 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::data( const QUrl& uri,
         return new ResourceData( QUrl(), QUrl(), type, this );
     }
 
-    if( ResourceData* data = findData( uri ) ) {
+    QUrl newUri = uri;
+    if( uri.scheme().isEmpty() ) {
+        const QString uriString = uri.toString();
+        if( uriString[0] == '/' && QFile::exists(uriString) ) {
+            newUri.setScheme(QLatin1String("file"));
+        }
+    }
+
+    if( ResourceData* data = findData( newUri ) ) {
         return data;
     }
     else {
-        return new ResourceData( QUrl(), uri, type, this );
+        if( uri.scheme() != QLatin1String("nepomuk") )
+            return new ResourceData( QUrl(), newUri, type, this );
+        else
+            return new ResourceData( newUri, QUrl(), type, this );
     }
 }
 
@@ -86,7 +99,10 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::data( const QUrl& uri,
 Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::data( const QString& uriOrId, const QUrl& type )
 {
     if ( !uriOrId.isEmpty() ) {
-        KUrl url(uriOrId);
+        KUrl url( uriOrId );
+        if( uriOrId[0] == '/' && QFile::exists(uriOrId) ) {
+            url.setScheme("file");
+        }
         return data( url, type );
     }
 
@@ -94,6 +110,7 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::data( const QString& u
 }
 
 
+//FIXME: Streamline this function. It's supposed to be faster than the rest
 Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::dataForResourceUri( const QUrl& uri, const QUrl& type )
 {
     if ( uri.isEmpty() ) {
@@ -110,17 +127,21 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::dataForResourceUri( co
 }
 
 
-QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceData()
+QSet<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceData()
 {
-    return m_uriKickoffData.values().toSet().toList();
+    return m_identifierKickOff.values().toSet() + m_urlKickOff.values().toSet() + m_initializedData.values().toSet();
 }
 
 
+//FIXME: Remove this. We never need to clean the cache, as there are never any ResourceData* in the
+//       cache that are not actively being used.
 void Nepomuk2::ResourceManagerPrivate::cleanupCache( int num )
 {
     QMutexLocker lock( &mutex );
 
-    QSet<ResourceData*> rdl = m_uriKickoffData.values().toSet() + m_initializedData.values().toSet();
+    ///FIXME: Is this the correct way to clean the cache?
+    QSet<ResourceData*> rdl = m_identifierKickOff.values().toSet() + m_initializedData.values().toSet() +
+                              m_urlKickOff.values().toSet();
     for( QSet<ResourceData*>::iterator rdIt = rdl.begin();
          rdIt != rdl.end(); ++rdIt ) {
         ResourceData* data = *rdIt;
@@ -137,13 +158,6 @@ bool Nepomuk2::ResourceManagerPrivate::shouldBeDeleted( ResourceData * rd ) cons
 {
     // We only delete ResourceData objects if no other Resource is accessing them
     return !rd->cnt();
-}
-
-
-void Nepomuk2::ResourceManagerPrivate::addToKickOffList( ResourceData* rd, const QSet<KUrl> & uris )
-{
-    Q_FOREACH( const KUrl& uri, uris )
-        m_uriKickoffData.insert( uri, rd );
 }
 
 
@@ -174,16 +188,21 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::findData( const QUrl& 
     if ( !uri.isEmpty() ) {
         QMutexLocker lock( &mutex );
 
-        // look for the URI in the initialized and in the URI kickoff data
-        ResourceDataHash::iterator end = m_initializedData.end();
-        ResourceDataHash::iterator it = m_initializedData.find( uri );
-        if( it == end ) {
-            end = m_uriKickoffData.end();
-            it = m_uriKickoffData.find( uri );
+        if( uri.scheme() == QLatin1String("nepomuk") ) {
+            ResourceDataHash::iterator it = m_initializedData.find( uri );
+            if( it != m_initializedData.end() )
+                return it.value();
         }
-
-        if( it != end ) {
-            return it.value();
+        else if( uri.scheme().isEmpty() ) {
+            QString identifier = uri.toString();
+            QHash<QString, ResourceData*>::iterator it = m_identifierKickOff.find( identifier );
+            if( it != m_identifierKickOff.end() )
+                return it.value();
+        }
+        else {
+            QHash<QUrl, ResourceData*>::iterator it = m_urlKickOff.find( uri );
+            if( it != m_urlKickOff.end() )
+                return it.value();
         }
     }
 
@@ -219,6 +238,11 @@ Nepomuk2::ResourceManager::ResourceManager()
 
 Nepomuk2::ResourceManager::~ResourceManager()
 {
+    // The cache should be empty when the ResourceManager is getting destroyed
+    Q_ASSERT( d->m_identifierKickOff.isEmpty() );
+    Q_ASSERT( d->m_urlKickOff.isEmpty() );
+    Q_ASSERT( d->m_initializedData.isEmpty() );
+
     clearCache();
     delete d->mainModel;
     delete d;
@@ -327,8 +351,9 @@ void Nepomuk2::ResourceManager::slotPropertyAdded(const Resource &res, const Typ
     ResourceDataHash::iterator it = d->m_initializedData.find(res.uri());
     if(it != d->m_initializedData.end()) {
         ResourceData* data = *it;
-        data->m_cache[prop.uri()].append(Variant(value));
-        data->updateKickOffLists(prop.uri(), Variant(value));
+        const Variant var(value);
+        data->updateKickOffLists(prop.uri(), var);
+        data->m_cache[prop.uri()].append(var);
     }
 }
 
@@ -338,7 +363,6 @@ void Nepomuk2::ResourceManager::slotPropertyRemoved(const Resource &res, const T
     if(it != d->m_initializedData.end()) {
         ResourceData* data = *it;
 
-
         QHash<QUrl, Variant>::iterator cacheIt = data->m_cache.find(prop.uri());
         if(cacheIt != data->m_cache.end()) {
             Variant v = *cacheIt;
@@ -346,11 +370,15 @@ void Nepomuk2::ResourceManager::slotPropertyRemoved(const Resource &res, const T
             QList<Variant> vl = v.toVariantList();
             if(vl.contains(value)) {
                 vl.removeAll(value);
-                data->updateKickOffLists(prop.uri(), Variant());
                 if(vl.isEmpty()) {
+                    data->updateKickOffLists(prop.uri(), Variant());
                     data->m_cache.erase(cacheIt);
                 }
                 else {
+                    // The kickoff properties (nao:identifier and nie:url) both have a cardinality of 1
+                    // If we have more than one value, then the properties must not be any of them
+                    if( vl.size() == 1 )
+                        data->updateKickOffLists(prop.uri(), vl.first());
                     cacheIt.value() = vl;
                 }
             }

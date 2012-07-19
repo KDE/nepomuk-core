@@ -45,6 +45,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QDateTime>
 #include <QtCore/QMutexLocker>
+#include <QtCore/QFileInfo>
 
 #include <kdebug.h>
 #include <kurl.h>
@@ -72,23 +73,27 @@ Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, c
 
     if( !uri.isEmpty() ) {
         m_cacheDirty = true;
-        m_rm->m_initializedData.insert( uri, this );
-        m_kickoffUris.insert( uri );
-    }
-    if( !kickOffUri.isEmpty() ) {
-        m_kickoffUris.insert( kickOffUri );
 
+        QMutexLocker locker(&m_rm->mutex);
+        m_rm->m_initializedData.insert( uri, this );
+    }
+
+    if( !kickOffUri.isEmpty() ) {
         if( kickOffUri.scheme().isEmpty() ) {
-            // Label
-            const QString label = kickOffUri.toString();
-            m_cache.insert( Soprano::Vocabulary::NAO::identifier(), label );
+            m_naoIdentifier = kickOffUri.toString();
+            m_cache.insert( NAO::identifier(), m_naoIdentifier );
+
+            QMutexLocker locker(&m_rm->mutex);
+            m_rm->m_identifierKickOff.insert(m_naoIdentifier, this);
         }
-        else if( kickOffUri.scheme() != QLatin1String("nepomuk") ) {
-            // It's probably the nie:url
-            m_cache.insert( Nepomuk2::Vocabulary::NIE::url(), kickOffUri );
+        else {
+            m_nieUrl = kickOffUri;
+            m_cache.insert( NIE::url(), m_nieUrl );
+
+            QMutexLocker locker(&m_rm->mutex);
+            m_rm->m_urlKickOff.insert(m_nieUrl, this);
         }
     }
-    m_rm->addToKickOffList( this, m_kickoffUris );
 }
 
 
@@ -103,7 +108,6 @@ bool Nepomuk2::ResourceData::isFile()
 {
     return( m_uri.scheme() == QLatin1String("file") ||
             m_nieUrl.scheme() == QLatin1String("file") ||
-            (!m_kickoffUris.isEmpty() && (*m_kickoffUris.begin()).scheme() == QLatin1String("file")) ||
             hasProperty( RDF::type(), NFO::FileDataObject() ) );
     // The hasProperty should be const - It shouldn't load the entire cache. Maybe
 }
@@ -158,8 +162,8 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
     // This is required cause otherwise the Resource::fromResourceUri creates a new
     // resource which is correctly identified to the ResourceData (this), and it is
     // then deleted, which calls resetAll and this cycle continues.
-    Q_FOREACH( const KUrl& uri, m_kickoffUris )
-        m_rm->m_uriKickoffData.remove( uri );
+    m_rm->m_identifierKickOff.remove( m_cache[NAO::identifier()].toString() );
+    m_rm->m_urlKickOff.remove( m_cache[NIE::url()].toUrl() );
 
     if( !m_uri.isEmpty() ) {
         m_rm->m_initializedData.remove( m_uri );
@@ -179,9 +183,9 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
     m_rm->mutex.unlock();
 
     // reset all variables
-    m_uri = QUrl();
-    m_nieUrl = KUrl();
-    m_kickoffUris.clear();
+    m_uri.clear();
+    m_nieUrl.clear();
+    m_naoIdentifier.clear();
     m_cache.clear();
     m_cacheDirty = false;
     m_type.clear();
@@ -247,6 +251,7 @@ bool Nepomuk2::ResourceData::store()
     if ( m_uri.isEmpty() ) {
         QMutexLocker rmlock(&m_rm->mutex);
 
+        //FIXME: This is weird, hard to understand, buggy logic
         QList<QUrl> types;
         if ( m_nieUrl.isValid() &&
              m_nieUrl.isLocalFile() &&
@@ -254,7 +259,12 @@ bool Nepomuk2::ResourceData::store()
             types << NFO::FileDataObject();
         }
 
-        types << m_type;
+        if( !m_type.isEmpty() )
+            types << m_type;
+        else if( types.isEmpty() )
+            types << RDFS::Resource();
+
+        kDebug() << "Creating with types: " << types;
         Nepomuk2::CreateResourceJob* job = Nepomuk2::createResource(types, QString(), QString());
         if( !job->exec() ) {
             //TODO: Set the error somehow
@@ -269,18 +279,13 @@ bool Nepomuk2::ResourceData::store()
         // Add us to the initialized data, i.e. make us "valid"
         m_rm->m_initializedData.insert( m_uri, this );
 
-        // each initialized resource has to be in a kickoff list
-        // thus, we make sure that is the case.
-        if( m_kickoffUris.isEmpty() ) {
-            m_kickoffUris.insert( m_uri );
-            m_rm->addToKickOffList( this, m_kickoffUris );
+        if( !m_naoIdentifier.isEmpty() ) {
+            setProperty( NAO::identifier(), m_naoIdentifier );
+            m_naoIdentifier.clear();
         }
-
-        foreach( const KUrl& url, m_kickoffUris ) {
-            if( url.scheme().isEmpty() )
-                setProperty( Soprano::Vocabulary::NAO::identifier(), Variant(url.url()) );
-            else
-                setProperty( Nepomuk2::Vocabulary::NIE::url(), Variant(url.url()) );
+        if( !m_nieUrl.isEmpty() ) {
+            setProperty( NIE::url(), m_nieUrl );
+            m_nieUrl.clear();
         }
     }
 
@@ -331,6 +336,7 @@ bool Nepomuk2::ResourceData::load()
                 QUrl p = it["p"].uri();
                 Soprano::Node o = it["o"];
                 Nepomuk2::Variant var = Variant::fromNode( o );
+                //FIXME: Is this updating of the kickoff lists required?
                 updateKickOffLists( p, var );
                 m_cache[p].append( var );
             }
@@ -376,14 +382,15 @@ void Nepomuk2::ResourceData::setProperty( const QUrl& uri, const Nepomuk2::Varia
             return;
         }
 
+        // update the kickofflists
+        // IMPORTANT: Must be called before the cache is updated. They use the value from the cache
+        updateKickOffLists( uri, value );
+
         // update the cache for now
         if( value.isValid() )
             m_cache[uri] = value;
         else
             m_cache.remove(uri);
-
-        // update the kickofflists
-        updateKickOffLists( uri, value );
     }
 }
 
@@ -416,12 +423,13 @@ void Nepomuk2::ResourceData::addProperty( const QUrl& uri, const Nepomuk2::Varia
             return;
         }
 
+        // update the kickofflists
+        // IMPORTANT: Must be called before the cache is updated. They use the value from the cache
+        updateKickOffLists( uri, value );
+
         // update the cache for now
         if( value.isValid() )
             m_cache[uri].append(value);
-
-        // update the kickofflists
-        updateKickOffLists( uri, value );
     }
 }
 
@@ -439,11 +447,12 @@ void Nepomuk2::ResourceData::removeProperty( const QUrl& uri )
             return;
         }
 
+        // update the kickofflists
+        // IMPORTANT: Must be called before the cache is updated. They use the value from the cache
+        updateKickOffLists( uri, Variant() );
+
         // Update the cache
         m_cache.remove( uri );
-
-        // update the kickofflists
-        updateKickOffLists( uri, Variant() );
     }
 }
 
@@ -481,7 +490,7 @@ bool Nepomuk2::ResourceData::exists()
 
 bool Nepomuk2::ResourceData::isValid() const
 {
-    return !m_uri.isEmpty() || !m_kickoffUris.isEmpty();
+    return !m_uri.isEmpty() || !m_nieUrl.isEmpty() || !m_naoIdentifier.isEmpty();
 }
 
 
@@ -513,53 +522,42 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceData::determineUri()
     if( m_uri.isEmpty() ) {
         Soprano::Model* model = MAINMODEL;
 
-        if( !m_kickoffUris.isEmpty() ) {
-            KUrl kickOffUri = *m_kickoffUris.begin();
-            if( kickOffUri.scheme().isEmpty() ) {
-                //
-                // Not valid. Checking for nao:identifier
-                //
-                QString query = QString::fromLatin1("select distinct ?r where { ?r %1 %2. } LIMIT 1")
-                                .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::identifier()) )
-                                .arg( Soprano::Node::literalToN3( kickOffUri.url() ) );
+        if( !m_naoIdentifier.isEmpty() ) {
+            //
+            // Not valid. Checking for nao:identifier
+            //
+            QString query = QString::fromLatin1("select distinct ?r where { ?r %1 %2. } LIMIT 1")
+                            .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::identifier()) )
+                            .arg( Soprano::Node::literalToN3( m_naoIdentifier ) );
 
-                Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-                if( it.next() ) {
-                    m_uri = it["r"].uri();
-                    it.close();
-                }
+            Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+            if( it.next() ) {
+                m_uri = it["r"].uri();
+                it.close();
             }
-            else {
-                //
-                // In one query determine if the URI is already used as resource URI or as
-                // nie:url
-                //
-                QString query = QString::fromLatin1("select distinct ?r ?o where { "
-                                                    "{ ?r %1 %2 . FILTER(?r!=%2) . } "
-                                                    "UNION "
-                                                    "{ %2 ?p ?o . } "
-                                                    "} LIMIT 1")
-                                .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ) )
-                                .arg( Soprano::Node::resourceToN3( kickOffUri ) );
-                Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-                if( it.next() ) {
-                    QUrl uri = it["r"].uri();
-                    if( uri.isEmpty() ) {
-                        m_uri = kickOffUri;
-                    }
-                    else {
-                        m_uri = uri;
-                        m_nieUrl = kickOffUri;
-                    }
-                    it.close();
-                }
-                else if( kickOffUri.scheme() == QLatin1String("nepomuk") ) {
-                    // for nepomuk URIs we simply use the kickoff URI as resource URI
-                    m_uri = kickOffUri;
+        }
+        else {
+            //
+            // In one query determine if the URI is already used as resource URI or as
+            // nie:url
+            //
+            QString query = QString::fromLatin1("select distinct ?r ?o where { "
+                                                "{ ?r %1 %2 . FILTER(?r!=%2) . } "
+                                                "UNION "
+                                                "{ %2 ?p ?o . } "
+                                                "} LIMIT 1")
+                            .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ) )
+                            .arg( Soprano::Node::resourceToN3( m_nieUrl ) );
+            Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+            if( it.next() ) {
+                QUrl uri = it["r"].uri();
+                if( uri.isEmpty() ) {
+                    // FIXME: Find a way to avoid this
+                    // The url is actually the uri - legacy data
+                    m_uri = m_nieUrl;
                 }
                 else {
-                    // for everything else we use m_kickoffUri as nie:url with a new random m_uri
-                    m_nieUrl = kickOffUri;
+                    m_uri = uri;
                 }
             }
         }
@@ -594,17 +592,19 @@ bool Nepomuk2::ResourceData::operator==( const ResourceData& other ) const
     if( this == &other )
         return true;
 
+    // TODO: Maybe we shouldn't check if the identifier and url are same.
     return( m_uri == other.m_uri &&
-            m_kickoffUris == other.m_kickoffUris );
+            m_naoIdentifier == other.m_naoIdentifier &&
+            m_nieUrl == other.m_nieUrl );
 }
 
 
 QDebug Nepomuk2::ResourceData::operator<<( QDebug dbg ) const
 {
-    KUrl::List list = m_kickoffUris.toList();
-    dbg << QString::fromLatin1("[kickoffuri: %1; uri: %2; ref: %4]")
-        .arg( list.toStringList().join(QLatin1String(",")),
-              m_uri.url() )
+    dbg << QString::fromLatin1("[uri: %1; url: %2, identifier: %3, ref: %4]")
+        .arg( m_uri.url(),
+              m_nieUrl.url(),
+              m_naoIdentifier )
         .arg( m_ref );
 
     return dbg;
@@ -616,38 +616,34 @@ QDebug operator<<( QDebug dbg, const Nepomuk2::ResourceData& data )
     return data.operator<<( dbg );
 }
 
-
-void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& prop, const Nepomuk2::Variant& v)
+void Nepomuk2::ResourceData::updateUrlLists(const QUrl& newUrl)
 {
-    KUrl oldUrl;
-    KUrl newUrl;
-    if( prop == Nepomuk2::Vocabulary::NIE::url() ) {
-        oldUrl = m_nieUrl;
-        newUrl = v.toUrl();
-        m_nieUrl = newUrl;
-    }
-    else if( prop == Soprano::Vocabulary::NAO::identifier() ) {
-        Q_FOREACH( const KUrl& url, m_kickoffUris ) {
-            if( url.scheme().isEmpty() ) {
-                oldUrl = url;
-                break;
-            }
-        }
-        newUrl = KUrl( v.toString() );
-    }
-    else {
-        return;
-    }
+    const QUrl oldUrl = m_cache[NIE::url()].toUrl();
 
-    if( oldUrl != newUrl ) {
-        QMutexLocker rmlock(&m_rm->mutex);
+    QMutexLocker rmlock(&m_rm->mutex);
+    m_rm->m_urlKickOff.remove( oldUrl );
 
-        m_kickoffUris.remove( oldUrl );
-        m_rm->m_uriKickoffData.remove( oldUrl );
-
-        if( !newUrl.isEmpty() ) {
-            m_kickoffUris.insert( newUrl );
-            m_rm->m_uriKickoffData.insert( newUrl, this );
-        }
+    if( !newUrl.isEmpty() ) {
+        m_rm->m_urlKickOff.insert( newUrl, this );
     }
+}
+
+void Nepomuk2::ResourceData::updateIdentifierLists(const QString& newIdentifier)
+{
+    const QString oldIdentifier = m_cache[NAO::identifier()].toString();
+
+    QMutexLocker rmlock(&m_rm->mutex);
+    m_rm->m_identifierKickOff.remove( oldIdentifier );
+
+    if( !newIdentifier.isEmpty() ) {
+        m_rm->m_identifierKickOff.insert( newIdentifier, this );
+    }
+}
+
+void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& uri, const Nepomuk2::Variant& variant)
+{
+    if( uri == NIE::url() )
+        updateUrlLists( variant.toUrl() );
+    else if( uri == NAO::identifier() )
+        updateIdentifierLists( variant.toString() );
 }

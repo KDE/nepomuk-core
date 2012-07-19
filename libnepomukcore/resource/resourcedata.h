@@ -154,16 +154,12 @@ namespace Nepomuk2 {
         /// Contains a list of resources which use this ResourceData
         QList<Resource*> m_resources;
 
-        /// the URI that was used to construct the resource. Will be used by determineUri
-        /// to find the actual resource URI which is either m_kickoffUri itself or
-        /// a resource URI which relates to m_kickoffUri by nie:url
-        /// This is a set since Resource::determineFinalResourceData may add additional uris
-        QSet<KUrl> m_kickoffUris;
-
         QHash<QUrl, Variant> m_cache;
 
-        /// Updates both m_kickoffUris and ResourceMangerPrivate's list
-        void updateKickOffLists( const QUrl & prop, const Variant & v );
+        /// Updates ResourceMangerPrivate's list
+        void updateKickOffLists( const QUrl& uri, const Variant& variant );
+        void updateUrlLists( const QUrl& newUrl );
+        void updateIdentifierLists( const QString& string );
 
     private:
         /// Will reset this instance to 0 as if constructed without parameters
@@ -174,7 +170,12 @@ namespace Nepomuk2 {
         KUrl m_uri;
 
         /// the URL of file resources
+        /// Only used before identification
         KUrl m_nieUrl;
+
+        /// The nao:identifier of the tags
+        /// Only used before identification
+        QString m_naoIdentifier;
 
         /// Only used when creating a new Resource. It is not used in any other context
         QUrl m_type;
