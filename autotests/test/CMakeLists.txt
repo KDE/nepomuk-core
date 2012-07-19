@@ -15,11 +15,9 @@ target_link_libraries(resourcetest
   ${QT_QTGUI_LIBRARY}
   ${SOPRANO_LIBRARIES}
   kdecore
-  nepomuktest
   nepomukcore
+  nepomuktestlib
 )
 
 add_nepomuk_test(NepomukResourceTest ${CMAKE_CURRENT_BINARY_DIR}/resourcetest)
-
-
 
