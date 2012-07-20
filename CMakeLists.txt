@@ -8,6 +8,12 @@ set(CMAKE_NEPOMUK_CORE_VERSION_MINOR 1)
 set(CMAKE_NEPOMUK_CORE_VERSION_RELEASE 0)
 set(CMAKE_NEPOMUK_CORE_VERSION_STRING "${CMAKE_NEPOMUK_CORE_VERSION_MAJOR}.${CMAKE_NEPOMUK_CORE_VERSION_MINOR}.${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}")
 
+# CTest setup
+# ===============================================================================================
+include(CTest)
+include(CTestConfig.cmake)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake COPYONLY)
+
 
 # search required packages
 # ===============================================================================================
