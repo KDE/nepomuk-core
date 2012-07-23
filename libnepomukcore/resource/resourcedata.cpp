@@ -251,17 +251,30 @@ bool Nepomuk2::ResourceData::store()
     if ( m_uri.isEmpty() ) {
         QMutexLocker rmlock(&m_rm->mutex);
 
-        //FIXME: This is weird, hard to understand, buggy logic
+        //TODO: Move this logic to the DMS
         QList<QUrl> types;
-        if ( m_nieUrl.isValid() &&
-             m_nieUrl.isLocalFile() &&
-             m_type != NFO::FileDataObject() ) {
-            types << NFO::FileDataObject();
+        if ( m_nieUrl.isValid() && m_nieUrl.isLocalFile() ) {
+            // FIXME: Also check for super classes of nfo:Folder and nfo:FileDataObject
+            // For folders
+            if( QFileInfo(m_nieUrl.toLocalFile()).isDir() ) {
+                types << NFO::Folder();
+                //FIXME: This should ideally check if m_type is not a subtype of nfo:Folder
+                if( m_type != NFO::FileDataObject() && m_type != NFO::Folder() && m_type != RDFS::Resource() )
+                    types << m_type;
+                m_type.clear();
+            }
+            //
+            // For files
+            if( !m_type.isEmpty() && m_type != NFO::FileDataObject() ) {
+                types << NFO::FileDataObject();
+                m_type.clear();
+            }
         }
 
         if( !m_type.isEmpty() )
             types << m_type;
-        else if( types.isEmpty() )
+
+        if( types.isEmpty() )
             types << RDFS::Resource();
 
         kDebug() << "Creating with types: " << types;
