@@ -221,8 +221,9 @@ bool Nepomuk2::ResourceMerger::areEqual(const QMultiHash<QUrl, Soprano::Node>& o
     // Check the types
     //
     newTypes << NRL::InstanceBase();
-    if( !containsAllTypes( oldTypes, newTypes ) || !containsAllTypes( newTypes, oldTypes ) )
+    if( !sameTypes(oldTypes, newTypes) ) {
         return false;
+    }
 
     // Check nao:maintainedBy
     it = oldPropHash.find( NAO::maintainedBy() );
@@ -235,20 +236,24 @@ bool Nepomuk2::ResourceMerger::areEqual(const QMultiHash<QUrl, Soprano::Node>& o
     return true;
 }
 
-bool Nepomuk2::ResourceMerger::containsAllTypes(const QSet< QUrl >& types, const QSet< QUrl >& masterTypes)
+
+bool Nepomuk2::ResourceMerger::sameTypes(const QSet< QUrl >& t1, const QSet< QUrl >& t2)
 {
+    QSet<QUrl> types1;
+    QSet<QUrl> types2;
+
     ClassAndPropertyTree* tree = m_model->classAndPropertyTree();
-    foreach( const QUrl & type, types ) {
-        if( !masterTypes.contains( type) ) {
-            QSet<QUrl> superTypes = tree->allParents( type );
-            superTypes.intersect(masterTypes);
-            if(superTypes.isEmpty()) {
-                return false;
-            }
-        }
+    foreach(const QUrl& type, t1) {
+        types1 << type;
+        types1.unite(tree->allParents(type));
     }
 
-    return true;
+    foreach(const QUrl& type, t2) {
+        types2 << type;
+        types2.unite(tree->allParents(type));
+    }
+
+    return types1 == types2;
 }
 
 
