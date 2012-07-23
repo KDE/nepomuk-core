@@ -2581,7 +2581,8 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk2::DataManagementModel::addProperty(co
         for(QSet<QPair<QUrl, Soprano::Node> >::const_iterator it = finalProperties.constBegin(); it != finalProperties.constEnd(); ++it) {
             addStatement(it->first, property, it->second, graph);
             if(property == NIE::url() && it->second.uri().scheme() == QLatin1String("file")) {
-                addStatement(it->first, RDF::type(), NFO::FileDataObject(), graph);
+                if(!containsAnyStatement(it->first, RDF::type(), NFO::FileDataObject()))
+                    addStatement(it->first, RDF::type(), NFO::FileDataObject(), graph);
             }
             finalValuesPerResource[it->first].append(it->second);
         }
