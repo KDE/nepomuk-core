@@ -181,17 +181,19 @@ void ResourceTests::newFolder()
 
     // One for <resUri> nao:lastModified ..
     //         <resUri> nao:created ..
+    //         <resUri> rdf:type nfo:FileDataObject
     //         <resUri> rdf:type nfo:Folder
     //         <resUri> nie:url url
     const QUrl uri = dirRes.uri();
     QVERIFY(model->containsAnyStatement(uri, NAO::lastModified(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, RDF::type(), NFO::Folder()));
+    QVERIFY(model->containsAnyStatement(uri, RDF::type(), NFO::FileDataObject()));
     QVERIFY(model->containsAnyStatement(uri, NIE::url(), dirUrl));
 
     QList<Soprano::Statement> stList = model->listStatements( uri, Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
-    QCOMPARE(stList.size(), 4);
+    QCOMPARE(stList.size(), 5);
 }
 
 void ResourceTests::newResourceMetaProperties()
