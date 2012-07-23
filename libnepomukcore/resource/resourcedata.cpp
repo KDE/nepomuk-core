@@ -287,11 +287,40 @@ bool Nepomuk2::ResourceData::store()
             setProperty( NIE::url(), m_nieUrl );
             m_nieUrl.clear();
         }
+
+        addToWatcher();
     }
 
     return true;
 }
 
+
+void Nepomuk2::ResourceData::addToWatcher()
+{
+    if(!m_rm->m_watcher) {
+        m_rm->m_watcher = new ResourceWatcher(m_rm->m_manager);
+        //
+        // The ResourceWatcher is not thread-safe. Thus, we need to ensure the safety ourselves.
+        // We do that by simply handling all RW related operations in the manager thread.
+        // This also means to invoke methods on the watcher through QMetaObject to make sure they
+        // get queued in case of calls between different threads.
+        //
+        m_rm->m_watcher->moveToThread(m_rm->m_manager->thread());
+        QObject::connect( m_rm->m_watcher, SIGNAL(propertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
+                            m_rm->m_manager, SLOT(slotPropertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
+        QObject::connect( m_rm->m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
+                            m_rm->m_manager, SLOT(slotPropertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
+        m_rm->m_watcher->addResource( Nepomuk2::Resource::fromResourceUri(m_uri) );
+    }
+    else {
+        QMetaObject::invokeMethod(m_rm->m_watcher, "addResource", Qt::AutoConnection, Q_ARG(Nepomuk2::Resource, Nepomuk2::Resource::fromResourceUri(m_uri)) );
+    }
+    // (re-)start the watcher in case this resource is the only one in the list of watched
+    if(m_rm->m_watcher->resources().count() <= 1) {
+        QMetaObject::invokeMethod(m_rm->m_watcher, "start", Qt::AutoConnection);
+    }
+    m_addedToWatcher = true;
+}
 
 bool Nepomuk2::ResourceData::load()
 {
@@ -299,30 +328,7 @@ bool Nepomuk2::ResourceData::load()
 
     if ( m_cacheDirty ) {
         m_cache.clear();
-
-        if(!m_rm->m_watcher) {
-            m_rm->m_watcher = new ResourceWatcher(m_rm->m_manager);
-            //
-            // The ResourceWatcher is not thread-safe. Thus, we need to ensure the safety ourselves.
-            // We do that by simply handling all RW related operations in the manager thread.
-            // This also means to invoke methods on the watcher through QMetaObject to make sure they
-            // get queued in case of calls between different threads.
-            //
-            m_rm->m_watcher->moveToThread(m_rm->m_manager->thread());
-            QObject::connect( m_rm->m_watcher, SIGNAL(propertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
-                              m_rm->m_manager, SLOT(slotPropertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
-            QObject::connect( m_rm->m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
-                              m_rm->m_manager, SLOT(slotPropertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
-            m_rm->m_watcher->addResource( Nepomuk2::Resource::fromResourceUri(m_uri) );
-        }
-        else {
-            QMetaObject::invokeMethod(m_rm->m_watcher, "addResource", Qt::AutoConnection, Q_ARG(Nepomuk2::Resource, Nepomuk2::Resource::fromResourceUri(m_uri)) );
-        }
-        // (re-)start the watcher in case this resource is the only one in the list of watched
-        if(m_rm->m_watcher->resources().count() <= 1) {
-            QMetaObject::invokeMethod(m_rm->m_watcher, "start", Qt::AutoConnection);
-        }
-        m_addedToWatcher = true;
+        addToWatcher();
 
         if ( m_uri.isValid() ) {
             //

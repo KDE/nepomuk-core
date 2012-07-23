@@ -161,6 +161,7 @@ namespace Nepomuk2 {
         void updateUrlLists( const QUrl& newUrl );
         void updateIdentifierLists( const QString& string );
 
+        void addToWatcher();
     private:
         /// Will reset this instance to 0 as if constructed without parameters
         /// Used by remove() and deleteData()
