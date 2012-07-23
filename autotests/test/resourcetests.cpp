@@ -364,7 +364,6 @@ void ResourceTests::typeTopMost()
     Resource res;
     res.addType(NFO::PlainTextDocument());
     res.addType(NFO::Document());
-    res.addType(NFO::FileDataObject());
     res.addType(NIE::InformationElement());
 
     QCOMPARE(res.type(), NFO::PlainTextDocument());
@@ -516,8 +515,9 @@ void ResourceTests::resourceDeletion()
     QVERIFY(tag.exists());
     tag.remove();
     QVERIFY(!tag.exists());
-    QVERIFY(!tag.uri().isEmpty());
+    QVERIFY(tag.uri().isEmpty());
 
+    QTest::qWait(200);
     QVERIFY(fileRes.tags().isEmpty());
 
     // Verify the statements
