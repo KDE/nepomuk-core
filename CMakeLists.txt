@@ -73,6 +73,7 @@ add_subdirectory(interfaces)
 add_subdirectory(removed-services)
 add_subdirectory(includes)
 add_subdirectory(tests)
+add_subdirectory(autotests)
 
 macro_display_feature_log()
 

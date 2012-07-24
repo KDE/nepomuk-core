@@ -509,7 +509,7 @@ void QueryTest::testToSparql()
     QFETCH( QString, queryString );
 
     // we test without result restrictions which always look the same anyway
-    query.setQueryFlags( Query::NoResultRestrictions|Query::WithoutFullTextExcerpt );
+    query.setQueryFlags( Query::NoResultRestrictions|Query::WithFullTextExcerpt );
 
     QCOMPARE( normalizeVariables(query.toSparqlQuery().simplified()), normalizeVariables(queryString) );
 

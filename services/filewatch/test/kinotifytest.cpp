@@ -268,12 +268,12 @@ void KInotifyTest::testRenameFolder()
     // listen to the desired signal
     const QString f4(QString::fromLatin1("%1/somefile").arg(f3));
 
-    QSignalSpy createdSpy( &kn, SIGNAL(created(QString)));
+    QSignalSpy createdSpy( &kn, SIGNAL(created(QString, bool)));
 
     // test creating a file
     touchFile(f4);
 
-    waitForSignal( &kn, SIGNAL(created(QString)) );
+    waitForSignal( &kn, SIGNAL(created(QString, bool)) );
     QCOMPARE(createdSpy.count(), 1);
     QCOMPARE(createdSpy.takeFirst().at(0).toString(), f4);
 }
@@ -332,12 +332,12 @@ void KInotifyTest::testMoveFolder()
     // listen to the desired signal
     const QString f4(QString::fromLatin1("%1/somefile").arg(dest2));
 
-    QSignalSpy createdSpy( &kn, SIGNAL(created(QString)));
+    QSignalSpy createdSpy( &kn, SIGNAL(created(QString, bool)));
 
     // test creating a file
     touchFile(f4);
 
-    waitForSignal( &kn, SIGNAL(created(QString)) );
+    waitForSignal( &kn, SIGNAL(created(QString, bool)) );
     QCOMPARE(createdSpy.count(), 1);
     QCOMPARE(createdSpy.takeFirst().at(0).toString(), f4);
 }

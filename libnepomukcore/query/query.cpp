@@ -512,7 +512,7 @@ QString Nepomuk2::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
     }
     else {
         QString fullTextExcerptExpression;
-        if( !(queryFlags()&WithoutFullTextExcerpt) ) {
+        if( queryFlags()&WithFullTextExcerpt ) {
             fullTextExcerptExpression = qbd.buildSearchExcerptExpression();
         }
         query = QString::fromLatin1( "select distinct ?r %1 %2 %3" )

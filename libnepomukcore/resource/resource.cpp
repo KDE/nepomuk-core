@@ -1,6 +1,7 @@
 /*
  * This file is part of the Nepomuk KDE project.
  * Copyright (C) 2006-2010 Sebastian Trueg <trueg@kde.org>
+ * Copyright (C) 2012 Vishesh Handa <me@vhanda.in>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -39,6 +40,7 @@
 
 #include <Soprano/Vocabulary/NAO>
 #include <Soprano/Vocabulary/RDFS>
+#include <Soprano/Vocabulary/RDF>
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
 #include <Soprano/StatementIterator>
@@ -149,29 +151,28 @@ QUrl Nepomuk2::Resource::type() const
 QList<QUrl> Nepomuk2::Resource::types() const
 {
     determineFinalResourceData();
-    return m_data->allTypes();
+    return m_data->property( RDF::type() ).toUrlList();
 }
 
 
 void Nepomuk2::Resource::setTypes( const QList<QUrl>& types )
 {
     determineFinalResourceData();
-    m_data->setTypes( types );
+    m_data->setProperty( RDF::type(), types );
 }
 
 
 void Nepomuk2::Resource::addType( const QUrl& type )
 {
-    QList<QUrl> tl = types();
-    if( !tl.contains( type ) )
-        setTypes( tl << type );
+    determineFinalResourceData();
+    m_data->addProperty( RDF::type(), type );
 }
 
 
 bool Nepomuk2::Resource::hasType( const QUrl& typeUri ) const
 {
     determineFinalResourceData();
-    return m_data->hasType( typeUri );
+    return m_data->hasProperty( RDF::type(), typeUri );
 }
 
 
