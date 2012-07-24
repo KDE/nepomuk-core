@@ -142,12 +142,3 @@ target_link_libraries(resourcewatchertest
 
   datamanagementtestlib
 )
-
-kde4_add_unit_test(simpleresourceclassestest
-  simpleresourceclassestest.cpp
-)
-target_link_libraries(simpleresourceclassestest
-  nepomukcore
-  ${QT_QTTEST_LIBRARY}
-  ${QT_QTCORE_LIBRARY}
-)
