@@ -1,0 +1,18 @@
+Nepomuk-test is a static library for building unit tests of KDE/Nepomuk components.
+
+It allows complicated unit tests which make use of a Private DBus Session Bus and a virtuoso
+sandbox to avoid making a mess of the nepomuk/dbus installations running on the
+system where the tests are run.
+
+When running Nepomuk unit tests please make sure the services you require are running. If they
+are not running they can be started via the Nepomuk2::TestBase::startService function. All tests
+should be derived from the Nepomuk2::TestBase class.
+
+By default only 2 services are started -
+* Storage
+* Query Service
+
+This code is based on the Telepathy Testlib which can be found - https://projects.kde.org/projects/playground/network/telepathy/ktp-testlib
+
+Run the tests with 'ctest -VV' or 'make tests'.
+

@@ -1,0 +1,4 @@
+#!/bin/bash
+
+export NEPOMUK_TESTLIB_RUNNING=true
+bash @NEPOMUK_TESTLIB_TOOLS_DIR@/run_in_new_dbus_session.sh bash @NEPOMUK_TESTLIB_TOOLS_DIR@/with-nepomuk-sandbox.sh $@
