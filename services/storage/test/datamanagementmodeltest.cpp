@@ -2303,6 +2303,7 @@ void DataManagementModelTest::testRemoveDataByApplication10()
     for( int i=0; i<10; i++ ) {
         QTemporaryFile fileA;
         fileA.open();
+        QUrl fileUrl = QUrl::fromLocalFile(fileA.fileName());
 
         SimpleResource res;
         res.addProperty( RDF::type(), NFO::FileDataObject() );
@@ -2313,7 +2314,7 @@ void DataManagementModelTest::testRemoveDataByApplication10()
 
         QString query = QString::fromLatin1("select ?r where { ?r %1 %2 . }")
                         .arg( Node::resourceToN3( NIE::url() ),
-                            Node::resourceToN3( QUrl(fileA.fileName()) ) );
+                            Node::resourceToN3(fileUrl) );
 
         QList<Node> list = m_dmModel->executeQuery( query, Soprano::Query::QueryLanguageSparql ).iterateBindings(0).allNodes();
         QCOMPARE( list.size(), 1 );
