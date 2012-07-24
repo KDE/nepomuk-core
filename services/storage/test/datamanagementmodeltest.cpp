@@ -1720,17 +1720,6 @@ void DataManagementModelTest::testRemoveResources_invalid_args()
 
     // no data should have been changed
     QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // non-existing file
-    const QUrl nonExistingFileUrl("file:///a/file/that/is/very/unlikely/to/exist");
-    m_dmModel->removeResources(QList<QUrl>() << nonExistingFileUrl, Nepomuk2::NoRemovalFlags, QLatin1String("testapp"));
-
-    // the call should have failed
-    QVERIFY(m_dmModel->lastError());
-
-    // nothing should have changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
 }
 
 // make sure we do not allow to remove classes, properties, and graphs
