@@ -280,7 +280,13 @@ void Nepomuk2::SimpleResource::clear()
 
 void Nepomuk2::SimpleResource::addProperties(const Nepomuk2::PropertyHash &properties)
 {
-    d->m_properties += properties;
+    // This is done manually, so that we avoid duplicates
+    // A multihash can contain the same <key, value> pairs multiple times
+    QHashIterator<QUrl, QVariant> it(properties);
+    while(it.hasNext()) {
+        it.next();
+        addProperty(it.key(), it.value());
+    }
 }
 
 QVariantList Nepomuk2::SimpleResource::property(const QUrl &property) const
