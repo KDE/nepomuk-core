@@ -103,15 +103,6 @@ namespace Nepomuk2 {
          */
         ResourceData* dataForResourceUri( const QUrl& uri, const QUrl& type );
 
-        /**
-         * Delete unused ResourceData objects from the cache.
-         * \param num The number of needed slots. The ResourceData constructor
-         * uses this to make room for itself. Use < 0 to free the complete cache.
-         *
-         * Does NOT lock the mutex.
-         */
-        void cleanupCache( int num = 1 );
-
         bool shouldBeDeleted( ResourceData* rd ) const;
 
         QSet<ResourceData*> allResourceData();

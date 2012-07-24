@@ -229,7 +229,6 @@ void ResourceTests::existingTag()
         QVERIFY(!t.uri().isEmpty());
         tagUri = t.uri();
     }
-    ResourceManager::instance()->clearCache();
 
     Tag t("Tag");
     QVERIFY(t.exists());
@@ -257,16 +256,12 @@ void ResourceTests::existingFile()
         fileUri = fileRes.uri();
     }
 
-    ResourceManager::instance()->clearCache();
-
     {
         Resource fileRes( fileUrl );
         QVERIFY(fileRes.exists());
         QCOMPARE(fileRes.uri(), fileUri);
         QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
     }
-
-    ResourceManager::instance()->clearCache();
 
     {
         Resource fileRes( fileUri );
@@ -295,8 +290,6 @@ void ResourceTests::existingContact()
 
         contactUri = con.uri();
     }
-
-    ResourceManager::instance()->clearCache();
 
     Resource con(contactUri);
     QVERIFY(con.exists());
@@ -403,7 +396,6 @@ void ResourceTests::tagsUpdate()
         res.addTag( tag3 );
         resUri = res.uri();
     }
-    ResourceManager::instance()->clearCache();
 
     QVERIFY(tag1.exists());
     QVERIFY(tag2.exists());
@@ -438,7 +430,6 @@ void ResourceTests::metaPropertiesUpdate()
         Resource res;
         res.addTag(tag);
     }
-    ResourceManager::instance()->clearCache();
 
     Tag tag("Fire");
 
@@ -473,7 +464,6 @@ void ResourceTests::ratingUpdate()
 
         fileUri = fileRes.uri();
     }
-    ResourceManager::instance()->clearCache();
 
     Resource fileRes(fileUri);
 

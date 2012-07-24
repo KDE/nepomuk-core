@@ -132,28 +132,6 @@ QSet<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceData(
     return m_identifierKickOff.values().toSet() + m_urlKickOff.values().toSet() + m_initializedData.values().toSet();
 }
 
-
-//FIXME: Remove this. We never need to clean the cache, as there are never any ResourceData* in the
-//       cache that are not actively being used.
-void Nepomuk2::ResourceManagerPrivate::cleanupCache( int num )
-{
-    QMutexLocker lock( &mutex );
-
-    ///FIXME: Is this the correct way to clean the cache?
-    QSet<ResourceData*> rdl = m_identifierKickOff.values().toSet() + m_initializedData.values().toSet() +
-                              m_urlKickOff.values().toSet();
-    for( QSet<ResourceData*>::iterator rdIt = rdl.begin();
-         rdIt != rdl.end(); ++rdIt ) {
-        ResourceData* data = *rdIt;
-        if ( !data->cnt() ) {
-            delete data;
-            if( num > 0 && --num == 0 )
-                break;
-        }
-    }
-}
-
-
 bool Nepomuk2::ResourceManagerPrivate::shouldBeDeleted( ResourceData * rd ) const
 {
     // We only delete ResourceData objects if no other Resource is accessing them
@@ -165,7 +143,6 @@ void Nepomuk2::ResourceManagerPrivate::_k_storageServiceInitialized( bool succes
 {
     if( success ) {
         kDebug() << "Nepomuk Storage service up and initialized.";
-        cleanupCache(-1);
         m_manager->init();
         emit m_manager->nepomukSystemStarted();
     }
@@ -176,7 +153,6 @@ void Nepomuk2::ResourceManagerPrivate::_k_dbusServiceUnregistered( const QString
 {
     if( serviceName == QLatin1String("org.kde.NepomukStorage") ) {
         kDebug() << "Nepomuk Storage service went down.";
-        cleanupCache(-1);
         emit m_manager->nepomukSystemStopped();
     }
 }
@@ -243,7 +219,6 @@ Nepomuk2::ResourceManager::~ResourceManager()
     Q_ASSERT( d->m_urlKickOff.isEmpty() );
     Q_ASSERT( d->m_initializedData.isEmpty() );
 
-    clearCache();
     delete d->mainModel;
     delete d;
 
@@ -294,12 +269,6 @@ void Nepomuk2::ResourceManager::notifyError( const QString& uri, int errorCode )
 {
     kDebug() << "(Nepomuk2::ResourceManager) error: " << uri << " " << errorCode;
     emit error( uri, errorCode );
-}
-
-
-void Nepomuk2::ResourceManager::clearCache()
-{
-    d->cleanupCache( -1 );
 }
 
 
