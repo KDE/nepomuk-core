@@ -2066,7 +2066,7 @@ Nepomuk2::SimpleResourceGraph Nepomuk2::DataManagementModel::describeResources(c
                                         resourcesToN3(graph.allResourceUris()).join(QLatin1String(",")),
                                         Soprano::Node::resourceToN3(NRL::Ontology()),
                                         discardableDataExcludeFilter),
-                                   Soprano::Query::QueryLanguageSparql);
+                                   Soprano::Query::QueryLanguageSparqlNoInference);
             //currentRelatedResources.clear();
             while(it.next()) {
                 const Soprano::Node r = it["s"];
