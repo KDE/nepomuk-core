@@ -28,6 +28,7 @@ include_directories(
 set(indexer_SRCS
   main.cpp
   indexer.cpp
+  simpleindexer.cpp
   nepomukindexwriter.cpp
   ../util.cpp
   ../../../servicestub/priority.cpp
