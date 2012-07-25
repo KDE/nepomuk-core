@@ -255,7 +255,6 @@ Nepomuk2::StrigiIndexWriter::StrigiIndexWriter()
 
 Nepomuk2::StrigiIndexWriter::~StrigiIndexWriter()
 {
-    kDebug();
     delete d;
 }
 
