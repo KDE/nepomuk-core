@@ -30,3 +30,14 @@ target_link_libraries(queryserializertest nepomukcore
   ${KDE4_KDECORE_LIBS}
 )
 
+# DMS Tests
+# -------------------------------------------
+
+kde4_add_unit_test(simpleresourceclassestest
+  simpleresourceclassestest.cpp
+)
+target_link_libraries(simpleresourceclassestest
+  nepomukcore
+  ${QT_QTTEST_LIBRARY}
+  ${QT_QTCORE_LIBRARY}
+)

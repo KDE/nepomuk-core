@@ -2066,7 +2066,7 @@ Nepomuk2::SimpleResourceGraph Nepomuk2::DataManagementModel::describeResources(c
                                         resourcesToN3(graph.allResourceUris()).join(QLatin1String(",")),
                                         Soprano::Node::resourceToN3(NRL::Ontology()),
                                         discardableDataExcludeFilter),
-                                   Soprano::Query::QueryLanguageSparql);
+                                   Soprano::Query::QueryLanguageSparqlNoInference);
             //currentRelatedResources.clear();
             while(it.next()) {
                 const Soprano::Node r = it["s"];
@@ -2581,7 +2581,8 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk2::DataManagementModel::addProperty(co
         for(QSet<QPair<QUrl, Soprano::Node> >::const_iterator it = finalProperties.constBegin(); it != finalProperties.constEnd(); ++it) {
             addStatement(it->first, property, it->second, graph);
             if(property == NIE::url() && it->second.uri().scheme() == QLatin1String("file")) {
-                addStatement(it->first, RDF::type(), NFO::FileDataObject(), graph);
+                if(!containsAnyStatement(it->first, RDF::type(), NFO::FileDataObject()))
+                    addStatement(it->first, RDF::type(), NFO::FileDataObject(), graph);
             }
             finalValuesPerResource[it->first].append(it->second);
         }
@@ -2961,12 +2962,16 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resourc
 
     // get the resources that we modify by removing relations to one of the deleted ones
     QSet<QUrl> modifiedResources;
-    it = executeQuery(QString::fromLatin1("select distinct ?g ?o where { graph ?g { ?o ?p ?r . } . FILTER(?r in (%1)) . }")
-                      .arg(resourcesToN3(resolvedResources).join(QLatin1String(","))),
-                      Soprano::Query::QueryLanguageSparql);
-    while(it.next()) {
-        graphs << it[0].uri();
-        modifiedResources << it[1].uri();
+    QList<Soprano::Statement> removedStatements;
+    foreach(const QUrl& resUri, resolvedResources) {
+        it = executeQuery(QString::fromLatin1("select distinct ?g ?o ?p where { graph ?g { ?o ?p %1 . } }")
+                        .arg(Soprano::Node::resourceToN3(resUri)),
+                        Soprano::Query::QueryLanguageSparqlNoInference);
+        while(it.next()) {
+            graphs << it[0].uri();
+            modifiedResources << it[1].uri();
+            removedStatements << Soprano::Statement(it[1].uri(), it[2].uri(), resUri);
+        }
     }
     modifiedResources -= actuallyRemovedResources;
 
@@ -2979,6 +2984,11 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resourc
     updateModificationDate(modifiedResources);
     removeTrailingGraphs(graphs);
 
+    foreach(const Soprano::Statement& st, removedStatements) {
+        d->m_watchManager->changeProperty( st.subject().uri(), st.predicate().uri(),
+                                           QList<Soprano::Node>(),
+                                           QList<Soprano::Node>() << st.object() );
+    }
     // inform interested parties
     // TODO: ideally we should also report the types the removed resources had
     foreach(const Soprano::Node& res, actuallyRemovedResources) {

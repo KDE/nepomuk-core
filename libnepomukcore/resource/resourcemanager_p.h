@@ -41,7 +41,7 @@ namespace Nepomuk2 {
     class MainModel;
     class ResourceWatcher;
 
-    typedef QHash<KUrl, Nepomuk2::ResourceData*> ResourceDataHash;
+    typedef QHash<KUrl, ResourceData*> ResourceDataHash;
 
     class ResourceManagerPrivate
     {
@@ -61,8 +61,10 @@ namespace Nepomuk2 {
         /// successfully ran determineUri()
         ResourceDataHash m_initializedData;
 
-        /// contains all non-initialized ResourceData objects created in data(QUrl)
-        ResourceDataHash m_uriKickoffData;
+        /// Maps the nie:url -> ResourceData*
+        QHash<QUrl, ResourceData*> m_urlKickOff;
+        /// Maps the nao:identifier -> ResourceData* (Used in tags)
+        QHash<QString, ResourceData*> m_identifierKickOff;
 
         QAtomicInt dataCnt;
 
@@ -101,20 +103,9 @@ namespace Nepomuk2 {
          */
         ResourceData* dataForResourceUri( const QUrl& uri, const QUrl& type );
 
-        /**
-         * Delete unused ResourceData objects from the cache.
-         * \param num The number of needed slots. The ResourceData constructor
-         * uses this to make room for itself. Use < 0 to free the complete cache.
-         *
-         * Does NOT lock the mutex.
-         */
-        void cleanupCache( int num = 1 );
-
         bool shouldBeDeleted( ResourceData* rd ) const;
 
-        void addToKickOffList( ResourceData* rd, const QSet<KUrl>& uris );
-
-        QList<ResourceData*> allResourceData();
+        QSet<ResourceData*> allResourceData();
 
         void _k_storageServiceInitialized( bool );
         void _k_dbusServiceUnregistered( const QString& serviceName );

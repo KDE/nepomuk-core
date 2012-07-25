@@ -1720,17 +1720,6 @@ void DataManagementModelTest::testRemoveResources_invalid_args()
 
     // no data should have been changed
     QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // non-existing file
-    const QUrl nonExistingFileUrl("file:///a/file/that/is/very/unlikely/to/exist");
-    m_dmModel->removeResources(QList<QUrl>() << nonExistingFileUrl, Nepomuk2::NoRemovalFlags, QLatin1String("testapp"));
-
-    // the call should have failed
-    QVERIFY(m_dmModel->lastError());
-
-    // nothing should have changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
 }
 
 // make sure we do not allow to remove classes, properties, and graphs
@@ -2314,6 +2303,7 @@ void DataManagementModelTest::testRemoveDataByApplication10()
     for( int i=0; i<10; i++ ) {
         QTemporaryFile fileA;
         fileA.open();
+        QUrl fileUrl = QUrl::fromLocalFile(fileA.fileName());
 
         SimpleResource res;
         res.addProperty( RDF::type(), NFO::FileDataObject() );
@@ -2324,7 +2314,7 @@ void DataManagementModelTest::testRemoveDataByApplication10()
 
         QString query = QString::fromLatin1("select ?r where { ?r %1 %2 . }")
                         .arg( Node::resourceToN3( NIE::url() ),
-                            Node::resourceToN3( QUrl(fileA.fileName()) ) );
+                            Node::resourceToN3(fileUrl) );
 
         QList<Node> list = m_dmModel->executeQuery( query, Soprano::Query::QueryLanguageSparql ).iterateBindings(0).allNodes();
         QCOMPARE( list.size(), 1 );

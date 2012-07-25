@@ -25,11 +25,17 @@
 #include "resourcemanager.h"
 
 #include "resource.h"
+#include "variant.h"
+#include "property.h"
+#include "literal.h"
 
 #include <QtDBus>
 
 #include <KUrl>
 #include <KDebug>
+#include <Soprano/Vocabulary/RDFS>
+
+using namespace Soprano::Vocabulary;
 
 namespace {
     QString convertUri(const QUrl& uri) {
@@ -275,17 +281,34 @@ void Nepomuk2::ResourceWatcher::slotResourceTypesRemoved(const QString &res, con
     }
 }
 
+namespace {
+    QVariant convertType(const Nepomuk2::Types::Property& prop, const QVariant& v) {
+        QVariant var(v);
+        if( !prop.literalRangeType().isValid() && var.type() == QVariant::String ) {
+            var.setValue<QUrl>(QUrl(var.toString()));
+        }
+
+        return var;
+    }
+}
+
 void Nepomuk2::ResourceWatcher::slotPropertyAdded(const QString& res, const QString& prop, const QVariantList &objects)
 {
     foreach(const QVariant& v, objects) {
-        emit propertyAdded( Resource::fromResourceUri(KUrl(res)), Types::Property( KUrl(prop) ), v );
+        const Types::Property property = KUrl(prop);
+        const QVariant var = convertType( property, v );
+
+        emit propertyAdded( Resource::fromResourceUri(KUrl(res)), property, var );
     }
 }
 
 void Nepomuk2::ResourceWatcher::slotPropertyRemoved(const QString& res, const QString& prop, const QVariantList &objects)
 {
     foreach(const QVariant& v, objects) {
-        emit propertyRemoved( Resource::fromResourceUri(KUrl(res)), Types::Property( KUrl(prop) ), v );
+        const Types::Property property = KUrl(prop);
+        const QVariant var = convertType( property, v );
+
+        emit propertyRemoved( Resource::fromResourceUri(KUrl(res)), property, var );
     }
 }
 

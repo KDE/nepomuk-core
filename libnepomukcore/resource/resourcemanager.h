@@ -102,14 +102,6 @@ namespace Nepomuk2 {
         void removeResource( const QString& uri );
 
         /**
-         * %ResourceManager caches resource locally so subsequent access is faster.
-         * This method clears this cache, deleting any Resource that is not used.
-         *
-         * \since 4.4
-         */
-        void clearCache();
-
-        /**
          * Generates a unique URI that is not used in the store yet. This method can be used to
          * generate URIs for virtual types such as Tag.
          *

@@ -242,7 +242,10 @@ QSet<Soprano::Node> Nepomuk2::ClassAndPropertyTree::variantListToNodeSet(const Q
             Q_FOREACH(const QVariant& value, vl) {
                 // treat as a resource range for now
                 if(value.type() == QVariant::Url) {
-                    nodes.insert(value.toUrl());
+                    QUrl url = value.toUrl();
+                    if( url.scheme().isEmpty() && !url.toString().startsWith("_:") )
+                        url.setScheme("file");
+                    nodes.insert(url);
                 }
                 else if(value.type() == QVariant::String) {
                     QString s = value.toString();

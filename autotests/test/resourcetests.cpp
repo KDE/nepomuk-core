@@ -122,9 +122,10 @@ void ResourceTests::newFile()
 {
     KTemporaryFile tempFile;
     QVERIFY(tempFile.open());
-    const QUrl fileUrl(tempFile.fileName());
 
-    Resource fileRes( fileUrl );
+    QUrl fileUrl = QUrl::fromLocalFile(tempFile.fileName());
+
+    Resource fileRes( tempFile.fileName() );
     QVERIFY(!fileRes.exists());
     QVERIFY(fileRes.uri().isEmpty());
     QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
@@ -153,6 +154,7 @@ void ResourceTests::newFile()
 
     QList<Soprano::Statement> stList = model->listStatements( uri, Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
+    kDebug() << stList;
     QCOMPARE(stList.size(), 4);
 }
 
@@ -160,7 +162,7 @@ void ResourceTests::newFolder()
 {
     KTempDir tempDir;
     QVERIFY(tempDir.exists());
-    const QUrl dirUrl(tempDir.name());
+    QUrl dirUrl = QUrl::fromLocalFile(tempDir.name());
 
     Resource dirRes( dirUrl );
     QVERIFY(!dirRes.exists());
@@ -181,17 +183,19 @@ void ResourceTests::newFolder()
 
     // One for <resUri> nao:lastModified ..
     //         <resUri> nao:created ..
+    //         <resUri> rdf:type nfo:FileDataObject
     //         <resUri> rdf:type nfo:Folder
     //         <resUri> nie:url url
     const QUrl uri = dirRes.uri();
     QVERIFY(model->containsAnyStatement(uri, NAO::lastModified(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, RDF::type(), NFO::Folder()));
+    QVERIFY(model->containsAnyStatement(uri, RDF::type(), NFO::FileDataObject()));
     QVERIFY(model->containsAnyStatement(uri, NIE::url(), dirUrl));
 
     QList<Soprano::Statement> stList = model->listStatements( uri, Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
-    QCOMPARE(stList.size(), 4);
+    QCOMPARE(stList.size(), 5);
 }
 
 void ResourceTests::newResourceMetaProperties()
@@ -227,7 +231,6 @@ void ResourceTests::existingTag()
         QVERIFY(!t.uri().isEmpty());
         tagUri = t.uri();
     }
-    ResourceManager::instance()->clearCache();
 
     Tag t("Tag");
     QVERIFY(t.exists());
@@ -239,7 +242,8 @@ void ResourceTests::existingFile()
 {
     KTemporaryFile tempFile;
     QVERIFY(tempFile.open());
-    const QUrl fileUrl(tempFile.fileName());
+    QUrl fileUrl = QUrl::fromLocalFile(tempFile.fileName());
+
     QUrl fileUri;
     {
         Resource fileRes( fileUrl );
@@ -255,16 +259,12 @@ void ResourceTests::existingFile()
         fileUri = fileRes.uri();
     }
 
-    ResourceManager::instance()->clearCache();
-
     {
         Resource fileRes( fileUrl );
         QVERIFY(fileRes.exists());
         QCOMPARE(fileRes.uri(), fileUri);
         QCOMPARE(fileRes.property(NIE::url()).toUrl(), fileUrl);
     }
-
-    ResourceManager::instance()->clearCache();
 
     {
         Resource fileRes( fileUri );
@@ -293,8 +293,6 @@ void ResourceTests::existingContact()
 
         contactUri = con.uri();
     }
-
-    ResourceManager::instance()->clearCache();
 
     Resource con(contactUri);
     QVERIFY(con.exists());
@@ -369,7 +367,6 @@ void ResourceTests::typeTopMost()
     Resource res;
     res.addType(NFO::PlainTextDocument());
     res.addType(NFO::Document());
-    res.addType(NFO::FileDataObject());
     res.addType(NIE::InformationElement());
 
     QCOMPARE(res.type(), NFO::PlainTextDocument());
@@ -401,7 +398,6 @@ void ResourceTests::tagsUpdate()
         res.addTag( tag3 );
         resUri = res.uri();
     }
-    ResourceManager::instance()->clearCache();
 
     QVERIFY(tag1.exists());
     QVERIFY(tag2.exists());
@@ -436,7 +432,6 @@ void ResourceTests::metaPropertiesUpdate()
         Resource res;
         res.addTag(tag);
     }
-    ResourceManager::instance()->clearCache();
 
     Tag tag("Fire");
 
@@ -471,7 +466,6 @@ void ResourceTests::ratingUpdate()
 
         fileUri = fileRes.uri();
     }
-    ResourceManager::instance()->clearCache();
 
     Resource fileRes(fileUri);
 
@@ -524,8 +518,9 @@ void ResourceTests::resourceDeletion()
     QVERIFY(tag.exists());
     tag.remove();
     QVERIFY(!tag.exists());
-    QVERIFY(!tag.uri().isEmpty());
+    QVERIFY(tag.uri().isEmpty());
 
+    QTest::qWait(200);
     QVERIFY(fileRes.tags().isEmpty());
 
     // Verify the statements

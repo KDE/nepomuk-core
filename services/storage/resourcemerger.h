@@ -130,10 +130,7 @@ namespace Nepomuk2 {
         bool areEqual( const QMultiHash<QUrl, Soprano::Node>& oldPropHash,
                        const QMultiHash<QUrl, Soprano::Node>& newPropHash );
 
-        /**
-         * Returns true if all the types in \p types are present in \p masterTypes
-         */
-        bool containsAllTypes( const QSet<QUrl>& types, const QSet<QUrl>& masterTypes );
+        bool sameTypes( const QSet<QUrl>& t1, const QSet<QUrl>& t2 );
 
         /// Refers to the properties which are considered as resource metadata
         QSet<QUrl> metadataProperties;

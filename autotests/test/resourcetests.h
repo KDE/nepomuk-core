@@ -76,6 +76,8 @@ private Q_SLOTS:
     //    b. Check if the meta properties are updated
     //    c. Make sure direct properties like ratings
     //    d. Make sure "new resources" are updated
+    //    e. nao:identifier kickoff list
+    //    f. nie:url kickoff list
 
     void tagsUpdate();
     void metaPropertiesUpdate();
