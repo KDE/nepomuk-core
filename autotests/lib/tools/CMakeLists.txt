@@ -4,8 +4,13 @@
 #
 
 # Configure the scripts
-configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/run_in_new_dbus_session.sh"
-                "${CMAKE_CURRENT_BINARY_DIR}/run_in_new_dbus_session.sh"
+configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/dbus-session-begin.sh"
+                "${CMAKE_CURRENT_BINARY_DIR}/dbus-session-begin.sh"
+                IMMEDIATE @ONLY
+)
+
+configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/dbus-session-end.sh"
+                "${CMAKE_CURRENT_BINARY_DIR}/dbus-session-end.sh"
                 IMMEDIATE @ONLY
 )
 
