@@ -86,6 +86,7 @@ void Nepomuk2::TestBase::initTestCase()
 
 void Nepomuk2::TestBase::cleanupTestCase()
 {
+    resetRepository();
 }
 
 void Nepomuk2::TestBase::resetRepository()
@@ -94,12 +95,14 @@ void Nepomuk2::TestBase::resetRepository()
     QTime timer;
     timer.start();
 
-    QString query = "select distinct ?r where { ?r ?p ?o. FILTER(regex(str(?r), '^nepomuk')) . }";
+    QString query = QString::fromLatin1("select distinct ?r where { ?r ?p ?o. "
+                                        "FILTER(regex(str(?r), '^nepomuk')) . }");
     Soprano::Model * model = Nepomuk2::ResourceManager::instance()->mainModel();
 
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
     while( it.next() ) {
         model->removeAllStatements( it[0], Soprano::Node(), Soprano::Node() );
+        model->removeAllStatements( Soprano::Node(), Soprano::Node(), it[0] );
     }
 
     kDebug() << "Time Taken: " << timer.elapsed()/1000.0 << " seconds";
