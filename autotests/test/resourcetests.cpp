@@ -114,7 +114,6 @@ void ResourceTests::newContact()
 
     QList<Soprano::Statement> stList = model->listStatements( con.uri(), Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
-    kDebug() << stList;
     QCOMPARE(stList.size(), 4);
 }
 
@@ -154,7 +153,6 @@ void ResourceTests::newFile()
 
     QList<Soprano::Statement> stList = model->listStatements( uri, Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
-    kDebug() << stList;
     QCOMPARE(stList.size(), 4);
 }
 
@@ -235,7 +233,7 @@ void ResourceTests::existingTag()
     Tag t("Tag");
     QVERIFY(t.exists());
     QCOMPARE(t.uri(), tagUri);
-    QCOMPARE(t.genericLabel(), QString("Tag"));
+    QCOMPARE(t.property(NAO::identifier()).toString(), QLatin1String("Tag"));
 }
 
 void ResourceTests::existingFile()
@@ -418,7 +416,6 @@ void ResourceTests::tagsUpdate()
     QVERIFY(!job->error());
     QTest::qWait(100);
 
-    kDebug() << res.tags();
     QCOMPARE(QList<Tag>() << tag1 << tag2, res.tags());
 }
 
