@@ -6,6 +6,10 @@ include(${NEPOMUK_TESTLIB_CMAKE_DIR}/NepomukTestLibMacros.cmake)
 
 set( RESOURCE_TESTS_SRC resourcetests.cpp )
 
+# we are linking a static nepomuktestlib, no need for exports then
+
+add_definitions(-DNEPOMUKTEST_EXPORT=)
+
 kde4_add_executable(resourcetest ${RESOURCE_TESTS_SRC})
 
 target_link_libraries(resourcetest

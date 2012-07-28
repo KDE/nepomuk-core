@@ -25,6 +25,9 @@ set (nepomuk_testlib_SRCS
 
 qt4_add_dbus_interface(nepomuk_testlib_SRCS ../../interfaces/org.kde.nepomuk.ServiceManager.xml nepomukservicemanagerinterface)
 
+# nepomuktestlib is static, no need for exports
+add_definitions(-DNEPOMUKTEST_EXPORT=)
+
 kde4_add_library (nepomuktestlib
                   STATIC
                   ${nepomuk_testlib_SRCS}
