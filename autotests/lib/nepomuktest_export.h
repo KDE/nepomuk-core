@@ -27,7 +27,7 @@
 # if defined(KDELIBS_STATIC_LIBS)
 /* No export/import for static libraries */
 #  define NEPOMUKTEST_EXPORT
-# elif defined(MAKE_NEPOMUKSYNC_LIB)
+# elif defined(MAKE_NEPOMUKTESTLIB_LIB)
 /* We are building this library */
 #  define NEPOMUKTEST_EXPORT KDE_EXPORT
 # else
