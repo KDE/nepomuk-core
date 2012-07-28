@@ -1,16 +1,10 @@
 project(nepomuksync_tests)
 
-find_package(KDE4 REQUIRED)
-find_package(Nepomuk REQUIRED)
-
-include(SopranoAddOntology)
-
 include_directories(
   ${QT_INCLUDES}
   ${KDE4_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
-  ${NEPOMUK_INCLUDE_DIR}
   ${libnepomuksync_SOURCE_DIR}
 )
 

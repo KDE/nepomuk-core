@@ -1,9 +1,5 @@
 project(nepomukindexer)
 
-find_package(Nepomuk REQUIRED)
-
-include(SopranoAddOntology)
-
 # Check if Strigi has the FileInputStream::open method which was introduced between versions 0.7.2 and 0.7.3
 include(CheckCXXSourceCompiles)
 set(CMAKE_REQUIRED_INCLUDES ${STRIGI_INCLUDE_DIR})
@@ -20,7 +16,6 @@ include_directories(
   ${QT_INCLUDES}
   ${KDE4_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
-  ${NEPOMUK_INCLUDE_DIR}
   ${LIBSTREAMS_INCLUDE_DIRS}
   ${LIBSTREAMANALYZER_INCLUDE_DIRS}
   )
