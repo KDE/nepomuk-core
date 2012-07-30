@@ -155,7 +155,7 @@ bool CodeGenerator::writeHeader( const ResourceClass *resourceClass, QTextStream
         s.replace( "NEPOMUK_PARENT_INCLUDE", QString("\"%1.h\"").arg( parent->name().toLower() ) );
     }
     else {
-        s.replace( "NEPOMUK_PARENT_INCLUDE", QString("\"resource.h\"") );
+        s.replace( "NEPOMUK_PARENT_INCLUDE", QString("<Nepomuk2/Resource>") );
     }
 
     QString methods;
