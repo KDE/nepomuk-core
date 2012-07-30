@@ -44,17 +44,18 @@ QStringList extractOntologyFileList( const QStringList& args )
 
 int main( int argc, char** argv )
 {
-    KAboutData aboutData( "nepomuk-rcgen",
-                          "nepomuk-rcgen",
-                          ki18n("Nepomuk Resource Class Generator"),
+    KAboutData aboutData( "nepomuk2-rcgen",
+                          "nepomuk2-rcgen",
+                          ki18n("Nepomuk2 Resource Class Generator"),
                           "0.3",
-                          ki18n("Nepomuk Resource Class Generator"),
+                          ki18n("Nepomuk2 Resource Class Generator"),
                           KAboutData::License_GPL,
                           ki18n("(c) 2006-2009, Sebastian Trüg"),
                           KLocalizedString(),
                           "http://nepomuk.kde.org" );
     aboutData.addAuthor(ki18n("Sebastian Trüg"), ki18n("Maintainer"), "trueg@kde.org");
     aboutData.addAuthor(ki18n("Tobias Koenig"), ki18n("Major cleanup - Personal hero of maintainer"), "tokoe@kde.org");
+    aboutData.addAuthor(ki18n("Vishesh Handa"), ki18n("Bug fixes and port to Nepomuk2"), "me@vhanda.in");
     aboutData.setProgramIconName( "nepomuk" );
     KComponentData component( aboutData );
 
@@ -62,7 +63,6 @@ int main( int argc, char** argv )
 
     KCmdLineOptions options;
     options.add("verbose", ki18n("Verbose output debugging mode."));
-    options.add("fast", ki18n("Generate simple and fast wrapper classes not based on Nepomuk2::Resource which do not provide any data integrity checking"));
     options.add("writeall", ki18n("Actually generate the code."));
     options.add("listincludes", ki18n("List all includes (deprecated)."));
     options.add("listheaders", ki18n("List all header files that will be generated via the --writeall command."));
@@ -91,7 +91,6 @@ int main( int argc, char** argv )
     bool listHeader = args->isSet("listheaders");
     bool listSource = args->isSet("listsources");
     bool listIncludes = args->isSet("listincludes");
-    bool fastMode = args->isSet("fast");
     quiet = !args->isSet("verbose");
     QStringList ontoFiles = extractOntologyFileList( args->getOptionList("ontologies") ); // backwards comp
     for(int i = 0; i < args->count(); ++i )
@@ -118,13 +117,6 @@ int main( int argc, char** argv )
             return -1;
         }
     }
-
-    if( fastMode && !visibility.isEmpty() ) {
-        QTextStream s( stderr );
-        s << "Cannot export fast classes. They are only meant to be used as private classes." << endl;
-        return -1;
-    }
-
 
     if( writeAll ) {
         if( !QFile::exists( targetDir ) ) {
@@ -159,7 +151,7 @@ int main( int argc, char** argv )
     // =====================================================
     // create the code generator which will take care of the rest
     // =====================================================
-    CodeGenerator codeGen( fastMode ? CodeGenerator::FastMode : CodeGenerator::SafeMode, prsr.parsedClasses() );
+    CodeGenerator codeGen( CodeGenerator::SafeMode, prsr.parsedClasses() );
     codeGen.setVisibility( visibility );
 
     if( writeAll ) {
@@ -175,9 +167,6 @@ int main( int argc, char** argv )
         QStringListIterator it( l );
         while( it.hasNext() )
             s << prefix << it.next() << ";";
-
-        if( fastMode )
-            s << prefix << "resource.cpp;";
     }
     else if( listHeader ) {
         QStringList l = codeGen.listHeader();
@@ -185,9 +174,6 @@ int main( int argc, char** argv )
         QStringListIterator it( l );
         while( it.hasNext() )
             s << prefix << it.next() << ";";
-
-        if( fastMode )
-            s << prefix << "resource.h;";
     }
     else if( listIncludes ) {
         QStringList l = codeGen.listHeader();

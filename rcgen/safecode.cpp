@@ -76,13 +76,13 @@ QString SafeCode::resourcePseudoInheritanceDeclaration( const ResourceClass* bas
 {
     return QString( "%1 %2to%3() const" )
         .arg( rc->name( nameSpace ) )
-        .arg( !nameSpace.isEmpty() ? baseRc->name( "Nepomuk" ) + "::" : QString() )
+        .arg( !nameSpace.isEmpty() ? baseRc->name( "Nepomuk2" ) + "::" : QString() )
         .arg( rc->name() );
 }
 
 QString SafeCode::propertySetterDefinition( const Property* property, const ResourceClass* rc ) const
 {
-    QString s = propertySetterDeclaration( property, rc, "Nepomuk" ) + '\n';
+    QString s = propertySetterDeclaration( property, rc, "Nepomuk2" ) + '\n';
 
     if( property->hasSimpleType() || property->typeString( true ) == "Resource" || !property->isList() ) {
         s += QString("{\n"
@@ -118,7 +118,7 @@ QString SafeCode::propertySetterDefinition( const Property* property, const Reso
 
 QString SafeCode::propertyGetterDefinition( const Property* property, const ResourceClass* rc ) const
 {
-    QString s = propertyGetterDeclaration( property, rc, "Nepomuk" ) + '\n';
+    QString s = propertyGetterDeclaration( property, rc, "Nepomuk2" ) + '\n';
 
     if( property->hasSimpleType() ) {
         s += QString( "{\n"
@@ -130,7 +130,12 @@ QString SafeCode::propertyGetterDefinition( const Property* property, const Reso
     else if( property->isList() ) {
         s += QString("{\n"
                      "%1"
-                     "    return convertResourceList<%3>( property( QUrl::fromEncoded(\"%2\") ).toResourceList() );\n"
+                     "    QList<%3> rl;\n"
+                     "    QList<Resource> l = property( QUrl::fromEncoded(\"%2\") ).toResourceList() ;\n"
+                     "    for( QList<Resource>::const_iterator it = l.constBegin();\n"
+                     "        it != l.constEnd(); ++it )\n"
+                     "    rl.append( %3( *it ) );\n"
+                     "    return rl;\n"
                      "}\n" )
              .arg( s_typeComment )
              .arg( property->uri().toString() )
@@ -139,7 +144,7 @@ QString SafeCode::propertyGetterDefinition( const Property* property, const Reso
     else {
         s += QString("{\n"
                      "%1"
-                     "    return %2( property( QUrl::fromEncoded(\"%3\") ).toResource().resourceUri() );\n"
+                     "    return %2( property( QUrl::fromEncoded(\"%3\") ).toResource().uri() );\n"
                      "}\n" )
              .arg( s_typeComment )
              .arg( property->typeString( true ) )
@@ -151,7 +156,7 @@ QString SafeCode::propertyGetterDefinition( const Property* property, const Reso
 
 QString SafeCode::propertyAdderDefinition( const Property* property, const ResourceClass* rc ) const
 {
-    QString s = propertyAdderDeclaration( property, rc, "Nepomuk" ) + '\n';
+    QString s = propertyAdderDeclaration( property, rc, "Nepomuk2" ) + '\n';
 
     if( property->hasSimpleType() ) {
         s += QString( "{\n"
@@ -177,10 +182,16 @@ QString SafeCode::propertyAdderDefinition( const Property* property, const Resou
 
 QString SafeCode::propertyReversePropertyGetterDefinition( const Property* property, const ResourceClass* rc ) const
 {
-    QString s = propertyReversePropertyGetterDeclaration( property, rc, "Nepomuk" ) + '\n';
+    QString s = propertyReversePropertyGetterDeclaration( property, rc, "Nepomuk2" ) + '\n';
 
     s += QString( "{\n"
-                  "    return convertResourceList<%2>( manager()->allResourcesWithProperty( QUrl::fromEncoded(\"%1\"), *this ) );\n"
+                  //"    return convertResourceList<%2>( manager()->allResourcesWithProperty( QUrl::fromEncoded(\"%1\"), *this ) );\n"
+                  "    QList<%2> rl;\n"
+                  "    QList<Resource> l = ResourceManager::instance()->allResourcesWithProperty( QUrl::fromEncoded(\"%1\"), *this );\n"
+                  "    for( QList<Resource>::const_iterator it = l.constBegin();\n"
+                  "        it != l.constEnd(); ++it )\n"
+                  "    rl.append( %2( *it ) );\n"
+                  "    return rl;\n"
                   "}\n" )
          .arg( property->uri().toString() )
          .arg( property->domain(true)->name() );
@@ -192,9 +203,15 @@ QString SafeCode::resourceAllResourcesDefinition( const ResourceClass* rc ) cons
 {
     return QString( "%1\n"
                     "{\n"
-                    "    return Nepomuk2::convertResourceList<%3>( ResourceManager::instance()->allResourcesOfType( QUrl::fromEncoded(\"%2\") ) );\n"
+                    //"    return Nepomuk2::convertResourceList<%3>( ResourceManager::instance()->allResourcesOfType( QUrl::fromEncoded(\"%2\") ) );\n"
+                    "    QList<%3> rl;\n"
+                    "    QList<Resource> l = ResourceManager::instance()->allResourcesOfType( QUrl::fromEncoded(\"%2\") );\n"
+                    "    for( QList<Resource>::const_iterator it = l.constBegin();\n"
+                    "        it != l.constEnd(); ++it )\n"
+                    "    rl.append( %3( *it ) );\n"
+                    "    return rl;\n"
                     "}\n" )
-        .arg( resourceAllResourcesDeclaration( rc, "Nepomuk" ) )
+        .arg( resourceAllResourcesDeclaration( rc, "Nepomuk2" ) )
         .arg( rc->uri().toString() )
         .arg( rc->name() );
 }
@@ -205,6 +222,6 @@ QString SafeCode::resourcePseudoInheritanceDefinition( const ResourceClass* base
                     "{\n"
                     "    return %2( *this );\n"
                     "}\n" )
-        .arg( resourcePseudoInheritanceDeclaration( baseRc, rc, "Nepomuk" ) )
-        .arg( rc->name( "Nepomuk" ) );
+        .arg( resourcePseudoInheritanceDeclaration( baseRc, rc, "Nepomuk2" ) )
+        .arg( rc->name( "Nepomuk2" ) );
 }

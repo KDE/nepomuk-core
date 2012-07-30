@@ -61,9 +61,7 @@ include_directories(
 )
 
 add_subdirectory(libnepomukcore)
-# Do not install rcgen, it's installed by kdelibs
-# If it needs to be installed then we need to change the name
-#add_subdirectory(rcgen)
+add_subdirectory(rcgen)
 add_subdirectory(ontologies)
 add_subdirectory(common)
 add_subdirectory(server)
@@ -87,6 +85,10 @@ macro_write_basic_cmake_version_file(${nepomuk-core_BINARY_DIR}/NepomukCoreConfi
                                      ${CMAKE_NEPOMUK_CORE_VERSION_MINOR}
                                      ${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}
                                      )
+
+install(FILES
+  Nepomuk2AddOntologyClasses.cmake
+  DESTINATION ${LIB_INSTALL_DIR}/cmake/NepomukCore)
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake
