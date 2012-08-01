@@ -49,7 +49,6 @@
 using namespace Nepomuk2::Vocabulary;
 using namespace Soprano::Vocabulary;
 
-
 Nepomuk2::Resource::Resource()
 {
     QMutexLocker lock( &ResourceManager::instance()->d->mutex );
@@ -546,7 +545,7 @@ namespace {
         // of a string
         QString query = QString::fromLatin1("select ?r where { ?r a %1 . ?r %2 \"%3\" . } LIMIT 1")
         .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::FreeDesktopIcon()),
-              Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::prefLabel()),
+              Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::iconName()),
               symbolName );
 
         Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
@@ -556,7 +555,7 @@ namespace {
         }
         else {
             Nepomuk2::Resource res(QUrl(), Soprano::Vocabulary::NAO::FreeDesktopIcon());
-            res.setLabel( symbolName );
+            res.setProperty( NAO::iconName(), symbolName );
 
             return res.uri();
         }
