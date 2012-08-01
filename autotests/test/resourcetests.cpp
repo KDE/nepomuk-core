@@ -499,6 +499,65 @@ void ResourceTests::newResourcesUpdated()
     QVERIFY(fileRes.rating() == 2);
 }
 
+void ResourceTests::identifierUpdate()
+{
+    Tag tag("Fire");
+    QVERIFY(!tag.exists());
+
+    // Save the tag
+    {
+        Resource res;
+        res.addTag(tag);
+    }
+
+    QVERIFY(tag.exists());
+
+    KJob* job = Nepomuk2::setProperty( QList<QUrl>() << tag.uri(), NAO::identifier(),
+                                       QVariantList() << QLatin1String("Water") );
+    job->exec();
+    QVERIFY(!job->error());
+
+    QTest::qWait( 200 );
+
+    QCOMPARE(tag.property(NAO::identifier()).toString(), QLatin1String("Water"));
+
+    Tag tag2("Water");
+    QCOMPARE(tag2.uri(), tag.uri());
+    QCOMPARE(tag2, tag);
+
+    Tag tag3("Fire");
+    QVERIFY(!tag3.exists());
+}
+
+void ResourceTests::urlUpdate()
+{
+    QUrl resUrl("akonadi:?item=2342");
+
+    Resource res;
+    res.setProperty(NIE::url(), resUrl);
+
+    QVERIFY(res.exists());
+    QVERIFY(!res.uri().isEmpty());
+
+    QUrl resUrl2("akonadi:?item=2342");
+    KJob* job = Nepomuk2::setProperty( QList<QUrl>() << res.uri(), NIE::url(),
+                                       QVariantList() << resUrl2 );
+    job->exec();
+    QVERIFY(!job->error());
+
+    QTest::qWait( 200 );
+
+    QUrl nieUrl = res.property(NIE::url()).toUrl();
+    QCOMPARE(nieUrl, resUrl2);
+
+    Resource res2(resUrl);
+    QVERIFY(!res.exists());
+
+    Resource res3(resUrl2);
+    QVERIFY(res3.exists());
+}
+
+
 void ResourceTests::resourceDeletion()
 {
     KTemporaryFile tempFile;
