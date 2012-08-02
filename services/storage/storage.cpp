@@ -72,7 +72,7 @@ void Nepomuk2::Storage::slotNepomukCoreInitialized( bool success )
         m_core->start( socketPath );
 
         // Query Service
-        Query::QueryService* queryService = new Query::QueryService(this, QVariantList());
+        new Query::QueryService(m_core->mainModel(), this);
     }
     else {
         kDebug() << "Failed to initialize nepomuk core";

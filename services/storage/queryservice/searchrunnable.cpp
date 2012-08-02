@@ -20,7 +20,6 @@
 #include "searchrunnable.h"
 #include "folder.h"
 
-#include "resourcemanager.h"
 #include "resource.h"
 
 #include <Soprano/Version>
@@ -52,8 +51,9 @@
 
 using namespace Soprano;
 
-Nepomuk2::Query::SearchRunnable::SearchRunnable( Folder* folder )
+Nepomuk2::Query::SearchRunnable::SearchRunnable( Model* model, Nepomuk2::Query::Folder* folder )
     : QRunnable(),
+      m_model( model ),
       m_folder( folder )
 {
 }
@@ -86,7 +86,7 @@ void Nepomuk2::Query::SearchRunnable::run()
     time.start();
 #endif
 
-    Soprano::QueryResultIterator hits = ResourceManager::instance()->mainModel()->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
+    Soprano::QueryResultIterator hits = m_model->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
     while ( m_folder &&
             hits.next() ) {
         Result result = extractResult( hits );

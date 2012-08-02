@@ -40,9 +40,10 @@ Q_DECLARE_METATYPE( QList<QUrl> )
 
 static QThreadPool* s_searchThreadPool = 0;
 
-Nepomuk2::Query::QueryService::QueryService( QObject* parent, const QVariantList& )
+Nepomuk2::Query::QueryService::QueryService( Soprano::Model* model, QObject* parent )
     : QObject( parent ),
-      m_folderConnectionCnt( 0 )
+      m_folderConnectionCnt( 0 ),
+      m_model( model )
 {
     // this looks wrong but there is only one QueryService instance at all time!
     s_searchThreadPool = new QThreadPool( this );
@@ -159,7 +160,7 @@ Nepomuk2::Query::Folder* Nepomuk2::Query::QueryService::getFolder( const Query& 
     }
     else {
         kDebug() << "Creating new search folder for query:" << query;
-        Folder* newFolder = new Folder( query, this );
+        Folder* newFolder = new Folder( m_model, query, this );
         connect( newFolder, SIGNAL( aboutToBeDeleted( Nepomuk2::Query::Folder* ) ),
                  this, SLOT( slotFolderAboutToBeDeleted( Nepomuk2::Query::Folder* ) ) );
         m_openQueryFolders.insert( query, newFolder );
@@ -177,7 +178,7 @@ Nepomuk2::Query::Folder* Nepomuk2::Query::QueryService::getFolder( const QString
     }
     else {
         kDebug() << "Creating new search folder for query:" << query;
-        Folder* newFolder = new Folder( query, requestProps, this );
+        Folder* newFolder = new Folder( m_model, query, requestProps, this );
         connect( newFolder, SIGNAL( aboutToBeDeleted( Nepomuk2::Query::Folder* ) ),
                  this, SLOT( slotFolderAboutToBeDeleted( Nepomuk2::Query::Folder* ) ) );
         m_openSparqlFolders.insert( query, newFolder );

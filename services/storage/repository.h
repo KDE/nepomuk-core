@@ -77,6 +77,8 @@ namespace Nepomuk2 {
 
         QString usedSopranoBackend() const;
 
+        Soprano::Model* mainModel() const;
+
     public Q_SLOTS:
         /**
          * Will emit the opened signal

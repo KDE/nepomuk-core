@@ -46,7 +46,7 @@ namespace Nepomuk2 {
             Q_CLASSINFO( "D-Bus Interface", "org.kde.nepomuk.QueryService" )
 
         public:
-            QueryService( QObject* parent, const QVariantList& );
+            QueryService( Soprano::Model* model, QObject* parent );
             ~QueryService();
 
             static QThreadPool* searchThreadPool();
@@ -86,6 +86,7 @@ namespace Nepomuk2 {
             QHash<Query, Folder*> m_openQueryFolders;
 
             int m_folderConnectionCnt; // only used for unique dbus object path generation
+            Soprano::Model* m_model;
         };
     }
 }

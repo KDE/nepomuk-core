@@ -21,7 +21,6 @@
 #include "countqueryrunnable.h"
 #include "folder.h"
 
-#include "resourcemanager.h"
 #include "query/query.h"
 
 #include <Soprano/QueryResultIterator>
@@ -34,9 +33,9 @@
 #include <QtCore/QMutexLocker>
 #include <QtCore/QTime>
 
-
-Nepomuk2::Query::CountQueryRunnable::CountQueryRunnable( Folder* folder )
+Nepomuk2::Query::CountQueryRunnable::CountQueryRunnable( Soprano::Model* model, Folder* folder )
     : QRunnable(),
+      m_model( model ),
       m_folder( folder )
 {
     kDebug();
@@ -72,7 +71,7 @@ void Nepomuk2::Query::CountQueryRunnable::run()
 #endif
 
     QString sparql = query.toSparqlQuery( Query::CreateCountQuery );
-    Soprano::QueryResultIterator it = ResourceManager::instance()->mainModel()->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
+    Soprano::QueryResultIterator it = m_model->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
     if( it.next() ) {
         count = it.binding( 0 ).literal().toInt();
     }

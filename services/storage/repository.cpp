@@ -443,4 +443,10 @@ void Nepomuk2::Repository::slotVirtuosoStopped(bool normalExit)
     }
 }
 
+Soprano::Model* Nepomuk2::Repository::mainModel() const
+{
+    return m_dataManagementModel;
+}
+
+
 #include "repository.moc"

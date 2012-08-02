@@ -40,7 +40,7 @@ namespace Nepomuk2 {
         class SearchRunnable : public QRunnable
         {
         public:
-            SearchRunnable( Folder* folder );
+            SearchRunnable( Soprano::Model* model, Folder* folder );
             ~SearchRunnable();
 
             /**
@@ -57,6 +57,7 @@ namespace Nepomuk2 {
         private:
             Nepomuk2::Query::Result extractResult( const Soprano::QueryResultIterator& it ) const;
 
+            Soprano::Model* m_model;
             QPointer<Folder> m_folder;
             mutable QMutex m_folderMutex;
         };
