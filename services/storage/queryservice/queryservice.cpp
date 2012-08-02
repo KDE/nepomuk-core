@@ -38,12 +38,10 @@
 
 Q_DECLARE_METATYPE( QList<QUrl> )
 
-NEPOMUK_EXPORT_SERVICE( Nepomuk2::Query::QueryService, "nepomukqueryservice" )
-
 static QThreadPool* s_searchThreadPool = 0;
 
 Nepomuk2::Query::QueryService::QueryService( QObject* parent, const QVariantList& )
-    : Service( parent ),
+    : QObject( parent ),
       m_folderConnectionCnt( 0 )
 {
     // this looks wrong but there is only one QueryService instance at all time!

@@ -38,7 +38,21 @@ qt4_add_dbus_adaptor(storage_SRCS
   resourcewatcherconnection.h
   Nepomuk2::ResourceWatcherConnection)
 
-kde4_add_plugin(nepomukstorage ${storage_SRCS})
+
+set(queryservice_SRCS
+  queryservice/queryservice.cpp
+  queryservice/folder.cpp
+  queryservice/folderconnection.cpp
+  queryservice/searchrunnable.cpp
+  queryservice/countqueryrunnable.cpp
+)
+
+qt4_add_dbus_adaptor(queryservice_SRCS
+  ../../interfaces/org.kde.nepomuk.Query.xml
+  queryservice/folderconnection.h
+  Nepomuk2::Query::FolderConnection)
+
+kde4_add_plugin(nepomukstorage ${storage_SRCS} ${queryservice_SRCS})
 
 target_link_libraries(nepomukstorage
   ${SOPRANO_LIBRARIES}

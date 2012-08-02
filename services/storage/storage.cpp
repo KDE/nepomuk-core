@@ -19,6 +19,7 @@
 #include "storage.h"
 #include "nepomukcore.h"
 #include "repository.h"
+#include "queryservice/queryservice.h"
 
 #include <QtDBus/QDBusConnection>
 #include <QtCore/QFile>
@@ -69,6 +70,9 @@ void Nepomuk2::Storage::slotNepomukCoreInitialized( bool success )
         QString socketPath = KGlobal::dirs()->locateLocal( "socket", "nepomuk-socket" );
         QFile::remove( socketPath ); // in case we crashed
         m_core->start( socketPath );
+
+        // Query Service
+        Query::QueryService* queryService = new Query::QueryService(this, QVariantList());
     }
     else {
         kDebug() << "Failed to initialize nepomuk core";
