@@ -52,10 +52,6 @@ namespace Nepomuk2 {
          */
         bool initialized() const;
 
-        /**
-         * The top most model in the repository. It should be the
-         * DataManagementModel
-         */
         Soprano::Model* mainModel();
 
     Q_SIGNALS:

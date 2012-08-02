@@ -129,4 +129,10 @@ Soprano::Model* Nepomuk2::Core::createModel( const Soprano::BackendSettings& )
     return m_repository;
 }
 
+Soprano::Model* Nepomuk2::Core::mainModel()
+{
+    return m_repository->mainModel();
+}
+
+
 #include "nepomukcore.moc"
