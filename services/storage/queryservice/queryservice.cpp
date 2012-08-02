@@ -54,6 +54,23 @@ Nepomuk2::Query::QueryService::QueryService( QObject* parent, const QVariantList
     // register type used to communicate removeEntries between threads
     qRegisterMetaType<QList<QUrl> >();
     qRegisterMetaType<QList<Nepomuk2::Query::Result> >();
+
+    //Register the service
+    QLatin1String serviceName("nepomukqueryservice");
+    QString dbusName = QString::fromLatin1("org.kde.nepomuk.services.%1").arg( serviceName );
+
+    QDBusConnection bus = QDBusConnection::sessionBus();
+    if( !bus.registerService( dbusName ) ) {
+        kDebug() << "Failed to register the QueryService .. ";
+    }
+
+    // register the service
+    // ====================================
+    bus.registerObject( '/' + serviceName,
+                        this,
+                        QDBusConnection::ExportScriptableSlots |
+                        QDBusConnection::ExportScriptableProperties |
+                        QDBusConnection::ExportAdaptors);
 }
 
 
