@@ -40,16 +40,16 @@ qt4_add_dbus_adaptor(storage_SRCS
 
 
 set(queryservice_SRCS
-  queryservice/queryservice.cpp
-  queryservice/folder.cpp
-  queryservice/folderconnection.cpp
-  queryservice/searchrunnable.cpp
-  queryservice/countqueryrunnable.cpp
+  query/queryservice.cpp
+  query/folder.cpp
+  query/folderconnection.cpp
+  query/searchrunnable.cpp
+  query/countqueryrunnable.cpp
 )
 
 qt4_add_dbus_adaptor(queryservice_SRCS
   ../../interfaces/org.kde.nepomuk.Query.xml
-  queryservice/folderconnection.h
+  query/folderconnection.h
   Nepomuk2::Query::FolderConnection)
 
 kde4_add_plugin(nepomukstorage ${storage_SRCS} ${queryservice_SRCS})

@@ -19,7 +19,7 @@
 #include "nepomukcore.h"
 #include "repository.h"
 #include "ontologyloader.h"
-#include "queryservice/queryservice.h"
+#include "query/queryservice.h"
 
 #include <KDebug>
 #include <KSharedConfig>
