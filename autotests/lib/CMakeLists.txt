@@ -36,6 +36,7 @@ kde4_add_library (nepomuktestlib
 target_link_libraries (nepomuktestlib
                        ${QT_QTCORE_LIBRARY}
                        ${QT_QTDBUS_LIBRARY}
+                       ${QT_QTTEST_LIBRARY}
                        ${NEPOMUK_CORE_LIBRARY}
 )
 
