@@ -41,8 +41,8 @@ target_link_libraries(queryupdatetests
   ${QT_QTGUI_LIBRARY}
   ${SOPRANO_LIBRARIES}
   kdecore
-  nepomukcore
   nepomuktestlib
+  nepomukcore
 )
 
 add_nepomuk_test(QueryUpdateTests ${CMAKE_CURRENT_BINARY_DIR}/queryupdatetests)
