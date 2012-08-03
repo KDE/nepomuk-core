@@ -77,12 +77,6 @@ namespace Nepomuk2 {
 
         QString usedSopranoBackend() const;
 
-        /**
-         * The top most model in the repository. It should be the
-         * DataManagementModel
-         */
-        Soprano::Model* mainModel() const;
-
     public Q_SLOTS:
         /**
          * Will emit the opened signal
