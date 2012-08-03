@@ -9,7 +9,6 @@ include_directories(
   ${KDE4_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
-  ${NEPOMUK_INCLUDE_DIR}
   ${libnepomuksync_SOURCE_DIR}
   ${CMAKE_CURRENT_BUILD_DIR}
   )

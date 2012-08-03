@@ -1,13 +1,5 @@
 project(nepomukbackupsync)
 
-find_package(KDE4 REQUIRED)
-find_package(Nepomuk REQUIRED)
-#find_package(nepomuksync REQUIRED)
-
-include(SopranoAddOntology)
-
-#add_definitions(-DKDE_DEFAULT_DEBUG_AREA=300106)
-
 include (KDE4Defaults)
 
 include_directories(
@@ -15,7 +7,6 @@ include_directories(
   ${KDE4_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
-  ${NEPOMUK_INCLUDE_DIR}
   ${libnepomuksync_SOURCE_DIR}
   ../lib
   )

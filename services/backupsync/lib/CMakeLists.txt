@@ -1,15 +1,10 @@
 project(libnepomuksync)
 
-find_package(Nepomuk REQUIRED)
-
-include(SopranoAddOntology)
-
 include_directories(
   ${QT_INCLUDES}
   ${KDE4_INCLUDES}
   ${KDE4_KDECORE_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
-  ${NEPOMUK_INCLUDE_DIR}
 )
 
 add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS})
