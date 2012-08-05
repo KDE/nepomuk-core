@@ -20,37 +20,17 @@
 #include "searchrunnable.h"
 #include "folder.h"
 
-#include "resourcemanager.h"
 #include "resource.h"
 
-#include <Soprano/Version>
-#include <Soprano/Model>
-#include <Soprano/QueryResultIterator>
-#include <Soprano/Node>
-#include <Soprano/Statement>
-#include <Soprano/LiteralValue>
-#include <Soprano/StatementIterator>
-#include <Soprano/Vocabulary/RDF>
-#include <Soprano/Vocabulary/RDFS>
-#include <Soprano/Vocabulary/NRL>
-#include <Soprano/Vocabulary/NAO>
-#include <Soprano/Vocabulary/XMLSchema>
-#include <Soprano/Vocabulary/OWL>
-#include <Soprano/Vocabulary/Xesam>
-#include "nfo.h"
+#include "query/resultiterator.h"
 
 #include <KDebug>
-#include <KDateTime>
-#include <KRandom>
 
+#ifndef NDEBUG
 #include <QtCore/QTime>
-#include <QtCore/QRegExp>
-#include <QtCore/QLatin1String>
+#endif
 #include <QtCore/QStringList>
 
-
-
-using namespace Soprano;
 
 Nepomuk2::Query::SearchRunnable::SearchRunnable( Folder* folder )
     : QRunnable(),
@@ -86,11 +66,11 @@ void Nepomuk2::Query::SearchRunnable::run()
     time.start();
 #endif
 
-    Soprano::QueryResultIterator hits = ResourceManager::instance()->mainModel()->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
+    //Iterator of results
+    ResultIterator hits(sparql);
     while ( m_folder &&
             hits.next() ) {
-        Result result = extractResult( hits );
-
+        Result result = hits.result();
         kDebug() << "Found result:" << result.resource().uri() << result.score();
 
         lock.relock();
@@ -113,42 +93,3 @@ void Nepomuk2::Query::SearchRunnable::run()
 }
 
 
-Nepomuk2::Query::Result Nepomuk2::Query::SearchRunnable::extractResult( const Soprano::QueryResultIterator& it ) const
-{
-    Result result( Resource::fromResourceUri( it[0].uri() ) );
-
-    // make sure we do not store values twice
-    QStringList names = it.bindingNames();
-    names.removeAll( QLatin1String( "r" ) );
-
-    m_folderMutex.lock();
-    if( m_folder ) {
-        RequestPropertyMap requestProperties = m_folder->requestPropertyMap();
-        for ( RequestPropertyMap::const_iterator rpIt = requestProperties.constBegin();
-             rpIt != requestProperties.constEnd(); ++rpIt ) {
-            result.addRequestProperty( rpIt.value(), it.binding( rpIt.key() ) );
-            names.removeAll( rpIt.key() );
-        }
-    }
-    m_folderMutex.unlock();
-
-    static const char* s_scoreVarName = "_n_f_t_m_s_";
-    static const char* s_excerptVarName = "_n_f_t_m_ex_";
-
-    Soprano::BindingSet set;
-    int score = 0;
-    Q_FOREACH( const QString& var, names ) {
-        if ( var == QLatin1String( s_scoreVarName ) )
-            score = it[var].literal().toInt();
-        else if ( var == QLatin1String( s_excerptVarName ) )
-            result.setExcerpt( it[var].toString() );
-        else
-            set.insert( var, it[var] );
-    }
-
-    result.setAdditionalBindings( set );
-    result.setScore( ( double )score );
-
-    // score will be set above
-    return result;
-}
