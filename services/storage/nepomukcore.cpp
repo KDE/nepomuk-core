@@ -20,6 +20,7 @@
 #include "repository.h"
 #include "ontologyloader.h"
 #include "query/queryservice.h"
+#include "backupsync/service/backupsyncservice.h"
 
 #include <KDebug>
 #include <KSharedConfig>
@@ -37,6 +38,7 @@ Nepomuk2::Core::Core( QObject* parent )
       m_repository( 0 ),
       m_ontologyLoader( 0 ),
       m_queryService( 0 ),
+      m_backupService( 0 ),
       m_initialized( false )
 {
     // we give the Virtuoso server a server thread max of 100 which is already an insane number
@@ -83,6 +85,9 @@ void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
 
         // Query Service
         m_queryService = new Query::QueryService( repo, this);
+
+        // Backup Service
+        m_backupService = new BackupSyncService( repo, this );
     }
 }
 
@@ -94,6 +99,9 @@ void Nepomuk2::Core::slotRepositoryClosed(Nepomuk2::Repository*)
 
     delete m_queryService;
     m_queryService = 0;
+
+    delete m_backupService;
+    m_backupService = 0;
 }
 
 
@@ -121,11 +129,6 @@ Soprano::Model* Nepomuk2::Core::model( const QString& name )
     else {
         return 0;
     }
-}
-
-Soprano::Model* Nepomuk2::Core::model()
-{
-    return model(s_repositoryName);
 }
 
 

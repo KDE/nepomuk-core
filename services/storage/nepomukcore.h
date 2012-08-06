@@ -29,6 +29,7 @@ namespace Nepomuk2 {
         class QueryService;
     }
     class OntologyLoader;
+    class BackupSyncService;
 
     class Core : public Soprano::Server::ServerCore
     {
@@ -42,8 +43,6 @@ namespace Nepomuk2 {
          * reimplemented from ServerCore
          */
         Soprano::Model* model( const QString& name );
-
-        Soprano::Model* model();
 
         /**
          * Open all repositories.
@@ -73,6 +72,7 @@ namespace Nepomuk2 {
 
         OntologyLoader* m_ontologyLoader;
         Query::QueryService* m_queryService;
+        BackupSyncService* m_backupService;
 
         bool m_initialized;
     };

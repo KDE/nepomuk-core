@@ -19,7 +19,6 @@
 #include "storage.h"
 #include "nepomukcore.h"
 #include "repository.h"
-#include "backupsync/service/backupsyncservice.h"
 
 #include <QtDBus/QDBusConnection>
 #include <QtCore/QFile>
@@ -69,8 +68,6 @@ void Nepomuk2::Storage::slotNepomukCoreInitialized( bool success )
         QString socketPath = KGlobal::dirs()->locateLocal( "socket", "nepomuk-socket" );
         QFile::remove( socketPath ); // in case we crashed
         m_core->start( socketPath );
-
-        BackupSyncService* backupSync = new BackupSyncService( m_core->model(), this );
     }
     else {
         kDebug() << "Failed to initialize nepomuk core";
