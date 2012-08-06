@@ -22,7 +22,6 @@
 
 #include "backupmanager.h"
 #include "backupmanageradaptor.h"
-#include "logstorage.h"
 #include "tools.h"
 
 #include "changelog.h"

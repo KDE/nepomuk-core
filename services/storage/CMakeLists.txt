@@ -40,10 +40,7 @@ qt4_add_dbus_adaptor(storage_SRCS
 
 set( BackupSyncService_SRCS
   # BackupSync Service
-  backupsync/service/logstorage.cpp
   backupsync/service/backupsyncservice.cpp
-  backupsync/service/diffgenerator.cpp
-  backupsync/service/syncmanager.cpp
   backupsync/service/backupmanager.cpp
   backupsync/service/dbusoperators.cpp
   backupsync/service/tools.cpp
@@ -57,9 +54,6 @@ set( BackupSyncService_SRCS
 qt4_add_dbus_adaptor( BackupSyncService_SRCS
                       ../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
                       backupsync/service/backupmanager.h Nepomuk2::BackupManager )
-qt4_add_dbus_adaptor( BackupSyncService_SRCS
-                      ../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.syncmanager.xml
-                      backupsync/service/syncmanager.h Nepomuk2::SyncManager )
 
 soprano_add_ontology(BackupSyncService_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/../../ontologies/nrio.trig

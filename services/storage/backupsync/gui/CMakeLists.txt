@@ -46,9 +46,6 @@ set_source_files_properties(
   PROPERTIES INCLUDE "QtCore/QString")
 
 qt4_add_dbus_interface( NepomukBackup_GUI_SRCS
-                        ../../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.syncmanager.xml
-                        syncmanagerinterface )
-qt4_add_dbus_interface( NepomukBackup_GUI_SRCS
                         ../../../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
                         backupmanagerinterface )
 
