@@ -8,16 +8,20 @@ set(CMAKE_NEPOMUK_CORE_VERSION_MINOR 1)
 set(CMAKE_NEPOMUK_CORE_VERSION_RELEASE 0)
 set(CMAKE_NEPOMUK_CORE_VERSION_STRING "${CMAKE_NEPOMUK_CORE_VERSION_MAJOR}.${CMAKE_NEPOMUK_CORE_VERSION_MINOR}.${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}")
 
+# CTest setup
+# ===============================================================================================
+include(CTest)
+include(CTestConfig.cmake)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BINARY_DIR}/CTestCustom.cmake COPYONLY)
+
 
 # search required packages
 # ===============================================================================================
 set(KDE_MIN_VERSION "4.7.00")
 find_package(KDE4 4.7.00 REQUIRED)
 include(KDE4Defaults)
-find_package(KDE4Workspace)
-include(MacroLibrary)
 
-set(SDO_MIN_VERSION "0.7")
+set(SDO_MIN_VERSION "0.10")
 find_package(SharedDesktopOntologies)
 set(SOPRANO_MIN_VERSION "2.7.56")
 find_package(Soprano)
@@ -67,6 +71,7 @@ add_subdirectory(interfaces)
 add_subdirectory(removed-services)
 add_subdirectory(includes)
 add_subdirectory(tests)
+add_subdirectory(autotests)
 
 macro_display_feature_log()
 
@@ -80,6 +85,10 @@ macro_write_basic_cmake_version_file(${nepomuk-core_BINARY_DIR}/NepomukCoreConfi
                                      ${CMAKE_NEPOMUK_CORE_VERSION_MINOR}
                                      ${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}
                                      )
+
+install(FILES
+  Nepomuk2AddOntologyClasses.cmake
+  DESTINATION ${LIB_INSTALL_DIR}/cmake/NepomukCore)
 
 install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake

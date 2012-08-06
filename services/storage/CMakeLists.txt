@@ -24,7 +24,6 @@ set(storage_SRCS
   resourceidentifier.cpp
   resourcewatchermanager.cpp
   resourcewatcherconnection.cpp
-  graphmaintainer.cpp
   virtuosoinferencemodel.cpp
   ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
   )
@@ -62,14 +61,27 @@ qt4_add_dbus_adaptor( BackupSyncService_SRCS
                       ../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.syncmanager.xml
                       backupsync/service/syncmanager.h Nepomuk2::SyncManager )
 
-#--------- Ontologies -------#
 soprano_add_ontology(BackupSyncService_SRCS
    ${CMAKE_CURRENT_SOURCE_DIR}/../../ontologies/nrio.trig
   "NRIO"
   "Nepomuk::Vocabulary"
   "trig")
 
-kde4_add_plugin(nepomukstorage ${storage_SRCS} ${BackupSyncService_SRCS})
+
+set(queryservice_SRCS
+  query/queryservice.cpp
+  query/folder.cpp
+  query/folderconnection.cpp
+  query/searchrunnable.cpp
+  query/countqueryrunnable.cpp
+)
+
+qt4_add_dbus_adaptor(queryservice_SRCS
+  ../../interfaces/org.kde.nepomuk.Query.xml
+  query/folderconnection.h
+  Nepomuk2::Query::FolderConnection)
+
+kde4_add_plugin(nepomukstorage ${storage_SRCS} ${queryservice_SRCS} ${BackupSyncService_SRCS})
 
 target_link_libraries(nepomukstorage
   ${SOPRANO_LIBRARIES}

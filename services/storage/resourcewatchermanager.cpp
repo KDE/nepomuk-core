@@ -41,12 +41,12 @@
 using namespace Soprano::Vocabulary;
 
 namespace {
-QDBusVariant nodeToVariant(const Soprano::Node& node) {
+QVariant nodeToVariant(const Soprano::Node& node) {
     if(node.isResource()) {
-        return QDBusVariant(node.uri());
+        return QVariant(node.uri().toString());
     }
     else {
-        return QDBusVariant(node.literal().variant());
+        return QVariant(node.literal().variant());
     }
 }
 
@@ -54,7 +54,7 @@ template<typename T> QVariantList nodeListToVariantList(const T &nodes) {
     QVariantList list;
     list.reserve(nodes.size());
     foreach( const Soprano::Node &n, nodes ) {
-        list << nodeToVariant(n).variant();
+        list << nodeToVariant(n);
     }
 
     return list;
@@ -121,7 +121,6 @@ Nepomuk2::ResourceWatcherManager::~ResourceWatcherManager()
 void Nepomuk2::ResourceWatcherManager::addStatement(const Soprano::Statement& st)
 {
     // FIXME!
-    kError() << "FIXME";
     //addProperty( st.subject(), st.predicate().uri(), QList<Soprano::Node>() << st.object() );
 }
 

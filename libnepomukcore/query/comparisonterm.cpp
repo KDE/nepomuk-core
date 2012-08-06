@@ -286,7 +286,7 @@ QString Nepomuk2::Query::ComparisonTermPrivate::toSparqlGraphPattern( const QStr
         }
         else if ( m_subTerm.isResourceTerm() ) {
             // ?r <prop> <res>
-            return corePattern.arg( Soprano::Node::resourceToN3(m_subTerm.toResourceTerm().resource().resourceUri()) );
+            return corePattern.arg( Soprano::Node::resourceToN3(m_subTerm.toResourceTerm().resource().uri()) );
         }
         else {
             // ?r <prop> ?v1 . ?v1 ...

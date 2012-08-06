@@ -45,6 +45,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QDateTime>
 #include <QtCore/QMutexLocker>
+#include <QtCore/QFileInfo>
 
 #include <kdebug.h>
 #include <kurl.h>
@@ -54,47 +55,45 @@ using namespace Soprano;
 
 #define MAINMODEL (m_rm->m_manager->mainModel())
 
+using namespace Soprano::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, const QUrl& type, ResourceManagerPrivate* rm )
     : m_uri(uri),
-      m_mainType( type ),
+      m_type(type),
       m_modificationMutex(QMutex::Recursive),
       m_cacheDirty(false),
       m_addedToWatcher(false),
-      m_pimoThing(0),
-      m_groundingOccurence(0),
       m_rm(rm)
 {
-    if( m_mainType.isEmpty() ) {
-        m_mainType = Soprano::Vocabulary::RDFS::Resource();
-    }
-
-    m_types << m_mainType;
-
-    if( m_rm->dataCacheFull() )
-        m_rm->cleanupCache();
+    if( type.isEmpty() )
+        m_type = RDFS::Resource();
 
     m_rm->dataCnt.ref();
 
     if( !uri.isEmpty() ) {
         m_cacheDirty = true;
-        m_rm->m_initializedData.insert( uri, this );
-        m_kickoffUris.insert( uri );
-    }
-    if( !kickOffUri.isEmpty() ) {
-        m_kickoffUris.insert( kickOffUri );
 
+        QMutexLocker locker(&m_rm->mutex);
+        m_rm->m_initializedData.insert( uri, this );
+    }
+
+    if( !kickOffUri.isEmpty() ) {
         if( kickOffUri.scheme().isEmpty() ) {
-            // Label
-            const QString label = kickOffUri.toString();
-            m_cache.insert( Soprano::Vocabulary::NAO::identifier(), label );
+            m_naoIdentifier = kickOffUri.toString();
+            m_cache.insert( NAO::identifier(), m_naoIdentifier );
+
+            QMutexLocker locker(&m_rm->mutex);
+            m_rm->m_identifierKickOff.insert(m_naoIdentifier, this);
         }
-        else if( kickOffUri.scheme() != QLatin1String("nepomuk") ) {
-            // It's probably the nie:url
-            m_cache.insert( Nepomuk2::Vocabulary::NIE::url(), kickOffUri );
+        else {
+            m_nieUrl = kickOffUri;
+            m_cache.insert( NIE::url(), m_nieUrl );
+
+            QMutexLocker locker(&m_rm->mutex);
+            m_rm->m_urlKickOff.insert(m_nieUrl, this);
         }
     }
-    m_rm->addToKickOffList( this, m_kickoffUris );
 }
 
 
@@ -109,9 +108,8 @@ bool Nepomuk2::ResourceData::isFile()
 {
     return( m_uri.scheme() == QLatin1String("file") ||
             m_nieUrl.scheme() == QLatin1String("file") ||
-            (!m_kickoffUris.isEmpty() && (*m_kickoffUris.begin()).scheme() == QLatin1String("file")) ||
-            constHasType( Soprano::Vocabulary::Xesam::File() ) ||
-            constHasType( Nepomuk2::Vocabulary::NFO::FileDataObject() ) );
+            hasProperty( RDF::type(), NFO::FileDataObject() ) );
+    // The hasProperty should be const - It shouldn't load the entire cache. Maybe
 }
 
 
@@ -124,38 +122,34 @@ QUrl Nepomuk2::ResourceData::uri() const
 QUrl Nepomuk2::ResourceData::type()
 {
     load();
-    return m_mainType;
-}
 
+    QUrl mainType = RDFS::Resource();
+    QList<QUrl> types = m_cache[RDF::type()].toUrlList();
+    foreach(const QUrl& t, types) {
+        Types::Class currentTypeClass = mainType;
+        Types::Class storedTypeClass = t;
 
-QList<QUrl> Nepomuk2::ResourceData::allTypes()
-{
-    load();
-    return m_types;
-}
-
-
-void Nepomuk2::ResourceData::setTypes( const QList<QUrl>& types )
-{
-    store();
-
-    QMutexLocker lock(&m_modificationMutex);
-
-    // reset types
-    m_types.clear();
-    m_mainType = Soprano::Vocabulary::RDFS::Resource();
-
-    QList<Node> nodes;
-    // load types (and set maintype)
-    foreach( const QUrl& url, types ) {
-        loadType( url );
-        nodes << Node( url );
+        // Keep the type that is further down the hierarchy
+        if ( storedTypeClass.isSubClassOf( currentTypeClass ) ) {
+            mainType = storedTypeClass.uri();
+        }
+        else {
+            // This is a little convenience hack since the user is most likely
+            // more interested in the file content than the actual file
+            // the same is true for nie:DataObject vs. nie:InformationElement
+            Types::Class nieInformationElementClass( NIE::InformationElement() );
+            Types::Class nieDataObjectClass( NIE::DataObject() );
+            if( ( currentTypeClass == nieDataObjectClass ||
+                  currentTypeClass.isSubClassOf( nieDataObjectClass ) ) &&
+                ( storedTypeClass == nieInformationElementClass ||
+                  storedTypeClass.isSubClassOf( nieInformationElementClass ) ) ) {
+                mainType = storedTypeClass.uri();
+            }
+        }
     }
 
-    // update the data store
-    setProperty(Soprano::Vocabulary::RDF::type(), Nepomuk2::Variant(types) );
+    return mainType;
 }
-
 
 
 void Nepomuk2::ResourceData::resetAll( bool isDelete )
@@ -168,8 +162,8 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
     // This is required cause otherwise the Resource::fromResourceUri creates a new
     // resource which is correctly identified to the ResourceData (this), and it is
     // then deleted, which calls resetAll and this cycle continues.
-    Q_FOREACH( const KUrl& uri, m_kickoffUris )
-        m_rm->m_uriKickoffData.remove( uri );
+    m_rm->m_identifierKickOff.remove( m_cache[NAO::identifier()].toString() );
+    m_rm->m_urlKickOff.remove( m_cache[NIE::url()].toUrl() );
 
     if( !m_uri.isEmpty() ) {
         m_rm->m_initializedData.remove( m_uri );
@@ -189,22 +183,12 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
     m_rm->mutex.unlock();
 
     // reset all variables
-    m_uri = QUrl();
-    m_nieUrl = KUrl();
-    m_kickoffUris.clear();
+    m_uri.clear();
+    m_nieUrl.clear();
+    m_naoIdentifier.clear();
     m_cache.clear();
     m_cacheDirty = false;
-    m_types.clear();
-    delete m_pimoThing;
-    m_pimoThing = 0;
-    m_groundingOccurence = 0;
-
-    // when we are being deleted the value of m_mainType is not important
-    // anymore. Also since ResourceManager is a global static it might be
-    // deleted after the global static behind Soprano::Vocabulary::RDFS
-    // which results in a crash.
-    if( !isDelete )
-        m_mainType = Soprano::Vocabulary::RDFS::Resource();
+    m_type.clear();
 }
 
 
@@ -242,31 +226,6 @@ bool Nepomuk2::ResourceData::hasProperty( const QUrl& p, const Variant& v )
 }
 
 
-bool Nepomuk2::ResourceData::hasType( const QUrl& uri )
-{
-    load();
-    return constHasType( uri );
-}
-
-
-bool Nepomuk2::ResourceData::constHasType( const QUrl& uri ) const
-{
-    // we need to protect the reading, too. setTypes may be triggered from another thread
-    QMutexLocker lock(&m_modificationMutex);
-
-    Types::Class requestedType( uri );
-    for ( QList<QUrl>::const_iterator it = m_types.constBegin();
-          it != m_types.constEnd(); ++it ) {
-        Types::Class availType( *it );
-        if ( availType == requestedType ||
-             availType.isSubClassOf( requestedType ) ) {
-            return true;
-        }
-    }
-    return false;
-}
-
-
 Nepomuk2::Variant Nepomuk2::ResourceData::property( const QUrl& uri )
 {
     load();
@@ -292,14 +251,34 @@ bool Nepomuk2::ResourceData::store()
     if ( m_uri.isEmpty() ) {
         QMutexLocker rmlock(&m_rm->mutex);
 
-        if ( m_nieUrl.isValid() &&
-             m_nieUrl.isLocalFile() &&
-             m_mainType == Soprano::Vocabulary::RDFS::Resource() ) {
-            m_mainType = Nepomuk2::Vocabulary::NFO::FileDataObject();
-            m_types << m_mainType;
+        //TODO: Move this logic to the DMS
+        QList<QUrl> types;
+        if ( m_nieUrl.isValid() && m_nieUrl.isLocalFile() ) {
+            // FIXME: Also check for super classes of nfo:Folder and nfo:FileDataObject
+            // For folders
+            if( QFileInfo(m_nieUrl.toLocalFile()).isDir() ) {
+                types << NFO::Folder();
+                //FIXME: This should ideally check if m_type is not a subtype of nfo:Folder
+                if( m_type != NFO::FileDataObject() && m_type != NFO::Folder() && m_type != RDFS::Resource() )
+                    types << m_type;
+                m_type.clear();
+            }
+            //
+            // For files
+            if( !m_type.isEmpty() && m_type != NFO::FileDataObject() ) {
+                types << NFO::FileDataObject();
+                m_type.clear();
+            }
         }
 
-        Nepomuk2::CreateResourceJob* job = Nepomuk2::createResource(m_types, QString(), QString());
+        if( !m_type.isEmpty() )
+            types << m_type;
+
+        if( types.isEmpty() )
+            types << RDFS::Resource();
+
+        kDebug() << "Creating with types: " << types;
+        Nepomuk2::CreateResourceJob* job = Nepomuk2::createResource(types, QString(), QString());
         if( !job->exec() ) {
             //TODO: Set the error somehow
             kWarning() << job->errorString();
@@ -307,78 +286,54 @@ bool Nepomuk2::ResourceData::store()
         }
         else {
             m_uri = job->resourceUri();
+            m_cache.insert(RDF::type(), types);
         }
 
         // Add us to the initialized data, i.e. make us "valid"
         m_rm->m_initializedData.insert( m_uri, this );
 
-        // each initialized resource has to be in a kickoff list
-        // thus, we make sure that is the case.
-        if( m_kickoffUris.isEmpty() ) {
-            m_kickoffUris.insert( m_uri );
-            m_rm->addToKickOffList( this, m_kickoffUris );
+        if( !m_naoIdentifier.isEmpty() ) {
+            setProperty( NAO::identifier(), m_naoIdentifier );
+            m_naoIdentifier.clear();
+        }
+        if( !m_nieUrl.isEmpty() ) {
+            setProperty( NIE::url(), m_nieUrl );
+            m_nieUrl.clear();
         }
 
-        // store our grounding occurrence in case we are a thing created by the pimoThing() method
-        if( m_groundingOccurence ) {
-            if( m_groundingOccurence != this )
-                m_groundingOccurence->store();
-            setProperty(Vocabulary::PIMO::groundingOccurrence(), Variant(m_groundingOccurence->uri()) );
-        }
-
-        foreach( const KUrl& url, m_kickoffUris ) {
-            if( url.scheme().isEmpty() )
-                setProperty( Soprano::Vocabulary::NAO::identifier(), Variant(url.url()) );
-            else
-                setProperty( Nepomuk2::Vocabulary::NIE::url(), Variant(url.url()) );
-        }
+        addToWatcher();
     }
 
     return true;
 }
 
 
-void Nepomuk2::ResourceData::loadType( const QUrl& storedType )
+void Nepomuk2::ResourceData::addToWatcher()
 {
-    if ( !m_types.contains( storedType ) ) {
-        m_types << storedType;
-    }
-    if ( m_mainType == Soprano::Vocabulary::RDFS::Resource() ) {
-        Q_ASSERT( !storedType.isEmpty() );
-        m_mainType = storedType;
+    if(!m_rm->m_watcher) {
+        m_rm->m_watcher = new ResourceWatcher(m_rm->m_manager);
+        //
+        // The ResourceWatcher is not thread-safe. Thus, we need to ensure the safety ourselves.
+        // We do that by simply handling all RW related operations in the manager thread.
+        // This also means to invoke methods on the watcher through QMetaObject to make sure they
+        // get queued in case of calls between different threads.
+        //
+        m_rm->m_watcher->moveToThread(m_rm->m_manager->thread());
+        QObject::connect( m_rm->m_watcher, SIGNAL(propertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
+                            m_rm->m_manager, SLOT(slotPropertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
+        QObject::connect( m_rm->m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
+                            m_rm->m_manager, SLOT(slotPropertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
+        m_rm->m_watcher->addResource( Nepomuk2::Resource::fromResourceUri(m_uri) );
     }
     else {
-        Types::Class currentTypeClass = m_mainType;
-        Types::Class storedTypeClass = storedType;
-
-        // Keep the type that is further down the hierarchy
-        if ( storedTypeClass.isSubClassOf( currentTypeClass ) ) {
-            m_mainType = storedTypeClass.uri();
-        }
-        else {
-            // This is a little convenience hack since the user is most likely
-            // more interested in the file content than the actual file
-            Types::Class xesamContentClass( Soprano::Vocabulary::Xesam::Content() );
-            if ( m_mainType == Soprano::Vocabulary::Xesam::File() &&
-                 ( storedTypeClass == xesamContentClass ||
-                   storedTypeClass.isSubClassOf( xesamContentClass ) ) ) {
-                m_mainType = storedTypeClass.uri();
-            }
-            else {
-                // the same is true for nie:DataObject vs. nie:InformationElement
-                Types::Class nieInformationElementClass( Vocabulary::NIE::InformationElement() );
-                Types::Class nieDataObjectClass( Vocabulary::NIE::DataObject() );
-                if( ( currentTypeClass == nieDataObjectClass ||
-                      currentTypeClass.isSubClassOf( nieDataObjectClass ) ) &&
-                    ( storedTypeClass == nieInformationElementClass ||
-                      storedTypeClass.isSubClassOf( nieInformationElementClass ) ) ) {
-                    m_mainType = storedTypeClass.uri();
-                }
-            }
-        }
+        QMetaObject::invokeMethod(m_rm->m_watcher, "addResource", Qt::AutoConnection, Q_ARG(Nepomuk2::Resource, Nepomuk2::Resource::fromResourceUri(m_uri)) );
     }
+    // (re-)start the watcher in case this resource is the only one in the list of watched
+    if(m_rm->m_watcher->resources().count() <= 1) {
+        QMetaObject::invokeMethod(m_rm->m_watcher, "start", Qt::AutoConnection);
+    }
+    m_addedToWatcher = true;
 }
-
 
 bool Nepomuk2::ResourceData::load()
 {
@@ -386,30 +341,7 @@ bool Nepomuk2::ResourceData::load()
 
     if ( m_cacheDirty ) {
         m_cache.clear();
-
-        if(!m_rm->m_watcher) {
-            m_rm->m_watcher = new ResourceWatcher(m_rm->m_manager);
-            //
-            // The ResourceWatcher is not thread-safe. Thus, we need to ensure the safety ourselves.
-            // We do that by simply handling all RW related operations in the manager thread.
-            // This also means to invoke methods on the watcher through QMetaObject to make sure they
-            // get queued in case of calls between different threads.
-            //
-            m_rm->m_watcher->moveToThread(m_rm->m_manager->thread());
-            QObject::connect( m_rm->m_watcher, SIGNAL(propertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
-                              m_rm->m_manager, SLOT(slotPropertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
-            QObject::connect( m_rm->m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
-                              m_rm->m_manager, SLOT(slotPropertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
-            m_rm->m_watcher->addResource( Nepomuk2::Resource::fromResourceUri(m_uri) );
-        }
-        else {
-            QMetaObject::invokeMethod(m_rm->m_watcher, "addResource", Qt::AutoConnection, Q_ARG(Nepomuk2::Resource, Nepomuk2::Resource::fromResourceUri(m_uri)) );
-        }
-        // (re-)start the watcher in case this resource is the only one in the list of watched
-        if(m_rm->m_watcher->resources().count() <= 1) {
-            QMetaObject::invokeMethod(m_rm->m_watcher, "start", Qt::AutoConnection);
-        }
-        m_addedToWatcher = true;
+        addToWatcher();
 
         if ( m_uri.isValid() ) {
             //
@@ -422,36 +354,13 @@ bool Nepomuk2::ResourceData::load()
             while ( it.next() ) {
                 QUrl p = it["p"].uri();
                 Soprano::Node o = it["o"];
-                if ( p == Soprano::Vocabulary::RDF::type() ) {
-                    if ( o.isResource() ) {
-                        loadType( o.uri() );
-                    }
-                }
-                else {
-                    Nepomuk2::Variant var = Variant::fromNode( o );
-                    updateKickOffLists( p, var );
-                    m_cache[p].append( var );
-                }
+                Nepomuk2::Variant var = Variant::fromNode( o );
+                //FIXME: Is this updating of the kickoff lists required?
+                updateKickOffLists( p, var );
+                m_cache[p].append( var );
             }
 
             m_cacheDirty = false;
-
-            delete m_pimoThing;
-            m_pimoThing = 0;
-            if( hasType( Vocabulary::PIMO::Thing() ) ) {
-                m_pimoThing = new Thing( m_uri );
-            }
-            else {
-                // TODO: somehow handle pimo:referencingOccurrence and pimo:occurrence
-                QueryResultIterator pimoIt = MAINMODEL->executeQuery( QString( "select ?r where { ?r <%1> <%2> . }")
-                                                                      .arg( Vocabulary::PIMO::groundingOccurrence().toString() )
-                                                                      .arg( QString::fromAscii( m_uri.toEncoded() ) ),
-                                                                      Soprano::Query::QueryLanguageSparqlNoInference );
-                if( pimoIt.next() ) {
-                    m_pimoThing = new Thing( pimoIt.binding("r").uri() );
-                }
-            }
-
             return true;
         }
         else {
@@ -492,14 +401,15 @@ void Nepomuk2::ResourceData::setProperty( const QUrl& uri, const Nepomuk2::Varia
             return;
         }
 
+        // update the kickofflists
+        // IMPORTANT: Must be called before the cache is updated. They use the value from the cache
+        updateKickOffLists( uri, value );
+
         // update the cache for now
         if( value.isValid() )
             m_cache[uri] = value;
         else
             m_cache.remove(uri);
-
-        // update the kickofflists
-        updateKickOffLists( uri, value );
     }
 }
 
@@ -532,12 +442,13 @@ void Nepomuk2::ResourceData::addProperty( const QUrl& uri, const Nepomuk2::Varia
             return;
         }
 
+        // update the kickofflists
+        // IMPORTANT: Must be called before the cache is updated. They use the value from the cache
+        updateKickOffLists( uri, value );
+
         // update the cache for now
         if( value.isValid() )
             m_cache[uri].append(value);
-
-        // update the kickofflists
-        updateKickOffLists( uri, value );
     }
 }
 
@@ -555,11 +466,12 @@ void Nepomuk2::ResourceData::removeProperty( const QUrl& uri )
             return;
         }
 
+        // update the kickofflists
+        // IMPORTANT: Must be called before the cache is updated. They use the value from the cache
+        updateKickOffLists( uri, Variant() );
+
         // Update the cache
         m_cache.remove( uri );
-
-        // update the kickofflists
-        updateKickOffLists( uri, Variant() );
     }
 }
 
@@ -597,7 +509,7 @@ bool Nepomuk2::ResourceData::exists()
 
 bool Nepomuk2::ResourceData::isValid() const
 {
-    return( !m_mainType.isEmpty() && ( !m_uri.isEmpty() || !m_kickoffUris.isEmpty() ) );
+    return !m_uri.isEmpty() || !m_nieUrl.isEmpty() || !m_naoIdentifier.isEmpty();
 }
 
 
@@ -629,53 +541,42 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceData::determineUri()
     if( m_uri.isEmpty() ) {
         Soprano::Model* model = MAINMODEL;
 
-        if( !m_kickoffUris.isEmpty() ) {
-            KUrl kickOffUri = *m_kickoffUris.begin();
-            if( kickOffUri.scheme().isEmpty() ) {
-                //
-                // Not valid. Checking for nao:identifier
-                //
-                QString query = QString::fromLatin1("select distinct ?r where { ?r %1 %2. } LIMIT 1")
-                                .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::identifier()) )
-                                .arg( Soprano::Node::literalToN3( kickOffUri.url() ) );
+        if( !m_naoIdentifier.isEmpty() ) {
+            //
+            // Not valid. Checking for nao:identifier
+            //
+            QString query = QString::fromLatin1("select distinct ?r where { ?r %1 %2. } LIMIT 1")
+                            .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::identifier()) )
+                            .arg( Soprano::Node::literalToN3( m_naoIdentifier ) );
 
-                Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-                if( it.next() ) {
-                    m_uri = it["r"].uri();
-                    it.close();
-                }
+            Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+            if( it.next() ) {
+                m_uri = it["r"].uri();
+                it.close();
             }
-            else {
-                //
-                // In one query determine if the URI is already used as resource URI or as
-                // nie:url
-                //
-                QString query = QString::fromLatin1("select distinct ?r ?o where { "
-                                                    "{ ?r %1 %2 . FILTER(?r!=%2) . } "
-                                                    "UNION "
-                                                    "{ %2 ?p ?o . } "
-                                                    "} LIMIT 1")
-                                .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ) )
-                                .arg( Soprano::Node::resourceToN3( kickOffUri ) );
-                Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-                if( it.next() ) {
-                    QUrl uri = it["r"].uri();
-                    if( uri.isEmpty() ) {
-                        m_uri = kickOffUri;
-                    }
-                    else {
-                        m_uri = uri;
-                        m_nieUrl = kickOffUri;
-                    }
-                    it.close();
-                }
-                else if( kickOffUri.scheme() == QLatin1String("nepomuk") ) {
-                    // for nepomuk URIs we simply use the kickoff URI as resource URI
-                    m_uri = kickOffUri;
+        }
+        else {
+            //
+            // In one query determine if the URI is already used as resource URI or as
+            // nie:url
+            //
+            QString query = QString::fromLatin1("select distinct ?r ?o where { "
+                                                "{ ?r %1 %2 . FILTER(?r!=%2) . } "
+                                                "UNION "
+                                                "{ %2 ?p ?o . } "
+                                                "} LIMIT 1")
+                            .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ) )
+                            .arg( Soprano::Node::resourceToN3( m_nieUrl ) );
+            Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+            if( it.next() ) {
+                QUrl uri = it["r"].uri();
+                if( uri.isEmpty() ) {
+                    // FIXME: Find a way to avoid this
+                    // The url is actually the uri - legacy data
+                    m_uri = m_nieUrl;
                 }
                 else {
-                    // for everything else we use m_kickoffUri as nie:url with a new random m_uri
-                    m_nieUrl = kickOffUri;
+                    m_uri = uri;
                 }
             }
         }
@@ -705,50 +606,24 @@ void Nepomuk2::ResourceData::invalidateCache()
 }
 
 
-Nepomuk2::Thing Nepomuk2::ResourceData::pimoThing()
-{
-    load();
-    if( !m_pimoThing ) {
-        //
-        // We only create a new thing if we are a nie:InformationElement.
-        // All other resources will simply be converted into a pimo:Thing
-        //
-        // Files, however, are a special case in every aspect. this includes pimo things.
-        // Files are their own grounding occurrence. This makes a lot of things
-        // much simpler.
-        //
-        if( hasType( Vocabulary::PIMO::Thing() ) ||
-                isFile() ||
-                !hasType( Vocabulary::NIE::InformationElement() ) ) {
-            m_pimoThing = new Thing(this);
-        }
-        else {
-            m_pimoThing = new Thing();
-        }
-        m_pimoThing->m_data->m_groundingOccurence = this;
-    }
-    return *m_pimoThing;
-}
-
-
 bool Nepomuk2::ResourceData::operator==( const ResourceData& other ) const
 {
     if( this == &other )
         return true;
 
+    // TODO: Maybe we shouldn't check if the identifier and url are same.
     return( m_uri == other.m_uri &&
-            m_mainType == other.m_mainType &&
-            m_kickoffUris == other.m_kickoffUris );
+            m_naoIdentifier == other.m_naoIdentifier &&
+            m_nieUrl == other.m_nieUrl );
 }
 
 
 QDebug Nepomuk2::ResourceData::operator<<( QDebug dbg ) const
 {
-    KUrl::List list = m_kickoffUris.toList();
-    dbg << QString::fromLatin1("[kickoffuri: %1; uri: %2; type: %3; ref: %4]")
-        .arg( list.toStringList().join(QLatin1String(",")),
-              m_uri.url(),
-              m_mainType.toString() )
+    dbg << QString::fromLatin1("[uri: %1; url: %2, identifier: %3, ref: %4]")
+        .arg( m_uri.url(),
+              m_nieUrl.url(),
+              m_naoIdentifier )
         .arg( m_ref );
 
     return dbg;
@@ -760,38 +635,34 @@ QDebug operator<<( QDebug dbg, const Nepomuk2::ResourceData& data )
     return data.operator<<( dbg );
 }
 
-
-void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& prop, const Nepomuk2::Variant& v)
+void Nepomuk2::ResourceData::updateUrlLists(const QUrl& newUrl)
 {
-    KUrl oldUrl;
-    KUrl newUrl;
-    if( prop == Nepomuk2::Vocabulary::NIE::url() ) {
-        oldUrl = m_nieUrl;
-        newUrl = v.toUrl();
-        m_nieUrl = newUrl;
-    }
-    else if( prop == Soprano::Vocabulary::NAO::identifier() ) {
-        Q_FOREACH( const KUrl& url, m_kickoffUris ) {
-            if( url.scheme().isEmpty() ) {
-                oldUrl = url;
-                break;
-            }
-        }
-        newUrl = KUrl( v.toString() );
-    }
-    else {
-        return;
-    }
+    const QUrl oldUrl = m_cache[NIE::url()].toUrl();
 
-    if( oldUrl != newUrl ) {
-        QMutexLocker rmlock(&m_rm->mutex);
+    QMutexLocker rmlock(&m_rm->mutex);
+    m_rm->m_urlKickOff.remove( oldUrl );
 
-        m_kickoffUris.remove( oldUrl );
-        m_rm->m_uriKickoffData.remove( oldUrl );
-
-        if( !newUrl.isEmpty() ) {
-            m_kickoffUris.insert( newUrl );
-            m_rm->m_uriKickoffData.insert( newUrl, this );
-        }
+    if( !newUrl.isEmpty() ) {
+        m_rm->m_urlKickOff.insert( newUrl, this );
     }
+}
+
+void Nepomuk2::ResourceData::updateIdentifierLists(const QString& newIdentifier)
+{
+    const QString oldIdentifier = m_cache[NAO::identifier()].toString();
+
+    QMutexLocker rmlock(&m_rm->mutex);
+    m_rm->m_identifierKickOff.remove( oldIdentifier );
+
+    if( !newIdentifier.isEmpty() ) {
+        m_rm->m_identifierKickOff.insert( newIdentifier, this );
+    }
+}
+
+void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& uri, const Nepomuk2::Variant& variant)
+{
+    if( uri == NIE::url() )
+        updateUrlLists( variant.toUrl() );
+    else if( uri == NAO::identifier() )
+        updateIdentifierLists( variant.toString() );
 }

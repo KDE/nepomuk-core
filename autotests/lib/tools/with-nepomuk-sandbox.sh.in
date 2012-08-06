@@ -1,0 +1,73 @@
+#!/bin/sh
+
+# create a new random kde home
+CNT=0
+KDEHOME=/tmp/kde_test_home_$CNT
+while [ -e $KDEHOME ]
+  do
+  let "CNT += 1"
+  KDEHOME=/tmp/kde_test_home_$CNT
+done
+
+export KDEHOME
+# We're changing the $HOME dir cause kde unit tests use $HOME/.kde-unit-test
+# Yes, it's retarded!
+export HOME="$KDEHOME"
+export KDETMP=$KDEHOME/tmp
+export KDEVARTMP=$KDEHOME/vartmp
+export KDE_FULL_SESSION=false
+
+mkdir -p $KDEHOME
+mkdir -p $KDETMP
+mkdir -p $KDEVARTMP
+
+# Copy the nepomukserverrc into place
+mkdir -p $KDEHOME/share/config
+cp @NEPOMUK_TESTLIB_DATA_DIR@/nepomukserverrc $KDEHOME/share/config/
+
+# start kde basics
+echo "Starting new KDE session in $KDEHOME..."
+kbuildsycoca4 2> /dev/null
+kdeinit4 2> /dev/null
+qdbus org.kde.kded /kded org.kde.kded.loadSecondPhase 2> /dev/null
+echo "Started..."
+
+# Start the nepomuk server (which will automatically start other nepomuk services
+echo "Starting nepomukserver"
+nepomukserver 2> $KDETMP/nepomuk-server.log &
+
+function wait-for-nepomuk-service() {
+    echo "Waiting for $1 service to be initialized."
+
+    qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null
+    while [ $? -ne 0 ]
+    do
+        sleep 1
+        qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null
+    done
+}
+
+wait-for-nepomuk-service "org.kde.NepomukStorage"
+wait-for-nepomuk-service "org.kde.nepomuk.services.nepomukqueryservice"
+# If you need to wait for other services to be ready before starting the test case, do that here.
+
+# start the actual test
+echo "Starting test case..."
+eval $@
+
+# Shutdown the nepomuk server
+echo "Telling nepomukserver to quit (this may take some time)"
+qdbus org.kde.NepomukServer /nepomukserver org.kde.NepomukServer.quit > /dev/null
+
+# Wait for the nepomuk server to finish shutting down
+while [ `qdbus org.kde.NepomukServer /nepomukserver org.kde.nepomuk.NepomukServer.isNepomukEnabled > /dev/null` ]
+do
+  sleep 1
+done
+
+# shutdown KDE
+echo "Shutting down KDE session..."
+kdeinit4_shutdown
+
+echo "Cleaning up temporary KDEHOME $KDEHOME"
+rm -rf $KDEHOME

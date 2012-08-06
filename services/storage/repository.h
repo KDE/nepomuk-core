@@ -38,7 +38,6 @@ namespace Nepomuk2 {
     class DataManagementModel;
     class DataManagementAdaptor;
     class ClassAndPropertyTree;
-    class GraphMaintainer;
     class VirtuosoInferenceModel;
 
     /**
@@ -109,8 +108,6 @@ namespace Nepomuk2 {
         Nepomuk2::DataManagementAdaptor* m_dataManagementAdaptor;
         Soprano::NRLModel* m_nrlModel;
         const Soprano::Backend* m_backend;
-
-        QPointer<GraphMaintainer> m_graphMaintainer;
 
         // only used during opening
         // ------------------------------------------

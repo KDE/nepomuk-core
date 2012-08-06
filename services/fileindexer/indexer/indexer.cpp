@@ -112,34 +112,33 @@ bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uin
         d->m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
         return false;
     }
-    
+
     d->m_analyzerConfig.setStop( false );
     d->m_indexWriter->forceUri( resUri );
-    
+
     // strigi asserts if the file path has a trailing slash
     const KUrl url( info.filePath() );
     const QString filePath = url.toLocalFile( KUrl::RemoveTrailingSlash );
     const QString dir = url.directory( KUrl::IgnoreTrailingSlash );
 
-    kDebug() << "Starting to analyze" << info.filePath();
 
-    Strigi::AnalysisResult analysisresult( QFile::encodeName( filePath ).data(),
-                                           mtime ? mtime : info.lastModified().toTime_t(),
-                                           *d->m_indexWriter,
-                                           *d->m_streamAnalyzer,
-                                           QFile::encodeName( dir ).data() );
-    if ( info.isFile() && !info.isSymLink() ) {
-#ifdef STRIGI_HAS_FILEINPUTSTREAM_OPEN
-        Strigi::InputStream* stream = Strigi::FileInputStream::open( QFile::encodeName( info.filePath() ) );
-        analysisresult.index( stream );
-        delete stream;
-#else
-        Strigi::FileInputStream stream( QFile::encodeName( info.filePath() ) );
-        analysisresult.index( &stream );
-#endif
-    }
-    else {
-        analysisresult.index(0);
+    // WARNING: This extra block is present because the indexing is only finished when
+    // analysis result is destroyed
+    {
+        Strigi::AnalysisResult analysisresult( QFile::encodeName( filePath ).data(),
+                                            mtime ? mtime : info.lastModified().toTime_t(),
+                                            *d->m_indexWriter,
+                                            *d->m_streamAnalyzer,
+                                            QFile::encodeName( dir ).data() );
+        if ( info.isFile() && !info.isSymLink() ) {
+            Strigi::InputStream* stream = Strigi::FileInputStream::open( QFile::encodeName( info.filePath() ) );
+            analysisresult.index( stream );
+            delete stream;
+        }
+        else {
+            analysisresult.index(0);
+        }
+
     }
 
     d->m_lastError = d->m_indexWriter->lastError();

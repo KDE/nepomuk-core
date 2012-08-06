@@ -156,7 +156,7 @@ public Q_SLOTS:
                         const QString& app,
                         Nepomuk2::StoreIdentificationMode identificationMode = Nepomuk2::IdentifyNew,
                         Nepomuk2::StoreResourcesFlags flags = Nepomuk2::NoStoreResourcesFlags,
-                        const QHash<QUrl, QVariant>& additionalMetadata = QHash<QUrl, QVariant>() );
+                        const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()) );
 
     /**
      * Merges two resources into one. Properties from \p resource1
@@ -188,7 +188,7 @@ public Q_SLOTS:
                          const QString& userSerialization = QString(),
                          Nepomuk2::StoreIdentificationMode identificationMode = Nepomuk2::IdentifyNew,
                          Nepomuk2::StoreResourcesFlags flags = Nepomuk2::NoStoreResourcesFlags,
-                         const QHash<QUrl, QVariant>& additionalMetadata = QHash<QUrl, QVariant>());
+                         const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()) );
 
     /**
      * Describe a set of resources, i.e. retrieve all their properties.
@@ -225,7 +225,7 @@ public Q_SLOTS:
     //@}
 
 private:
-    QUrl createGraph(const QString& app = QString(), const QHash<QUrl, QVariant>& additionalMetadata = QHash<QUrl, QVariant>());
+    QUrl createGraph(const QString& app = QString(), const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()));
     QUrl createGraph(const QString& app, const QMultiHash<QUrl, Soprano::Node>& additionalMetadata);
 
     /**

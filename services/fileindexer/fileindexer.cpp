@@ -188,16 +188,14 @@ QString Nepomuk2::FileIndexer::userStatusString( bool simple ) const
             }
         }
         else {
-            QString file = KUrl( m_indexScheduler->currentFile() ).fileName();
-
             if( autoUpdate ) {
                 return i18nc( "@info:status", "Scanning for recent changes in %1", folder );
             }
             else {
-                if( file.isEmpty() )
+                if( m_indexScheduler->currentFile().isEmpty() )
                     return i18nc( "@info:status", "Indexing files in %1", folder );
                 else
-                    return i18nc( "@info:status", "Indexing %1", file );
+                    return i18nc( "@info:status", "Indexing %1", m_indexScheduler->currentFile() );
             }
         }
     }

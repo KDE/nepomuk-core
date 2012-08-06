@@ -21,6 +21,7 @@
 */
 
 #include "indexer.h"
+#include "simpleindexer.h"
 #include "../util.h"
 #include "../../../servicestub/priority.h"
 #include "nepomukversion.h"
@@ -50,22 +51,22 @@ int main(int argc, char *argv[])
                          ki18n("(C) 2011, Vishesh Handa, Sebastian Trueg"));
     aboutData.addAuthor(ki18n("Vishesh Handa"), ki18n("Current maintainer"), "handa.vish@gmail.com");
     aboutData.addCredit(ki18n("Sebastian Trüg"), ki18n("Developer"), "trueg@kde.org");
-    
+
     KCmdLineArgs::init(argc, argv, &aboutData);
-    
+
     KCmdLineOptions options;
     options.add("uri <uri>", ki18n("The URI provided will be forced on the resource"));
     options.add("mtime <time>", ki18n("The modification time of the resource in time_t format"));
     options.add("+[url]", ki18n("The URL of the file to be indexed"));
     options.add("clear", ki18n("Remove all indexed data of the URL provided"));
-    
-    KCmdLineArgs::addCmdLineOptions(options);   
+
+    KCmdLineArgs::addCmdLineOptions(options);
     const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
 
     // Application
     QCoreApplication app( argc, argv );
     KComponentData data( aboutData, KComponentData::RegisterAsMainComponent );
-    
+
     const KUrl uri = args->getOption("uri");
     const uint mtime = args->getOption("mtime").toUInt();
 
@@ -90,6 +91,10 @@ int main(int argc, char *argv[])
         if( !indexer.indexFile( args->url(0), uri, mtime ) ) {
             QTextStream s(stdout);
             s << indexer.lastError();
+
+            Nepomuk2::SimpleIndexer simpleIndexer( args->url(0) );
+            simpleIndexer.save();
+
             return 1;
         }
         else {

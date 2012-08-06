@@ -1,9 +1,7 @@
 project(libnepomuksync)
 
-find_package(KDE4 REQUIRED)
 find_package(Nepomuk REQUIRED)
 
-include(KDE4Defaults)
 include(SopranoAddOntology)
 
 include_directories(

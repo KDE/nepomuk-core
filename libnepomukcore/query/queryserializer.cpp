@@ -110,7 +110,7 @@ namespace {
 
         case Term::Resource:
             xml.writeStartElement( QLatin1String("resource") );
-            xml.writeAttribute( QLatin1String("uri"), KUrl( term.toResourceTerm().resource().resourceUri() ).url() );
+            xml.writeAttribute( QLatin1String("uri"), KUrl( term.toResourceTerm().resource().uri() ).url() );
             xml.writeEndElement();
             break;
 
@@ -316,8 +316,8 @@ namespace {
         Q_FOREACH( const QString& sf, sl ) {
             if( sf == QLatin1String("NoResultRestrictions") )
                 flags |= Query::NoResultRestrictions;
-            else if( sf == QLatin1String("WithoutFullTextExcerpt") )
-                flags |= Query::WithoutFullTextExcerpt;
+            else if( sf == QLatin1String("WithFullTextExcerpt") )
+                flags |= Query::WithFullTextExcerpt;
             else
                 kError() << "Unknown query flag:" << sf;
         }
@@ -328,8 +328,8 @@ namespace {
         QStringList sl;
         if( flags&Query::NoResultRestrictions )
             sl << QLatin1String("NoResultRestrictions");
-        if( flags&Query::WithoutFullTextExcerpt )
-            sl << QLatin1String("WithoutFullTextExcerpt");
+        if( flags&Query::WithFullTextExcerpt )
+            sl << QLatin1String("WithFullTextExcerpt");
         return sl.join( QLatin1String("|") );
     }
 

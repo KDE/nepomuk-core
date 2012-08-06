@@ -1,6 +1,7 @@
 /*
  * This file is part of the Nepomuk KDE project.
  * Copyright (C) 2006-2010 Sebastian Trueg <trueg@kde.org>
+ * Copyright (C) 2012 Vishesh Handa <me@vhanda.in>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -25,7 +26,6 @@
 #include "tools.h"
 #include "tag.h"
 #include "pimo.h"
-#include "thing.h"
 #include "file.h"
 #include "property.h"
 #include "nfo.h"
@@ -40,10 +40,14 @@
 
 #include <Soprano/Vocabulary/NAO>
 #include <Soprano/Vocabulary/RDFS>
+#include <Soprano/Vocabulary/RDF>
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
+#include <Soprano/StatementIterator>
+#include <Soprano/NodeIterator>
 
 using namespace Nepomuk2::Vocabulary;
+using namespace Soprano::Vocabulary;
 
 Nepomuk2::Resource::Resource()
 {
@@ -124,7 +128,7 @@ Nepomuk2::Resource& Nepomuk2::Resource::operator=( const QUrl& res )
 }
 
 
-QUrl Nepomuk2::Resource::resourceUri() const
+QUrl Nepomuk2::Resource::uri() const
 {
     if ( m_data ) {
         determineFinalResourceData();
@@ -136,7 +140,7 @@ QUrl Nepomuk2::Resource::resourceUri() const
 }
 
 
-QUrl Nepomuk2::Resource::resourceType() const
+QUrl Nepomuk2::Resource::type() const
 {
     determineFinalResourceData();
     return m_data->type();
@@ -146,29 +150,28 @@ QUrl Nepomuk2::Resource::resourceType() const
 QList<QUrl> Nepomuk2::Resource::types() const
 {
     determineFinalResourceData();
-    return m_data->allTypes();
+    return m_data->property( RDF::type() ).toUrlList();
 }
 
 
 void Nepomuk2::Resource::setTypes( const QList<QUrl>& types )
 {
     determineFinalResourceData();
-    m_data->setTypes( types );
+    m_data->setProperty( RDF::type(), types );
 }
 
 
 void Nepomuk2::Resource::addType( const QUrl& type )
 {
-    QList<QUrl> tl = types();
-    if( !tl.contains( type ) )
-        setTypes( tl << type );
+    determineFinalResourceData();
+    m_data->addProperty( RDF::type(), type );
 }
 
 
 bool Nepomuk2::Resource::hasType( const QUrl& typeUri ) const
 {
     determineFinalResourceData();
-    return m_data->hasType( typeUri );
+    return m_data->hasProperty( RDF::type(), typeUri );
 }
 
 
@@ -279,9 +282,9 @@ QString Nepomuk2::Resource::genericLabel() const
     if(!label.isEmpty())
         return label;
 
-    label = m_data->pimoThing().label();
-    if(!label.isEmpty())
-        return label;
+    //label = m_data->pimoThing().label();
+    //if(!label.isEmpty())
+    //    return label;
 
     label = property( Nepomuk2::Vocabulary::NFO::fileName() ).toString();
     if(!label.isEmpty())
@@ -298,7 +301,7 @@ QString Nepomuk2::Resource::genericLabel() const
     QList<Resource> go = property( Vocabulary::PIMO::groundingOccurrence() ).toResourceList();
     if( !go.isEmpty() ) {
         label = go.first().genericLabel();
-        if( label != KUrl(go.first().resourceUri()).pathOrUrl() ) {
+        if( label != KUrl(go.first().uri()).pathOrUrl() ) {
             return label;
         }
     }
@@ -308,7 +311,7 @@ QString Nepomuk2::Resource::genericLabel() const
         return hashValue;
 
     // ugly fallback
-    return KUrl(resourceUri()).pathOrUrl();
+    return KUrl(uri()).pathOrUrl();
 }
 
 
@@ -353,13 +356,6 @@ QString Nepomuk2::Resource::genericIcon() const
 }
 
 
-Nepomuk2::Thing Nepomuk2::Resource::pimoThing()
-{
-    determineFinalResourceData();
-    return m_data->pimoThing();
-}
-
-
 bool Nepomuk2::Resource::operator==( const Resource& other ) const
 {
     if( this == &other )
@@ -380,7 +376,7 @@ bool Nepomuk2::Resource::operator==( const Resource& other ) const
     if( m_data->uri().isEmpty() )
         return *m_data == *other.m_data;
     else
-        return resourceUri() == other.resourceUri();
+        return uri() == other.uri();
 }
 
 
@@ -530,9 +526,67 @@ void Nepomuk2::Resource::setRating( const quint32& value )
     setProperty( Soprano::Vocabulary::NAO::numericRating(), Variant( value ) );
 }
 
+QStringList Nepomuk2::Resource::symbols() const
+{
+    QList<Resource> symbolResources = property( Soprano::Vocabulary::NAO::hasSymbol() ).toResourceList();
+
+    QStringList symbolStrings;
+    foreach(const Resource& symbolRes, symbolResources ) {
+        symbolStrings << symbolRes.label();
+    }
+
+    return symbolStrings;
+}
+
+namespace {
+    QUrl uriForSymbolName(const QString& symbolName) {
+        // Check if it exists
+        // We aren't using Soprano::Node::literalToN3 cause prefLabel has a range of a literal not
+        // of a string
+        QString query = QString::fromLatin1("select ?r where { ?r a %1 . ?r %2 \"%3\" . } LIMIT 1")
+        .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::FreeDesktopIcon()),
+              Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::iconName()),
+              symbolName );
+
+        Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        if( it.next() ) {
+            return it["r"].uri();
+        }
+        else {
+            Nepomuk2::Resource res(QUrl(), Soprano::Vocabulary::NAO::FreeDesktopIcon());
+            res.setProperty( NAO::iconName(), symbolName );
+
+            return res.uri();
+        }
+    }
+}
+
+void Nepomuk2::Resource::setSymbols( const QStringList& value )
+{
+    QList<QUrl> symbolList;
+    foreach( const QString& symbolName, value ) {
+        symbolList << uriForSymbolName(symbolName);
+    }
+
+    setProperty( Soprano::Vocabulary::NAO::hasSymbol(), Variant(symbolList) );
+}
+
+
+void Nepomuk2::Resource::addSymbol( const QString& value )
+{
+    addProperty( Soprano::Vocabulary::NAO::hasSymbol(), uriForSymbolName(value) );
+}
+
+
 QList<Nepomuk2::Resource> Nepomuk2::Resource::isRelatedOf() const
 {
-    return convertResourceList<Resource>( ResourceManager::instance()->allResourcesWithProperty( Soprano::Vocabulary::NAO::isRelated(), *this ) );
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    QList<Soprano::Node> list = model->listStatements( Soprano::Node(), NAO::isRelated(), uri() ).iterateSubjects().allNodes();
+    QList<Nepomuk2::Resource> resources;
+    foreach(const Soprano::Node& node, list)
+        resources << node.uri();
+    return resources;
 }
 
 
@@ -613,5 +667,5 @@ void Nepomuk2::Resource::determineFinalResourceData() const
 
 uint Nepomuk2::qHash( const Resource& res )
 {
-    return qHash(res.resourceUri());
+    return qHash(res.uri());
 }

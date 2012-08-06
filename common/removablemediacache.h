@@ -55,6 +55,11 @@ public:
         Entry();
         Entry(const Solid::Device& device);
 
+        /**
+         * Does the same as constructRelativeUrl except that no char conversion will ever
+         * take place. It is, thus, suitable for queries.
+         */
+        QString constructRelativeUrlString( const QString& path ) const;
         KUrl constructRelativeUrl( const QString& path ) const;
         KUrl constructLocalFileUrl( const KUrl& filexUrl ) const;
 

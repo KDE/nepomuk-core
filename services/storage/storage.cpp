@@ -61,7 +61,6 @@ void Nepomuk2::Storage::slotNepomukCoreInitialized( bool success )
 {
     if ( success ) {
         kDebug() << "Successfully initialized nepomuk core";
-
         // the core is initialized. Export it to the clients.
         // the D-Bus interface
         m_core->registerAsDBusObject();

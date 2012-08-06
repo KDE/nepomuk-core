@@ -60,17 +60,6 @@ namespace Nepomuk2 {
         static ResourceManager* instance();
 
         /**
-         * In KDE 4.3 support for multiple ResourceManager instances
-         * has been introduced. To keep binary compatibility both the constructor's
-         * and destructor's access visibility could not be changed. Thus, instead of deleting
-         * a custom ResourceManager instance the standard way, one has to call this
-         * method or use QObject::deleteLater.
-         *
-         * \since 4.3
-         */
-        void deleteInstance();
-
-        /**
          * Initialize the Nepomuk framework. This method will initialize the communication with
          * the local Nepomuk-KDE services, ie. the data repository. It will trigger a reconnect
          * to the %Nepomuk database.
@@ -105,98 +94,12 @@ namespace Nepomuk2 {
         void setOverrideMainModel( Soprano::Model* model );
 
         /**
-         * \deprecated Use the Resource constructor directly.
-         *
-         * Creates a Resource object representing the data referenced by \a uri.
-         * The result is the same as from using the Resource::Resource( const QString&, const QString& )
-         * constructor with an empty type.
-         *
-         * \return The Resource representing the data at \a uri or an invalid Resource object if the local
-         * NEPOMUK RDF store does not contain an object with URI \a uri.
-         */
-#ifndef KDE_NO_DEPRECATED
-        KDE_DEPRECATED Resource createResourceFromUri( const QString& uri );
-#endif
-
-        /**
          * Remove the resource denoted by \a uri completely.
          *
          * This method is just a wrapper around Resource::remove. The result
          * is the same.
          */
         void removeResource( const QString& uri );
-
-        /**
-         * Retrieve a list of all resource managed by this manager.
-         *
-         * \warning This list will be very big. Usage of this method is
-         * discouraged. Use Query::QueryServiceClient in combination with an
-         * empty Query::Query instead.
-         *
-         * \since 4.3
-         */
-        QList<Resource> allResources();
-
-        /**
-         * Retrieve a list of all resources of the specified \a type.
-         *
-         * This includes Resources that are not synced yet so it might
-         * not represent exactly the state as in the RDF store.
-         *
-         * \warning This list can be very big. Usage of this method is
-         * discouraged. Use Query::QueryServiceClient in combination with
-         * a Query::Query containing one Query::ResourceTypeTerm instead.
-         */
-        QList<Resource> allResourcesOfType( const QUrl& type );
-
-        /**
-         * \deprecated Use allResourcesOfType( const QString& type )
-         */
-#ifndef KDE_NO_DEPRECATED
-        KDE_DEPRECATED QList<Resource> allResourcesOfType( const QString& type );
-#endif
-
-        /**
-         * Retrieve a list of all resources that have property \a uri defined with a value of \a v.
-         *
-         * This includes Resources that are not synced yet so it might
-         * not represent exactly the state as in the RDF store.
-         *
-         * \param uri The URI identifying the property. If this URI does
-         *            not include a namespace the default namespace is
-         *            prepended.
-         * \param v The value all returned resources should have set as properts \a uri.
-         *
-         * \warning This list can be very big. Usage of this method is
-         * discouraged. Use Query::QueryServiceClient in combination with
-         * a Query::Query containing one Query::ComparisonTerm instead.
-         */
-        QList<Resource> allResourcesWithProperty( const QUrl& uri, const Variant& v );
-
-        /**
-         * \deprecated Use allResourcesWithProperty( const QString& type )
-         */
-#ifndef KDE_NO_DEPRECATED
-        KDE_DEPRECATED QList<Resource> allResourcesWithProperty( const QString& uri, const Variant& v );
-#endif
-
-        /**
-         * %ResourceManager caches resource locally so subsequent access is faster.
-         * This method clears this cache, deleting any Resource that is not used.
-         *
-         * \since 4.4
-         */
-        void clearCache();
-
-        /**
-         * \deprecated Use generateUniqueUri(const QString&)
-         *
-         * Generates a unique URI that is not used in the store yet. This method ca be used to
-         * generate URIs for virtual types such as Tag.
-         */
-#ifndef KDE_NO_DEPRECATED
-        KDE_DEPRECATED QString generateUniqueUri();
-#endif
 
         /**
          * Generates a unique URI that is not used in the store yet. This method can be used to
@@ -214,18 +117,6 @@ namespace Nepomuk2 {
          * \internal Non-public API. Used by Resource to signalize errors.
          */
         void notifyError( const QString& uri, int errorCode );
-
-        /**
-         * Create a new ResourceManager instance which uses model as its
-         * override model. This allows to use multiple instances of ResourceManager
-         * at the same time. Normally one does not need this method as the singleton
-         * accessed via instance() should be enough.
-         *
-         * \param model The model to read and write data from and to.
-         *
-         * \since 4.3
-         */
-        static ResourceManager* createManagerForModel( Soprano::Model* model );
 
     Q_SIGNALS:
         /**

@@ -29,7 +29,6 @@
 #include <QtCore/QSet>
 
 #include "variant.h"
-#include "thing.h"
 #include <kurl.h>
 
 #include <soprano/statement.h>
@@ -77,25 +76,11 @@ namespace Nepomuk2 {
          */
         QUrl type();
 
-        QList<QUrl> allTypes();
-
-        void setTypes( const QList<QUrl>& types );
-
         QHash<QUrl, Variant> allProperties();
 
         bool hasProperty( const QUrl& uri );
 
         bool hasProperty( const QUrl& p, const Variant& v );
-
-        /**
-         * Does also check for subClass relations.
-         */
-        bool hasType( const QUrl& uri );
-
-        /**
-         * Check the type without loading data from the store.
-         */
-        bool constHasType( const QUrl& type ) const;
 
         Variant property( const QUrl& uri );
 
@@ -157,8 +142,6 @@ namespace Nepomuk2 {
 
         void invalidateCache();
 
-        Thing pimoThing();
-
         /**
          * Compares the properties of two ResourceData objects taking into account the Deleted flag
          */
@@ -171,20 +154,15 @@ namespace Nepomuk2 {
         /// Contains a list of resources which use this ResourceData
         QList<Resource*> m_resources;
 
-        /// the URI that was used to construct the resource. Will be used by determineUri
-        /// to find the actual resource URI which is either m_kickoffUri itself or
-        /// a resource URI which relates to m_kickoffUri by nie:url
-        /// This is a set since Resource::determineFinalResourceData may add additional uris
-        QSet<KUrl> m_kickoffUris;
-
         QHash<QUrl, Variant> m_cache;
 
-        /// Updates both m_kickoffUris and ResourceMangerPrivate's list
-        void updateKickOffLists( const QUrl & prop, const Variant & v );
+        /// Updates ResourceMangerPrivate's list
+        void updateKickOffLists( const QUrl& uri, const Variant& variant );
+        void updateUrlLists( const QUrl& newUrl );
+        void updateIdentifierLists( const QString& string );
 
+        void addToWatcher();
     private:
-        void loadType( const QUrl& type );
-
         /// Will reset this instance to 0 as if constructed without parameters
         /// Used by remove() and deleteData()
         void resetAll( bool isDelete = false );
@@ -193,10 +171,15 @@ namespace Nepomuk2 {
         KUrl m_uri;
 
         /// the URL of file resources
+        /// Only used before identification
         KUrl m_nieUrl;
 
-        QUrl m_mainType;
-        QList<QUrl> m_types;
+        /// The nao:identifier of the tags
+        /// Only used before identification
+        QString m_naoIdentifier;
+
+        /// Only used when creating a new Resource. It is not used in any other context
+        QUrl m_type;
 
         QAtomicInt m_ref;
 
@@ -204,12 +187,6 @@ namespace Nepomuk2 {
 
         bool m_cacheDirty;
         bool m_addedToWatcher;
-
-        // using a pointer to avoid infinite creation loop
-        Thing* m_pimoThing;
-
-        // only used for delayed storage of the pimo thing relation
-        ResourceData* m_groundingOccurence;
 
         ResourceManagerPrivate* m_rm;
     };

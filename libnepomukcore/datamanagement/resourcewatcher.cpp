@@ -25,11 +25,17 @@
 #include "resourcemanager.h"
 
 #include "resource.h"
+#include "variant.h"
+#include "property.h"
+#include "literal.h"
 
 #include <QtDBus>
 
 #include <KUrl>
 #include <KDebug>
+#include <Soprano/Vocabulary/RDFS>
+
+using namespace Soprano::Vocabulary;
 
 namespace {
     QString convertUri(const QUrl& uri) {
@@ -153,9 +159,9 @@ void Nepomuk2::ResourceWatcher::addProperty(const Nepomuk2::Types::Property& pro
 
 void Nepomuk2::ResourceWatcher::addResource(const Nepomuk2::Resource& res)
 {
-    d->m_resources << res.resourceUri();
+    d->m_resources << res.uri();
     if(d->m_connectionInterface) {
-        d->m_connectionInterface->addResource(convertUri(res.resourceUri()));
+        d->m_connectionInterface->addResource(convertUri(res.uri()));
     }
 }
 
@@ -177,9 +183,9 @@ void Nepomuk2::ResourceWatcher::removeProperty(const Nepomuk2::Types::Property& 
 
 void Nepomuk2::ResourceWatcher::removeResource(const Nepomuk2::Resource& res)
 {
-    d->m_resources.removeAll(res.resourceUri());
+    d->m_resources.removeAll(res.uri());
     if(d->m_connectionInterface) {
-        d->m_connectionInterface->removeResource(convertUri(res.resourceUri()));
+        d->m_connectionInterface->removeResource(convertUri(res.uri()));
     }
 }
 
@@ -231,7 +237,7 @@ void Nepomuk2::ResourceWatcher::setResources(const QList< Nepomuk2::Resource >& 
 {
     d->m_resources.clear();
     foreach(const Nepomuk2::Resource& res, resources_) {
-        d->m_resources << res.resourceUri();
+        d->m_resources << res.uri();
     }
 
     if(d->m_connectionInterface) {
@@ -275,17 +281,34 @@ void Nepomuk2::ResourceWatcher::slotResourceTypesRemoved(const QString &res, con
     }
 }
 
+namespace {
+    QVariant convertType(const Nepomuk2::Types::Property& prop, const QVariant& v) {
+        QVariant var(v);
+        if( !prop.literalRangeType().isValid() && var.type() == QVariant::String ) {
+            var.setValue<QUrl>(QUrl(var.toString()));
+        }
+
+        return var;
+    }
+}
+
 void Nepomuk2::ResourceWatcher::slotPropertyAdded(const QString& res, const QString& prop, const QVariantList &objects)
 {
     foreach(const QVariant& v, objects) {
-        emit propertyAdded( Resource::fromResourceUri(KUrl(res)), Types::Property( KUrl(prop) ), v );
+        const Types::Property property = KUrl(prop);
+        const QVariant var = convertType( property, v );
+
+        emit propertyAdded( Resource::fromResourceUri(KUrl(res)), property, var );
     }
 }
 
 void Nepomuk2::ResourceWatcher::slotPropertyRemoved(const QString& res, const QString& prop, const QVariantList &objects)
 {
     foreach(const QVariant& v, objects) {
-        emit propertyRemoved( Resource::fromResourceUri(KUrl(res)), Types::Property( KUrl(prop) ), v );
+        const Types::Property property = KUrl(prop);
+        const QVariant var = convertType( property, v );
+
+        emit propertyRemoved( Resource::fromResourceUri(KUrl(res)), property, var );
     }
 }
 

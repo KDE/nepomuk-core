@@ -52,6 +52,8 @@
 #include <QtDBus/QDBusMetaType>
 
 using namespace Soprano;
+using namespace Soprano::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::s_instance = 0;
 
@@ -74,11 +76,22 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::data( const QUrl& uri,
         return new ResourceData( QUrl(), QUrl(), type, this );
     }
 
-    if( ResourceData* data = findData( uri ) ) {
+    QUrl newUri = uri;
+    if( uri.scheme().isEmpty() ) {
+        const QString uriString = uri.toString();
+        if( uriString[0] == '/' && QFile::exists(uriString) ) {
+            newUri.setScheme(QLatin1String("file"));
+        }
+    }
+
+    if( ResourceData* data = findData( newUri ) ) {
         return data;
     }
     else {
-        return new ResourceData( QUrl(), uri, type, this );
+        if( uri.scheme() != QLatin1String("nepomuk") )
+            return new ResourceData( QUrl(), newUri, type, this );
+        else
+            return new ResourceData( newUri, QUrl(), type, this );
     }
 }
 
@@ -86,7 +99,10 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::data( const QUrl& uri,
 Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::data( const QString& uriOrId, const QUrl& type )
 {
     if ( !uriOrId.isEmpty() ) {
-        KUrl url(uriOrId);
+        KUrl url( uriOrId );
+        if( uriOrId[0] == '/' && QFile::exists(uriOrId) ) {
+            url.setScheme("file");
+        }
         return data( url, type );
     }
 
@@ -94,6 +110,7 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::data( const QString& u
 }
 
 
+//FIXME: Streamline this function. It's supposed to be faster than the rest
 Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::dataForResourceUri( const QUrl& uri, const QUrl& type )
 {
     if ( uri.isEmpty() ) {
@@ -110,110 +127,15 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::dataForResourceUri( co
 }
 
 
-QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceDataOfType( const QUrl& type )
+QSet<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceData()
 {
-    QList<ResourceData*> l;
-
-    if( !type.isEmpty() ) {
-        mutex.lock();
-        QSet<ResourceData*> rdl = m_uriKickoffData.values().toSet();
-        mutex.unlock();
-        for( QSet<ResourceData*>::iterator rdIt = rdl.begin();
-             rdIt != rdl.end(); ++rdIt ) {
-            ResourceData* rd = *rdIt;
-            //
-            // make sure we do not trigger a load here since
-            // 1. that could result in the deletion of values from the iterated list (m_cache.clear() in ResourceData::load)
-            // 2. We only need to check non-existing resources anyway, since the rest is queried from the db below
-            //
-            if( rd->constHasType( type ) ) {
-                l.append( rd );
-            }
-        }
-    }
-
-    return l;
+    return m_identifierKickOff.values().toSet() + m_urlKickOff.values().toSet() + m_initializedData.values().toSet();
 }
-
-
-QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceDataWithProperty( const QUrl& uri, const Variant& v )
-{
-    QList<ResourceData*> l;
-
-    //
-    // We need to cache m_uriKickoffData since it might be changed
-    // in the loop by ResourceData::load()
-    //
-    mutex.lock();
-    QSet<ResourceData*> rdl = m_uriKickoffData.values().toSet();
-    mutex.unlock();
-
-    //
-    // make sure none of the ResourceData objects are deleted by ResourceData::load below
-    // which would result in a crash since we have them cached.
-    //
-    QList<Resource> tmp;
-    foreach( ResourceData* rd, rdl ) {
-        tmp << Resource( rd );
-    }
-
-    for( QSet<ResourceData*>::iterator rdIt = rdl.begin();
-         rdIt != rdl.end(); ++rdIt ) {
-        ResourceData* rd = *rdIt;
-        if( rd->hasProperty( uri ) &&
-            rd->property( uri ) == v ) {
-            l.append( rd );
-        }
-    }
-
-    return l;
-}
-
-
-QList<Nepomuk2::ResourceData*> Nepomuk2::ResourceManagerPrivate::allResourceData()
-{
-    return m_uriKickoffData.values().toSet().toList();
-}
-
-
-bool Nepomuk2::ResourceManagerPrivate::dataCacheFull() const
-{
-    return dataCnt >= 1000;
-}
-
-
-void Nepomuk2::ResourceManagerPrivate::cleanupCache( int num )
-{
-    QMutexLocker lock( &mutex );
-
-    QSet<ResourceData*> rdl = m_uriKickoffData.values().toSet() + m_initializedData.values().toSet();
-    for( QSet<ResourceData*>::iterator rdIt = rdl.begin();
-         rdIt != rdl.end(); ++rdIt ) {
-        ResourceData* data = *rdIt;
-        if ( !data->cnt() ) {
-            delete data;
-            if( num > 0 && --num == 0 )
-                break;
-        }
-    }
-}
-
 
 bool Nepomuk2::ResourceManagerPrivate::shouldBeDeleted( ResourceData * rd ) const
 {
-    //
-    // We delete data objects in one of two cases:
-    // 1. They are not valid and as such not in one of the ResourceManagerPrivate kickoff lists
-    // 2. The cache is already full and we need to clean up
-    //
-    return( !rd->cnt() && ( !rd->isValid() || dataCacheFull() ));
-}
-
-
-void Nepomuk2::ResourceManagerPrivate::addToKickOffList( ResourceData* rd, const QSet<KUrl> & uris )
-{
-    Q_FOREACH( const KUrl& uri, uris )
-        m_uriKickoffData.insert( uri, rd );
+    // We only delete ResourceData objects if no other Resource is accessing them
+    return !rd->cnt();
 }
 
 
@@ -221,7 +143,6 @@ void Nepomuk2::ResourceManagerPrivate::_k_storageServiceInitialized( bool succes
 {
     if( success ) {
         kDebug() << "Nepomuk Storage service up and initialized.";
-        cleanupCache(-1);
         m_manager->init();
         emit m_manager->nepomukSystemStarted();
     }
@@ -232,7 +153,6 @@ void Nepomuk2::ResourceManagerPrivate::_k_dbusServiceUnregistered( const QString
 {
     if( serviceName == QLatin1String("org.kde.NepomukStorage") ) {
         kDebug() << "Nepomuk Storage service went down.";
-        cleanupCache(-1);
         emit m_manager->nepomukSystemStopped();
     }
 }
@@ -244,16 +164,21 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceManagerPrivate::findData( const QUrl& 
     if ( !uri.isEmpty() ) {
         QMutexLocker lock( &mutex );
 
-        // look for the URI in the initialized and in the URI kickoff data
-        ResourceDataHash::iterator end = m_initializedData.end();
-        ResourceDataHash::iterator it = m_initializedData.find( uri );
-        if( it == end ) {
-            end = m_uriKickoffData.end();
-            it = m_uriKickoffData.find( uri );
+        if( uri.scheme() == QLatin1String("nepomuk") ) {
+            ResourceDataHash::iterator it = m_initializedData.find( uri );
+            if( it != m_initializedData.end() )
+                return it.value();
         }
-
-        if( it != end ) {
-            return it.value();
+        else if( uri.scheme().isEmpty() ) {
+            QString identifier = uri.toString();
+            QHash<QString, ResourceData*>::iterator it = m_identifierKickOff.find( identifier );
+            if( it != m_identifierKickOff.end() )
+                return it.value();
+        }
+        else {
+            QHash<QUrl, ResourceData*>::iterator it = m_urlKickOff.find( uri );
+            if( it != m_urlKickOff.end() )
+                return it.value();
         }
     }
 
@@ -289,19 +214,17 @@ Nepomuk2::ResourceManager::ResourceManager()
 
 Nepomuk2::ResourceManager::~ResourceManager()
 {
-    clearCache();
+    // The cache should be empty when the ResourceManager is getting destroyed
+    Q_ASSERT( d->m_identifierKickOff.isEmpty() );
+    Q_ASSERT( d->m_urlKickOff.isEmpty() );
+    Q_ASSERT( d->m_initializedData.isEmpty() );
+
     delete d->mainModel;
     delete d;
 
     if(s_instance == this) {
         s_instance = 0;
     }
-}
-
-
-void Nepomuk2::ResourceManager::deleteInstance()
-{
-    delete this;
 }
 
 
@@ -336,13 +259,6 @@ bool Nepomuk2::ResourceManager::initialized() const
 }
 
 
-#ifndef KDE_NO_DEPRECATED
-Nepomuk2::Resource Nepomuk2::ResourceManager::createResourceFromUri( const QString& uri )
-{
-    return Resource( uri, QUrl() );
-}
-#endif
-
 void Nepomuk2::ResourceManager::removeResource( const QString& uri )
 {
     Resource res( uri );
@@ -354,115 +270,6 @@ void Nepomuk2::ResourceManager::notifyError( const QString& uri, int errorCode )
     kDebug() << "(Nepomuk2::ResourceManager) error: " << uri << " " << errorCode;
     emit error( uri, errorCode );
 }
-
-
-#ifndef KDE_NO_DEPRECATED
-QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesOfType( const QString& type )
-{
-    return allResourcesOfType( QUrl(type) );
-}
-#endif
-
-
-QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesOfType( const QUrl& type )
-{
-    QSet<Resource> set;
-
-    if( !type.isEmpty() ) {
-        // check local data
-        QList<ResourceData*> localData = d->allResourceDataOfType( type );
-        for( QList<ResourceData*>::iterator rdIt = localData.begin();
-             rdIt != localData.end(); ++rdIt ) {
-            Resource res( *rdIt );
-            set.insert(res);
-        }
-
-//        kDebug() << " added local resources: " << l.count();
-
-        Soprano::Model* model = mainModel();
-        Soprano::StatementIterator it = model->listStatements( Soprano::Statement( Soprano::Node(), Soprano::Vocabulary::RDF::type(), type ) );
-
-        while( it.next() ) {
-            Statement s = *it;
-            Resource res( s.subject().uri() );
-            set.insert(res);
-        }
-
-//        kDebug() << " added remote resources: " << l.count();
-    }
-
-    return set.toList();
-}
-
-
-QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResources()
-{
-    QList<Nepomuk2::Resource> l;
-    Q_FOREACH( ResourceData* data, d->allResourceData()) {
-        l << Resource( data );
-    }
-
-    Soprano::QueryResultIterator it = mainModel()->executeQuery( QLatin1String("select distinct ?r where { ?r a ?t . FILTER(?t != rdf:Property && ?t != rdfs:Class) . }"),
-                                                                 Soprano::Query::QueryLanguageSparql );
-    while( it.next() ) {
-        Resource r( it[0].uri() );
-        l << r;
-    }
-
-    return l;
-}
-
-
-#ifndef KDE_NO_DEPRECATED
-QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesWithProperty( const QString& uri, const Variant& v )
-{
-    return allResourcesWithProperty( QUrl(uri), v );
-}
-#endif
-
-
-QList<Nepomuk2::Resource> Nepomuk2::ResourceManager::allResourcesWithProperty( const QUrl& uri, const Variant& v )
-{
-    QSet<Resource> set;
-
-    if( v.isList() ) {
-        kDebug() << "(ResourceManager::allResourcesWithProperty) list values not supported.";
-    }
-    else {
-        // check local data
-        QList<ResourceData*> localData = d->allResourceDataWithProperty( uri, v );
-        for( QList<ResourceData*>::iterator rdIt = localData.begin();
-             rdIt != localData.end(); ++rdIt ) {
-            set.insert( Resource( *rdIt ) );
-        }
-
-        // check remote data
-        Soprano::Model* model = mainModel();
-        Soprano::StatementIterator it = model->listStatements( Soprano::Statement( Soprano::Node(), uri, v.toNode() ) );
-
-        while( it.next() ) {
-            Statement s = *it;
-            Resource res( s.subject().uri() );
-            set.insert( res );
-        }
-    }
-
-    return set.toList();
-}
-
-
-void Nepomuk2::ResourceManager::clearCache()
-{
-    d->cleanupCache( -1 );
-}
-
-
-#ifndef KDE_NO_DEPRECATED
-QString Nepomuk2::ResourceManager::generateUniqueUri()
-{
-    return generateUniqueUri( QString() ).toString();
-}
-#endif
 
 
 QUrl Nepomuk2::ResourceManager::generateUniqueUri( const QString& name )
@@ -510,20 +317,20 @@ Soprano::Model* Nepomuk2::ResourceManager::mainModel()
 
 void Nepomuk2::ResourceManager::slotPropertyAdded(const Resource &res, const Types::Property &prop, const QVariant &value)
 {
-    ResourceDataHash::iterator it = d->m_initializedData.find(res.resourceUri());
+    ResourceDataHash::iterator it = d->m_initializedData.find(res.uri());
     if(it != d->m_initializedData.end()) {
         ResourceData* data = *it;
-        data->m_cache[prop.uri()].append(Variant(value));
-        data->updateKickOffLists(prop.uri(), Variant(value));
+        const Variant var(value);
+        data->updateKickOffLists(prop.uri(), var);
+        data->m_cache[prop.uri()].append(var);
     }
 }
 
 void Nepomuk2::ResourceManager::slotPropertyRemoved(const Resource &res, const Types::Property &prop, const QVariant &value_)
 {
-    ResourceDataHash::iterator it = d->m_initializedData.find(res.resourceUri());
+    ResourceDataHash::iterator it = d->m_initializedData.find(res.uri());
     if(it != d->m_initializedData.end()) {
         ResourceData* data = *it;
-
 
         QHash<QUrl, Variant>::iterator cacheIt = data->m_cache.find(prop.uri());
         if(cacheIt != data->m_cache.end()) {
@@ -532,11 +339,15 @@ void Nepomuk2::ResourceManager::slotPropertyRemoved(const Resource &res, const T
             QList<Variant> vl = v.toVariantList();
             if(vl.contains(value)) {
                 vl.removeAll(value);
-                data->updateKickOffLists(prop.uri(), Variant());
                 if(vl.isEmpty()) {
+                    data->updateKickOffLists(prop.uri(), Variant());
                     data->m_cache.erase(cacheIt);
                 }
                 else {
+                    // The kickoff properties (nao:identifier and nie:url) both have a cardinality of 1
+                    // If we have more than one value, then the properties must not be any of them
+                    if( vl.size() == 1 )
+                        data->updateKickOffLists(prop.uri(), vl.first());
                     cacheIt.value() = vl;
                 }
             }
@@ -557,13 +368,4 @@ void Nepomuk2::ResourceManager::setOverrideMainModel( Soprano::Model* model )
         }
     }
 }
-
-
-Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::createManagerForModel( Soprano::Model* model )
-{
-    ResourceManager* manager = new ResourceManager();
-    manager->setOverrideMainModel( model );
-    return manager;
-}
-
 #include "resourcemanager.moc"

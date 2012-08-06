@@ -47,6 +47,7 @@ set(nepomuk_query_SRCS
   query/queryparser.cpp
   query/dateparser.cpp
   query/result.cpp
+  query/resultiterator.cpp
   query/queryserviceclient.cpp
   query/dbusoperators.cpp
   query/queryserializer.cpp
@@ -169,9 +170,9 @@ install(FILES
   query/query.h
   query/filequery.h
   query/result.h
+  query/resultiterator.h
   query/queryserviceclient.h
   query/queryparser.h
-  query/standardqueries.h
   query/standardqueries.h
   datamanagement/simpleresource.h
   datamanagement/simpleresourcegraph.h

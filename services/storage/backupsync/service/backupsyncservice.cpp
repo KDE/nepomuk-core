@@ -37,9 +37,9 @@ Nepomuk2::BackupSyncService::BackupSyncService( Soprano::Model* model, QObject* 
 {
     kDebug();
 
-    //m_diffGenerator = new DiffGenerator( this );
+//    m_diffGenerator = new DiffGenerator( this );
 
-    //m_syncManager = new SyncManager( this );
+//    m_syncManager = new SyncManager( this );
     m_backupManager = new BackupManager( model, this );
 }
 

@@ -2,10 +2,17 @@ install(FILES
   File
   Resource
   ResourceManager
+  ResourceWatcher
   Service
   Tag
   Thing
   Variant
+  CreateResourceJob
+  DataManagement
+  DescribeResourcesJob
+  SimpleResource
+  SimpleResourceGraph
+  StoreResourcesJob
 DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2 COMPONENT Devel)
 
 
@@ -32,6 +39,7 @@ install(FILES
   Query/ResourceTerm
   Query/ResourceTypeTerm
   Query/Result
+  Query/ResultIterator
   Query/SimpleTerm
   Query/StandardQuery
   Query/Term

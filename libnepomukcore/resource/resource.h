@@ -35,7 +35,6 @@ namespace Nepomuk2 {
     class ResourceData;
     class Variant;
     class Tag;
-    class Thing;
     class File;
     namespace Types {
         class Property;
@@ -189,7 +188,7 @@ namespace Nepomuk2 {
          *
          * \sa getIdentifiers()
          */
-        QUrl resourceUri() const;
+        QUrl uri() const;
 
         /**
          * The main type of the resource. Nepomuk tries hard to make this
@@ -200,7 +199,7 @@ namespace Nepomuk2 {
          *
          * \sa name(), hasType(), types()
          */
-        QUrl resourceType() const;
+        QUrl type() const;
 
         /**
          * \return The list of all stored types for this resource. This may
@@ -344,16 +343,6 @@ namespace Nepomuk2 {
         QString genericIcon() const;
 
         /**
-         * Get or create the PIMO thing that relates to this resource. If this resource
-         * itself is a pimo:Thing, a reference to this is returned. If a pimo:Thing exists
-         * with has as occurrence this resource, the thing is returned. Otherwise a new thing
-         * is created.
-         *
-         * \since 4.2
-         */
-        Thing pimoThing();
-
-        /**
          * Operator to compare two Resource objects.
          */
         bool operator==( const Resource& ) const;
@@ -445,6 +434,30 @@ namespace Nepomuk2 {
          * Set property 'Rating'.
          */
         void setRating( const quint32& value );
+
+        /**
+         * Get property 'Symbol'. Each resource can have a symbol assigned.
+         * For now this is a simple string which can either be the path to
+         * an actual pixmap file or just the name of an icon as defined by
+         * the freedesktop.org standard.
+         */
+        QStringList symbols() const;
+
+        /**
+         * Set property 'Symbol'. Each resource can have a symbol assigned.
+         * For now this is a simple string which can either be the path to
+         * an actual pixmap file or just the name of an icon as defined by
+         * the freedesktop.org standard.
+         */
+        void setSymbols( const QStringList& value );
+
+        /**
+         * Add a value to property 'Symbol'. Each resource can have a symbol
+         * assigned. For now this is a simple string which can either be
+         * the path to an actual pixmap file or just the name of an icon as
+         * defined by the freedesktop.org standard.
+         */
+        void addSymbol( const QString& value );
 
         /**
          * Get all resources that have this resource set as property 'isRelated'.

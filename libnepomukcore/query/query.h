@@ -245,12 +245,11 @@ namespace Nepomuk2 {
                 NoResultRestrictions = 0x1,
 
                 /**
-                 * Disables the return of full text search excerpts for ComparisonTerm::Contains
-                 * terms which are normally reported through Result::excerpt(). It might make sense
-                 * to set this flag in case one has no need for excerpts and does not want to suffer
-                 * the small performance penalty that comes from querying them
+                 * Enables the return of full text search excerpts for ComparisonTerm::Contains
+                 * terms which are normally reported through Result::excerpt(). There is a very
+                 * small performance penalty that comes from querying them.
                  */
-                WithoutFullTextExcerpt = 0x2
+                WithFullTextExcerpt = 0x2
             };
             Q_DECLARE_FLAGS( QueryFlags, QueryFlag )
 
