@@ -80,11 +80,11 @@ Nepomuk2::TestBase::~TestBase()
 
 
 
-void Nepomuk2::TestBase::initTestCase()
+void Nepomuk2::TestBase::init()
 {
 }
 
-void Nepomuk2::TestBase::cleanupTestCase()
+void Nepomuk2::TestBase::cleanup()
 {
     resetRepository();
 }
