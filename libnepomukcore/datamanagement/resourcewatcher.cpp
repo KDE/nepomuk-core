@@ -221,6 +221,22 @@ QList< Nepomuk2::Types::Class > Nepomuk2::ResourceWatcher::types() const
     return types;
 }
 
+int Nepomuk2::ResourceWatcher::propertyCount() const
+{
+    return d->m_properties.size();
+}
+
+int Nepomuk2::ResourceWatcher::resourceCount() const
+{
+    return d->m_resources.size();
+}
+
+int Nepomuk2::ResourceWatcher::typeCount() const
+{
+    return d->m_types.size();
+}
+
+
 void Nepomuk2::ResourceWatcher::setProperties(const QList< Nepomuk2::Types::Property >& properties_)
 {
     d->m_properties.clear();
