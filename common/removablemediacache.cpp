@@ -119,11 +119,11 @@ Nepomuk2::RemovableMediaCache::Entry* Nepomuk2::RemovableMediaCache::createCache
         connect( dev.as<Solid::StorageAccess>(), SIGNAL(accessibilityChanged(bool, QString)),
                  this, SLOT(slotAccessibilityChanged(bool, QString)) );
 
-        m_metadataCache.insert( dev.udi(), entry );
+        QHash<QString, Entry>::iterator it = m_metadataCache.insert( dev.udi(), entry );
 
-        emit deviceAdded(&m_metadataCache[dev.udi()]);
+        emit deviceAdded(&it.value());
 
-        return &m_metadataCache[dev.udi()];
+        return &it.value();
     }
     else {
         kDebug() << "Cannot use device due to empty identifier:" << dev.udi();
