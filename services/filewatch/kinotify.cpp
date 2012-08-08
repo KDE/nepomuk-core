@@ -152,6 +152,7 @@ public:
             }
             else {
                 delete dirIterators.dequeue();
+                break;
             }
         }
 

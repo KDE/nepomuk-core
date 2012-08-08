@@ -102,12 +102,11 @@ void Nepomuk2::Server::enableNepomuk( bool enabled )
 
             // stop all running services
             m_serviceManager->stopAllServices();
+            connect(this, SIGNAL(nepomukDisabled()),
+                    QCoreApplication::instance(), SLOT(quit()));
 
             // unregister the service manager interface
             QDBusConnection::sessionBus().unregisterObject( "/servicemanager" );
-
-            // Quit if no longer required
-            quit();
         }
     }
 }
@@ -157,8 +156,6 @@ void Nepomuk2::Server::quit()
 {
     if( isNepomukEnabled() &&
         !m_serviceManager->runningServices().isEmpty() ) {
-        connect(this, SIGNAL(nepomukDisabled()),
-                qApp, SLOT(quit()));
         enableNepomuk(false);
     }
     else {
