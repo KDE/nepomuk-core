@@ -202,6 +202,7 @@ QHash<QUrl, Nepomuk2::Variant> Nepomuk2::ResourceData::allProperties()
 bool Nepomuk2::ResourceData::hasProperty( const QUrl& uri )
 {
     load();
+
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( uri );
     if( it == m_cache.constEnd() )
         return false;
@@ -212,6 +213,8 @@ bool Nepomuk2::ResourceData::hasProperty( const QUrl& uri )
 
 bool Nepomuk2::ResourceData::hasProperty( const QUrl& p, const Variant& v )
 {
+    load();
+
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( p );
     if( it == m_cache.constEnd() )
         return false;
