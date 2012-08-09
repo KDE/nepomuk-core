@@ -19,11 +19,18 @@
 
 
 #include "cleaningjobs.h"
-#include <resource.h>
-#include <resourcemanager.h>
+#include "resource.h"
+#include "resourcemanager.h"
+#include "datamanagement.h"
+
+#include <QtCore/QTimer>
 #include <KLocalizedString>
+
 #include <Soprano/Model>
-#include <QTimer>
+#include <Soprano/QueryResultIterator>
+#include <Soprano/Vocabulary/NAO>
+
+using namespace Soprano::Vocabulary;
 
 CleaningJob::CleaningJob(QObject* parent)
     : KJob(parent)
@@ -57,12 +64,6 @@ void CleaningJob::done()
     emitResult();
 }
 
-QList< CleaningJob* > allJobs()
-{
-    QList<CleaningJob*> list;
-    list << new CrappyInferenceData;
-    return list;
-}
 
 //
 // Crappy Inference Data
@@ -81,4 +82,43 @@ void CrappyInferenceData::execute()
     model->removeContext(QUrl::fromEncoded("urn:crappyinference2:inferredtriples"));
 
     done();
+}
+
+//
+// Tags
+//
+
+class EmptyTagCleaner : public CleaningJob {
+public:
+    QString jobName() {
+        return i18n("Clear Empty Tags");
+    }
+private:
+    void execute();
+};
+
+void EmptyTagCleaner::execute()
+{
+    QString query = QString::fromLatin1("select ?r where { ?r a %1 . FILTER NOT EXISTS { ?r %2 ?i . } }")
+                    .arg( Soprano::Node::resourceToN3( NAO::Tag() ),
+                          Soprano::Node::resourceToN3( NAO::identifier() ) );
+
+    Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    QList<QUrl> deleteList;
+    while( it.next() )
+        deleteList << it[0].uri();
+
+    KJob* job = Nepomuk2::removeResources( deleteList );
+    connect( job, SIGNAL(finished(KJob*)), this, SLOT(done()) );
+}
+
+
+
+QList< CleaningJob* > allJobs()
+{
+    QList<CleaningJob*> list;
+    list << new CrappyInferenceData;
+    list << new EmptyTagCleaner();
+    return list;
 }

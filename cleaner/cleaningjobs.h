@@ -41,7 +41,7 @@ public:
 
     Status status() const;
 
-protected:
+protected slots:
     void done();
 
 private slots:
