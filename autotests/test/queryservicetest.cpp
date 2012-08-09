@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "queryupdatetests.h"
+#include "queryservicetest.h"
 
 #include "resource.h"
 #include "tag.h"
@@ -53,7 +53,7 @@ namespace {
         loop.exec();
     }
 }
-void QueryUpdateTests::tagsUpdates()
+void QueryServiceTest::tagsUpdates()
 {
     kDebug();
     KTemporaryFile file;
@@ -108,4 +108,4 @@ void QueryUpdateTests::tagsUpdates()
 
 }
 
-QTEST_KDEMAIN(Nepomuk2::QueryUpdateTests, NoGUI)
+QTEST_KDEMAIN(Nepomuk2::QueryServiceTest, NoGUI)
