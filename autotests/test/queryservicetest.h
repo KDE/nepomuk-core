@@ -27,6 +27,7 @@ namespace Nepomuk2 {
         Q_OBJECT
     private Q_SLOTS:
         void tagsUpdates();
+        void sparqlQueries();
     };
 }
 
