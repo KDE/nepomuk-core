@@ -22,11 +22,12 @@
 #include "../lib/testbase.h"
 
 namespace Nepomuk2 {
-    class QueryUpdateTests : public TestBase
+    class QueryServiceTest : public TestBase
     {
         Q_OBJECT
     private Q_SLOTS:
         void tagsUpdates();
+        void sparqlQueries();
     };
 }
 
