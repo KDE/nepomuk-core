@@ -67,7 +67,7 @@ void Nepomuk2::Query::SearchRunnable::run()
 #endif
 
     //Iterator of results
-    ResultIterator hits(sparql);
+    ResultIterator hits(sparql, m_folder->requestPropertyMap());
     while ( m_folder &&
             hits.next() ) {
         Result result = hits.result();
