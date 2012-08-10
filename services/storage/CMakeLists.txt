@@ -22,6 +22,8 @@ set(storage_SRCS
   classandpropertytree.cpp
   resourcemerger.cpp
   resourceidentifier.cpp
+  syncresourceidentifier.cpp
+  syncresource.cpp
   resourcewatchermanager.cpp
   resourcewatcherconnection.cpp
   virtuosoinferencemodel.cpp

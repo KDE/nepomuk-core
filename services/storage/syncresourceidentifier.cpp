@@ -20,7 +20,7 @@
 */
 
 
-#include "resourceidentifier.h"
+#include "syncresourceidentifier.h"
 #include "syncresource.h"
 #include "nrio.h"
 

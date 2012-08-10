@@ -27,7 +27,6 @@
 #include <QtCore/QSet>
 #include <KUrl>
 
-#include "nepomuksync_export.h"
 #include "syncresource.h"
 
 namespace Soprano {
@@ -51,7 +50,7 @@ namespace Nepomuk2 {
          *
          * \author Vishesh Handa <handa.vish@gmail.com>
          */
-        class NEPOMUKSYNC_EXPORT ResourceIdentifier
+        class ResourceIdentifier
         {
         public:
             ResourceIdentifier( Soprano::Model * model = 0 );

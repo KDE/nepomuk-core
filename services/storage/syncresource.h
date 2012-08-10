@@ -29,7 +29,6 @@
 #include <QtCore/QHash>
 #include <QtCore/QSharedDataPointer>
 
-#include "nepomuksync_export.h"
 
 namespace Soprano {
     class Node;
@@ -51,7 +50,7 @@ namespace Nepomuk2 {
          *
          * \author Vishesh Handa <handa.vish@gmail.com>
          */
-        class NEPOMUKSYNC_EXPORT SyncResource : public QMultiHash<KUrl, Soprano::Node>
+        class SyncResource : public QMultiHash<KUrl, Soprano::Node>
         {
         public :
             SyncResource();
@@ -105,7 +104,7 @@ namespace Nepomuk2 {
          *
          * \author Vishesh Handa <handa.vish@gmail.com>
          */
-        class NEPOMUKSYNC_EXPORT ResourceHash : public QHash<KUrl, SyncResource> {
+        class ResourceHash : public QHash<KUrl, SyncResource> {
         public :
             static ResourceHash fromStatementList( const QList<Soprano::Statement> & list );
             static ResourceHash fromGraph( const Soprano::Graph & graph );
@@ -113,8 +112,8 @@ namespace Nepomuk2 {
             QList<Soprano::Statement> toStatementList() const;
         };
 
-        uint NEPOMUKSYNC_EXPORT qHash(const SyncResource& res);
-        NEPOMUKSYNC_EXPORT QDebug operator<<(QDebug dbg, const Nepomuk2::Sync::SyncResource& res);
+        uint qHash(const SyncResource& res);
+        QDebug operator<<(QDebug dbg, const Nepomuk2::Sync::SyncResource& res);
     }
 }
 
