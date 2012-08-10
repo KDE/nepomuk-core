@@ -20,20 +20,6 @@ set( NepomukBackup_GUI_SRCS
   identifiermodeltree.cpp
   identifierwidget.cpp
   filesystemtree.cpp
-
-  # Restoration code
-  identifier.cpp
-  merger.cpp
-  changelogmerger.cpp
-  syncfileidentifier.cpp
-  resourcelog.cpp
-
-   # Code required by restoration
-  ../service/tools.cpp
-  ../service/changelog.cpp
-  ../service/changelogrecord.cpp
-  ../service/identificationset.cpp
-  ../service/syncfile.cpp
 )
 
 #----- DBus interfaces --------

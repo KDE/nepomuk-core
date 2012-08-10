@@ -28,7 +28,6 @@
 #include <QPushButton>
 
 #include "mergeconflictdelegate.h"
-#include "identifier.h"
 #include "ui_mergeconflictwidget.h"
 
 namespace Nepomuk2 {
@@ -54,8 +53,6 @@ namespace Nepomuk2 {
     private :
         IdentifierModel * m_model;
         int m_id;
-
-        Identifier * m_identifier;
     };
 
 }

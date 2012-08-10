@@ -46,6 +46,7 @@ Nepomuk2::IdentifierWidget::IdentifierWidget(int id, QWidget* parent): QWidget(p
     m_viewConflicts->setModel( m_model );
     m_viewConflicts->setItemDelegate( delegate );
 
+    /*
     m_identifier = Identifier::instance();
 
     connect( m_identifier, SIGNAL(notIdentified(int,QString)),
@@ -62,6 +63,7 @@ Nepomuk2::IdentifierWidget::IdentifierWidget(int id, QWidget* parent): QWidget(p
 
     connect( m_buttonDiscardAll, SIGNAL(clicked(bool)),
              this, SLOT(slotDiscardAll()) );
+             */
 }
 
 void Nepomuk2::IdentifierWidget::ignore(const QUrl& uri)
@@ -75,7 +77,7 @@ void Nepomuk2::IdentifierWidget::ignore(const QUrl& uri)
     IdentifierModelTreeItem * item = static_cast<IdentifierModelTreeItem*>( index.internalPointer() );
     item->setDiscarded( true );
 
-    m_identifier->ignore( m_id, item->resourceUri().toString(), true);
+    //m_identifier->ignore( m_id, item->resourceUri().toString(), true);
 }
 
 
@@ -93,8 +95,8 @@ void Nepomuk2::IdentifierWidget::identify()
     else
         newUrl = KFileDialog::getOpenUrl();
 
-   if( !newUrl.isEmpty() )
-        m_identifier->identify( m_id, treeItem->resourceUri().toString(), newUrl.url() );
+   //if( !newUrl.isEmpty() )
+   //     m_identifier->identify( m_id, treeItem->resourceUri().toString(), newUrl.url() );
 }
 
 void Nepomuk2::IdentifierWidget::notIdentified(int id, const QString& string)
@@ -120,7 +122,7 @@ void Nepomuk2::IdentifierWidget::identified(int id, const QString& oldUri, const
 
 void Nepomuk2::IdentifierWidget::slotDiscardAll()
 {
-    m_identifier->ignoreAll( m_id );
+    //m_identifier->ignoreAll( m_id );
     m_model->ignoreAll();
 }
 

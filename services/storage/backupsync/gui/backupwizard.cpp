@@ -45,18 +45,6 @@ Nepomuk2::BackupWizard::BackupWizard(QWidget* parent, Qt::WindowFlags flags)
     setPage( Id_RestoreFinalPage, new RestoreFinalPage( this ) );
     setPage( Id_ErrorPage, new ErrorPage( this ) );
     setStartId( Id_IntroPage );
-
-    m_identifier = Identifier::instance();
-    m_merger = Merger::instance();
-
-    // IMPORTANT : We've used "Nepomuk2::ChangeLog" in the string cause in the slots, signals, and
-    // connect statement we're using Nepomuk2::ChangeLog, NOT ChangeLog
-    qRegisterMetaType<Nepomuk2::ChangeLog>("Nepomuk2::ChangeLog");
-
-    //registerMetaTypes();
-    connect( m_identifier, SIGNAL( processed( Nepomuk2::ChangeLog ) ),
-             m_merger, SLOT( process( Nepomuk2::ChangeLog ) ) );
-
 }
 
 void Nepomuk2::BackupWizard::startBackup()

@@ -30,8 +30,6 @@
 #include <QtGui/QListWidget>
 
 #include "backupmanagerinterface.h"
-#include "merger.h"
-#include "identifier.h"
 
 #include "ui_intropage.h"
 #include "ui_backuppage.h"
@@ -123,8 +121,6 @@ namespace Nepomuk2 {
         void slotIdentificationDone( int id, int unidentified );
 
     private:
-        IdentifierWidget* m_identifierWidget;
-        Identifier * m_identifier;
         BackupManager* m_backupManager;
         int m_id;
     };
@@ -142,7 +138,6 @@ namespace Nepomuk2 {
         void slotDone(int per);
 
     private:
-        Merger * m_merger;
     };
 
     class ErrorPage : public QWizardPage, public Ui::ErrorPage {

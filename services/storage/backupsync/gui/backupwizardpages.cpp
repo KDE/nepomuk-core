@@ -184,15 +184,12 @@ Nepomuk2::RestorePage::RestorePage(QWidget* parent)
     m_backupManager = new BackupManager( QLatin1String("org.kde.nepomuk.services.nepomukbackupsync"),
                                          "/backupmanager",
                                          QDBusConnection::sessionBus(), this);
-    m_identifier = Identifier::instance();
-
-    connect( m_identifier, SIGNAL(identificationDone(int,int)),
-             this, SLOT(slotIdentificationDone(int,int)) );
 }
 
 
 void Nepomuk2::RestorePage::initializePage()
 {
+    /*
     QString backupUrl = field("backupToRestorePath").toString();
     kDebug() << "Restoring : " << backupUrl;
 
@@ -200,7 +197,7 @@ void Nepomuk2::RestorePage::initializePage()
     if( backupUrl.isEmpty() )
         backupUrl = KStandardDirs::locateLocal( "data", "nepomuk/backupsync/backup" );
 
-    m_id = Identifier::instance()->process( SyncFile(backupUrl) );
+    //m_id = Identifier::instance()->process( SyncFile(backupUrl) );
 
     if( m_id == -1 ) {
         //FIXME: This isn't implemented in the service. It's just there so that we have a
@@ -217,7 +214,7 @@ void Nepomuk2::RestorePage::initializePage()
     setLayout( layout );
 
     m_identifierWidget = new IdentifierWidget( m_id, this );
-    layout->addWidget( m_identifierWidget );
+    layout->addWidget( m_identifierWidget );*/
 }
 
 int Nepomuk2::RestorePage::nextId() const
@@ -227,7 +224,6 @@ int Nepomuk2::RestorePage::nextId() const
 
 bool Nepomuk2::RestorePage::validatePage()
 {
-    m_identifier->completeIdentification( m_id );
     return true;
 }
 
@@ -281,8 +277,6 @@ Nepomuk2::RestoreFinalPage::RestoreFinalPage(QWidget* parent): QWizardPage(paren
 {
     setupUi( this );
     setCommitPage( true );
-    m_merger = Merger::instance();
-    connect( m_merger, SIGNAL(completed(int)), this, SLOT(slotDone(int)) );
 
     m_progressBar->setMinimum( 0 );
     m_progressBar->setMaximum( 100 );
