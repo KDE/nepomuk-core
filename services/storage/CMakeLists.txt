@@ -48,6 +48,7 @@ set( BackupSyncService_SRCS
   backupsync/service/changelogrecord.cpp
   backupsync/service/identificationset.cpp
   backupsync/service/syncfile.cpp
+  backupsync/service/backupfile.cpp
   backupsync/service/backupgenerationjob.cpp
   )
 
