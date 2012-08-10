@@ -22,6 +22,7 @@
 #define CLEANINGJOB_H
 
 #include <KJob>
+#include <KLocalizedString>
 
 class CleaningJob : public KJob
 {
@@ -65,4 +66,22 @@ public:
 private:
     void execute();
 };
+
+class DuplicateTagCleaner : public CleaningJob {
+    Q_OBJECT
+public:
+    explicit DuplicateTagCleaner(QObject* parent = 0)
+    : CleaningJob(parent) {}
+
+    QString jobName() {
+        return i18n("Merge Duplicate Tags");
+    }
+private slots:
+    void slotJobFinished(KJob* job);
+
+private:
+    void execute();
+    int m_jobs;
+};
+
 #endif // CLEANINGJOB_H

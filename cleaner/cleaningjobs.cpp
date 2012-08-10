@@ -24,7 +24,6 @@
 #include "datamanagement.h"
 
 #include <QtCore/QTimer>
-#include <KLocalizedString>
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
@@ -114,11 +113,54 @@ void EmptyTagCleaner::execute()
 }
 
 
+void DuplicateTagCleaner::execute()
+{
+    m_jobs = 0;
+
+    QString query = QString::fromLatin1("select distinct ?i where { ?r a %1 . ?r %2 ?i . }")
+                    .arg( Soprano::Node::resourceToN3( NAO::Tag() ),
+                          Soprano::Node::resourceToN3( NAO::identifier() ) );
+
+    Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    while( it.next() ) {
+        QString query = QString::fromLatin1("select distinct ?r where { ?r a %1 . ?r %2 %3 . }")
+                        .arg( Soprano::Node::resourceToN3( NAO::Tag() ),
+                              Soprano::Node::resourceToN3( NAO::identifier() ),
+                              Soprano::Node::literalToN3( it[0].literal() ) );
+        Soprano::QueryResultIterator iter = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+
+        QList<QUrl> tagsToMerge;
+        while( iter.next() )
+            tagsToMerge << iter[0].uri();
+
+        if( tagsToMerge.size() <= 1 )
+            continue;
+
+        KJob* job = Nepomuk2::mergeResources( tagsToMerge );
+        connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotJobFinished(KJob*)) );
+        m_jobs++;
+    }
+
+    if( !m_jobs )
+        done();
+}
+
+void DuplicateTagCleaner::slotJobFinished(KJob*)
+{
+    m_jobs--;
+    if( !m_jobs )
+        done();
+}
+
 
 QList< CleaningJob* > allJobs()
 {
     QList<CleaningJob*> list;
     list << new CrappyInferenceData;
     list << new EmptyTagCleaner();
+    list << new DuplicateTagCleaner();
     return list;
 }
+
+#include "cleaningjobs.moc"
