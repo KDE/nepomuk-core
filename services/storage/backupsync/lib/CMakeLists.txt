@@ -15,9 +15,7 @@ include_directories(
 add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS})
 
 set(nepomuksync_SRCS
-    resourcemerger.cpp
     resourceidentifier.cpp
-    identificationsetgenerator.cpp
     syncresource.cpp
 )
 

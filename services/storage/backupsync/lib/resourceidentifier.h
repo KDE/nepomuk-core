@@ -158,11 +158,6 @@ namespace Nepomuk2 {
              */
             bool ignore( const KUrl& uri, bool ignoreSub = false );
 
-            //
-            // Identification Statement generator
-            //
-            static Soprano::Graph createIdentifyingStatements( const KUrl::List & uriList );
-
             virtual bool isIdentifyingProperty( const QUrl & uri );
         private:
             class Private;

@@ -23,7 +23,6 @@
 #include "resourceidentifier.h"
 #include "resourceidentifier_p.h"
 #include "syncresource.h"
-#include "identificationsetgenerator_p.h"
 #include "nrio.h"
 
 #include <QtCore/QSet>
@@ -560,13 +559,6 @@ KUrl Nepomuk2::Sync::ResourceIdentifier::duplicateMatch(const KUrl& uri, const Q
 
     // By default - Identification fails
     return KUrl();
-}
-
-// static
-Soprano::Graph Nepomuk2::Sync::ResourceIdentifier::createIdentifyingStatements(const KUrl::List& uriList)
-{
-    IdentificationSetGenerator gen( uriList.toSet(), ResourceManager::instance()->mainModel(), QSet<KUrl>() );
-    return gen.generate();
 }
 
 void Nepomuk2::Sync::ResourceIdentifier::manualIdentification(const KUrl& oldUri, const KUrl& newUri)
