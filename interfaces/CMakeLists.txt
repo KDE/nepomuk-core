@@ -9,7 +9,6 @@ install(FILES
   org.kde.nepomuk.Storage.xml
   org.kde.nepomuk.QueryService.xml
   org.kde.nepomuk.Query.xml
-  org.kde.nepomuk.BackupSync.xml
   org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
   org.kde.nepomuk.DataManagement.xml
   org.kde.nepomuk.ResourceWatcher.xml

@@ -40,7 +40,6 @@ qt4_add_dbus_adaptor(storage_SRCS
 
 set( BackupSyncService_SRCS
   # BackupSync Service
-  backupsync/service/backupsyncservice.cpp
   backupsync/service/backupmanager.cpp
   backupsync/service/dbusoperators.cpp
   backupsync/service/backupfile.cpp
