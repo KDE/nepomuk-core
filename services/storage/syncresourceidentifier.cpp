@@ -22,7 +22,6 @@
 
 #include "syncresourceidentifier.h"
 #include "syncresource.h"
-#include "nrio.h"
 
 #include <QtCore/QSet>
 

@@ -20,7 +20,7 @@
 #include "repository.h"
 #include "ontologyloader.h"
 #include "query/queryservice.h"
-#include "backupsync/service/backupmanager.h"
+#include "backup/backupmanager.h"
 
 #include <KDebug>
 #include <KSharedConfig>
