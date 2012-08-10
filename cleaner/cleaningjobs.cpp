@@ -68,10 +68,14 @@ void CleaningJob::done()
 // Crappy Inference Data
 //
 
-QString CrappyInferenceData::jobName()
-{
-    return i18n("Clear Crappy Interference Data");
-}
+class CrappyInferenceData : public CleaningJob {
+public:
+    QString jobName() {
+        return i18n("Clear Crappy Interference Data");
+    }
+private:
+    void execute();
+};
 
 void CrappyInferenceData::execute()
 {
@@ -157,7 +161,7 @@ void DuplicateTagCleaner::slotJobFinished(KJob*)
 QList< CleaningJob* > allJobs()
 {
     QList<CleaningJob*> list;
-    list << new CrappyInferenceData;
+    list << new CrappyInferenceData();
     list << new EmptyTagCleaner();
     list << new DuplicateTagCleaner();
     return list;

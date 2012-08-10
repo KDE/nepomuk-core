@@ -54,18 +54,11 @@ private:
     virtual void execute() = 0;
 };
 
+QList<CleaningJob*> allJobs();
+
 //
 // Jobs
 //
-
-QList<CleaningJob*> allJobs();
-
-class CrappyInferenceData : public CleaningJob {
-public:
-    QString jobName();
-private:
-    void execute();
-};
 
 class DuplicateTagCleaner : public CleaningJob {
     Q_OBJECT
