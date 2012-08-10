@@ -1838,15 +1838,25 @@ void Nepomuk2::DataManagementModel::importResources(const QUrl &url,
     KIO::NetAccess::removeTempFile(tmpFileName);
 }
 
-void Nepomuk2::DataManagementModel::mergeResources(const QUrl &res1, const QUrl &res2, const QString &app)
+void Nepomuk2::DataManagementModel::mergeResources(const QList<QUrl>& resources, const QString& app)
 {
-    if(res1.isEmpty() || res2.isEmpty()) {
-        setError(QLatin1String("mergeResources: Encountered empty resource URI."), Soprano::Error::ErrorInvalidArgument);
+    if(app.isEmpty()) {
+        setError(QLatin1String("mergeResources: Empty application specified. This is not supported."),
+                 Soprano::Error::ErrorInvalidArgument);
         return;
     }
-    if(app.isEmpty()) {
-        setError(QLatin1String("mergeResources: Empty application specified. This is not supported."), Soprano::Error::ErrorInvalidArgument);
+    QSet<QUrl> resSet = resources.toSet();
+    if(resSet.size() <= 1) {
+        setError(QLatin1String("mergeResources: Need to provide more than 1 resource to merge"),
+                 Soprano::Error::ErrorInvalidArgument);
         return;
+    }
+    foreach(const QUrl& uri, resSet) {
+        if(uri.isEmpty()) {
+            setError(QLatin1String("mergeResources: Encountered empty resource URI."),
+                     Soprano::Error::ErrorInvalidArgument);
+            return;
+        }
     }
 
     //
@@ -1854,57 +1864,61 @@ void Nepomuk2::DataManagementModel::mergeResources(const QUrl &res1, const QUrl 
     // we can check this before resolving file URLs since no protected resource will
     // ever have a nie:url
     //
-    if(containsResourceWithProtectedType(QSet<QUrl>() << res1 << res2)) {
+    if(containsResourceWithProtectedType(resSet)) {
         return;
     }
 
     clearError();
 
-
     // TODO: Is it correct that all metadata stays the same?
 
+    const QUrl resUri = resources.first();
+    resSet.remove( resUri );
     //
     // Copy all property values of res2 that are not also defined for res1
     //
-    const QList<Soprano::BindingSet> res2Properties
-            = executeQuery(QString::fromLatin1("select ?g ?p ?v (select count(distinct ?v2) where { %2 ?p ?v2 . }) as ?c where { "
-                                               "graph ?g { %1 ?p ?v . } . "
-                                               "FILTER(!bif:exists((select (1) where { %2 ?p ?v . }))) . "
-                                               "}")
-                           .arg(Soprano::Node::resourceToN3(res2),
-                                Soprano::Node::resourceToN3(res1)),
-                           Soprano::Query::QueryLanguageSparql).allBindings();
-    foreach(const Soprano::BindingSet& binding, res2Properties) {
+    QString query = QString::fromLatin1("select ?g ?p ?v (select count(distinct ?v2) where { %2 ?p ?v2 . }) as ?c"
+                                        " where { graph ?g { ?r ?p ?v } "
+                                        " FILTER(?r in (%1)) ."
+                                        " FILTER NOT EXISTS { %2 ?p ?v .} }")
+                    .arg( resourcesToN3(resSet).join(","),
+                          Soprano::Node::resourceToN3(resUri) );
+
+    const QList<Soprano::BindingSet> resProperties
+                = executeQuery(query, Soprano::Query::QueryLanguageSparqlNoInference).allBindings();
+
+    foreach(const Soprano::BindingSet& binding, resProperties) {
         const QUrl& prop = binding["p"].uri();
         // if the property has no cardinality of 1 or no value is defined yet we can simply convert the value to res1
         if(d->m_classAndPropertyTree->maxCardinality(prop) != 1 ||
                 binding["c"].literal().toInt() == 0) {
-            addStatement(res1, prop, binding["v"], binding["g"]);
+            addStatement(resUri, prop, binding["v"], binding["g"]);
         }
     }
 
 
     //
-    // Copy all backlinks from res2 that are not valid for res1
+    // Copy all backlinks from the other resources that are not valid for resUri
     //
     const QList<Soprano::BindingSet> res2Backlinks
-            = executeQuery(QString::fromLatin1("select ?g ?p ?r where { graph ?g { ?r ?p %1 . } . "
+            = executeQuery(QString::fromLatin1("select ?g ?p ?r where { graph ?g { ?r ?p ?r2 . } . "
+                                               "FILTER(?r2 in (%1)) ."
                                                "FILTER(?r!=%2) . "
-                                               "FILTER(!bif:exists((select (1) where { ?r ?p %2 . }))) . "
-                                               "}")
-                           .arg(Soprano::Node::resourceToN3(res2),
-                                Soprano::Node::resourceToN3(res1)),
-                           Soprano::Query::QueryLanguageSparql).allBindings();
+                                               "FILTER NOT EXISTS { ?r ?p %2. } }")
+                           .arg(resourcesToN3(resSet).join(","),
+                                Soprano::Node::resourceToN3(resUri)),
+                           Soprano::Query::QueryLanguageSparqlNoInference).allBindings();
     foreach(const Soprano::BindingSet& binding, res2Backlinks) {
-        addStatement(binding["r"], binding["p"], res1, binding["g"]);
+        addStatement(binding["r"], binding["p"], resUri, binding["g"]);
     }
 
 
     //
-    // Finally delete res2 as it is now merged into res1
+    // Finally delete the other resources as they have been merged
     //
-    removeResources(QList<QUrl>() << res2, NoRemovalFlags, app);
+    removeResources(resSet.toList(), NoRemovalFlags, app);
 }
+
 
 
 namespace {

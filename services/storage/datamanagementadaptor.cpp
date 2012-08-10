@@ -118,7 +118,16 @@ void Nepomuk2::DataManagementAdaptor::mergeResources(const QString &resource1, c
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
-    enqueueCommand(new MergeResourcesCommand(decodeUri(resource1), decodeUri(resource2), app, m_model, message()));
+    QList<QUrl> resources;
+    resources << decodeUri(resource1) << decodeUri(resource2);
+    enqueueCommand(new MergeResourcesCommand(resources, app, m_model, message()));
+}
+
+void Nepomuk2::DataManagementAdaptor::mergeResources(const QStringList& resources, const QString& app)
+{
+    Q_ASSERT(calledFromDBus());
+    setDelayedReply(true);
+    enqueueCommand(new MergeResourcesCommand(decodeUris(resources), app, m_model, message()));
 }
 
 void Nepomuk2::DataManagementAdaptor::removeDataByApplication(int flags, const QString &app)

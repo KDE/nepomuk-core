@@ -132,6 +132,14 @@ KJob* Nepomuk2::mergeResources(const QUrl& resource1,
                                         Q_ARG(QString, component.componentName()));
 }
 
+KJob* Nepomuk2::mergeResources(const QList< QUrl >& resources, const KComponentData& component)
+{
+    return new GenericDataManagementJob("mergeResources",
+                                        Q_ARG(QStringList, Nepomuk2::DBus::convertUriList(resources)),
+                                        Q_ARG(QString, component.componentName()));
+}
+
+
 
 Nepomuk2::StoreResourcesJob* Nepomuk2::storeResources(const Nepomuk2::SimpleResourceGraph& resources,
                                                     Nepomuk2::StoreIdentificationMode identificationMode,
