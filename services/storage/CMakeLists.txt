@@ -43,11 +43,6 @@ set( BackupSyncService_SRCS
   backupsync/service/backupsyncservice.cpp
   backupsync/service/backupmanager.cpp
   backupsync/service/dbusoperators.cpp
-  backupsync/service/tools.cpp
-  backupsync/service/changelog.cpp
-  backupsync/service/changelogrecord.cpp
-  backupsync/service/identificationset.cpp
-  backupsync/service/syncfile.cpp
   backupsync/service/backupfile.cpp
   backupsync/service/backupgenerationjob.cpp
   )

@@ -24,9 +24,6 @@
 #include "backupmanageradaptor.h"
 #include "tools.h"
 
-#include "changelog.h"
-#include "syncfile.h"
-#include "identificationset.h"
 #include "backupgenerationjob.h"
 
 #include <QtDBus/QDBusConnection>

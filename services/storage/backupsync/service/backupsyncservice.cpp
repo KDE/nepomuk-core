@@ -24,9 +24,6 @@
 #include "backupmanager.h"
 #include "dbusoperators.h"
 
-#include "syncfile.h"
-#include "changelog.h"
-
 #include <KDebug>
 
 
