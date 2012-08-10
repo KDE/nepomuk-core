@@ -32,13 +32,14 @@ namespace Nepomuk2 {
 
     class SyncManager;
     class BackupManager;
+    class OntologyLoader;
 
     class BackupSyncService : public QObject
     {
         Q_OBJECT
         Q_CLASSINFO("D-Bus Interface", "org.kde.BackupSync")
     public:
-        BackupSyncService( Soprano::Model *model, QObject *parent );
+        BackupSyncService( OntologyLoader* loader, Soprano::Model *model, QObject *parent );
         ~BackupSyncService();
 
     public Q_SLOTS:

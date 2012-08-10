@@ -21,18 +21,19 @@
 
 
 #include "backupsyncservice.h"
+#include "ontologyloader.h"
 #include "backupmanager.h"
 #include "dbusoperators.h"
 
 #include <KDebug>
 
 
-Nepomuk2::BackupSyncService::BackupSyncService( Soprano::Model* model, QObject* parent )
-	: QObject(parent)
+Nepomuk2::BackupSyncService::BackupSyncService( Nepomuk2::OntologyLoader* loader, Soprano::Model* model, QObject* parent )
+    : QObject(parent)
 {
     kDebug();
 
-    m_backupManager = new BackupManager( model, this );
+    m_backupManager = new BackupManager( loader, model, this );
 }
 
 Nepomuk2::BackupSyncService::~BackupSyncService()

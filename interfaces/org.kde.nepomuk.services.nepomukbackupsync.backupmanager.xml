@@ -4,7 +4,15 @@
     <method name="backup">
         <arg name="url" type="s" direction="in"/>
     </method>
+    <method name="restore">
+        <arg name="url" type="s" direction="in"/>
+    </method>
     <signal name="backupDone">
+    </signal>
+    <signal name="restoreDone">
+    </signal>
+    <signal name="restorePercent">
+        <arg name="percent" type="i" direction="out"/>
     </signal>
   </interface>
 </node>

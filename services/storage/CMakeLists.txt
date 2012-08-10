@@ -45,6 +45,7 @@ set( BackupSyncService_SRCS
   backupsync/service/dbusoperators.cpp
   backupsync/service/backupfile.cpp
   backupsync/service/backupgenerationjob.cpp
+  backupsync/service/backuprestorationjob.cpp
   )
 
 qt4_add_dbus_adaptor( BackupSyncService_SRCS

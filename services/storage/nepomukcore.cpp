@@ -87,7 +87,7 @@ void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
         m_queryService = new Query::QueryService( repo, this);
 
         // Backup Service
-        m_backupService = new BackupSyncService( repo, this );
+        m_backupService = new BackupSyncService( m_ontologyLoader, repo, this );
     }
 }
 

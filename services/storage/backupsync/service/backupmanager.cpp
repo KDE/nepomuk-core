@@ -22,9 +22,10 @@
 
 #include "backupmanager.h"
 #include "backupmanageradaptor.h"
-#include "tools.h"
 
+#include "ontologyloader.h"
 #include "backupgenerationjob.h"
+#include "backuprestorationjob.h"
 
 #include <QtDBus/QDBusConnection>
 #include <QtCore/QListIterator>
@@ -41,10 +42,11 @@
 #include <KCalendarSystem>
 
 
-Nepomuk2::BackupManager::BackupManager(Soprano::Model* model, QObject* parent)
+Nepomuk2::BackupManager::BackupManager(Nepomuk2::OntologyLoader* loader, Soprano::Model* model, QObject* parent)
     : QObject( parent ),
       m_config( "nepomukbackuprc" ),
-      m_model( model )
+      m_model( model ),
+      m_ontologyLoader( loader )
 {
     new BackupManagerAdaptor( this );
     // Register via DBUs
@@ -87,6 +89,8 @@ void Nepomuk2::BackupManager::backup(const QString& oldUrl)
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotBackupDone(KJob*)) );
     job->start();
 }
+
+
 
 void Nepomuk2::BackupManager::automatedBackup()
 {
@@ -196,6 +200,29 @@ void Nepomuk2::BackupManager::slotBackupDone(KJob* job)
     }
 }
 
+void Nepomuk2::BackupManager::restore(const QString& url)
+{
+    // FIXME: Output an error?
+    if( url.isEmpty() )
+        return;
+
+    KJob* job = new BackupRestorationJob( m_model, m_ontologyLoader, QUrl::fromLocalFile(url) );
+
+    connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotRestorationDone(KJob*)) );
+    connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotRestorationPercent(KJob*,ulong)) );
+}
+
+void Nepomuk2::BackupManager::slotRestorationPercent(KJob*, ulong percent)
+{
+    emit restorePercent( percent );
+}
+
+void Nepomuk2::BackupManager::slotRestorationDone(KJob* job)
+{
+    if( !job->error() ) {
+        emit restoreDone();
+    }
+}
 
 
 #include "backupmanager.moc"
