@@ -23,10 +23,12 @@
 #ifndef NEPOMUK_RESOURCEIDENTIFIER_H
 #define NEPOMUK_RESOURCEIDENTIFIER_H
 
-#include <QtCore/QObject>
+#include <QtCore/QMultiHash>
+#include <QtCore/QSet>
 #include <KUrl>
 
 #include "nepomuksync_export.h"
+#include "syncresource.h"
 
 namespace Soprano {
     class Statement;
@@ -39,8 +41,6 @@ namespace Nepomuk2 {
     class Resource;
 
     namespace Sync {
-
-        class SyncResource;
 
         /**
          * \class ResourceIdentifier resourceidentifier.h
@@ -159,9 +159,6 @@ namespace Nepomuk2 {
             bool ignore( const KUrl& uri, bool ignoreSub = false );
 
             virtual bool isIdentifyingProperty( const QUrl & uri );
-        private:
-            class Private;
-            Private * d;
 
         protected:
             /**
@@ -183,6 +180,32 @@ namespace Nepomuk2 {
              * This is useful when runIdentification has been reimplemented.
              */
             void manualIdentification( const KUrl & oldUri, const KUrl & newUri );
+
+        private:
+            Soprano::Model * m_model;
+
+            /**
+             * The main identification hash which maps external ResourceUris
+             * with the internal ones
+             */
+            QHash<QUrl, QUrl> m_hash;
+
+            QSet<KUrl> m_notIdentified;
+
+            /// Used to store all the identification statements
+            ResourceHash m_resourceHash;
+
+            //
+            // Properties
+            //
+            KUrl::List m_optionalProperties;
+
+            /**
+             * This contains all the urls that are being identified, at any moment.
+             * It is used to avoid infinite recursion while generating the sparql
+             * query.
+             */
+            QSet<KUrl> m_beingIdentified;
         };
     }
 }
