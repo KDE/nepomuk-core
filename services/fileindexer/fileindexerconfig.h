@@ -71,6 +71,11 @@ namespace Nepomuk2 {
 
         QStringList excludeFilters() const;
 
+        /**
+         * Strigi plugins not to call.
+         */
+	QStringList excludePlugins() const;
+
         bool indexHiddenFilesAndFolders() const;
 
         /**

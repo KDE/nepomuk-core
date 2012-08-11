@@ -128,6 +128,17 @@ QStringList Nepomuk2::FileIndexerConfig::excludeFilters() const
     return QStringList::fromSet(filters);
 }
 
+QStringList Nepomuk2::FileIndexerConfig::excludePlugins() const
+{
+    KConfigGroup cfg = m_config.group( "General" );
+    //Read list of strigi plugins not to use
+    //DigestEventPlugin is a SHA1 indexer.
+    QSet<QString> filters = cfg.readEntry( "exclude plugins", QStringList() << "DigestEventAnalyzer" ).toSet();
+
+    // remove duplicates
+    return QStringList::fromSet(filters);
+}
+
 
 bool Nepomuk2::FileIndexerConfig::indexHiddenFilesAndFolders() const
 {
