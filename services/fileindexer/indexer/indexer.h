@@ -24,6 +24,7 @@
 #define _NEPOMUK_STRIG_INDEXER_H_
 
 #include <QtCore/QObject>
+#include <QStringList>
 #include <KUrl>
 
 class QDateTime;
@@ -42,7 +43,7 @@ namespace Nepomuk2 {
         /**
          * Create a new indexer.
          */
-        Indexer( QObject* parent = 0 );
+        Indexer( QObject* parent = 0, const QStringList& disabledPlugin = QStringList());
 
         /**
          * Destructor
