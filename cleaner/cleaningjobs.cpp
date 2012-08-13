@@ -29,6 +29,10 @@
 #include <Soprano/QueryResultIterator>
 #include <Soprano/Vocabulary/NAO>
 
+#include "nie.h"
+#include "nfo.h"
+
+using namespace Nepomuk2::Vocabulary;
 using namespace Soprano::Vocabulary;
 
 CleaningJob::CleaningJob(QObject* parent)
@@ -158,12 +162,53 @@ void DuplicateTagCleaner::slotJobFinished(KJob*)
 }
 
 
+void DuplicateFileCleaner::execute()
+{
+    m_jobs = 0;
+
+    QString query = QString::fromLatin1("select distinct ?url where { ?r a %1 . ?r %2 ?url . }")
+                    .arg( Soprano::Node::resourceToN3( NFO::FileDataObject() ),
+                          Soprano::Node::resourceToN3( NIE::url() ) );
+
+    Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    while( it.next() ) {
+        QString query = QString::fromLatin1("select distinct ?r where { ?r a %1 . ?r %2 %3 . }")
+                        .arg( Soprano::Node::resourceToN3( NFO::FileDataObject() ),
+                              Soprano::Node::resourceToN3( NIE::url() ),
+                              Soprano::Node::resourceToN3( it[0].uri() ) );
+        Soprano::QueryResultIterator iter = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+
+        QList<QUrl> tagsToMerge;
+        while( iter.next() )
+            tagsToMerge << iter[0].uri();
+
+        if( tagsToMerge.size() <= 1 )
+            continue;
+
+        KJob* job = Nepomuk2::mergeResources( tagsToMerge );
+        connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotJobFinished(KJob*)) );
+        m_jobs++;
+    }
+
+    if( !m_jobs )
+        done();
+}
+
+void DuplicateFileCleaner::slotJobFinished(KJob* job)
+{
+    m_jobs--;
+    if( !m_jobs )
+        done();
+}
+
 QList< CleaningJob* > allJobs()
 {
     QList<CleaningJob*> list;
     list << new CrappyInferenceData();
     list << new EmptyTagCleaner();
     list << new DuplicateTagCleaner();
+    list << new DuplicateFileCleaner();
     return list;
 }
 

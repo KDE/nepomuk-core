@@ -77,4 +77,20 @@ private:
     int m_jobs;
 };
 
+class DuplicateFileCleaner : public CleaningJob {
+    Q_OBJECT
+public:
+    explicit DuplicateFileCleaner(QObject* parent = 0)
+    : CleaningJob(parent) {}
+
+    QString jobName() {
+        return i18n("Merge Duplicate File Metadata");
+    }
+private slots:
+    void slotJobFinished(KJob* job);
+
+private:
+    void execute();
+    int m_jobs;
+};
 #endif // CLEANINGJOB_H
