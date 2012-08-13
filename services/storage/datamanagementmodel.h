@@ -159,10 +159,11 @@ public Q_SLOTS:
                         const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()) );
 
     /**
-     * Merges two resources into one. Properties from \p resource1
-     * take precedence over that from \p resource2 (for properties with cardinality 1).
+     * Merges all the resources into one.
+     * Properties from the first resource in \p resources take precedence over all other resources
+     * present in \p resources
      */
-    void mergeResources(const QUrl& resource1, const QUrl& resource2, const QString& app);
+    void mergeResources(const QList<QUrl>& resources, const QString& app);
 
     /**
      * Import an RDF graph from a URL.

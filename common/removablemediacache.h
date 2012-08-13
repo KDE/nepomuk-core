@@ -99,12 +99,15 @@ public:
 
 signals:
     void deviceAdded(const Nepomuk2::RemovableMediaCache::Entry* entry);
+    void deviceRemoved(const Nepomuk2::RemovableMediaCache::Entry* entry);
     void deviceMounted(const Nepomuk2::RemovableMediaCache::Entry* entry);
+    void deviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry);
 
 private slots:
     void slotSolidDeviceAdded(const QString &udi);
     void slotSolidDeviceRemoved(const QString &udi);
     void slotAccessibilityChanged(bool accessible, const QString &udi);
+    void slotTeardownRequested(const QString& udi);
 
 private:
     void initCacheEntries();

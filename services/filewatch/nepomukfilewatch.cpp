@@ -174,10 +174,12 @@ Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
     m_removableMediaCache = new RemovableMediaCache(this);
     connect(m_removableMediaCache, SIGNAL(deviceMounted(const Nepomuk2::RemovableMediaCache::Entry*)),
             this, SLOT(slotDeviceMounted(const Nepomuk2::RemovableMediaCache::Entry*)));
+    connect(m_removableMediaCache, SIGNAL(deviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry*)),
+            this, SLOT(slotDeviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry*)));
     addWatchesForMountedRemovableMedia();
 
     (new InvalidFileResourceCleaner(this))->start();
-    
+
     connect( FileIndexerConfig::self(), SIGNAL( configChanged() ),
              this, SLOT( updateIndexedFoldersWatches() ) );
 }
@@ -406,6 +408,12 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
     kDebug() << "Installing watch for removable storage at mount point" << entry->mountPath();
     watchFolder(entry->mountPath());
 }
+
+void Nepomuk2::FileWatch::slotDeviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry )
+{
+    m_dirWatch->removeWatch( entry->mountPath() );
+}
+
 
 void Nepomuk2::FileWatch::slotActiveFileQueueTimeout(const KUrl &url)
 {

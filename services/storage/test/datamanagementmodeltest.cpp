@@ -5274,7 +5274,9 @@ void DataManagementModelTest::testMergeResources()
 
 
     // now merge the resources
-    m_dmModel->mergeResources(resA, resB, QLatin1String("A"));
+    m_dmModel->mergeResources(QList<QUrl>() << resA << resB, QLatin1String("A"));
+    kDebug() << m_dmModel->lastError();
+    QVERIFY(m_dmModel->lastError() == Soprano::Error::ErrorNone);
 
     // make sure B is gone
     QVERIFY(!m_model->containsAnyStatement(resB, Node(), Node()));
@@ -5319,7 +5321,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // property 1
-    m_dmModel->mergeResources(resA, QUrl("prop:/int"), QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << resA << QUrl("prop:/int"), QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
@@ -5329,7 +5331,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // property 2
-    m_dmModel->mergeResources(QUrl("prop:/int"), resA, QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << QUrl("prop:/int") << resA, QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
@@ -5339,7 +5341,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // class 1
-    m_dmModel->mergeResources(resA, NRL::Graph(), QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << resA << NRL::Graph(), QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
@@ -5349,7 +5351,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // property 2
-    m_dmModel->mergeResources(NRL::Graph(), resA, QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << NRL::Graph() << resA, QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
@@ -5359,7 +5361,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // graph 1
-    m_dmModel->mergeResources(resA, QUrl("graph:/onto"), QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << resA << QUrl("graph:/onto"), QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
@@ -5369,7 +5371,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // graph 2
-    m_dmModel->mergeResources(QUrl("graph:/onto"), resA, QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << QUrl("graph:/onto") << resA, QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
