@@ -200,12 +200,14 @@ bool KInotify::available() const
     if( d->inotify() > 0 ) {
         // trueg: Copied from KDirWatch.
         struct utsname uts;
-        int major, minor, patch;
+        int major, minor, patch=0;
         if ( uname(&uts) < 0 ) {
             return false; // *shrug*
         }
         else if ( sscanf( uts.release, "%d.%d.%d", &major, &minor, &patch) != 3 ) {
-            return false; // *shrug*
+            //Kernels > 3.0 can in principle have two-number versions.
+            if ( sscanf( uts.release, "%d.%d", &major, &minor) != 2 )
+		        return false; // *shrug*
         }
         else if( major * 1000000 + minor * 1000 + patch < 2006014 ) { // <2.6.14
             kDebug(7001) << "Can't use INotify, Linux kernel too old";
