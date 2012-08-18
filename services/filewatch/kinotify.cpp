@@ -287,7 +287,7 @@ void KInotify::slotEvent( int socket )
         }
         else {
             // we cannot use event->len here since it contains the size of the buffer and not the length of the string
-            const QByteArray eventName = QByteArray::fromRawData( event->name, qstrlen(event->name) );
+            const QByteArray eventName = QByteArray::fromRawData( event->name, qstrnlen(event->name,event->len) );
             const QByteArray hashedPath = d->watchPathHash.value( event->wd );
             path = concatPath( hashedPath, eventName );
         }
