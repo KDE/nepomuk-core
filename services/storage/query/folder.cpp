@@ -34,10 +34,11 @@
 #include <QtDBus/QDBusConnection>
 
 
-Nepomuk2::Query::Folder::Folder( const Query& query, QObject* parent )
+Nepomuk2::Query::Folder::Folder( Soprano::Model* model, const Query& query, QObject* parent )
     : QObject( parent ),
       m_isSparqlQueryFolder( false ),
       m_query( query ),
+      m_model( model ),
       m_currentSearchRunnable( 0 ),
       m_currentCountQueryRunnable( 0 ),
       m_runnableMutex(QMutex::Recursive)
@@ -46,11 +47,13 @@ Nepomuk2::Query::Folder::Folder( const Query& query, QObject* parent )
 }
 
 
-Nepomuk2::Query::Folder::Folder( const QString& query, const RequestPropertyMap& requestProps, QObject* parent )
+Nepomuk2::Query::Folder::Folder( Soprano::Model* model, const QString& query,
+                                 const RequestPropertyMap& requestProps, QObject* parent )
     : QObject( parent ),
       m_isSparqlQueryFolder( true ),
       m_sparqlQuery( query ),
       m_requestProperties( requestProps ),
+      m_model( model ),
       m_currentSearchRunnable( 0 ),
       m_currentCountQueryRunnable( 0 ),
       m_runnableMutex(QMutex::Recursive)
@@ -97,7 +100,7 @@ void Nepomuk2::Query::Folder::update()
 {
     QMutexLocker lock(&m_runnableMutex);
     if ( !m_currentSearchRunnable ) {
-        m_currentSearchRunnable = new SearchRunnable( this );
+        m_currentSearchRunnable = new SearchRunnable( m_model, this );
         QueryService::searchThreadPool()->start( m_currentSearchRunnable, 1 );
 
         // we only need the count for initialListingDone
@@ -105,7 +108,7 @@ void Nepomuk2::Query::Folder::update()
         if ( !m_initialListingDone &&
              !m_isSparqlQueryFolder &&
              m_query.limit() == 0 ) {
-            m_currentCountQueryRunnable = new CountQueryRunnable( this );
+            m_currentCountQueryRunnable = new CountQueryRunnable( m_model, this );
             QueryService::searchThreadPool()->start( m_currentCountQueryRunnable, 0 );
         }
     }

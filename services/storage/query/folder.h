@@ -28,6 +28,7 @@
 #include <QtCore/QTimer>
 #include <QtCore/QPointer>
 #include <QtCore/QMutex>
+#include <Soprano/Model>
 
 #include <KUrl>
 
@@ -56,8 +57,9 @@ namespace Nepomuk2 {
             Q_OBJECT
 
         public:
-            Folder( const Query& query, QObject* parent = 0 );
-            Folder( const QString& sparqlQuery, const RequestPropertyMap& requestProps, QObject* parent = 0 );
+            Folder( Soprano::Model* model, const Query& query, QObject* parent = 0 );
+            Folder( Soprano::Model* model, const QString& sparqlQuery,
+                    const RequestPropertyMap& requestProps, QObject* parent = 0 );
             ~Folder();
 
             bool isSparqlQueryFolder() const { return m_isSparqlQueryFolder; }
@@ -145,6 +147,9 @@ namespace Nepomuk2 {
 
             /// only used if m_query is not valid
             RequestPropertyMap m_requestProperties;
+
+            /// Used for running the queries
+            Soprano::Model* m_model;
 
             /// all listening connections
             QList<FolderConnection*> m_connections;

@@ -34,7 +34,7 @@ namespace Nepomuk2 {
         class CountQueryRunnable : public QRunnable
         {
         public:
-            CountQueryRunnable( Folder* folder );
+            CountQueryRunnable( Soprano::Model* model, Folder* folder );
             ~CountQueryRunnable();
 
             /**
@@ -45,6 +45,7 @@ namespace Nepomuk2 {
             void run();
 
         private:
+            Soprano::Model* m_model;
             QPointer<Folder> m_folder;
             QMutex m_folderMutex;
         };

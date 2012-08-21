@@ -443,4 +443,5 @@ void Nepomuk2::Repository::slotVirtuosoStopped(bool normalExit)
     }
 }
 
+
 #include "repository.moc"
