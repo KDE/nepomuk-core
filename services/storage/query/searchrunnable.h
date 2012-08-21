@@ -29,6 +29,10 @@
 #include "folder.h"
 
 
+namespace Soprano {
+    class QueryResultIterator;
+}
+
 namespace Nepomuk2 {
     namespace Query {
         class Folder;
@@ -51,6 +55,8 @@ namespace Nepomuk2 {
             void run();
 
         private:
+            Nepomuk2::Query::Result extractResult( const Soprano::QueryResultIterator& it ) const;
+
             Soprano::Model* m_model;
 
             QPointer<Folder> m_folder;
