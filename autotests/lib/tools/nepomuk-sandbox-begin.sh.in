@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/bash
+
+# DBus
+source @NEPOMUK_TESTLIB_TOOLS_DIR@/dbus-session-begin.sh
 
 # create a new random kde home
 CNT=0
@@ -36,7 +39,7 @@ echo "Started..."
 echo "Starting nepomukserver"
 nepomukserver 2> $KDETMP/nepomuk-server.log &
 
-function wait-for-nepomuk-service() {
+waitForNepomukService () {
     echo "Waiting for $1 service to be initialized."
 
     qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null
@@ -47,27 +50,7 @@ function wait-for-nepomuk-service() {
     done
 }
 
-wait-for-nepomuk-service "org.kde.NepomukStorage"
-wait-for-nepomuk-service "org.kde.nepomuk.services.nepomukqueryservice"
-# If you need to wait for other services to be ready before starting the test case, do that here.
+waitForNepomukService "org.kde.NepomukStorage"
+waitForNepomukService "org.kde.nepomuk.services.nepomukqueryservice"
 
-# start the actual test
-echo "Starting test case..."
-eval $@
-
-# Shutdown the nepomuk server
-echo "Telling nepomukserver to quit (this may take some time)"
-qdbus org.kde.NepomukServer /nepomukserver org.kde.NepomukServer.quit > /dev/null
-
-# Wait for the nepomuk server to finish shutting down
-while [ `qdbus org.kde.NepomukServer /nepomukserver org.kde.nepomuk.NepomukServer.isNepomukEnabled > /dev/null` ]
-do
-  sleep 1
-done
-
-# shutdown KDE
-echo "Shutting down KDE session..."
-kdeinit4_shutdown
-
-echo "Cleaning up temporary KDEHOME $KDEHOME"
-rm -rf $KDEHOME
+export NEPOMUK_TESTLIB_RUNNING=true

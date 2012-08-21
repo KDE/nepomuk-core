@@ -93,6 +93,12 @@ namespace Nepomuk2 {
          */
         void slotDeviceMounted( const Nepomuk2::RemovableMediaCache::Entry* );
 
+        /**
+         * Connected to each removable media.
+         * Removes all the watches that were added for that removable media
+         */
+        void slotDeviceTeardownRequested( const Nepomuk2::RemovableMediaCache::Entry* );
+
         void slotActiveFileQueueTimeout(const KUrl& url);
 
     private:

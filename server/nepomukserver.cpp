@@ -60,6 +60,11 @@ Nepomuk2::Server::Server( QObject* parent )
 
     // initialize according to config
     init();
+
+    // Quit the server if Nepomuk is not running
+    if( m_currentState == StateDisabled ) {
+        quit();
+    }
 }
 
 
@@ -72,7 +77,7 @@ Nepomuk2::Server::~Server()
 
 void Nepomuk2::Server::init()
 {
-    // no need to start the file indexer explicetely. it is done in enableNepomuk
+    // no need to start the file indexer explicitly. it is done in enableNepomuk
     enableNepomuk( NepomukServerSettings::self()->startNepomuk() );
 }
 
@@ -97,6 +102,8 @@ void Nepomuk2::Server::enableNepomuk( bool enabled )
 
             // stop all running services
             m_serviceManager->stopAllServices();
+            connect(this, SIGNAL(nepomukDisabled()),
+                    QCoreApplication::instance(), SLOT(quit()));
 
             // unregister the service manager interface
             QDBusConnection::sessionBus().unregisterObject( "/servicemanager" );
@@ -149,12 +156,12 @@ void Nepomuk2::Server::quit()
 {
     if( isNepomukEnabled() &&
         !m_serviceManager->runningServices().isEmpty() ) {
-        connect(this, SIGNAL(nepomukDisabled()),
-                qApp, SLOT(quit()));
         enableNepomuk(false);
     }
     else {
-        QCoreApplication::instance()->quit();
+        // We use a QTimer because the event loop might not be running when
+        // this is called, in that case 'quit' will do nothing
+        QTimer::singleShot( 0, QCoreApplication::instance(), SLOT(quit()) );
     }
 }
 

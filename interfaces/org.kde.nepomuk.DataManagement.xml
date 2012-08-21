@@ -78,6 +78,10 @@
       <arg name="resource2" type="s" direction="in"/>
       <arg name="app" type="s" direction="in"/>
     </method>
+    <method name="mergeResources">
+      <arg name="resources" type="as" direction="in"/>
+      <arg name="app" type="s" direction="in"/>
+    </method>
     <method name="describeResources">
       <arg name="resources" type="as" direction="in"/>
       <arg name="flags" type="i" direction="in"/>

@@ -100,6 +100,13 @@ public Q_SLOTS: // METHODS
         return asyncCallWithArgumentList(QLatin1String("mergeResources"), argumentList, s_defaultTimeout);
     }
 
+    inline QDBusPendingReply<> mergeResources(const QStringList &resource, const QString &app)
+    {
+        QList<QVariant> argumentList;
+        argumentList << qVariantFromValue(resource) << qVariantFromValue(app);
+        return asyncCallWithArgumentList(QLatin1String("mergeResources"), argumentList, s_defaultTimeout);
+    }
+
     inline QDBusPendingReply<> removeDataByApplication(int flags, const QString &app)
     {
         QList<QVariant> argumentList;

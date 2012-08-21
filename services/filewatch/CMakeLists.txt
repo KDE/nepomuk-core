@@ -8,7 +8,6 @@ include_directories(
   ${QT_INCLUDES}
   ${KDE4_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
-  ${NEPOMUK_INCLUDE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/../fileindexer
   )
 

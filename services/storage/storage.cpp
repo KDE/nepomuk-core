@@ -60,9 +60,6 @@ void Nepomuk2::Storage::slotNepomukCoreInitialized( bool success )
 {
     if ( success ) {
         kDebug() << "Successfully initialized nepomuk core";
-        // the core is initialized. Export it to the clients.
-        // the D-Bus interface
-        m_core->registerAsDBusObject();
 
         // the faster local socket interface
         QString socketPath = KGlobal::dirs()->locateLocal( "socket", "nepomuk-socket" );

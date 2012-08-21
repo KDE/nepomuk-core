@@ -70,6 +70,7 @@ private Q_SLOTS:
 
     void typeTopMost();
     void typePimo();
+    // c and d are checking newTag, newFile and newFolder
 
     // 6. Resource Watcher
     //    a. Make sure tags are updated - Also cross check initialization
@@ -83,6 +84,8 @@ private Q_SLOTS:
     void metaPropertiesUpdate();
     void ratingUpdate();
     void newResourcesUpdated();
+    void identifierUpdate();
+    void urlUpdate();
 
     // 7. Resource Deletion
     //
