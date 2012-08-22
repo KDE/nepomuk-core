@@ -411,7 +411,9 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
 
 void Nepomuk2::FileWatch::slotDeviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry )
 {
+#ifdef BUILD_KINOTIFY
     m_dirWatch->removeWatch( entry->mountPath() );
+#endif
 }
 
 

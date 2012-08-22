@@ -45,8 +45,8 @@ namespace {
     class StoppableConfiguration : public Strigi::AnalyzerConfiguration
     {
     public:
-        StoppableConfiguration()
-            : m_stop(false) {
+        StoppableConfiguration(const QStringList& disabled = QStringList())
+            : m_stop(false), disabledPlugins(disabled) {
 #if defined(STRIGI_IS_VERSION)
 #if STRIGI_IS_VERSION( 0, 6, 1 )
             setIndexArchiveContents( false );
@@ -61,6 +61,14 @@ namespace {
         bool addMoreText() const {
             return !m_stop;
         }
+        using Strigi::AnalyzerConfiguration::useFactory;
+
+        bool useFactory(Strigi::StreamAnalyzerFactory* f) const {
+            if(disabledPlugins.contains((*f).name()))
+		return false;
+	    else
+		return true;
+        }
 
         void setStop( bool s ) {
             m_stop = s;
@@ -68,6 +76,7 @@ namespace {
 
     private:
         bool m_stop;
+	const QStringList disabledPlugins;
     };
 }
 
@@ -75,22 +84,23 @@ namespace {
 class Nepomuk2::Indexer::Private
 {
 public:
+    Private(const QStringList& disabledPlugins)
+	: m_analyzerConfig(disabledPlugins){};
     StoppableConfiguration m_analyzerConfig;
     StrigiIndexWriter* m_indexWriter;
     Strigi::StreamAnalyzer* m_streamAnalyzer;
     QString m_lastError;
 };
 
-
-Nepomuk2::Indexer::Indexer( QObject* parent )
+//The final option defaults to empty, for backward compatibility
+Nepomuk2::Indexer::Indexer( QObject* parent , const QStringList& disabledPlugin)
     : QObject( parent ),
-      d( new Private() )
+      d( new Private(disabledPlugin) )
 {
     d->m_indexWriter = new StrigiIndexWriter();
     d->m_streamAnalyzer = new Strigi::StreamAnalyzer( d->m_analyzerConfig );
     d->m_streamAnalyzer->setIndexWriter( *d->m_indexWriter );
 }
-
 
 Nepomuk2::Indexer::~Indexer()
 {

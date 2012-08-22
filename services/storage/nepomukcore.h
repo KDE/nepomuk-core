@@ -25,7 +25,11 @@
 #include <QtCore/QStringList>
 
 namespace Nepomuk2 {
+    namespace Query {
+        class QueryService;
+    }
     class OntologyLoader;
+    class BackupSyncService;
 
     class Core : public Soprano::Server::ServerCore
     {
@@ -67,6 +71,8 @@ namespace Nepomuk2 {
         Repository* m_repository;
 
         OntologyLoader* m_ontologyLoader;
+        Query::QueryService* m_queryService;
+        BackupSyncService* m_backupService;
 
         bool m_initialized;
     };

@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
     options.add("mtime <time>", ki18n("The modification time of the resource in time_t format"));
     options.add("+[url]", ki18n("The URL of the file to be indexed"));
     options.add("clear", ki18n("Remove all indexed data of the URL provided"));
+    options.add("skip <skip>", ki18n("Strigi plugins to disable."));
 
     KCmdLineArgs::addCmdLineOptions(options);
     const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
@@ -70,8 +71,10 @@ int main(int argc, char *argv[])
     const KUrl uri = args->getOption("uri");
     const uint mtime = args->getOption("mtime").toUInt();
 
+    const QStringList disabledPlugins = args->getOptionList("skip");
+
     if( args->count() == 0 ) {
-        Nepomuk2::Indexer indexer;
+        Nepomuk2::Indexer indexer(0,disabledPlugins);
         if( !indexer.indexStdin( uri, mtime ) ) {
             QTextStream s(stdout);
             s << indexer.lastError();
@@ -87,7 +90,7 @@ int main(int argc, char *argv[])
         return 0;
     }
     else {
-        Nepomuk2::Indexer indexer;
+        Nepomuk2::Indexer indexer(0,disabledPlugins);
         if( !indexer.indexFile( args->url(0), uri, mtime ) ) {
             QTextStream s(stdout);
             s << indexer.lastError();
