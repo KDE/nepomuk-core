@@ -23,6 +23,7 @@
 
 #include <KJob>
 #include <KLocalizedString>
+#include <QtCore/QUrl>
 
 class CleaningJob : public KJob
 {
@@ -60,37 +61,20 @@ QList<CleaningJob*> allJobs();
 // Jobs
 //
 
-class DuplicateTagCleaner : public CleaningJob {
+class DuplicateMergingJob : public CleaningJob {
     Q_OBJECT
 public:
-    explicit DuplicateTagCleaner(QObject* parent = 0)
-    : CleaningJob(parent) {}
+    explicit DuplicateMergingJob(const QUrl& type, const QUrl& prop, QObject* parent = 0);
 
-    QString jobName() {
-        return i18n("Merge Duplicate Tags");
-    }
 private slots:
     void slotJobFinished(KJob* job);
 
 private:
     void execute();
     int m_jobs;
+    QUrl m_type;
+    QUrl m_prop;
 };
 
-class DuplicateFileCleaner : public CleaningJob {
-    Q_OBJECT
-public:
-    explicit DuplicateFileCleaner(QObject* parent = 0)
-    : CleaningJob(parent) {}
 
-    QString jobName() {
-        return i18n("Merge Duplicate File Metadata");
-    }
-private slots:
-    void slotJobFinished(KJob* job);
-
-private:
-    void execute();
-    int m_jobs;
-};
 #endif // CLEANINGJOB_H
