@@ -48,10 +48,8 @@
 #include "resourcemanager.h"
 
 #include <KDebug>
-#include <Soprano/Vocabulary/NRL>
 
 using namespace Soprano::Vocabulary;
-using namespace Nepomuk2::Vocabulary;
 
 namespace {
     class IdentificationSetGenerator {
@@ -63,7 +61,7 @@ namespace {
         QSet<QUrl> m_notDone;
 
         QList<Soprano::Statement> statements;
-        
+
         Soprano::QueryResultIterator queryIdentifyingStatements( const QStringList& uris );
         void iterate();
         QList<Soprano::Statement> generate();
@@ -100,12 +98,12 @@ namespace {
     void IdentificationSetGenerator::iterate()
     {
         QStringList uris;
-        
+
         QMutableSetIterator<QUrl> iter( m_notDone );
         while( iter.hasNext() ) {
             const QUrl & uri = iter.next();
             m_done.insert( uri );
-            
+
             uris.append( Soprano::Node::resourceToN3( uri ) );
 
             iter.remove();
@@ -118,7 +116,7 @@ namespace {
             Soprano::Node sub = it["r"];
             Soprano::Node pred = it["p"];
             Soprano::Node obj = it["o"];
-            
+
             statements.push_back( Soprano::Statement( sub, pred, obj ) );
 
             // If the object is also a nepomuk uri, it too needs to be identified.
@@ -180,7 +178,7 @@ Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromUrl(const QUrl& url
         kWarning() << "The file " << url << " failed to load";
         return IdentificationSet();
     }
-    
+
     QTextStream in( &file );
     return fromTextStream( in );
 }
@@ -192,12 +190,12 @@ Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromTextStream(QTextStr
     // Parse all the statements
     //
     const Soprano::Parser * parser = Soprano::PluginManager::instance()->discoverParserForSerialization( Soprano::SerializationNQuads );
-    
+
     if( !parser ) {
         kDebug() << "The required parser could not be loaded.";
         return IdentificationSet();
     }
-    
+
     Soprano::StatementIterator iter = parser->parseStream( ts, QUrl(), Soprano::SerializationNQuads );
 
     IdentificationSet identSet;
@@ -216,7 +214,7 @@ namespace {
         foreach( const Nepomuk2::ChangeLogRecord & r, records ) {
             QUrl sub = r.st().subject().uri();
             uniqueUris.insert( sub );
-            
+
             // If the Object is a resource, then it has to be identified as well.
             const Soprano::Node obj = r.st().object();
             if( obj.isResource() ) {
@@ -232,7 +230,7 @@ namespace {
 Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromChangeLog(const Nepomuk2::ChangeLog& log, Soprano::Model* model, const QSet<QUrl> & ignoreList)
 {
     QSet<QUrl> uniqueUris = getUniqueUris( log.toList() );
-    
+
     IdentificationSetGenerator ifg( uniqueUris, model, ignoreList );
     IdentificationSet is;
     is.d->m_statements = ifg.generate();
@@ -243,7 +241,7 @@ Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromResource(const QUrl
 {
     QSet<QUrl> uniqueUris;
     uniqueUris.insert(resourceUrl);
-    
+
     IdentificationSetGenerator ifg(uniqueUris, model, ignoreList);
     IdentificationSet is;
     is.d->m_statements = ifg.generate();
@@ -261,8 +259,6 @@ Nepomuk2::IdentificationSet Nepomuk2::IdentificationSet::fromResourceList(const 
 
 
 namespace {
-    
-    //TODO: Use Nepomuk2::Type::Property
     bool isIdentifyingProperty( QUrl prop, Soprano::Model * model ) {
         QString query = QString::fromLatin1( "ask { %1 %2 %3 }" )
         .arg( Soprano::Node::resourceToN3( prop ) )
@@ -294,7 +290,7 @@ bool Nepomuk2::IdentificationSet::save( const QUrl& output ) const
         kWarning() << "File could not be opened : " << output.path();
         return false;
     }
-    
+
     QTextStream out( &file );
     return save( out );
 }
@@ -310,12 +306,12 @@ bool Nepomuk2::IdentificationSet::save( QTextStream& out ) const
     // Serialize the statements and output them
     //
     const Soprano::Serializer * serializer = Soprano::PluginManager::instance()->discoverSerializerForSerialization( Soprano::SerializationNQuads );
-    
+
     if( !serializer ) {
         kWarning() << "Could not find the required serializer";
         return false;
     }
-    
+
     if( d->m_statements.empty() ) {
         kWarning() << "No statements to Serialize";
         return false;
@@ -326,7 +322,7 @@ bool Nepomuk2::IdentificationSet::save( QTextStream& out ) const
         kWarning() << "Serialization Failed";
         return false;
     }
-    
+
     return true;
 }
 
@@ -354,20 +350,19 @@ void Nepomuk2::IdentificationSet::mergeWith(const IdentificationSet & rhs)
     return;
 }
 
-void Nepomuk2::IdentificationSet::createIdentificationSet(const QSet<QUrl>& uniqueUris, const QUrl& outputUrl)
+void Nepomuk2::IdentificationSet::createIdentificationSet(Soprano::Model* model, const QSet< QUrl >& uniqueUris, const QUrl& outputUrl)
 {
     QFile file( outputUrl.path() );
     if( !file.open( QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate ) ) {
         kWarning() << "File could not be opened : " << outputUrl.path();
         return;
     }
-    
+
     QTextStream out( &file );
 
     IdentificationSet set;
-    Soprano::Model * model = ResourceManager::instance()->mainModel();
-    
     IdentificationSetGenerator generator( uniqueUris, model );
+
     while( !generator.done() ) {
         generator.statements.clear();
         kDebug() << "iterating";

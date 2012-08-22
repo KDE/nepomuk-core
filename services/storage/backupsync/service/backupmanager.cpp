@@ -22,7 +22,6 @@
 
 #include "backupmanager.h"
 #include "backupmanageradaptor.h"
-#include "logstorage.h"
 #include "tools.h"
 
 #include "changelog.h"
@@ -45,9 +44,10 @@
 #include <KCalendarSystem>
 
 
-Nepomuk2::BackupManager::BackupManager(QObject* parent)
+Nepomuk2::BackupManager::BackupManager(Soprano::Model* model, QObject* parent)
     : QObject( parent ),
-      m_config( "nepomukbackuprc" )
+      m_config( "nepomukbackuprc" ),
+      m_model( model )
 {
     new BackupManagerAdaptor( this );
     // Register via DBUs
@@ -85,7 +85,7 @@ void Nepomuk2::BackupManager::backup(const QString& oldUrl)
 
     QFile::remove( url );
 
-    KJob * job = new BackupGenerationJob( url, this );
+    KJob * job = new BackupGenerationJob( m_model, url, this );
 
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotBackupDone(KJob*)) );
     job->start();

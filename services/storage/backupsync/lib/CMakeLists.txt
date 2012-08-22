@@ -17,7 +17,7 @@ set(nepomuksync_SRCS
 )
 
 soprano_add_ontology(nepomuksync_SRCS
-   ${CMAKE_CURRENT_SOURCE_DIR}/../../../ontologies/nrio.trig
+   ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ontologies/nrio.trig
   "NRIO"
   "Nepomuk2::Vocabulary"
   "trig")

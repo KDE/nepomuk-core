@@ -1,6 +1,6 @@
 /*
-    This file is part of the Nepomuk KDE project.
-    Copyright (C) 2010  Vishesh Handa <handa.vish@gmail.com>
+   This file is part of the Nepomuk KDE project.
+   Copyright (C) 2011  Vishesh Handa <handa.vish@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -18,32 +18,29 @@
    You should have received a copy of the GNU Lesser General Public
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifndef BACKUPGENERATOR_H
+#define BACKUPGENERATOR_H
 
-
-#ifndef TOOLS_H
-#define TOOLS_H
-
-#include <QtCore/QList>
+#include <KJob>
 #include <QtCore/QUrl>
-
-namespace Soprano {
-    class Statement;
-    class Model;
-}
+#include <Soprano/Model>
 
 namespace Nepomuk2 {
 
-    /**
-     * Saves a changeLog with the list of all the statements that should be backed up.
-     * It's useful in when doing a first sync or first backup.
-     *
-     * \param uniqueUris After execution, it will contain a list of unique uris
-     * 
-     * Returns the numbers of records in the changelog
-     */
-    int saveBackupChangeLog( const QUrl& url, QSet<QUrl> & uniqueUris );
+    class BackupGenerationJob : public KJob
+    {
+        Q_OBJECT
+    public:
+        BackupGenerationJob(Soprano::Model *model, const QUrl& url, QObject* parent = 0);
+        virtual void start();
 
-    bool saveBackupSyncFile( const QUrl& url );
+    private slots:
+        void doWork();
+
+    private:
+        Soprano::Model* m_model;
+        QUrl m_url;
+    };
 }
 
-#endif // TOOLS_H
+#endif // BACKUPGENERATOR_H

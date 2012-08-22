@@ -21,8 +21,6 @@
 
 
 #include "backupsyncservice.h"
-#include "diffgenerator.h"
-#include "syncmanager.h"
 #include "backupmanager.h"
 #include "dbusoperators.h"
 
@@ -31,20 +29,13 @@
 
 #include <KDebug>
 
-#include <kpluginfactory.h>
-#include <kpluginloader.h>
 
-NEPOMUK_EXPORT_SERVICE( Nepomuk2::BackupSyncService, "nepomukbackupsync" )
-
-Nepomuk2::BackupSyncService::BackupSyncService( QObject* parent, const QList< QVariant >& )
-	: Service(parent)
+Nepomuk2::BackupSyncService::BackupSyncService( Soprano::Model* model, QObject* parent )
+	: QObject(parent)
 {
     kDebug();
 
-//    m_diffGenerator = new DiffGenerator( this );
-
-//    m_syncManager = new SyncManager( this );
-    m_backupManager = new BackupManager( this );
+    m_backupManager = new BackupManager( model, this );
 }
 
 Nepomuk2::BackupSyncService::~BackupSyncService()

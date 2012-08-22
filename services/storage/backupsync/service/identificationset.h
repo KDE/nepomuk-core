@@ -35,9 +35,8 @@ namespace Soprano {
 }
 
 namespace Nepomuk2 {
-        
         class ChangeLog;
-        
+
         class IdentificationSet
         {
         public :
@@ -96,11 +95,11 @@ namespace Nepomuk2 {
 
             void clear();
             void mergeWith(const IdentificationSet & rhs);
-            
+
             IdentificationSet & operator=( const IdentificationSet & rhs );
             IdentificationSet& operator<<(const IdentificationSet & rhs);
 
-            static void createIdentificationSet( const QSet< QUrl >& uniqueUris, const QUrl& outputUrl );
+            static void createIdentificationSet( Soprano::Model *model, const QSet< QUrl >& uniqueUris, const QUrl& outputUrl );
         private :
             class Private;
             QSharedDataPointer<Private> d;

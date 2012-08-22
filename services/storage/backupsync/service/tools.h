@@ -1,6 +1,6 @@
 /*
-   This file is part of the Nepomuk KDE project.
-   Copyright (C) 2010  Vishesh Handa <handa.vish@gmail.com>
+    This file is part of the Nepomuk KDE project.
+    Copyright (C) 2010  Vishesh Handa <handa.vish@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -20,36 +20,30 @@
 */
 
 
-#ifndef BACKUPSYNCSERVICE_H
-#define BACKUPSYNCSERVICE_H
+#ifndef TOOLS_H
+#define TOOLS_H
 
-#include "nepomukservice.h"
+#include <QtCore/QList>
+#include <QtCore/QUrl>
+
+namespace Soprano {
+    class Statement;
+    class Model;
+}
 
 namespace Nepomuk2 {
 
-    class DiffGenerator;
+    /**
+     * Saves a changeLog with the list of all the statements that should be backed up.
+     * It's useful in when doing a first sync or first backup.
+     *
+     * \param uniqueUris After execution, it will contain a list of unique uris
+     *
+     * Returns the numbers of records in the changelog
+     */
+    int saveBackupChangeLog( Soprano::Model *model, const QUrl& url, QSet<QUrl> & uniqueUris );
 
-    class SyncManager;
-    class BackupManager;
-
-    class BackupSyncService : public Service
-    {
-        Q_OBJECT
-        Q_CLASSINFO("D-Bus Interface", "org.kde.BackupSync")
-    public:
-        BackupSyncService( QObject * parent = 0, const QList<QVariant>& args = QList<QVariant>() );
-        ~BackupSyncService();
-
-    public Q_SLOTS:
-        Q_SCRIPTABLE void test();
-
-    private:
-        DiffGenerator * m_diffGenerator;
-
-        SyncManager * m_syncManager;
-        BackupManager * m_backupManager;
-	};
-
+    bool saveBackupSyncFile( Soprano::Model *model, const QUrl& url );
 }
 
-#endif // BACKUPSYNCSERVICE_H
+#endif // TOOLS_H

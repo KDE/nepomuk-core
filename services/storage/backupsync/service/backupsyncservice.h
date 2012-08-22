@@ -1,6 +1,6 @@
 /*
-    This file is part of the Nepomuk KDE project.
-    Copyright (C) 2010  Vishesh Handa <handa.vish@gmail.com>
+   This file is part of the Nepomuk KDE project.
+   Copyright (C) 2010  Vishesh Handa <handa.vish@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,34 +19,38 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef SYNCMANAGER_H
-#define SYNCMANAGER_H
 
-#include <QObject>
-#include <QUrl>
-#include <QDateTime>
+#ifndef BACKUPSYNCSERVICE_H
+#define BACKUPSYNCSERVICE_H
+
+#include <QtCore/QObject>
+#include <Soprano/Model>
 
 namespace Nepomuk2 {
 
-    class SyncFile;
+    class DiffGenerator;
 
-    class SyncManager : public QObject
+    class SyncManager;
+    class BackupManager;
+
+    class BackupSyncService : public QObject
     {
         Q_OBJECT
-        Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.services.nepomukbackupsync.SyncManager")
+        Q_CLASSINFO("D-Bus Interface", "org.kde.BackupSync")
+    public:
+        BackupSyncService( Soprano::Model *model, QObject *parent );
+        ~BackupSyncService();
 
-    public :
-        SyncManager(QObject * parent = 0);
-        virtual ~SyncManager();
+    public Q_SLOTS:
+        Q_SCRIPTABLE void test();
 
-    public slots:
-        void createSyncFile( const QString & url, const QString& startTime );
-        void createSyncFile( const QUrl& outputUrl, const QList<QString> & nieUrls );
-        void createSyncFile( const QUrl& outputUrl, QSet<QUrl>& nepomukUris, const QDateTime & min );
-        void createFirstSyncFile( const QUrl& outputUrl ) const;
+    private:
+        DiffGenerator * m_diffGenerator;
 
-    private :
-    };
+        SyncManager * m_syncManager;
+        BackupManager * m_backupManager;
+	};
+
 }
 
-#endif // SYNCMANAGER_H
+#endif // BACKUPSYNCSERVICE_H
