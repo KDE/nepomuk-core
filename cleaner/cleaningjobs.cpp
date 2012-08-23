@@ -20,8 +20,10 @@
 
 #include "cleaningjobs.h"
 #include "resource.h"
+#include "variant.h"
 #include "resourcemanager.h"
 #include "datamanagement.h"
+#include "createresourcejob.h"
 
 #include <QtCore/QTimer>
 
@@ -195,6 +197,59 @@ public:
     }
 };
 
+//
+// Akonadi
+//
+
+class AkonadiMigrationJob : public CleaningJob {
+public:
+    explicit AkonadiMigrationJob(QObject* parent = 0)
+    : CleaningJob(parent) {}
+
+    QString jobName() {
+        return i18n("Akonadi Migration Job");
+    }
+
+private:
+    void execute();
+};
+
+void AkonadiMigrationJob::execute()
+{
+    const QUrl akonadiDataObject("http://akonadi-project.org/ontologies/aneo#AkonadiDataObject");
+
+    QLatin1String query("select distinct ?r where { ?r ?p ?o. FILTER(REGEX(STR(?r), '^akonadi')). }");
+
+    Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    while( it.next() ) {
+        // FIXME: What about the agent?
+        Nepomuk2::CreateResourceJob* cjob = Nepomuk2::createResource( QList<QUrl>() << akonadiDataObject, QString(), QString() );
+        cjob->exec();
+        if( cjob->error() ) {
+            kDebug() << cjob->errorString();
+            return;
+        }
+
+        kDebug() << cjob->resourceUri() << " " << it[0].uri();
+        KJob* job = Nepomuk2::mergeResources( cjob->resourceUri(), it[0].uri() );
+        job->exec();
+        if( job->error() ) {
+            kDebug() << job->errorString();
+            return;
+        }
+
+        job = Nepomuk2::setProperty( QList<QUrl>() << cjob->resourceUri(), NIE::url(), QVariantList() << it[0].uri() );
+        job->exec();
+        if( job->error() ) {
+            kDebug() << job->errorString();
+            return;
+        }
+    }
+    done();
+}
+
+
 
 QList< CleaningJob* > allJobs()
 {
@@ -203,6 +258,7 @@ QList< CleaningJob* > allJobs()
     list << new EmptyTagCleaner();
     list << new DuplicateTagCleaner();
     list << new DuplicateFileCleaner();
+    list << new AkonadiMigrationJob();
     return list;
 }
 
