@@ -22,15 +22,26 @@
 #include "cleaningjobs.h"
 #include <KIcon>
 #include <KDebug>
+#include <QThread>
 
 JobModel::JobModel(QObject* parent): QAbstractListModel(parent)
 {
     m_jobs = allJobs();
+    m_jobThread = new QThread( this );
+    m_jobThread->start();
 }
 
 JobModel::~JobModel()
 {
-    qDeleteAll( m_jobs );
+    foreach(CleaningJob* job, m_jobs) {
+        if( job->status() == CleaningJob::Started ) {
+            job->kill();
+        }
+        //delete job;
+    }
+
+    m_jobThread->quit();
+    m_jobThread->wait();
 }
 
 QVariant JobModel::data(const QModelIndex& index, int role) const
@@ -72,6 +83,8 @@ void JobModel::start()
         return;
 
     CleaningJob* job = m_jobs.first();
+    job->moveToThread( m_jobThread );
+
     connect(job, SIGNAL(finished(KJob*)), this, SLOT(slotJobFinished(KJob*)));
     job->start();
 
@@ -88,6 +101,8 @@ void JobModel::slotJobFinished(KJob* job)
         return;
 
     CleaningJob* nextJob = m_jobs[ index + 1 ];
+    nextJob->moveToThread( m_jobThread );
+
     connect(nextJob, SIGNAL(finished(KJob*)), this, SLOT(slotJobFinished(KJob*)));
     nextJob->start();
 

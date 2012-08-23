@@ -41,6 +41,7 @@ private slots:
 
 private:
     QList<CleaningJob*> m_jobs;
+    QThread* m_jobThread;
 };
 
 #endif // JOBMODEL_H
