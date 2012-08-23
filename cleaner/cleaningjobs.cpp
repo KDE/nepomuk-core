@@ -197,6 +197,16 @@ public:
     }
 };
 
+class DuplicateIconCleaner : public DuplicateMergingJob {
+public:
+    explicit DuplicateIconCleaner(QObject* parent = 0)
+    : DuplicateMergingJob(NAO::FreeDesktopIcon(), NAO::iconName(), parent) {}
+
+    QString jobName() {
+        return i18n("Merge Duplicate Icons");
+    }
+};
+
 //
 // Akonadi
 //
@@ -258,6 +268,7 @@ QList< CleaningJob* > allJobs()
     list << new EmptyTagCleaner();
     list << new DuplicateTagCleaner();
     list << new DuplicateFileCleaner();
+    list << new DuplicateIconCleaner();
     list << new AkonadiMigrationJob();
     return list;
 }
