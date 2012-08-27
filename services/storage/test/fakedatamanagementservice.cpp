@@ -21,6 +21,7 @@
 
 #include "fakedatamanagementservice.h"
 #include "../datamanagementmodel.h"
+#include "../virtuosoinferencemodel.h"
 #include "../datamanagementadaptor.h"
 #include "../classandpropertytree.h"
 
@@ -84,7 +85,8 @@ FakeDataManagementService::FakeDataManagementService(QObject *parent)
     // create the data management service stack connected to the fake storage
     m_nrlModel = new Soprano::NRLModel(m_model);
     m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
-    m_dmModel = new Nepomuk2::DataManagementModel(m_classAndPropertyTree, m_nrlModel);
+    m_inferenceModel = new Nepomuk2::VirtuosoInferenceModel(m_nrlModel);
+    m_dmModel = new Nepomuk2::DataManagementModel(m_classAndPropertyTree, m_inferenceModel);
     m_dmAdaptor = new Nepomuk2::DataManagementAdaptor(m_dmModel);
 
     // register the adaptor

@@ -144,7 +144,7 @@ public:
 
     void _k_addWatches() {
         // add the next batch of paths
-        for ( int i = 0; i < 100; ++i ) {
+        for ( int i = 0; i < 100 && !dirIterators.isEmpty(); ++i ) {
             QDirIterator* it = dirIterators.front();
             if( it->hasNext() ) {
                 it->next();
