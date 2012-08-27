@@ -25,6 +25,14 @@
 #include "resource.h"
 #include "resourcemanager.h"
 
+#include "andterm.h"
+#include "orterm.h"
+#include "resourcetypeterm.h"
+#include "optionalterm.h"
+#include "comparisonterm.h"
+#include "negationterm.h"
+#include "resourcewatcher.h"
+
 #include <Soprano/Model>
 
 #include <KDebug>
@@ -58,6 +66,51 @@ Nepomuk2::Query::Folder::Folder( const QString& query, const RequestPropertyMap&
     init();
 }
 
+namespace {
+    using namespace Nepomuk2::Query;
+    using namespace Nepomuk2;
+
+    void initWatcherForGroupTerms(ResourceWatcher* watcher, const GroupTerm& groupTerm, bool& emptyProperty);
+
+    void initWatcherForTerm(ResourceWatcher* watcher, const Term& term, bool &emptyProperty ) {
+        if( term.isAndTerm() )
+            initWatcherForGroupTerms( watcher, term.toAndTerm(), emptyProperty );
+        else if( term.isOrTerm() )
+            initWatcherForGroupTerms( watcher, term.toOrTerm(), emptyProperty );
+        else if( term.isOptionalTerm() )
+            initWatcherForTerm( watcher, term.toOptionalTerm().subTerm(), emptyProperty );
+        else if( term.isNegationTerm() )
+            initWatcherForTerm( watcher, term.toNegationTerm().subTerm(), emptyProperty );
+        else if( term.isResourceTypeTerm() )
+            watcher->addType( term.toResourceTypeTerm().type() );
+        else if( term.isComparisonTerm() ) {
+            const QUrl prop = term.toComparisonTerm().property().uri();
+            if( prop.isEmpty() ) {
+                emptyProperty = true;
+            }
+            else {
+                watcher->addProperty( term.toComparisonTerm().property().uri() );
+            }
+        }
+    }
+
+    void initWatcherForGroupTerms(ResourceWatcher* watcher, const GroupTerm& groupTerm, bool &emptyProperty) {
+        QList<Term> terms = groupTerm.subTerms();
+        foreach(const Term& term, terms) {
+            initWatcherForTerm( watcher, term, emptyProperty );
+        }
+    }
+
+    void intiWatcherForQuery(ResourceWatcher* watcher, const Query::Query& query) {
+        // The empty property is for comparison terms which do not have a property
+        // in that case we want to monitor all properties
+        bool emptyProperty = false;
+        initWatcherForTerm( watcher, query.term(), emptyProperty );
+        if( emptyProperty )
+            watcher->setProperties( QList<Types::Property>() );
+    }
+}
+
 
 void Nepomuk2::Query::Folder::init()
 {
@@ -68,12 +121,23 @@ void Nepomuk2::Query::Folder::init()
     m_updateTimer.setSingleShot( true );
     m_updateTimer.setInterval( 2000 );
 
-    // use the special signal from the ResourceWatcher which is not exposed in the public API (yet)
-    QDBusConnection::sessionBus().connect(QLatin1String("org.kde.NepomukStorage"),
-                                          QLatin1String("/resourcewatcher"),
-                                          QLatin1String("org.kde.nepomuk.ResourceWatcher"),
-                                          QLatin1String("somethingChanged"),
-                                          this, SLOT( slotStorageChanged() ) );
+    ResourceWatcher* watcher = new ResourceWatcher( this );
+    intiWatcherForQuery( watcher, m_query );
+
+    connect( watcher, SIGNAL(propertyAdded(Nepomuk2::Resource,Nepomuk2::Types::Property,QVariant)),
+             this, SLOT(slotStorageChanged()) );
+    connect( watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource,Nepomuk2::Types::Property,QVariant)),
+             this, SLOT(slotStorageChanged()) );
+    connect( watcher, SIGNAL(resourceCreated(Nepomuk2::Resource,QList<QUrl>)),
+             this, SLOT(slotStorageChanged()) );
+    connect( watcher, SIGNAL(resourceRemoved(QUrl,QList<QUrl>)),
+             this, SLOT(slotStorageChanged()) );
+    connect( watcher, SIGNAL(resourceTypeAdded(Nepomuk2::Resource,Nepomuk2::Types::Class)),
+             this, SLOT(slotStorageChanged()) );
+    connect( watcher, SIGNAL(resourceTypeRemoved(Nepomuk2::Resource,Nepomuk2::Types::Class)),
+             this, SLOT(slotStorageChanged()) );
+    watcher->start();
+
     connect( &m_updateTimer, SIGNAL( timeout() ),
              this, SLOT( slotUpdateTimeout() ) );
 }
