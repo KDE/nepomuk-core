@@ -343,4 +343,15 @@ bool Nepomuk2::FileIndexerConfig::isDebugModeEnabled() const
     return m_config.group( "General" ).readEntry( "debug mode", false );
 }
 
+QString Nepomuk2::FileIndexerConfig::strigiVersion() const
+{
+    return m_config.group( "General" ).readEntry( "strigiVersion", QString() );
+}
+
+void Nepomuk2::FileIndexerConfig::setStrigiVersion(const QString& version)
+{
+    m_config.group( "General" ).writeEntry( "strigiVersion", version );
+}
+
+
 #include "fileindexerconfig.moc"
