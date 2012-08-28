@@ -295,6 +295,10 @@ void KInotify::slotEvent( int socket )
         }
 
         Q_ASSERT( !path.isEmpty() || event->mask & EventIgnored );
+        // This is present cause a unmount event is sent my inotify after unmounting, by
+        // which time the watches have already been removed.
+        if( path == "/" && event->mask & EventUnmount )
+            break;
         Q_ASSERT( path != "/" || event->mask & EventIgnored );
 
         // now signal the event
