@@ -84,7 +84,8 @@ public:
     enum WatchFlag {
         FlagOnlyDir = 0x01000000, /**< Only watch the path if it is a directory (IN_ONLYDIR) */
         FlagDoNotFollow = 0x02000000, /**< Don't follow a sym link (IN_DONT_FOLLOW) */
-        FlagOneShot = 0x80000000 /**< Only send event once (IN_ONESHOT) */
+        FlagOneShot = 0x80000000, /**< Only send event once (IN_ONESHOT) */
+        FlagExclUnlink = 0x04000000 /**< Do not generate events for unlinked files (IN_EXCL_UNLINK) */
     };
     Q_DECLARE_FLAGS(WatchFlags, WatchFlag)
 

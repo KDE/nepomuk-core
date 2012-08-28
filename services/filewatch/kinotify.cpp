@@ -104,14 +104,14 @@ public:
     }
 
     bool addWatch( const QByteArray& path ) {
-        // we always need the unmount event to maintain our path hash
         WatchEvents newMode = mode;
         WatchFlags newFlags = flags;
 
         if( !q->filterWatch( path, newMode, newFlags ) ) {
             return true;
         }
-        const int mask = newMode|newFlags|EventUnmount;
+        // we always need the unmount event to maintain our path hash
+        const int mask = newMode|newFlags|EventUnmount|FlagExclUnlink;
 
         return addWatchNoCheck(path, mask);
     }
@@ -159,7 +159,8 @@ public:
             return true;
         }
 
-        const int mask = newMode|newFlags|EventUnmount;
+        // We always need the unmount event to maintain our path hash
+        const int mask = newMode|newFlags|EventUnmount|FlagExclUnlink;
         //Try to install a watch on this directory.
         if(!addWatchNoCheck( QFile::encodeName(path) , mask )){
             return false;
