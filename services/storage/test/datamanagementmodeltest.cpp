@@ -1903,19 +1903,17 @@ void DataManagementModelTest::testCreateResource_types()
 
 void DataManagementModelTest::testCreateResource_invalid_args()
 {
+    // try to create a resource without any types
+    const QUrl uri = m_dmModel->createResource(QList<QUrl>(), QString(), QString(), QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+
+    // should have been created with RDFS::Resource
+    QList<Node> nodes = m_model->listStatements( uri, RDF::type(), QUrl() ).iterateObjects().allNodes();
+    QCOMPARE( nodes.size(), 1 );
+    QCOMPARE( nodes.front().uri(), RDFS::Resource() );
+
     // remember current state to compare later on
     Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
-
-    // try to create a resource without any types
-    m_dmModel->createResource(QList<QUrl>(), QString(), QString(), QLatin1String("A"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
 
     // use an invalid type
     m_dmModel->createResource(QList<QUrl>() << QUrl("class:/non-existing-type"), QString(), QString(), QLatin1String("A"));

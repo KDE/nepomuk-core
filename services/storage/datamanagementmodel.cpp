@@ -833,27 +833,28 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
         setError(QLatin1String("createResource: Empty application specified. This is not supported."), Soprano::Error::ErrorInvalidArgument);
         return QUrl();
     }
-    else if(types.isEmpty()) {
-        setError(QLatin1String("createResource: No type specified. Cannot create resources without a type."), Soprano::Error::ErrorInvalidArgument);
-        return QUrl();
-    }
-    else {
-        foreach(const QUrl& type, types) {
-            if(type.isEmpty()) {
-                setError(QLatin1String("createResource: Encountered empty type URI."), Soprano::Error::ErrorInvalidArgument);
-                return QUrl();
-            }
-            else if(!d->m_classAndPropertyTree->isKnownClass(type)) {
-                setError(QLatin1String("createResource: Encountered invalid type URI."), Soprano::Error::ErrorInvalidArgument);
-                return QUrl();
-            }
+    QSet<QUrl> newTypes = types.toSet();
+    QMutableSetIterator<QUrl> iterator( newTypes );
+    while( iterator.hasNext() ) {
+        const QUrl type = iterator.next();
+        if(type.isEmpty()) {
+            iterator.remove();
+            continue;
         }
+
+        if(!d->m_classAndPropertyTree->isKnownClass(type)) {
+            setError(QLatin1String("createResource: Encountered invalid type URI."), Soprano::Error::ErrorInvalidArgument);
+            return QUrl();
+        }
+    }
+
+    if( newTypes.isEmpty() ) {
+        newTypes << RDFS::Resource();
     }
 
     clearError();
 
     // Simplify the types
-    QSet<QUrl> newTypes = types.toSet();
     QSetIterator<QUrl> it( newTypes );
     while( it.hasNext() ) {
         const QUrl &type = it.next();
