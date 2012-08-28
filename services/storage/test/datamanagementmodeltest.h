@@ -87,6 +87,7 @@ private Q_SLOTS:
     void testRemoveResources_deletedFile();
 
     void testCreateResource();
+    void testCreateResource_types();
     void testCreateResource_invalid_args();
 
     void testRemoveDataByApplication1();
