@@ -36,6 +36,7 @@
 #include <Soprano/Statement>
 #include <Soprano/StatementIterator>
 #include <Soprano/QueryResultIterator>
+#include <Soprano/NodeIterator>
 #include <Soprano/Model>
 #include <Soprano/Vocabulary/RDFS>
 #include <Soprano/Vocabulary/RDF>
@@ -254,33 +255,14 @@ bool Nepomuk2::ResourceData::store()
     if ( m_uri.isEmpty() ) {
         QMutexLocker rmlock(&m_rm->mutex);
 
-        //TODO: Move this logic to the DMS
         QList<QUrl> types;
         if ( m_nieUrl.isValid() && m_nieUrl.isLocalFile() ) {
-            // FIXME: Also check for super classes of nfo:Folder and nfo:FileDataObject
-            // For folders
-            if( QFileInfo(m_nieUrl.toLocalFile()).isDir() ) {
+            types << NFO::FileDataObject();
+            if( QFileInfo(m_nieUrl.toLocalFile()).isDir() )
                 types << NFO::Folder();
-                //FIXME: This should ideally check if m_type is not a subtype of nfo:Folder
-                if( m_type != NFO::FileDataObject() && m_type != NFO::Folder() && m_type != RDFS::Resource() )
-                    types << m_type;
-                m_type.clear();
-            }
-            //
-            // For files
-            if( !m_type.isEmpty() && m_type != NFO::FileDataObject() ) {
-                types << NFO::FileDataObject();
-                m_type.clear();
-            }
         }
+        types << m_type;
 
-        if( !m_type.isEmpty() )
-            types << m_type;
-
-        if( types.isEmpty() )
-            types << RDFS::Resource();
-
-        kDebug() << "Creating with types: " << types;
         Nepomuk2::CreateResourceJob* job = Nepomuk2::createResource(types, QString(), QString());
         if( !job->exec() ) {
             //TODO: Set the error somehow
@@ -289,6 +271,11 @@ bool Nepomuk2::ResourceData::store()
         }
         else {
             m_uri = job->resourceUri();
+            QList<Soprano::Node> nodes = MAINMODEL->listStatements( m_uri, RDF::type(), QUrl() )
+                                         .iterateObjects().allNodes();
+            QList<QUrl> types;
+            foreach(const Soprano::Node& node, nodes)
+                types << node.uri();
             m_cache.insert(RDF::type(), types);
         }
 
