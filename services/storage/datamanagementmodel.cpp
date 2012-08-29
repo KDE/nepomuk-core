@@ -821,9 +821,10 @@ void Nepomuk2::DataManagementModel::removeProperties(const QList<QUrl> &resource
 QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, const QString &label, const QString &description, const QString &app)
 {
     // 1. create an new graph
-    // 2. check if the app exists, if not create it in the new graph
-    // 3. create the new resource in the new graph
-    // 4. return the resource's URI
+    // 2. simplify the types
+    // 3. check if the app exists, if not create it in the new graph
+    // 4. create the new resource in the new graph
+    // 5. return the resource's URI
 
     //
     // Check parameters
@@ -832,31 +833,47 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
         setError(QLatin1String("createResource: Empty application specified. This is not supported."), Soprano::Error::ErrorInvalidArgument);
         return QUrl();
     }
-    else if(types.isEmpty()) {
-        setError(QLatin1String("createResource: No type specified. Cannot create resources without a type."), Soprano::Error::ErrorInvalidArgument);
-        return QUrl();
-    }
-    else {
-        foreach(const QUrl& type, types) {
-            if(type.isEmpty()) {
-                setError(QLatin1String("createResource: Encountered empty type URI."), Soprano::Error::ErrorInvalidArgument);
-                return QUrl();
-            }
-            else if(!d->m_classAndPropertyTree->isKnownClass(type)) {
-                setError(QLatin1String("createResource: Encountered invalid type URI."), Soprano::Error::ErrorInvalidArgument);
-                return QUrl();
-            }
+    QSet<QUrl> newTypes = types.toSet();
+    QMutableSetIterator<QUrl> iterator( newTypes );
+    while( iterator.hasNext() ) {
+        const QUrl type = iterator.next();
+        if(type.isEmpty()) {
+            iterator.remove();
+            continue;
+        }
+
+        if(!d->m_classAndPropertyTree->isKnownClass(type)) {
+            setError(QLatin1String("createResource: Encountered invalid type URI."), Soprano::Error::ErrorInvalidArgument);
+            return QUrl();
         }
     }
 
+    if( newTypes.isEmpty() ) {
+        newTypes << RDFS::Resource();
+    }
+
     clearError();
+
+    // Simplify the types
+    QSetIterator<QUrl> it( newTypes );
+    while( it.hasNext() ) {
+        const QUrl &type = it.next();
+        QSet<QUrl> superTypes = d->m_classAndPropertyTree->allParents( type );
+
+        foreach( const QUrl& parent, superTypes ) {
+            QSet< QUrl >::iterator iter = newTypes.find( parent );
+            if( iter != newTypes.end() ) {
+                newTypes.erase( iter );
+            }
+        }
+    }
 
     // create new URIs and a new graph
     const QUrl graph = createGraph(app);
     const QUrl resUri = createUri(ResourceUri);
 
     // add provided metadata
-    foreach(const QUrl& type, types) {
+    foreach(const QUrl& type, newTypes) {
         addStatement(resUri, RDF::type(), type, graph);
     }
     if(!label.isEmpty()) {
@@ -872,7 +889,7 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
     addStatement(resUri, NAO::lastModified(), Soprano::LiteralValue(now), graph);
 
     // inform interested parties
-    d->m_watchManager->createResource(resUri, types);
+    d->m_watchManager->createResource(resUri, newTypes.toList());
     d->m_watchManager->changeSomething();
 
     return resUri;

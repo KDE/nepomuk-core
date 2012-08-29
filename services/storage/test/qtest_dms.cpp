@@ -154,6 +154,7 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NMM::TVShow(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( NMM::TVSeries(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( NMM::MusicPiece(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NMM::MusicPiece(), RDFS::subClassOf(), NFO::FileDataObject(), graph );
 
     // used by testStoreResources_duplicates
     model->addStatement( NFO::hashAlgorithm(), RDF::type(), RDF::Property(), graph );
@@ -199,9 +200,16 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
 
     model->addStatement( NAO::Tag(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( NFO::FileDataObject(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NFO::FileDataObject(), RDFS::subClassOf(), NIE::DataObject(), graph );
+    model->addStatement( NIE::DataObject(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NIE::DataObject(), RDFS::subClassOf(), RDFS::Resource(), graph );
     model->addStatement( NFO::Folder(), RDF::type(), RDFS::Class(), graph );
-    model->addStatement( NFO::Video(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NFO::Folder(), RDFS::subClassOf(), NFO::DataContainer(), graph );
+    model->addStatement( NFO::DataContainer(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NFO::DataContainer(), RDFS::subClassOf(), NIE::InformationElement(), graph );
     model->addStatement( NIE::InformationElement(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NIE::InformationElement(), RDFS::subClassOf(), RDFS::Resource(), graph );
+    model->addStatement( NFO::Video(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( QUrl("class:/typeA"), RDF::type(), RDFS::Class(), graph );
     model->addStatement( QUrl("class:/typeB"), RDF::type(), RDFS::Class(), graph );
     model->addStatement( QUrl("class:/typeC"), RDF::type(), RDFS::Class(), graph );

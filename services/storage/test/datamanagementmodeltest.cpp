@@ -1856,7 +1856,7 @@ void DataManagementModelTest::testRemoveResources_deletedFile()
 void DataManagementModelTest::testCreateResource()
 {
     // the simple test: we just create a resource using all params
-    const QUrl resUri = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA") << QUrl("class:/typeB"), QLatin1String("the label"), QLatin1String("the desc"), QLatin1String("A"));
+    const QUrl resUri = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA") << NCO::Contact(), QLatin1String("the label"), QLatin1String("the desc"), QLatin1String("A"));
 
     // this call should succeed
     QVERIFY(!m_dmModel->lastError());
@@ -1867,7 +1867,7 @@ void DataManagementModelTest::testCreateResource()
 
     // check if the resource was created properly
     QVERIFY(m_model->containsAnyStatement(resUri, RDF::type(), QUrl("class:/typeA")));
-    QVERIFY(m_model->containsAnyStatement(resUri, RDF::type(), QUrl("class:/typeB")));
+    QVERIFY(m_model->containsAnyStatement(resUri, RDF::type(), NCO::Contact()));
     QVERIFY(m_model->containsAnyStatement(resUri, NAO::prefLabel(), LiteralValue::createPlainLiteral(QLatin1String("the label"))));
     QVERIFY(m_model->containsAnyStatement(resUri, NAO::description(), LiteralValue::createPlainLiteral(QLatin1String("the desc"))));
 
@@ -1875,21 +1875,45 @@ void DataManagementModelTest::testCreateResource()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
+void DataManagementModelTest::testCreateResource_types()
+{
+    QList<QUrl> types;
+    types << NMM::MusicPiece() << NFO::FileDataObject() << RDFS::Resource();
+
+    QUrl uri = m_dmModel->createResource( types, QString(), QString(), QLatin1String("app") );
+    QVERIFY(!m_dmModel->lastError());
+
+    QList<Node> typeNodes = m_model->listStatements( uri, RDF::type(), QUrl() ).iterateObjects().allNodes();
+    QCOMPARE( typeNodes.size(), 1 );
+    QCOMPARE( typeNodes.first().uri(), NMM::MusicPiece() );
+
+    types << NFO::Folder();
+    QUrl uri2 = m_dmModel->createResource( types, QString(), QString(), QLatin1String("app") );
+    QVERIFY(!m_dmModel->lastError());
+
+    typeNodes = m_model->listStatements( uri2, RDF::type(), QUrl() ).iterateObjects().allNodes();
+    QCOMPARE( typeNodes.size(), 2 );
+    QVERIFY( typeNodes.contains( NMM::MusicPiece() ) );
+    QVERIFY( typeNodes.contains( NFO::Folder() ) );
+
+    QVERIFY(!haveTrailingGraphs());
+    QVERIFY(!haveDataInDefaultGraph());
+}
+
+
 void DataManagementModelTest::testCreateResource_invalid_args()
 {
+    // try to create a resource without any types
+    const QUrl uri = m_dmModel->createResource(QList<QUrl>(), QString(), QString(), QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+
+    // should have been created with RDFS::Resource
+    QList<Node> nodes = m_model->listStatements( uri, RDF::type(), QUrl() ).iterateObjects().allNodes();
+    QCOMPARE( nodes.size(), 1 );
+    QCOMPARE( nodes.front().uri(), RDFS::Resource() );
+
     // remember current state to compare later on
     Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
-
-    // try to create a resource without any types
-    m_dmModel->createResource(QList<QUrl>(), QString(), QString(), QLatin1String("A"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
 
     // use an invalid type
     m_dmModel->createResource(QList<QUrl>() << QUrl("class:/non-existing-type"), QString(), QString(), QLatin1String("A"));
