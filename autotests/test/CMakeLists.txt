@@ -25,6 +25,27 @@ target_link_libraries(resourcetest
 
 add_nepomuk_test(NepomukResourceTest ${CMAKE_CURRENT_BINARY_DIR}/resourcetest)
 
+#
+# Query Library Tests
+#
+
+set( QUERY_LIB_TESTS_SRC querytests.cpp )
+
+kde4_add_executable(querytests ${QUERY_LIB_TESTS_SRC})
+
+target_link_libraries(querytests
+  ${QT_QTCORE_LIBRARY}
+  ${QT_QTDBUS_LIBRARY}
+  ${QT_QTTEST_LIBRARY}
+  ${QT_QTGUI_LIBRARY}
+  ${SOPRANO_LIBRARIES}
+  kdecore
+  nepomukcore
+  nepomuktestlib
+)
+
+add_nepomuk_test(QueryTests ${CMAKE_CURRENT_BINARY_DIR}/querytests)
+
 
 #
 # Query Service Tests
