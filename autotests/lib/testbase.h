@@ -53,8 +53,8 @@ namespace Nepomuk2 {
 
 
     private Q_SLOTS:
-        void init();
-        void cleanup();
+        virtual void cleanup();
+        void cleanupTest();
 
     protected:
         void resetRepository();
