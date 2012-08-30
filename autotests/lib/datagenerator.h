@@ -33,19 +33,22 @@ namespace Test {
 class DataGenerator
 {
 public:
-    DataGenerator( int n );
+    DataGenerator();
     virtual ~DataGenerator();
 
-    SimpleResourceGraph generateGraph();
-    bool generate();
+    SimpleResourceGraph generateGraph( int n );
+    bool generate( int n );
 
     static SimpleResourceGraph createPlainTextFile(const QUrl& url, const QString& content);
     static SimpleResourceGraph createMusicFile(const QUrl& url, const QString& title,
                                                const QString& artistName, const QString& albumName);
     static SimpleResourceGraph createImageFile(const QUrl& url);
 
+    bool createPlainTextFile( const QString& content );
+
 private:
     int m_numFiles;
+    KTempDir m_dir;
 
     QString generateName();
 };

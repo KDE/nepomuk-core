@@ -39,9 +39,10 @@ using namespace Nepomuk2::Vocabulary;
 namespace Nepomuk2 {
 namespace Test {
 
-DataGenerator::DataGenerator(int n)
-    : m_numFiles(n)
+DataGenerator::DataGenerator()
 {
+    qsrand( QDateTime::currentMSecsSinceEpoch() );
+    m_dir.setAutoRemove( false );
 }
 
 DataGenerator::~DataGenerator()
@@ -49,18 +50,39 @@ DataGenerator::~DataGenerator()
 }
 
 
-SimpleResourceGraph DataGenerator::generateGraph()
+namespace {
+    QUrl generateFileUrl( const QString& dir ) {
+        QUrl fileUrl;
+        while( 1 ) {
+            int r = qrand();
+            fileUrl = QUrl::fromLocalFile( dir + "/" + QString::number(r) );
+
+            if( !QFile::exists(fileUrl.toLocalFile()) )
+                return fileUrl;
+        }
+    }
+}
+
+bool DataGenerator::createPlainTextFile(const QString& content)
 {
-    qsrand( QDateTime::currentMSecsSinceEpoch() );
+    SimpleResourceGraph graph = createPlainTextFile( generateFileUrl( m_dir.name() ), content );
+    KJob* job = graph.save();
+    job->exec();
+    if( job->error() )
+        return false;
 
-    KTempDir dir;
-    dir.setAutoRemove( false );
+    return true;
+}
 
+
+SimpleResourceGraph DataGenerator::generateGraph(int n)
+{
     // Fow now, doing it all in one go
     SimpleResourceGraph graph;
-    for( int i=0; i<m_numFiles; i++) {
+    for( int i=0; i<n; i++) {
+        QUrl fileUrl = generateFileUrl( m_dir.name() );
+
         int n = qrand() % 2;
-        QUrl fileUrl = QUrl::fromLocalFile( dir.name() + "/" + QString::number(i) );
         switch( n ) {
             case 0:
                 graph += createPlainTextFile(fileUrl, generateName());
@@ -76,9 +98,9 @@ SimpleResourceGraph DataGenerator::generateGraph()
     return graph;
 }
 
-bool DataGenerator::generate()
+bool DataGenerator::generate( int n )
 {
-    StoreResourcesJob* job = generateGraph().save();
+    StoreResourcesJob* job = generateGraph( n ).save();
     job->exec();
     if( job->error() ) {
         kDebug() << job->error();
