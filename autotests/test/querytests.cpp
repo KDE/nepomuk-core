@@ -97,6 +97,22 @@ namespace {
         return results;
     }
 
+    QList<Result> fetchResults( const Query::Query& query ) {
+        QueryServiceClient client;
+        QEventLoop loop;
+        QObject::connect( &client, SIGNAL(finishedListing()), &loop, SLOT(quit()) );
+        QSignalSpy spy( &client, SIGNAL(newEntries(QList<Nepomuk2::Query::Result>)) );
+        client.query( query );
+        loop.exec();
+
+        QList<Result> list;
+        while( spy.count() ) {
+            list += spy.takeFirst().first().value< QList<Result> >();
+        }
+
+        return list;
+    }
+
     class NepomukStatementIterator {
     public:
         NepomukStatementIterator(const QUrl& property = QUrl()) {
@@ -142,14 +158,15 @@ namespace {
 }
 
 void QueryTests::cleanup()
-{ // Do nothing - we want the data to be preserved across tests
+{
+    // Do nothing - we want the data to be preserved across tests
 }
 
 
 void QueryTests::literalTerm_data()
 {
-    QTest::addColumn< Nepomuk2::Query::Query >( "query" );
-    QTest::addColumn< QList<Query::Result> >( "results" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "actualResults" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "expectedResults" );
 
     // Create some test data
     Test::DataGenerator gen;
@@ -173,7 +190,7 @@ void QueryTests::literalTerm_data()
         }
 
         QTest::newRow( "simple literal query" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -192,7 +209,7 @@ void QueryTests::literalTerm_data()
         }
 
         QTest::newRow( "simple literal query with space" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -211,7 +228,7 @@ void QueryTests::literalTerm_data()
         }
 
         QTest::newRow( "simple literal query with space and double quotes" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -232,7 +249,7 @@ void QueryTests::literalTerm_data()
         }
 
         QTest::newRow( "simple literal wildcards1" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -250,36 +267,18 @@ namespace {
         return urls;
     }
 
-    QList<Result> fetchResults( const Query::Query& query ) {
-        QueryServiceClient client;
-        QEventLoop loop;
-        QObject::connect( &client, SIGNAL(finishedListing()), &loop, SLOT(quit()) );
-        QSignalSpy spy( &client, SIGNAL(newEntries(QList<Nepomuk2::Query::Result>)) );
-        client.query( query );
-        loop.exec();
-
-        QList<Result> list;
-        while( spy.count() ) {
-            list += spy.takeFirst().first().value< QList<Result> >();
-        }
-
-        return list;
-    }
 }
 
 void QueryTests::literalTerm()
 {
-    QFETCH( Query::Query, query );
-    QFETCH( QList<Result>, results );
-
-    kDebug() << query.toSparqlQuery();
-    QList<Result> actualResults = fetchResults( query );
+    QFETCH( QList<Result>, actualResults );
+    QFETCH( QList<Result>, expectedResults );
 
     QSet<QUrl> actualUris = resultListToUriSet( actualResults );
-    QSet<QUrl> expectedUris = resultListToUriSet( results );
+    QSet<QUrl> expectedUris = resultListToUriSet( expectedResults );
 
     kDebug() << "Actual Results: " << actualResults;
-    kDebug() << "Expected Results: " << results;
+    kDebug() << "Expected Results: " << expectedResults;
 
     // What about duplicates?
     QCOMPARE( actualUris, expectedUris );
@@ -287,8 +286,8 @@ void QueryTests::literalTerm()
 
 void QueryTests::resourceTypeTerm_data()
 {
-    QTest::addColumn< Nepomuk2::Query::Query >( "query" );
-    QTest::addColumn< QList<Query::Result> >( "results" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "actualResults" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "expectedResults" );
 
     Test::DataGenerator gen;
 
@@ -309,7 +308,7 @@ void QueryTests::resourceTypeTerm_data()
         }
 
         QTest::newRow( "type query" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -326,7 +325,7 @@ void QueryTests::resourceTypeTerm_data()
         }
 
         QTest::newRow( "negated type query" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 }
@@ -343,8 +342,8 @@ void QueryTests::comparisonTerm_comparators()
 
 void QueryTests::comparisonTerm_comparators_data()
 {
-    QTest::addColumn< Nepomuk2::Query::Query >( "query" );
-    QTest::addColumn< QList<Query::Result> >( "results" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "actualResults" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "expectedResults" );
 
     //
     // comparators < <= > >= ==
@@ -382,7 +381,7 @@ void QueryTests::comparisonTerm_comparators_data()
         }
 
         QTest::newRow( "comparsion term <" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -401,7 +400,7 @@ void QueryTests::comparisonTerm_comparators_data()
         }
 
         QTest::newRow( "comparsion term <=" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -421,7 +420,7 @@ void QueryTests::comparisonTerm_comparators_data()
         }
 
         QTest::newRow( "comparsion term >" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -440,7 +439,7 @@ void QueryTests::comparisonTerm_comparators_data()
         }
 
         QTest::newRow( "comparsion term >=" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -459,15 +458,15 @@ void QueryTests::comparisonTerm_comparators_data()
         }
 
         QTest::newRow( "comparsion term ==" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 }
 
 void QueryTests::comparisonTerm_data()
 {
-    QTest::addColumn< Nepomuk2::Query::Query >( "query" );
-    QTest::addColumn< QList<Query::Result> >( "results" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "actualResults" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "expectedResults" );
 
     // Inject some data
     Test::DataGenerator gen;
@@ -494,7 +493,7 @@ void QueryTests::comparisonTerm_data()
         }
 
         QTest::newRow( "comparison term with datetime" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -528,7 +527,7 @@ void QueryTests::comparisonTerm_data()
         }
 
         QTest::newRow( "comparison term with string" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -565,7 +564,7 @@ void QueryTests::comparisonTerm_data()
         }
 
         QTest::newRow( "comparison term with resource" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -612,7 +611,7 @@ void QueryTests::comparisonTerm_data()
         }
 
         QTest::newRow( "negated comparison term with resource" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 
@@ -640,7 +639,7 @@ void QueryTests::comparisonTerm_data()
         }
 
         QTest::newRow( "double comparsion term" )
-            << query
+            << fetchResults( query )
             << toResultList( uris );
     }
 }
@@ -649,9 +648,6 @@ void QueryTests::comparisonTerm()
 {
     literalTerm();
 }
-
-
-
 
 
 }
