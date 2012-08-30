@@ -34,14 +34,17 @@
 #include "nie.h"
 #include "nfo.h"
 #include "nco.h"
+#include "nmm.h"
 #include "pimo.h"
 #include "property.h"
 #include "variant.h"
 #include "resource.h"
+#include "tag.h"
 #include "resourcemanager.h"
 #include "result.h"
 #include "dbusoperators_p.h"
 #include "queryserviceclient.h"
+#include "storeresourcesjob.h"
 
 #include <Soprano/LiteralValue>
 #include <Soprano/Node>
@@ -96,8 +99,15 @@ namespace {
 
     class NepomukStatementIterator {
     public:
-        NepomukStatementIterator() {
-            QLatin1String query("select ?r ?p ?o where { ?r ?p ?o. FILTER(REGEX(STR(?r), '^nepomuk')) . }");
+        NepomukStatementIterator(const QUrl& property = QUrl()) {
+            QString propertyFilter;
+            if( !property.isEmpty() ) {
+                propertyFilter = QString("FILTER(?p=%1)").arg( Soprano::Node::resourceToN3(property) );
+            }
+
+            QString query = QString::fromLatin1("select ?r ?p ?o where { ?r ?p ?o. "
+                                                "FILTER(REGEX(STR(?r), '^nepomuk:/res')) . %1 }")
+                            .arg( propertyFilter );
             Soprano::Model* model = ResourceManager::instance()->mainModel();
             m_it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
         }
@@ -132,8 +142,7 @@ namespace {
 }
 
 void QueryTests::cleanup()
-{
-    // Do nothing - we want the data to be preserved across tests
+{ // Do nothing - we want the data to be preserved across tests
 }
 
 
@@ -227,17 +236,332 @@ void QueryTests::literalTerm_data()
             << toResultList( uris );
     }
 
-    // hasTag with literalTerm
-    // hasTag with resource
-    // hasTag with negated resource
 
+    // Resource Type Term
+    {
+        // Inject the data
+        for(int i=0; i<10; i++)
+            gen.createTag( QString("Tag_") + QString::number(i) );
+        Query::Query query( ResourceTypeTerm( NAO::Tag() ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( RDF::type() );
+        while( it.next() ) {
+            if( it.object() == NAO::Tag() ) {
+                uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "type query" )
+            << query
+            << toResultList( uris );
+    }
+
+    // Negated Resource Type Term
+    {
+        Query::Query query( NegationTerm::negateTerm( ResourceTypeTerm( NAO::Tag() ) ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( RDF::type() );
+        while( it.next() ) {
+            if( it.object() != NAO::Tag() ) {
+                uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "negated type query" )
+            << query
+            << toResultList( uris );
+    }
+
+    // Comparison Term with literal Term - Date time
+    {
+        QDateTime now = QDateTime::currentDateTime();
+        Query::Query query( ComparisonTerm( NAO::lastModified(), LiteralTerm(now),
+                                            ComparisonTerm::SmallerOrEqual ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NAO::lastModified() );
+        while( it.next() ) {
+            if( it.object().isLiteral() && it.object().literal().isDateTime() ) {
+                QDateTime dt = it.object().literal().toDateTime();
+                if( dt <= now )
+                    uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "comparison term with datetime" )
+            << query
+            << toResultList( uris );
+    }
+
+    // Inject some data
+    QString artist("Coldplay");
+    QString album("X&Y");
+    for(int i=0; i<10; i++)
+        gen.createMusicFile( QString("Title_") + QString::number(i), artist, album );
+
+    // Comparison Term with literal Term - String
+    {
+        Query::Query query( ComparisonTerm( NMM::performer(), LiteralTerm(artist) ) );
+
+        QSet<QUrl> contacts;
+        NepomukStatementIterator it( RDF::type() );
+        while( it.next() ) {
+            if( it.object() == NCO::Contact() ) {
+                contacts << it.subject().uri();
+            }
+        }
+
+        QSet<QUrl> artists;
+        NepomukStatementIterator it2;
+        while( it2.next() ) {
+            if( contacts.contains(it2.subject().uri()) ) {
+                if( it2.hasStringLiteral() && it2.stringLiteral().contains( artist, Qt::CaseInsensitive ) )
+                    artists << it2.subject().uri();
+            }
+        }
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it3( NMM::performer() );
+        while( it3.next() ) {
+            if( artists.contains( it3.object().uri() ) ) {
+                uris << it3.subject().uri();
+            }
+        }
+
+        QTest::newRow( "comparison term with string" )
+            << query
+            << toResultList( uris );
+    }
+
+    // ComparisonTerm with resource
+    {
+        QSet<QUrl> contacts;
+        NepomukStatementIterator it( RDF::type() );
+        while( it.next() ) {
+            if( it.object() == NCO::Contact() ) {
+                contacts << it.subject().uri();
+            }
+        }
+
+        QSet<QUrl> artists;
+        NepomukStatementIterator it2;
+        while( it2.next() ) {
+            if( contacts.contains(it2.subject().uri()) ) {
+                if( it2.hasStringLiteral() && it2.stringLiteral() == artist )
+                    artists << it2.subject().uri();
+            }
+        }
+
+        QCOMPARE( artists.size(), 1 );
+        const QUrl artistUri = *artists.begin();
+        Query::Query query( ComparisonTerm( NMM::performer(), ResourceTerm(artistUri) ) );
+
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it3( NMM::performer() );
+        while( it3.next() ) {
+            if( artists.contains( it3.object().uri() ) ) {
+                uris << it3.subject().uri();
+            }
+        }
+
+        QTest::newRow( "comparison term with resource" )
+            << query
+            << toResultList( uris );
+    }
+
+    // Add some more artists
+    {
+        QLatin1String artist("Flo Rida");
+        QLatin1String album("Wild Ones");
+
+        gen.createMusicFile( QLatin1String("Whistle"), artist, album );
+        gen.createMusicFile( QLatin1String("Wild Ones"), artist, album );
+        gen.createMusicFile( QLatin1String("Let it Roll"), artist, album );
+        gen.createMusicFile( QLatin1String("Good Feeling"), artist, album );
+        gen.createMusicFile( QLatin1String("Sweet Spot"), artist, album );
+    }
+
+    // Negation ComparisonTerm with resource
+    {
+        QSet<QUrl> contacts;
+        NepomukStatementIterator it( RDF::type() );
+        while( it.next() ) {
+            if( it.object() == NCO::Contact() ) {
+                contacts << it.subject().uri();
+            }
+        }
+
+        QSet<QUrl> artists;
+        NepomukStatementIterator it2;
+        while( it2.next() ) {
+            if( contacts.contains(it2.subject().uri()) ) {
+                if( it2.hasStringLiteral() && it2.stringLiteral() == artist )
+                    artists << it2.subject().uri();
+            }
+        }
+
+        const QUrl artistUri = *artists.begin();
+        Query::Query query( NegationTerm::negateTerm( ComparisonTerm( NMM::performer(), ResourceTerm(artistUri) ) ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it3( NMM::performer() );
+        while( it3.next() ) {
+            if( it3.object().uri() != artistUri ) {
+                uris << it3.subject().uri();
+            }
+        }
+
+        QTest::newRow( "negated comparison term with resource" )
+            << query
+            << toResultList( uris );
+    }
+
+    // Literal Term with some depth
+    {
+        Query::Query query( ComparisonTerm(NMM::performer(),
+                                           ComparisonTerm( NCO::fullname(), LiteralTerm("Flo") )) );
+
+        QSet<QUrl> contacts;
+        NepomukStatementIterator it( NCO::fullname() );
+        while( it.next() ) {
+            if( it.hasStringLiteral() ) {
+                const QString str = it.stringLiteral();
+                if( str.contains("Flo", Qt::CaseInsensitive) )
+                    contacts << it.subject().uri();
+            }
+        }
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it2( NMM::performer() );
+        while( it2.next() ) {
+            if( contacts.contains(it2.object().uri()) ) {
+                uris << it2.subject().uri();
+            }
+        }
+
+        QTest::newRow( "literal term with depth" )
+            << query
+            << toResultList( uris );
+    }
+
+    //
     // comparators < <= > >= ==
+    //
 
-    // optional term
+    // Inject data - Files with ratings
+    {
+        SimpleResourceGraph graph;
+        for( int i=0; i<=10; i++ ) {
+            const QUrl uri = gen.createPlainTextFile( QString("File Content") + QString::number(i) );
 
-    // set variable name term
+            SimpleResource res( uri );
+            res.setProperty( NAO::numericRating(), i );
+            graph << res;
+        }
 
-    // order by term
+        KJob* job = graph.save();
+        job->exec();
+        QVERIFY( !job->error() );
+    }
+
+    // <
+    {
+        Query::Query query( ComparisonTerm( NAO::numericRating(), LiteralTerm(4), ComparisonTerm::Smaller ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NAO::numericRating() );
+        while( it.next() ) {
+            if( it.object().isLiteral() && it.object().literal().isInt() ) {
+                int rating = it.object().literal().toInt();
+                if( rating < 4 )
+                    uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "comparsion term <" )
+            << query
+            << toResultList( uris );
+    }
+
+    // <=
+    {
+        Query::Query query( ComparisonTerm( NAO::numericRating(), LiteralTerm(4), ComparisonTerm::SmallerOrEqual ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NAO::numericRating() );
+        while( it.next() ) {
+            if( it.object().isLiteral() && it.object().literal().isInt() ) {
+                int rating = it.object().literal().toInt();
+                if( rating <= 4 )
+                    uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "comparsion term <=" )
+            << query
+            << toResultList( uris );
+    }
+
+
+    // >
+    {
+        Query::Query query( ComparisonTerm( NAO::numericRating(), LiteralTerm(4), ComparisonTerm::Greater ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NAO::numericRating() );
+        while( it.next() ) {
+            if( it.object().isLiteral() && it.object().literal().isInt() ) {
+                int rating = it.object().literal().toInt();
+                if( rating > 4 )
+                    uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "comparsion term >" )
+            << query
+            << toResultList( uris );
+    }
+
+    // >=
+    {
+        Query::Query query( ComparisonTerm( NAO::numericRating(), LiteralTerm(4), ComparisonTerm::GreaterOrEqual ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NAO::numericRating() );
+        while( it.next() ) {
+            if( it.object().isLiteral() && it.object().literal().isInt() ) {
+                int rating = it.object().literal().toInt();
+                if( rating >= 4 )
+                    uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "comparsion term >=" )
+            << query
+            << toResultList( uris );
+    }
+
+    // ==
+    {
+        Query::Query query( ComparisonTerm( NAO::numericRating(), LiteralTerm(4), ComparisonTerm::Equal ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NAO::numericRating() );
+        while( it.next() ) {
+            if( it.object().isLiteral() && it.object().literal().isInt() ) {
+                int rating = it.object().literal().toInt();
+                if( rating == 4 )
+                    uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "comparsion term ==" )
+            << query
+            << toResultList( uris );
+    }
 }
 
 
@@ -283,6 +607,7 @@ void QueryTests::literalTerm()
     // What about duplicates?
     QCOMPARE( actualUris, expectedUris );
 }
+
 
 }
 

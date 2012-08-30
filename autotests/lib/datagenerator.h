@@ -44,7 +44,9 @@ public:
                                                const QString& artistName, const QString& albumName);
     static SimpleResourceGraph createImageFile(const QUrl& url);
 
-    bool createPlainTextFile( const QString& content );
+    QUrl createTag(const QString& identifier );
+    QUrl createPlainTextFile( const QString& content );
+    QUrl createMusicFile(const QString& title, const QString& artistName, const QString& albumName);
 
 private:
     int m_numFiles;

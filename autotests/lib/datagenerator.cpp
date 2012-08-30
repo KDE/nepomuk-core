@@ -34,7 +34,10 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QUuid>
 
+#include <soprano/vocabulary.h>
+
 using namespace Nepomuk2::Vocabulary;
+using namespace Soprano::Vocabulary;
 
 namespace Nepomuk2 {
 namespace Test {
@@ -63,16 +66,56 @@ namespace {
     }
 }
 
-bool DataGenerator::createPlainTextFile(const QString& content)
+QUrl DataGenerator::createPlainTextFile(const QString& content)
 {
     SimpleResourceGraph graph = createPlainTextFile( generateFileUrl( m_dir.name() ), content );
-    KJob* job = graph.save();
+    StoreResourcesJob* job = graph.save();
     job->exec();
     if( job->error() )
-        return false;
+        return QUrl();
 
-    return true;
+    SimpleResource res = graph.toList().first();
+    return job->mappings().value( res.uri() );
 }
+
+QUrl DataGenerator::createTag(const QString& identifier)
+{
+    SimpleResource res;
+    res.addType( NAO::Tag() );
+    res.setProperty( NAO::identifier(), identifier);
+
+    SimpleResourceGraph graph;
+    graph << res;
+
+    StoreResourcesJob* job = graph.save();
+    job->exec();
+    if( job->error() )
+        return QUrl();
+
+    return job->mappings().value( res.uri() );
+}
+
+QUrl DataGenerator::createMusicFile(const QString& title, const QString& artistName, const QString& albumName)
+{
+    SimpleResourceGraph graph = createMusicFile( generateFileUrl( m_dir.name() ), title,
+                                                 artistName, albumName );
+    StoreResourcesJob* job = graph.save();
+    job->exec();
+    if( job->error() )
+        return QUrl();
+
+    QUrl resUri;
+    QList<SimpleResource> list = graph.toList();
+    foreach( const SimpleResource& res, list ) {
+        if( res.contains( RDF::type(), NFO::FileDataObject() ) ) {
+            resUri = res.uri();
+            break;
+        }
+    }
+
+    return job->mappings().value( resUri );
+}
+
 
 
 SimpleResourceGraph DataGenerator::generateGraph(int n)
