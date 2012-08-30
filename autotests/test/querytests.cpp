@@ -317,12 +317,15 @@ void QueryTests::resourceTypeTerm_data()
         Query::Query query( NegationTerm::negateTerm( ResourceTypeTerm( NAO::Tag() ) ) );
 
         QSet<QUrl> uris;
+        QSet<QUrl> tags;
         NepomukStatementIterator it( RDF::type() );
         while( it.next() ) {
-            if( it.object() != NAO::Tag() ) {
-                uris << it.subject().uri();
+            uris << it.subject().uri();
+            if( it.object() == NAO::Tag() ) {
+                tags << it.subject().uri();
             }
         }
+        uris.subtract( tags );
 
         QTest::newRow( "negated type query" )
             << fetchResults( query )
@@ -570,7 +573,7 @@ void QueryTests::comparisonTerm_data()
 
     // Add some more artists
     {
-        QLatin1String artist("Flo Rida");
+        QLatin1String artist("Floname Rida");
         QLatin1String album("Wild Ones");
 
         gen.createMusicFile( QLatin1String("Whistle"), artist, album );
@@ -603,12 +606,15 @@ void QueryTests::comparisonTerm_data()
         Query::Query query( NegationTerm::negateTerm( ComparisonTerm( NMM::performer(), ResourceTerm(artistUri) ) ) );
 
         QSet<QUrl> uris;
+        QSet<QUrl> negatedUris;
         NepomukStatementIterator it3;
         while( it3.next() ) {
-            if( it3.predicate() != NMM::performer() || it3.object().uri() != artistUri ) {
-                uris << it3.subject().uri();
+            uris << it3.subject().uri();
+            if( it3.predicate() == NMM::performer() && it3.object().uri() == artistUri ) {
+                negatedUris << it3.subject().uri();
             }
         }
+        uris.subtract( negatedUris );
 
         QTest::newRow( "negated comparison term with resource" )
             << fetchResults( query )
@@ -618,7 +624,7 @@ void QueryTests::comparisonTerm_data()
     // Double Comparison Term
     {
         Query::Query query( ComparisonTerm(NMM::performer(),
-                                           ComparisonTerm( NCO::fullname(), LiteralTerm("Flo") )) );
+                                           ComparisonTerm( NCO::fullname(), LiteralTerm("Floname") )) );
 
         QSet<QUrl> contacts;
         NepomukStatementIterator it( NCO::fullname() );
