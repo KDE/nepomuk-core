@@ -504,21 +504,11 @@ void QueryTests::comparisonTerm_data()
     {
         Query::Query query( ComparisonTerm( NMM::performer(), LiteralTerm(artist) ) );
 
-        QSet<QUrl> contacts;
-        NepomukStatementIterator it( RDF::type() );
-        while( it.next() ) {
-            if( it.object() == NCO::Contact() ) {
-                contacts << it.subject().uri();
-            }
-        }
-
         QSet<QUrl> artists;
         NepomukStatementIterator it2;
         while( it2.next() ) {
-            if( contacts.contains(it2.subject().uri()) ) {
-                if( it2.hasStringLiteral() && it2.stringLiteral().contains( artist, Qt::CaseInsensitive ) )
-                    artists << it2.subject().uri();
-            }
+            if( it2.hasStringLiteral() && it2.stringLiteral().contains( artist, Qt::CaseInsensitive ) )
+                artists << it2.subject().uri();
         }
 
         QSet<QUrl> uris;
