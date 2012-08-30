@@ -37,6 +37,14 @@ private Q_SLOTS:
     void literalTerm();
     void literalTerm_data();
 
+    void resourceTypeTerm();
+    void resourceTypeTerm_data();
+
+    void comparisonTerm();
+    void comparisonTerm_data();
+
+    void comparisonTerm_comparators();
+    void comparisonTerm_comparators_data();
 private:
 
 };
