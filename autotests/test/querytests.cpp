@@ -86,12 +86,49 @@ namespace {
         return results;
     }
 
-    QList<Result> setToResultList(const QSet<QUrl>& uriSet) {
+    template <typename T>
+    QList<Result> toResultList(const T& container) {
         QList<Result> results;
-        foreach(const QUrl& uri, uriSet)
+        foreach(const QUrl& uri, container)
             results << Result( uri );
         return results;
     }
+
+    class NepomukStatementIterator {
+    public:
+        NepomukStatementIterator() {
+            QLatin1String query("select ?r ?p ?o where { ?r ?p ?o. FILTER(REGEX(STR(?r), '^nepomuk')) . }");
+            Soprano::Model* model = ResourceManager::instance()->mainModel();
+            m_it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        }
+
+        Soprano::Statement current() const { return m_current; }
+        bool next() {
+            if( !m_it.next() )
+                return false;
+
+            m_current.setSubject( m_it["r"] );
+            m_current.setPredicate( m_it["p"] );
+            m_current.setObject( m_it["o"] );
+
+            return true;
+        }
+
+        Soprano::Node subject() const { return m_current.subject(); }
+        Soprano::Node predicate() const { return m_current.predicate(); }
+        Soprano::Node object() const { return m_current.object(); }
+
+        bool hasStringLiteral() const {
+            return object().isLiteral() && object().literal().isString();
+        }
+
+        QString stringLiteral() const {
+            return object().literal().toString();
+        }
+    private:
+        Soprano::QueryResultIterator m_it;
+        Soprano::Statement m_current;
+    };
 }
 
 void QueryTests::cleanup()
@@ -102,8 +139,6 @@ void QueryTests::cleanup()
 
 void QueryTests::literalTerm_data()
 {
-    Soprano::Model* model = ResourceManager::instance()->mainModel();
-
     QTest::addColumn< Nepomuk2::Query::Query >( "query" );
     QTest::addColumn< QList<Query::Result> >( "results" );
 
@@ -119,24 +154,18 @@ void QueryTests::literalTerm_data()
         Query::Query query( LiteralTerm( "Hello" ) );
 
         QSet<QUrl> uris;
-        Soprano::StatementIterator it = model->listStatements();
+        NepomukStatementIterator it;
         while( it.next() ) {
-            const Soprano::Statement& st = it.current();
-            if( st.subject().uri().scheme() != QLatin1String("nepomuk") )
-                continue;
-
-            if( st.object().isLiteral() ) {
-                Soprano::LiteralValue lv = st.object().literal();
-                if( lv.isString() ) {
-                    if( lv.toString().contains("Hello") )
-                        uris << st.subject().uri();
-                }
+            if( it.hasStringLiteral() ) {
+                QString str = it.stringLiteral();
+                if( str.contains("Hello") )
+                    uris << it.subject().uri();
             }
         }
 
         QTest::newRow( "simple literal query" )
             << query
-            << setToResultList( uris );
+            << toResultList( uris );
     }
 
     // Words with spaces
@@ -144,25 +173,18 @@ void QueryTests::literalTerm_data()
         Query::Query query( LiteralTerm( "Hello World" ) );
 
         QSet<QUrl> uris;
-        Soprano::StatementIterator it = model->listStatements();
+        NepomukStatementIterator it;
         while( it.next() ) {
-            const Soprano::Statement& st = it.current();
-            if( st.subject().uri().scheme() != QLatin1String("nepomuk") )
-                continue;
-
-            if( st.object().isLiteral() ) {
-                Soprano::LiteralValue lv = st.object().literal();
-                if( lv.isString() ) {
-                    QString str = lv.toString();
-                    if( str.contains("Hello") && str.contains("World") )
-                        uris << st.subject().uri();
-                }
+            if( it.hasStringLiteral() ) {
+                QString str = it.stringLiteral();
+                if( str.contains("Hello") && str.contains("World") )
+                    uris << it.subject().uri();
             }
         }
 
         QTest::newRow( "simple literal query with space" )
             << query
-            << setToResultList( uris );
+            << toResultList( uris );
     }
 
     // Simple literal query with spaces and double quotes
@@ -170,25 +192,18 @@ void QueryTests::literalTerm_data()
         Query::Query query( LiteralTerm( "'Hello World'" ) );
 
         QSet<QUrl> uris;
-        Soprano::StatementIterator it = model->listStatements();
+        NepomukStatementIterator it;
         while( it.next() ) {
-            const Soprano::Statement& st = it.current();
-            if( st.subject().uri().scheme() != QLatin1String("nepomuk") )
-                continue;
-
-            if( st.object().isLiteral() ) {
-                Soprano::LiteralValue lv = st.object().literal();
-                if( lv.isString() ) {
-                    QString str = lv.toString();
-                    if( str.contains("Hello World") )
-                        uris << st.subject().uri();
-                }
+            if( it.hasStringLiteral() ) {
+                QString str = it.stringLiteral();
+                if( str.contains("Hello World") )
+                    uris << it.subject().uri();
             }
         }
 
         QTest::newRow( "simple literal query with space and double quotes" )
             << query
-            << setToResultList( uris );
+            << toResultList( uris );
     }
 
     // Simple literal query with wildcards
@@ -196,27 +211,20 @@ void QueryTests::literalTerm_data()
         Query::Query query( LiteralTerm( "Hell*" ) );
 
         QSet<QUrl> uris;
-        Soprano::StatementIterator it = model->listStatements();
+        NepomukStatementIterator it;
         while( it.next() ) {
-            const Soprano::Statement& st = it.current();
-            if( st.subject().uri().scheme() != QLatin1String("nepomuk") )
-                continue;
+            if( it.hasStringLiteral() ) {
+                QString str = it.stringLiteral();
+                QRegExp regex("Hell*", Qt::CaseInsensitive, QRegExp::Wildcard);
 
-            if( st.object().isLiteral() ) {
-                Soprano::LiteralValue lv = st.object().literal();
-                if( lv.isString() ) {
-                    QString str = lv.toString();
-                    QRegExp regex("Hell*", Qt::CaseInsensitive, QRegExp::Wildcard);
-
-                    if( str.contains(regex) )
-                        uris << st.subject().uri();
-                }
+                if( str.contains(regex) )
+                    uris << it.subject().uri();
             }
         }
 
         QTest::newRow( "simple literal wildcards1" )
             << query
-            << setToResultList( uris );
+            << toResultList( uris );
     }
 
     // hasTag with literalTerm
