@@ -104,7 +104,7 @@ namespace {
         }
     }
 
-    void intiWatcherForQuery(ResourceWatcher* watcher, const Query::Query& query) {
+    void intiWatcherForQuery(ResourceWatcher* watcher, const Nepomuk2::Query::Query& query) {
         // The empty property is for comparison terms which do not have a property
         // in that case we want to monitor all properties
         bool emptyProperty = false;
