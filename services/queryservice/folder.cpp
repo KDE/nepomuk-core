@@ -101,7 +101,7 @@ namespace {
         }
     }
 
-    void intiWatcherForQuery(ResourceWatcher* watcher, const Nepomuk2::Query::Query& query) {
+    void initWatcherForQuery(ResourceWatcher* watcher, const Nepomuk2::Query::Query& query) {
         // The empty property is for comparison terms which do not have a property
         // in that case we want to monitor all properties
         bool emptyProperty = false;
@@ -122,7 +122,7 @@ void Nepomuk2::Query::Folder::init()
     m_updateTimer.setInterval( 2000 );
 
     ResourceWatcher* watcher = new ResourceWatcher( this );
-    intiWatcherForQuery( watcher, m_query );
+    initWatcherForQuery( watcher, m_query );
 
     connect( watcher, SIGNAL(propertyAdded(Nepomuk2::Resource,Nepomuk2::Types::Property,QVariant)),
              this, SLOT(slotStorageChanged()) );
