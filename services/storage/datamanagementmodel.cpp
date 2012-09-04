@@ -1909,7 +1909,10 @@ void Nepomuk2::DataManagementModel::mergeResources(const QList<QUrl>& resources,
         // if the property has no cardinality of 1 or no value is defined yet we can simply convert the value to res1
         if(d->m_classAndPropertyTree->maxCardinality(prop) != 1 ||
                 binding["c"].literal().toInt() == 0) {
-            addStatement(resUri, prop, binding["v"], binding["g"]);
+            const Soprano::Node v = binding["v"];
+            addStatement(resUri, prop, v, binding["g"]);
+            d->m_watchManager->changeProperty( resUri, prop, QList<Soprano::Node>() << v,
+                                               QList<Soprano::Node>() );
         }
     }
 

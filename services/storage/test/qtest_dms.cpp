@@ -31,6 +31,7 @@
 #include "nmm.h"
 #include "nco.h"
 #include "nie.h"
+#include "pimo.h"
 
 #include <Soprano/LiteralValue>
 
@@ -193,6 +194,16 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NCO::Role(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( NCO::Contact(), RDFS::subClassOf(), NCO::Role(), graph );
     model->addStatement( NCO::Contact(), RDFS::subClassOf(), NAO::Party(), graph );
+    model->addStatement( NCO::Contact(), RDFS::subClassOf(), NIE::InformationElement(), graph );
+
+    model->addStatement( NCO::gender(), RDF::type(), RDF::Property(), graph );
+    model->addStatement( NCO::gender(), RDFS::range(), NCO::Gender(), graph );
+    model->addStatement( NCO::gender(), RDFS::domain(), NCO::Contact(), graph );
+
+    model->addStatement( NCO::Gender(), RDF::type(), RDFS::Resource(), graph );
+    model->addStatement( NCO::Gender(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NCO::male(), RDF::type(), NCO::Gender(), graph );
+    model->addStatement( NCO::female(), RDF::type(), NCO::Gender(), graph );
 
     model->addStatement( NCO::PersonContact(), RDF::type(), RDFS::Resource(), graph );
     model->addStatement( NCO::PersonContact(), RDF::type(), RDFS::Class(), graph );
@@ -225,4 +236,18 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NAO::hasTag(), RDF::type(), RDF::Property(), graph );
     model->addStatement( NAO::hasTag(), RDFS::domain(), RDFS::Resource(), graph );
     model->addStatement( NAO::hasTag(), RDFS::range(), NAO::Tag(), graph );
+
+    // PIMO
+    model->addStatement( PIMO::groundingOccurrence(), RDF::type(), RDF::Property(), graph );
+    model->addStatement( PIMO::groundingOccurrence(), RDFS::range(), NIE::InformationElement(), graph );
+    model->addStatement( PIMO::groundingOccurrence(), RDFS::domain(), PIMO::Thing(), graph );
+
+    model->addStatement( PIMO::Person(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( PIMO::Person(), RDFS::subClassOf(), PIMO::Agent(), graph );
+
+    model->addStatement( PIMO::Agent(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( PIMO::Agent(), RDFS::subClassOf(), PIMO::Thing(), graph );
+    model->addStatement( PIMO::Agent(), RDFS::subClassOf(), NIE::InformationElement(), graph );
+
+    model->addStatement( PIMO::Thing(), RDF::type(), RDFS::Class(), graph );
 }
