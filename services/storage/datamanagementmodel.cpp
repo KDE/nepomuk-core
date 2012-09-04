@@ -3007,8 +3007,11 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resourc
     modifiedResources -= actuallyRemovedResources;
 
 
-    // remove the resources
+    // remove the resources and inform interested parties
     foreach(const Soprano::Node& res, actuallyRemovedResources) {
+        // The WatcherManaager fill automatically fetch the types
+        d->m_watchManager->removeResource(res.uri(), QList<QUrl>());
+
         removeAllStatements(res, Soprano::Node(), Soprano::Node());
         removeAllStatements(Soprano::Node(), Soprano::Node(), res);
     }
@@ -3020,11 +3023,7 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resourc
                                            QList<Soprano::Node>(),
                                            QList<Soprano::Node>() << st.object() );
     }
-    // inform interested parties
-    // TODO: ideally we should also report the types the removed resources had
-    foreach(const Soprano::Node& res, actuallyRemovedResources) {
-        d->m_watchManager->removeResource(res.uri(), QList<QUrl>());
-    }
+
     if(!actuallyRemovedResources.isEmpty()) {
         d->m_watchManager->changeSomething();
     }
