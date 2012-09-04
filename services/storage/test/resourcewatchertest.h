@@ -32,6 +32,7 @@ class NRLModel;
 namespace Nepomuk2 {
 class DataManagementModel;
 class ClassAndPropertyTree;
+class VirtuosoInferenceModel;
 }
 class KTempDir;
 
@@ -76,6 +77,7 @@ private:
     Soprano::NRLModel* m_nrlModel;
     Nepomuk2::ClassAndPropertyTree* m_classAndPropertyTree;
     Nepomuk2::DataManagementModel* m_dmModel;
+    Nepomuk2::VirtuosoInferenceModel* m_inferenceModel;
 };
 
 #endif
