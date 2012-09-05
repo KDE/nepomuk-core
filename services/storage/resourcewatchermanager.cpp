@@ -263,8 +263,13 @@ void Nepomuk2::ResourceWatcherManager::createResource(const QUrl &uri, const QLi
     }
 }
 
-void Nepomuk2::ResourceWatcherManager::removeResource(const QUrl &res, const QList<QUrl>& types)
+void Nepomuk2::ResourceWatcherManager::removeResource(const QUrl &res, const QList<QUrl>& _types)
 {
+    QSet<QUrl> types(_types.toSet());
+    if(!m_typeHash.isEmpty()) {
+        types = getTypes(res);
+    }
+
     QSet<ResourceWatcherConnection*> connections(m_watchAllConnections);
     foreach(const QUrl& type, types) {
         foreach(ResourceWatcherConnection* con, m_typeHash.values( type )) {
@@ -471,9 +476,9 @@ void Nepomuk2::ResourceWatcherManager::removeType(Nepomuk2::ResourceWatcherConne
 QSet<QUrl> Nepomuk2::ResourceWatcherManager::getTypes(const Soprano::Node &res) const
 {
     QSet<QUrl> types;
-    Soprano::StatementIterator it = m_model->listStatements(res, RDF::type(), Soprano::Node());
+    Soprano::NodeIterator it = m_model->listStatements(res, RDF::type(), Soprano::Node()).iterateObjects();
     while(it.next()) {
-        types.insert(it.current().object().uri());
+        types.insert(it.current().uri());
     }
     return types;
 }
