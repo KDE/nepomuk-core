@@ -693,12 +693,9 @@ void QueryTests::fileQueries_data()
         FileQuery query;
 
         QSet<QUrl> uris;
-        NepomukStatementIterator it( RDF::type() );
+        NepomukStatementIterator it( NIE::url() );
         while( it.next() ) {
-            if( it.object() == NFO::FileDataObject() ) {
-                uris << it.subject().uri();
-            }
-            if( it.object() == NFO::Folder() ) {
+            if( it.object().uri().isLocalFile() ) {
                 uris << it.subject().uri();
             }
         }
@@ -728,14 +725,16 @@ void QueryTests::fileQueries_data()
 
         QSet<QUrl> uris;
         QSet<QUrl> discards;
-        NepomukStatementIterator it( RDF::type() );
+        NepomukStatementIterator it( NIE::url() );
         while( it.next() ) {
-            if( it.object() == NFO::FileDataObject() ) {
-                uris << it.subject().uri();
-            }
-            else if( it.object() == NFO::Folder() ) {
-                discards << it.subject().uri();
-            }
+            const QUrl uri = it.subject().uri();
+
+            Soprano::Model* model = ResourceManager::instance()->mainModel();
+            if( model->containsAnyStatement(uri, RDF::type(), NFO::FileDataObject()) )
+                uris << uri;
+
+            if( model->containsAnyStatement(uri, RDF::type(), NFO::Folder()) )
+                discards << uri;
         }
         uris.subtract( discards );
 
@@ -751,11 +750,13 @@ void QueryTests::fileQueries_data()
         kDebug() << query.toSparqlQuery();
 
         QSet<QUrl> uris;
-        NepomukStatementIterator it( RDF::type() );
+        NepomukStatementIterator it( NIE::url() );
         while( it.next() ) {
-            if( it.object() == NFO::Folder() ) {
+            const QUrl uri = it.subject().uri();
+
+            Soprano::Model* model = ResourceManager::instance()->mainModel();
+            if( model->containsAnyStatement(uri, RDF::type(), NFO::Folder()) )
                 uris << it.subject().uri();
-            }
         }
 
         QTest::newRow( "file query (only folders)" )
