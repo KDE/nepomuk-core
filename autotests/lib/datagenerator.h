@@ -40,6 +40,7 @@ public:
     bool generate( int n );
 
     static SimpleResourceGraph createPlainTextFile(const QUrl& url, const QString& content);
+    static SimpleResourceGraph createFolder(const QUrl& url);
     static SimpleResourceGraph createMusicFile(const QUrl& url, const QString& title,
                                                const QString& artistName, const QString& albumName);
     static SimpleResourceGraph createImageFile(const QUrl& url);

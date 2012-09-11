@@ -45,6 +45,9 @@ private Q_SLOTS:
 
     void comparisonTerm_comparators();
     void comparisonTerm_comparators_data();
+
+    void fileQueries();
+    void fileQueries_data();
 private:
 
 };

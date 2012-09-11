@@ -33,6 +33,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QDateTime>
 #include <QtCore/QUuid>
+#include <QtCore/QDir>
 
 #include <soprano/vocabulary.h>
 
@@ -180,6 +181,20 @@ SimpleResourceGraph DataGenerator::createPlainTextFile(const QUrl& url, const QS
 
     return SimpleResourceGraph() << fileRes;
 }
+
+SimpleResourceGraph DataGenerator::createFolder(const QUrl& url)
+{
+    QDir().mkdir( url.toLocalFile() );
+
+    SimpleResource folder;
+    folder.addType( NFO::Folder() );
+    folder.addType( NFO::FileDataObject() );
+    folder.addProperty( NIE::url(), url );
+    folder.addProperty( NFO::fileName(), KUrl(url).fileName() );
+
+    return SimpleResourceGraph() << folder;
+}
+
 
 namespace {
     void createFile(const QUrl& url) {

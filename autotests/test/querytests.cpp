@@ -253,9 +253,6 @@ void QueryTests::literalTerm_data()
             << toResultList( uris );
     }
 
-
-
-
 }
 
 
@@ -644,6 +641,151 @@ void QueryTests::comparisonTerm()
 {
     literalTerm();
 }
+
+void QueryTests::fileQueries()
+{
+    literalTerm();
+}
+
+void QueryTests::fileQueries_data()
+{
+    resetRepository();
+
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "actualResults" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "expectedResults" );
+
+    // Create the data
+    // includeFolder/
+    // includeFolder/files
+    // includeFolder/excludeFolder/
+    // includeFolder/excludeFolder/files
+    KTempDir dir;
+    dir.setAutoRemove( false );
+
+    QString includeDir( dir.name() + "includeFolder/" );
+    QString excludeDir( includeDir + "excludeFolder/" );
+
+    SimpleResourceGraph graph;
+    graph += Test::DataGenerator::createFolder( QUrl::fromLocalFile(includeDir) );
+    for( int i=0; i<10; i++ ) {
+        QString fileName( "abc" + QString::number(i) );
+        QUrl url = QUrl::fromLocalFile( includeDir + fileName );
+
+        graph += Test::DataGenerator::createPlainTextFile( url, QString::number(i) );
+    }
+
+    graph += Test::DataGenerator::createFolder( QUrl::fromLocalFile(excludeDir) );
+    for( int i=0; i<10; i++ ) {
+        QString fileName( "fgh" + QString::number(i) );
+        QUrl url = QUrl::fromLocalFile( excludeDir + fileName );
+        graph += Test::DataGenerator::createPlainTextFile( url, QString::number(i*10) );
+    }
+
+    KJob* job = graph.save();
+    job->exec();
+    if( job->error() ) {
+        kError() << job->errorString();
+        QVERIFY(!job->error());
+    }
+
+    // Empty FileQuery - Should query for all files
+    {
+        FileQuery query;
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( RDF::type() );
+        while( it.next() ) {
+            if( it.object() == NFO::FileDataObject() ) {
+                uris << it.subject().uri();
+            }
+            if( it.object() == NFO::Folder() ) {
+                uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "empty file query" )
+            << fetchResults( query )
+            << toResultList( uris );
+    }
+
+    // Query files with tags
+    {
+/*    FileQuery fileQuery( ComparisonTerm( Soprano::Vocabulary::NAO::hasTag(), ResourceTerm(QUrl("nepomuk:/res/foobar")) ) );
+    QTest::newRow( "file query" )
+        << Query(fileQuery)
+        << QString::fromLatin1("select distinct ?r where { { ?r %1 <nepomuk:/res/foobar> . ?r a ?v1 . FILTER(?v1 in (%2,%3)) . } . }")
+        .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::hasTag()),
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::Folder()),
+              Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NFO::FileDataObject()) );
+*/
+    }
+
+
+    // Query files
+    {
+        FileQuery query;
+        query.setFileMode( FileQuery::QueryFiles );
+
+        QSet<QUrl> uris;
+        QSet<QUrl> discards;
+        NepomukStatementIterator it( RDF::type() );
+        while( it.next() ) {
+            if( it.object() == NFO::FileDataObject() ) {
+                uris << it.subject().uri();
+            }
+            else if( it.object() == NFO::Folder() ) {
+                discards << it.subject().uri();
+            }
+        }
+        uris.subtract( discards );
+
+        QTest::newRow( "file query (only files)" )
+            << fetchResults( query )
+            << toResultList( uris );
+    }
+
+    // Query Folders
+    {
+        FileQuery query;
+        query.setFileMode( FileQuery::QueryFolders );
+        kDebug() << query.toSparqlQuery();
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( RDF::type() );
+        while( it.next() ) {
+            if( it.object() == NFO::Folder() ) {
+                uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "file query (only folders)" )
+            << fetchResults( query )
+            << toResultList( uris );
+    }
+
+    // Include Exclude Folder
+    {
+        FileQuery query;
+        query.addIncludeFolder( QUrl::fromLocalFile(includeDir) );
+        query.addExcludeFolder( QUrl::fromLocalFile(excludeDir) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NIE::url() );
+        while( it.next() ) {
+            const QUrl url = it.object().uri();
+            const QString urlString = url.toLocalFile();
+
+            if( !urlString.startsWith(excludeDir) && urlString.startsWith(includeDir) ) {
+                uris << it.subject().uri();
+            }
+        }
+
+        QTest::newRow( "file query with include folder" )
+            << fetchResults( query )
+            << toResultList( uris );
+    }
+}
+
 
 
 }
