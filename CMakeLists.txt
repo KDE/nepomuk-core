@@ -25,15 +25,12 @@ set(SDO_MIN_VERSION "0.10")
 find_package(SharedDesktopOntologies)
 set(SOPRANO_MIN_VERSION "2.7.56")
 find_package(Soprano)
-set(STRIGI_MIN_VERSION "0.7.3")
-find_package(Strigi)
 
 macro_log_feature(SOPRANO_FOUND "Soprano" "Soprano is the Qt-based RDF storage and parsing solution" "http://soprano.sourceforge.net" TRUE ${SOPRANO_MIN_VERSION} "Required for everything (storage and general data management)")
 macro_log_feature(SOPRANO_PLUGIN_VIRTUOSOBACKEND_FOUND "Soprano Virtuoso Backend" "Virtuoso storage backend for Soprano" "http://soprano.sourceforge.net" TRUE "" "The Soprano Virtuoso backend is required to run the Nepomuk semantic desktop system.")
 macro_log_feature(SOPRANO_PLUGIN_RAPTORPARSER_FOUND "Soprano Raptor Parser" "RDF parser plugin for Soprano" "http://soprano.sourceforge.net" TRUE "" "The Soprano raptor parser plugin is required to build the Nepomuk semantic desktop system.")
 macro_log_feature(SOPRANO_PLUGIN_REDLANDBACKEND_FOUND "Soprano Redland Backend" "Redland storage backend for Soprano" "http://soprano.sourceforge.net" TRUE "" "The Soprano redland backend is required to build the Nepomuk semantic desktop system.")
 macro_log_feature(SHAREDDESKTOPONTOLOGIES_FOUND "Shared desktop ontologies" "Desktop ontologies" "http://oscaf.sourceforge.net" TRUE ${SDO_MIN_VERSION} "Ontologies necessary for the Nepomuk semantic desktop.")
-macro_log_feature(STRIGI_FOUND "Strigi" "Strigi is a fast and light-weight file indexing solution" "http://strigi.sourceforge.net" TRUE ${STRIGI_MIN_VERSION} "Required for file indexing (only libstreamanalyzer is required actually)")
 
 
 # Some definitions
@@ -48,7 +45,6 @@ include_directories(
   ${QT_INCLUDES}
   ${KDE4_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
-  ${STRIGI_INCLUDE_DIR}
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/resource
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/query

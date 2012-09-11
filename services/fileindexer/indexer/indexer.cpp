@@ -21,92 +21,26 @@
 */
 
 #include "indexer.h"
-#include "nepomukindexwriter.h"
-
-#include "nie.h"
+#include "simpleindexer.h"
+#include "../util.h"
 
 #include <KDebug>
+#include <KJob>
 
 #include <QtCore/QDataStream>
 #include <QtCore/QDateTime>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 
-#include <strigi/strigiconfig.h>
-#include <strigi/indexwriter.h>
-#include <strigi/analysisresult.h>
-#include <strigi/fileinputstream.h>
-#include <strigi/analyzerconfiguration.h>
-
-#include <iostream>
-
-
-namespace {
-    class StoppableConfiguration : public Strigi::AnalyzerConfiguration
-    {
-    public:
-        StoppableConfiguration(const QStringList& disabled = QStringList())
-            : m_stop(false), disabledPlugins(disabled) {
-#if defined(STRIGI_IS_VERSION)
-#if STRIGI_IS_VERSION( 0, 6, 1 )
-            setIndexArchiveContents( false );
-#endif
-#endif
-        }
-
-        bool indexMore() const {
-            return !m_stop;
-        }
-
-        bool addMoreText() const {
-            return !m_stop;
-        }
-        using Strigi::AnalyzerConfiguration::useFactory;
-
-        bool useFactory(Strigi::StreamAnalyzerFactory* f) const {
-            if(disabledPlugins.contains((*f).name()))
-		return false;
-	    else
-		return true;
-        }
-
-        void setStop( bool s ) {
-            m_stop = s;
-        }
-
-    private:
-        bool m_stop;
-	const QStringList disabledPlugins;
-    };
-}
-
-
-class Nepomuk2::Indexer::Private
-{
-public:
-    Private(const QStringList& disabledPlugins)
-	: m_analyzerConfig(disabledPlugins){};
-    StoppableConfiguration m_analyzerConfig;
-    StrigiIndexWriter* m_indexWriter;
-    Strigi::StreamAnalyzer* m_streamAnalyzer;
-    QString m_lastError;
-};
 
 //The final option defaults to empty, for backward compatibility
-Nepomuk2::Indexer::Indexer( QObject* parent , const QStringList& disabledPlugin)
-    : QObject( parent ),
-      d( new Private(disabledPlugin) )
+Nepomuk2::Indexer::Indexer( QObject* parent )
+    : QObject( parent )
 {
-    d->m_indexWriter = new StrigiIndexWriter();
-    d->m_streamAnalyzer = new Strigi::StreamAnalyzer( d->m_analyzerConfig );
-    d->m_streamAnalyzer->setIndexWriter( *d->m_indexWriter );
 }
 
 Nepomuk2::Indexer::~Indexer()
 {
-    delete d->m_streamAnalyzer;
-    delete d->m_indexWriter;
-    delete d;
 }
 
 
@@ -119,61 +53,33 @@ bool Nepomuk2::Indexer::indexFile( const KUrl& url, const KUrl resUri, uint mtim
 bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uint mtime )
 {
     if( !info.exists() ) {
-        d->m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
+        m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
         return false;
     }
 
-    d->m_analyzerConfig.setStop( false );
-    d->m_indexWriter->forceUri( resUri );
+    KJob* job = Nepomuk2::clearIndexedData( info.filePath() );
+    job->exec();
+    if( job->error() ) {
+        kError() << job->errorString();
+        m_lastError = job->errorString();
 
-    // strigi asserts if the file path has a trailing slash
-    const KUrl url( info.filePath() );
-    const QString filePath = url.toLocalFile( KUrl::RemoveTrailingSlash );
-    const QString dir = url.directory( KUrl::IgnoreTrailingSlash );
-
-
-    // WARNING: This extra block is present because the indexing is only finished when
-    // analysis result is destroyed
-    {
-        Strigi::AnalysisResult analysisresult( QFile::encodeName( filePath ).data(),
-                                            mtime ? mtime : info.lastModified().toTime_t(),
-                                            *d->m_indexWriter,
-                                            *d->m_streamAnalyzer,
-                                            QFile::encodeName( dir ).data() );
-        if ( info.isFile() && !info.isSymLink() ) {
-            Strigi::InputStream* stream = Strigi::FileInputStream::open( QFile::encodeName( info.filePath() ) );
-            analysisresult.index( stream );
-            delete stream;
-        }
-        else {
-            analysisresult.index(0);
-        }
-
+        return false;
     }
 
-    d->m_lastError = d->m_indexWriter->lastError();
-    return d->m_lastError.isEmpty();
+    SimpleIndexer indexer( QUrl::fromLocalFile(info.filePath()) );
+    return indexer.save();
 }
 
 bool Nepomuk2::Indexer::indexStdin(const KUrl resUri, uint mtime)
 {
-    d->m_analyzerConfig.setStop( false );
-    d->m_indexWriter->forceUri( resUri );
-
-    Strigi::AnalysisResult analysisresult( QFile::encodeName(resUri.fileName()).data(),
-                                           mtime ? mtime : QDateTime::currentDateTime().toTime_t(),
-                                           *d->m_indexWriter,
-                                           *d->m_streamAnalyzer );
-    Strigi::FileInputStream stream( stdin, QFile::encodeName(resUri.toLocalFile()).data() );
-    analysisresult.index( &stream );
-
-    d->m_lastError = d->m_indexWriter->lastError();
-    return d->m_lastError.isEmpty();
+    return false;
 }
 
 QString Nepomuk2::Indexer::lastError() const
 {
-    return d->m_lastError;
+    return m_lastError;
 }
+
+
 
 #include "indexer.moc"

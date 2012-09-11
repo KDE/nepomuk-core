@@ -17,28 +17,24 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef _NEPOMUK_STRIGI_SERVICE_H_
-#define _NEPOMUK_STRIGI_SERVICE_H_
+#ifndef _NEPOMUK_FILEINDEXER_SERVICE_H_
+#define _NEPOMUK_FILEINDEXER_SERVICE_H_
 
 #include "nepomukservice.h"
 #include <QtCore/QTimer>
 #include <QtCore/QThread>
-
-namespace Strigi {
-    class IndexManager;
-}
 
 namespace Nepomuk2 {
 
     class IndexScheduler;
 
     /**
-     * Service controlling the strigidaemon
+     * Service controlling the file indexer
      */
     class FileIndexer : public Nepomuk2::Service
     {
         Q_OBJECT
-        Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.Strigi")
+        Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.nepomukfileindexer")
 
     public:
         FileIndexer( QObject* parent = 0, const QList<QVariant>& args = QList<QVariant>() );
@@ -100,7 +96,6 @@ namespace Nepomuk2 {
         void slotIndexingDone();
 
     private:
-        void updateStrigiConfig();
         QString userStatusString( bool simple ) const;
 
         IndexScheduler* m_indexScheduler;

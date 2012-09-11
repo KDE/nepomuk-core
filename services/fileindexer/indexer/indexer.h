@@ -43,7 +43,7 @@ namespace Nepomuk2 {
         /**
          * Create a new indexer.
          */
-        Indexer( QObject* parent = 0, const QStringList& disabledPlugin = QStringList());
+        Indexer( QObject* parent = 0 );
 
         /**
          * Destructor
@@ -68,12 +68,11 @@ namespace Nepomuk2 {
          * Index a file whose contents are provided via standard input.
          */
         bool indexStdin( const KUrl resUri, uint mtime=0 );
-        
+
         QString lastError() const;
 
     private:
-        class Private;
-        Private* const d;
+        QString m_lastError;
     };
 }
 

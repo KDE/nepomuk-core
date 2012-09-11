@@ -34,10 +34,6 @@
 
 #include <QtCore/QTimer>
 
-#ifdef STRIGI_HAS_VERSION_HEADER
- #include <strigi/strigiconfig.h>
-#endif
-
 Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     : Service( parent )
 {
@@ -45,7 +41,7 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     // ==============================================================
     (void)new FileIndexerConfig(this);
 
-    // setup the actual index scheduler including strigi stuff
+    // setup the actual index scheduler
     // ==============================================================
     m_schedulingThread = new QThread( this );
     m_schedulingThread->start( QThread::IdlePriority );
@@ -82,16 +78,7 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     m_indexScheduler->setIndexingSpeed( IndexScheduler::SnailPace );
 
     // start initial indexing honoring the hidden config option to disable it
-#ifdef STRIGI_HAS_VERSION_HEADER
-    const QString strigiVersion(Strigi::versionString());
-#else
-    const QString strigiVersion("unknown");
-#endif
-
-    if( ( FileIndexerConfig::self()->isInitialRun() ||
-          FileIndexerConfig::self()->strigiVersion() != strigiVersion )
-        && !FileIndexerConfig::self()->initialUpdateDisabled() )
-    {
+    if( FileIndexerConfig::self()->isInitialRun() && !FileIndexerConfig::self()->initialUpdateDisabled() ) {
         m_indexScheduler->updateAll();
     }
 
@@ -152,13 +139,6 @@ void Nepomuk2::FileIndexer::slotIdleTimerResume()
 void Nepomuk2::FileIndexer::slotIndexingDone()
 {
     FileIndexerConfig::self()->setInitialRun(false);
-
-#ifdef STRIGI_HAS_VERSION_HEADER
-    const QString strigiVersion(Strigi::versionString());
-#else
-    const QString strigiVersion("unknown");
-#endif
-    FileIndexerConfig::self()->setStrigiVersion(strigiVersion);
 }
 
 
