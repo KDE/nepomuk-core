@@ -4,14 +4,15 @@ include_directories(
   ${QT_INCLUDES}
   ${KDE4_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
-  ${LIBSTREAMS_INCLUDE_DIRS}
-  ${LIBSTREAMANALYZER_INCLUDE_DIRS}
+  ${POPPLER_QT4_INCLUDE_DIR}
   )
 
 set(indexer_SRCS
   main.cpp
   indexer.cpp
   simpleindexer.cpp
+  extractor.cpp
+  popplerextractor.cpp
   ../util.cpp
   ../../../servicestub/priority.cpp
   )
@@ -25,6 +26,7 @@ target_link_libraries( nepomukindexer
   nepomukcore
   ${KDE4_KIO_LIBS}
   ${SOPRANO_LIBRARIES}
+  ${POPPLER_QT4_LIBRARIES}
   )
 
 install(

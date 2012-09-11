@@ -21,8 +21,11 @@
 */
 
 #include "indexer.h"
+#include "extractor.h"
 #include "simpleindexer.h"
 #include "../util.h"
+
+#include "storeresourcesjob.h"
 
 #include <KDebug>
 #include <KJob>
@@ -31,9 +34,13 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
+#include <QTimer>
 
+#include <Soprano/Vocabulary/NRL>
+#include <Soprano/Vocabulary/RDF>
 
-//The final option defaults to empty, for backward compatibility
+using namespace Soprano::Vocabulary;
+
 Nepomuk2::Indexer::Indexer( QObject* parent )
     : QObject( parent )
 {
@@ -57,7 +64,11 @@ bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uin
         return false;
     }
 
-    KJob* job = Nepomuk2::clearIndexedData( info.filePath() );
+    QUrl url = QUrl::fromLocalFile( info.filePath() );
+    kDebug() << "Starting to clear";
+    KJob* job = Nepomuk2::clearIndexedData( url );
+    kDebug() << "Done";
+
     job->exec();
     if( job->error() ) {
         kError() << job->errorString();
@@ -66,8 +77,41 @@ bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uin
         return false;
     }
 
-    SimpleIndexer indexer( QUrl::fromLocalFile(info.filePath()) );
-    return indexer.save();
+    kDebug() << "Starting SimpleIndexer";
+    SimpleIndexer indexer( url );
+    bool status = indexer.save();
+    kDebug() << "Saving data";
+
+    if( status ) {
+        QString mimeType = indexer.mimeType();
+        QUrl uri = indexer.uri();
+
+        SimpleResourceGraph graph;
+
+        QList<Extractor*> extractors = Extractor::extractorsForMimeType( mimeType );
+        foreach( Extractor* ex, extractors ) {
+            graph += ex->extract( uri, url );
+        }
+
+        if( !graph.isEmpty() ) {
+            QHash<QUrl, QVariant> additionalMetadata;
+            additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
+
+            // we do not have an event loop - thus, we need to delete the job ourselves
+            kDebug() << "Saving proper";
+            QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNone,
+                                                        NoStoreResourcesFlags, additionalMetadata ) );
+            job->setAutoDelete(false);
+            job->exec();
+            if( job->error() ) {
+                kError() << "SimpleIndexerError: " << job->errorString();
+                return false;
+            }
+            kDebug() << "Done";
+        }
+    }
+
+    return status;
 }
 
 bool Nepomuk2::Indexer::indexStdin(const KUrl resUri, uint mtime)

@@ -35,8 +35,14 @@ namespace Nepomuk2 {
         bool save();
 
         static QList<QUrl> typesForMimeType(const QString& mimeType);
+
+        QUrl uri();
+        QString mimeType();
+
     private:
-        SimpleResourceGraph m_graph;
+        SimpleResource m_res;
+        QUrl m_resUri;
+        QString m_mimeType;
     };
 }
 

@@ -43,46 +43,42 @@ using namespace Soprano::Vocabulary;
 
 Nepomuk2::SimpleIndexer::SimpleIndexer(const QUrl& fileUrl)
 {
-    SimpleResource res;
+    m_res.addProperty(NIE::url(), fileUrl);
+    m_res.addProperty(NFO::fileName(), KUrl(fileUrl).fileName());
 
-    res.addProperty(NIE::url(), fileUrl);
-    res.addProperty(NFO::fileName(), KUrl(fileUrl).fileName());
-
-    res.addType(NFO::FileDataObject());
-    res.addType(NIE::InformationElement());
+    m_res.addType(NFO::FileDataObject());
+    m_res.addType(NIE::InformationElement());
 
     QFileInfo fileInfo(fileUrl.toLocalFile());
     if( fileInfo.isDir() )
-        res.addType(NFO::Folder());
+        m_res.addType(NFO::Folder());
 
     //
     // Types by mime type
     //
-    QString mimeType = KMimeType::findByUrl( fileUrl )->name();
-    QList<QUrl> types = typesForMimeType( mimeType );
+    m_mimeType = KMimeType::findByUrl( fileUrl )->name();
+    QList<QUrl> types = typesForMimeType( m_mimeType );
     foreach(const QUrl& type, types)
-        res.addType( type );
+        m_res.addType( type );
 
-    res.addProperty(NIE::mimeType(), mimeType);
+    m_res.addProperty(NIE::mimeType(), m_mimeType);
 
-    res.setProperty(NIE::created(), fileInfo.created());
-    res.setProperty(NIE::lastModified(), fileInfo.lastModified());
+    m_res.setProperty(NIE::created(), fileInfo.created());
+    m_res.setProperty(NIE::lastModified(), fileInfo.lastModified());
 
 #ifdef Q_OS_UNIX
     KDE_struct_stat statBuf;
     if( KDE_stat( QFile::encodeName(fileInfo.absoluteFilePath()).data(), &statBuf ) == 0 ) {
-        res.setProperty( KExt::unixFileMode(), int(statBuf.st_mode) );
+        m_res.setProperty( KExt::unixFileMode(), int(statBuf.st_mode) );
     }
 
     if( !fileInfo.owner().isEmpty() ) {
-        res.setProperty( KExt::unixFileOwner(), fileInfo.owner() );
+        m_res.setProperty( KExt::unixFileOwner(), fileInfo.owner() );
     }
     if( !fileInfo.group().isEmpty() ) {
-        res.setProperty( KExt::unixFileGroup(), fileInfo.group() );
+        m_res.setProperty( KExt::unixFileGroup(), fileInfo.group() );
     }
 #endif // Q_OS_UNIX
-
-    m_graph << res;
 }
 
 // static
@@ -136,9 +132,12 @@ bool Nepomuk2::SimpleIndexer::save()
     QHash<QUrl, QVariant> additionalMetadata;
     additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
 
+    SimpleResourceGraph graph;
+    graph << m_res;
+
     // we do not have an event loop - thus, we need to delete the job ourselves
-    QScopedPointer<KJob> job( Nepomuk2::storeResources( m_graph, IdentifyNone,
-                                                        NoStoreResourcesFlags, additionalMetadata ) );
+    QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNone,
+                                           NoStoreResourcesFlags, additionalMetadata ) );
     job->setAutoDelete(false);
     job->exec();
     if( job->error() ) {
@@ -146,6 +145,18 @@ bool Nepomuk2::SimpleIndexer::save()
         return false;
     }
 
+    m_resUri = job->mappings().value( m_res.uri() );
+
     return true;
+}
+
+QString Nepomuk2::SimpleIndexer::mimeType()
+{
+    return m_mimeType;
+}
+
+QUrl Nepomuk2::SimpleIndexer::uri()
+{
+    return m_resUri;
 }
 
