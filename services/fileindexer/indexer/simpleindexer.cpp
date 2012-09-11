@@ -65,9 +65,22 @@ Nepomuk2::SimpleIndexer::SimpleIndexer(const QUrl& fileUrl)
 
     res.addProperty(NIE::mimeType(), mimeType);
 
-    // Do not set NIE::lastModified
-    // We only set that for files which are properly indexed
     res.setProperty(NIE::created(), fileInfo.created());
+    res.setProperty(NIE::lastModified(), fileInfo.lastModified());
+
+#ifdef Q_OS_UNIX
+    KDE_struct_stat statBuf;
+    if( KDE_stat( QFile::encodeName(fileInfo.absoluteFilePath()).data(), &statBuf ) == 0 ) {
+        res.setProperty( KExt::unixFileMode(), int(statBuf.st_mode) );
+    }
+
+    if( !fileInfo.owner().isEmpty() ) {
+        res.setProperty( KExt::unixFileOwner(), fileInfo.owner() );
+    }
+    if( !fileInfo.group().isEmpty() ) {
+        res.setProperty( KExt::unixFileGroup(), fileInfo.group() );
+    }
+#endif // Q_OS_UNIX
 
     m_graph << res;
 }
