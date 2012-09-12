@@ -19,6 +19,7 @@ set(indexer_SRCS
   taglibextractor.cpp
   exiv2extractor.cpp
   ffmpegextractor.cpp
+  plaintextextractor.cpp
   ../util.cpp
   ../../../servicestub/priority.cpp
   )

@@ -18,37 +18,20 @@
 */
 
 
+#ifndef PLAINTEXTEXTRACTOR_H
+#define PLAINTEXTEXTRACTOR_H
+
 #include "extractor.h"
 
-#include "popplerextractor.h"
-#include "taglibextractor.h"
-#include "exiv2extractor.h"
-#include "ffmpegextractor.h"
-#include "plaintextextractor.h"
+namespace Nepomuk2 {
 
-#include <QtCore/QMultiHash>
-
-QList<Nepomuk2::Extractor*> Nepomuk2::Extractor::extractorsForMimeType(const QString& mimeType)
+class PlainTextExtractor : public Extractor
 {
-    static QMultiHash<QString, Extractor*> hash;
-    if( hash.isEmpty() ) {
-        QList<Extractor*> extractors;
-        extractors << new PopplerExtractor;
-        extractors << new TagLibExtractor;
-        extractors << new Exiv2Extractor;
-        extractors << new FFmpegExtractor;
-        extractors << new PlainTextExtractor;
+public:
+    virtual Nepomuk2::SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl);
+    virtual QStringList mimetypes();
+};
 
-        foreach(Extractor* ex, extractors) {
-            foreach(const QString& mime, ex->mimetypes())
-                hash.insertMulti( mime, ex );
-        }
-    }
-
-    return hash.values( mimeType );
 }
 
-Nepomuk2::Extractor::~Extractor()
-{
-
-}
+#endif // PLAINTEXTEXTRACTOR_H
