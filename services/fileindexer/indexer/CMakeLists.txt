@@ -5,6 +5,7 @@ include_directories(
   ${KDE4_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
   ${POPPLER_QT4_INCLUDE_DIR}
+  ${TAGLIB_INCLUDES}
   )
 
 set(indexer_SRCS
@@ -13,6 +14,7 @@ set(indexer_SRCS
   simpleindexer.cpp
   extractor.cpp
   popplerextractor.cpp
+  taglibextractor.cpp
   ../util.cpp
   ../../../servicestub/priority.cpp
   )
@@ -27,6 +29,7 @@ target_link_libraries( nepomukindexer
   ${KDE4_KIO_LIBS}
   ${SOPRANO_LIBRARIES}
   ${POPPLER_QT4_LIBRARIES}
+  ${TAGLIB_LIBRARIES}
   )
 
 install(

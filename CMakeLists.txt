@@ -36,6 +36,9 @@ macro_log_feature(SHAREDDESKTOPONTOLOGIES_FOUND "Shared desktop ontologies" "Des
 macro_optional_find_package(PopplerQt4)
 macro_log_feature(POPPLER_QT4_FOUND "Poppler-Qt4" "A PDF rendering library" "http://poppler.freedesktop.org" FALSE "0.12.1" "Support for PDF files.")
 
+macro_optional_find_package(Taglib)
+macro_log_feature(TAGLIB_FOUND "Taglib" "Id3 tag reader" "taglib-website" FALSE "" "Support for music metadata")
+
 # Some definitions
 # ===============================================================================================
 add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS})

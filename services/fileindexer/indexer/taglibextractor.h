@@ -18,30 +18,19 @@
 */
 
 
+#ifndef TAGLIBEXTRACTOR_H
+#define TAGLIBEXTRACTOR_H
+
 #include "extractor.h"
-#include "popplerextractor.h"
-#include "taglibextractor.h"
 
-#include <QtCore/QMultiHash>
+namespace Nepomuk2 {
+    class TagLibExtractor : public Extractor
+    {
 
-QList<Nepomuk2::Extractor*> Nepomuk2::Extractor::extractorsForMimeType(const QString& mimeType)
-{
-    static QMultiHash<QString, Extractor*> hash;
-    if( hash.isEmpty() ) {
-        QList<Extractor*> extractors;
-        extractors << new PopplerExtractor;
-        extractors << new TagLibExtractor;
-
-        foreach(Extractor* ex, extractors) {
-            foreach(const QString& mime, ex->mimetypes())
-                hash.insertMulti( mime, ex );
-        }
-    }
-
-    return hash.values( mimeType );
+    public:
+        virtual Nepomuk2::SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl);
+        virtual QStringList mimetypes();
+    };
 }
 
-Nepomuk2::Extractor::~Extractor()
-{
-
-}
+#endif // TAGLIBEXTRACTOR_H
