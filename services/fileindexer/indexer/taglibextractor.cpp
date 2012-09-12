@@ -23,7 +23,7 @@
 #include "nie.h"
 #include "nco.h"
 #include "nmm.h"
-#include <nfo.h>
+#include "nfo.h"
 #include <KDebug>
 
 #include <taglib/taglib.h>
@@ -60,75 +60,81 @@ QStringList TagLibExtractor::mimetypes()
 Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const QUrl& fileUrl)
 {
     TagLib::FileRef file( fileUrl.toLocalFile().toUtf8().data(), true );
-
-    TagLib::Tag* tags = file.tag();
+    if( file.isNull() ) {
+        return SimpleResourceGraph();
+    }
 
     SimpleResourceGraph graph;
     SimpleResource fileRes( resUri );
     fileRes.addType( NMM::MusicPiece() );
 
-    QString title = QString::fromUtf8( tags->title().toCString( true ) );
-    if( !title.isEmpty() ) {
-        fileRes.addProperty( NIE::title(), title );
-    }
+    TagLib::Tag* tags = file.tag();
+    if( tags ) {
+        QString title = QString::fromUtf8( tags->title().toCString( true ) );
+        if( !title.isEmpty() ) {
+            fileRes.addProperty( NIE::title(), title );
+        }
 
-    QString comment = QString::fromUtf8( tags->comment().toCString( true ) );
-    if( !comment.isEmpty() ) {
-        fileRes.addProperty( NIE::comment(), comment );
-    }
+        QString comment = QString::fromUtf8( tags->comment().toCString( true ) );
+        if( !comment.isEmpty() ) {
+            fileRes.addProperty( NIE::comment(), comment );
+        }
 
-    // TODO: Split genres
-    QString genre = QString::fromUtf8( tags->genre().toCString( true ) );
-    if( !genre.isEmpty() ) {
-        fileRes.addProperty( NMM::genre(), genre );
-    }
+        // TODO: Split genres
+        QString genre = QString::fromUtf8( tags->genre().toCString( true ) );
+        if( !genre.isEmpty() ) {
+            fileRes.addProperty( NMM::genre(), genre );
+        }
 
-    // TODO: Split artists
-    QString artists = QString::fromUtf8( tags->artist().toCString( true ) );
-    if( !artists.isEmpty() ) {
-        SimpleResource artist;
-        artist.addType( NCO::Contact() );
-        artist.setProperty( NCO::fullname(), artists );
+        // TODO: Split artists
+        QString artists = QString::fromUtf8( tags->artist().toCString( true ) );
+        if( !artists.isEmpty() ) {
+            SimpleResource artist;
+            artist.addType( NCO::Contact() );
+            artist.setProperty( NCO::fullname(), artists );
 
-        fileRes.setProperty( NMM::performer(), artist );
-        graph << artist;
-    }
+            fileRes.setProperty( NMM::performer(), artist );
+            graph << artist;
+        }
 
-    QString album = QString::fromUtf8( tags->album().toCString( true ) );
-    if( !album.isEmpty() ) {
-        SimpleResource albumRes;
-        albumRes.addType( NMM::MusicAlbum() );
-        albumRes.setProperty( NIE::title(), album );
+        QString album = QString::fromUtf8( tags->album().toCString( true ) );
+        if( !album.isEmpty() ) {
+            SimpleResource albumRes;
+            albumRes.addType( NMM::MusicAlbum() );
+            albumRes.setProperty( NIE::title(), album );
 
-        fileRes.setProperty( NMM::musicAlbum(), albumRes );
-        graph << albumRes;
-    }
+            fileRes.setProperty( NMM::musicAlbum(), albumRes );
+            graph << albumRes;
+        }
 
-    if( tags->track() ) {
-        fileRes.setProperty( NMM::trackNumber(), tags->track() );
-    }
+        if( tags->track() ) {
+            fileRes.setProperty( NMM::trackNumber(), tags->track() );
+        }
 
-    if( tags->year() ) {
-        QDateTime dt = QDateTime::fromString( QString::number(tags->year()), QLatin1String("yyyy") );
-        fileRes.setProperty( NIE::contentCreated(), dt );
+        if( tags->year() ) {
+            QDateTime dt = QDateTime::fromString( QString::number(tags->year()), QLatin1String("yyyy") );
+            fileRes.setProperty( NIE::contentCreated(), dt );
+        }
     }
 
     TagLib::AudioProperties* audioProp = file.audioProperties();
-    if( audioProp->length() ) {
-        // What about the xml duration?
-        fileRes.setProperty( NFO::duration(), audioProp->length() );
-    }
+    if( audioProp ) {
+        if( audioProp->length() ) {
+            // What about the xml duration?
+            fileRes.setProperty( NFO::duration(), audioProp->length() );
+        }
 
-    if( audioProp->bitrate() ) {
-        fileRes.setProperty( NFO::averageBitrate(), audioProp->bitrate() );
-    }
+        if( audioProp->bitrate() ) {
+            fileRes.setProperty( NFO::averageBitrate(), audioProp->bitrate() );
+        }
 
-    if( audioProp->channels() ) {
-        fileRes.setProperty( NFO::channels(), audioProp->channels() );
-    }
+        if( audioProp->channels() ) {
+            fileRes.setProperty( NFO::channels(), audioProp->channels() );
+        }
 
-    if( audioProp->sampleRate() ) {
-        fileRes.setProperty( NFO::sampleRate(), audioProp->sampleRate() );
+        if( audioProp->sampleRate() ) {
+            fileRes.setProperty( NFO::sampleRate(), audioProp->sampleRate() );
+        }
     }
 
     // TODO: Get more properties based on the file type
