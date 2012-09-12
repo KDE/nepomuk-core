@@ -7,6 +7,7 @@ include_directories(
   ${POPPLER_QT4_INCLUDE_DIR}
   ${TAGLIB_INCLUDES}
   ${EXIV2_INCLUDE_DIR}
+  ${FFMPEG_INCLUDE_DIRS}
   )
 
 set(indexer_SRCS
@@ -17,6 +18,7 @@ set(indexer_SRCS
   popplerextractor.cpp
   taglibextractor.cpp
   exiv2extractor.cpp
+  ffmpegextractor.cpp
   ../util.cpp
   ../../../servicestub/priority.cpp
   )
@@ -33,6 +35,7 @@ target_link_libraries( nepomukindexer
   ${POPPLER_QT4_LIBRARIES}
   ${TAGLIB_LIBRARIES}
   ${EXIV2_LIBRARIES}
+  ${FFMPEG_LIBRARIES}
   )
 
 install(

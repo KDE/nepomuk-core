@@ -42,6 +42,9 @@ macro_log_feature(TAGLIB_FOUND "Taglib" "Id3 tag reader" "taglib-website" FALSE 
 macro_optional_find_package(Exiv2)
 macro_log_feature(EXIV2_FOUND "Exiv2" "Image Tag reader" "http://www.exiv2.org" FALSE "" "Support for image metadata")
 
+macro_optional_find_package(FFmpeg)
+macro_log_feature(EXIV2_FOUND "FFmpeg" "Video Tag reader" "http://ffmpeg.org" FALSE "" "Support for video metadata")
+
 # Some definitions
 # ===============================================================================================
 add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS})
