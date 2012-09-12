@@ -50,8 +50,12 @@ Nepomuk2::SimpleIndexer::SimpleIndexer(const QUrl& fileUrl)
     m_res.addType(NIE::InformationElement());
 
     QFileInfo fileInfo(fileUrl.toLocalFile());
-    if( fileInfo.isDir() )
+    if( fileInfo.isDir() ) {
         m_res.addType(NFO::Folder());
+    }
+    else {
+        m_res.addProperty(NFO::fileSize(), fileInfo.size());
+    }
 
     //
     // Types by mime type
