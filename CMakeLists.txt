@@ -39,6 +39,9 @@ macro_log_feature(POPPLER_QT4_FOUND "Poppler-Qt4" "A PDF rendering library" "htt
 macro_optional_find_package(Taglib)
 macro_log_feature(TAGLIB_FOUND "Taglib" "Id3 tag reader" "taglib-website" FALSE "" "Support for music metadata")
 
+macro_optional_find_package(Exiv2)
+macro_log_feature(EXIV2_FOUND "Exiv2" "Image Tag reader" "http://www.exiv2.org" FALSE "" "Support for image metadata")
+
 # Some definitions
 # ===============================================================================================
 add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS})

@@ -18,32 +18,20 @@
 */
 
 
+#ifndef EXIV2EXTRACTOR_H
+#define EXIV2EXTRACTOR_H
+
 #include "extractor.h"
-#include "popplerextractor.h"
-#include "taglibextractor.h"
-#include "exiv2extractor.h"
 
-#include <QtCore/QMultiHash>
+namespace Nepomuk2 {
 
-QList<Nepomuk2::Extractor*> Nepomuk2::Extractor::extractorsForMimeType(const QString& mimeType)
-{
-    static QMultiHash<QString, Extractor*> hash;
-    if( hash.isEmpty() ) {
-        QList<Extractor*> extractors;
-        extractors << new PopplerExtractor;
-        extractors << new TagLibExtractor;
-        extractors << new Exiv2Extractor;
+    class Exiv2Extractor : public Extractor
+    {
 
-        foreach(Extractor* ex, extractors) {
-            foreach(const QString& mime, ex->mimetypes())
-                hash.insertMulti( mime, ex );
-        }
-    }
-
-    return hash.values( mimeType );
+    public:
+        virtual Nepomuk2::SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl);
+        virtual QStringList mimetypes();
+    };
 }
 
-Nepomuk2::Extractor::~Extractor()
-{
-
-}
+#endif // EXIV2EXTRACTOR_H

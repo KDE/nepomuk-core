@@ -6,6 +6,7 @@ include_directories(
   ${SOPRANO_INCLUDE_DIR}
   ${POPPLER_QT4_INCLUDE_DIR}
   ${TAGLIB_INCLUDES}
+  ${EXIV2_INCLUDE_DIR}
   )
 
 set(indexer_SRCS
@@ -15,6 +16,7 @@ set(indexer_SRCS
   extractor.cpp
   popplerextractor.cpp
   taglibextractor.cpp
+  exiv2extractor.cpp
   ../util.cpp
   ../../../servicestub/priority.cpp
   )
@@ -30,6 +32,7 @@ target_link_libraries( nepomukindexer
   ${SOPRANO_LIBRARIES}
   ${POPPLER_QT4_LIBRARIES}
   ${TAGLIB_LIBRARIES}
+  ${EXIV2_LIBRARIES}
   )
 
 install(
