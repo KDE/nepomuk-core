@@ -43,11 +43,7 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
 
     // setup the actual index scheduler
     // ==============================================================
-    m_schedulingThread = new QThread( this );
-    m_schedulingThread->start( QThread::IdlePriority );
-
-    m_indexScheduler = new IndexScheduler(); // must not have a parent
-    m_indexScheduler->moveToThread( m_schedulingThread );
+    m_indexScheduler = new IndexScheduler(this);
 
     // monitor all kinds of events
     ( void )new EventMonitor( m_indexScheduler, this );
@@ -78,7 +74,7 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     m_indexScheduler->setIndexingSpeed( IndexScheduler::SnailPace );
 
     // start initial indexing honoring the hidden config option to disable it
-    if( FileIndexerConfig::self()->isInitialRun() && !FileIndexerConfig::self()->initialUpdateDisabled() ) {
+    if( FileIndexerConfig::self()->isInitialRun() || !FileIndexerConfig::self()->initialUpdateDisabled() ) {
         m_indexScheduler->updateAll();
     }
 
@@ -100,10 +96,6 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
 
 Nepomuk2::FileIndexer::~FileIndexer()
 {
-    m_schedulingThread->quit();
-    m_schedulingThread->wait();
-
-    delete m_indexScheduler;
 }
 
 

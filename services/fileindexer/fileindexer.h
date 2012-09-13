@@ -22,7 +22,6 @@
 
 #include "nepomukservice.h"
 #include <QtCore/QTimer>
-#include <QtCore/QThread>
 
 namespace Nepomuk2 {
 
@@ -99,7 +98,6 @@ namespace Nepomuk2 {
         QString userStatusString( bool simple ) const;
 
         IndexScheduler* m_indexScheduler;
-        QThread* m_schedulingThread;
     };
 }
 

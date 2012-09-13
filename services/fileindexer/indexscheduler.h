@@ -19,9 +19,6 @@
 #ifndef _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
 #define _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
 
-#include <QtCore/QThread>
-#include <QtCore/QMutex>
-#include <QtCore/QWaitCondition>
 #include <QtCore/QQueue>
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
@@ -216,9 +213,6 @@ namespace Nepomuk2 {
         bool m_suspended;
         bool m_indexing;
 
-        mutable QMutex m_suspendMutex;
-        mutable QMutex m_indexingMutex;
-
         // A specialized queue that gives priority to dirs that do not use the AutoUpdateFolder flag.
         class UpdateDirQueue : public QQueue<QPair<QString, UpdateDirFlags> >
         {
@@ -233,10 +227,6 @@ namespace Nepomuk2 {
         // queue of files to update. This is filled from the dirs queue and manual methods like analyzeFile
         QQueue<QFileInfo> m_filesToUpdate;
 
-        QMutex m_dirsToUpdateMutex;
-        QMutex m_filesToUpdateMutex;
-
-        mutable QMutex m_currentMutex;
         KUrl m_currentUrl;
         UpdateDirFlags m_currentFlags;
 
