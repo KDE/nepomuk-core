@@ -1,7 +1,7 @@
 /*
    This file is part of the Nepomuk KDE project.
    Copyright (C) 2010-2011 Sebastian Trueg <trueg@kde.org>
-   Copyright (C) 2011 Vishesh Handa <handa.vish@gmail.com>
+   Copyright (C) 2011-2012 Vishesh Handa <handa.vish@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -30,6 +30,9 @@
 #include <KDebug>
 #include <KJob>
 
+#include <KService>
+#include <KServiceTypeTrader>
+
 #include <QtCore/QDataStream>
 #include <QtCore/QDateTime>
 #include <QtCore/QFile>
@@ -44,6 +47,24 @@ using namespace Soprano::Vocabulary;
 Nepomuk2::Indexer::Indexer( QObject* parent )
     : QObject( parent )
 {
+    // Get all the plugins
+    KService::List plugins = KServiceTypeTrader::self()->query( "NepomukFileExtractor" );
+
+    KService::List::const_iterator it;
+    for( it = plugins.constBegin(); it != plugins.constEnd(); it++ ) {
+        KService::Ptr service = *it;
+
+        QString error;
+        Nepomuk2::Extractor* ex = service->createInstance<Nepomuk2::Extractor>( this, QVariantList(), &error );
+        if( !ex ) {
+            kError() << "Could not create Extractor: " << service->library();
+            kError() << error;
+            continue;
+        }
+
+        foreach(const QString& mime, ex->mimetypes())
+            m_extractors.insertMulti( mime, ex );
+    }
 }
 
 Nepomuk2::Indexer::~Indexer()
@@ -88,7 +109,7 @@ bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uin
 
         SimpleResourceGraph graph;
 
-        QList<Extractor*> extractors = Extractor::extractorsForMimeType( mimeType );
+        QList<Extractor*> extractors = m_extractors.values( mimeType );
         foreach( Extractor* ex, extractors ) {
             graph += ex->extract( uri, url );
         }

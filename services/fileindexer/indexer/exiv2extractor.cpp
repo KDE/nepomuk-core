@@ -32,6 +32,12 @@ using namespace Nepomuk2::Vocabulary;
 
 namespace Nepomuk2 {
 
+Exiv2Extractor::Exiv2Extractor(QObject* parent, const QVariantList&)
+: Extractor(parent)
+{
+
+}
+
 QStringList Exiv2Extractor::mimetypes()
 {
     QStringList types;
@@ -205,3 +211,5 @@ SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& file
 }
 
 }
+
+NEPOMUK_EXPORT_EXTRACTOR( Nepomuk2::Exiv2Extractor, "nepomukexivextractor" )

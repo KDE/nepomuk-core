@@ -30,6 +30,12 @@ using namespace Nepomuk2::Vocabulary;
 
 namespace Nepomuk2 {
 
+PlainTextExtractor::PlainTextExtractor(QObject* parent, const QVariantList&)
+: Extractor(parent)
+{
+
+}
+
 QStringList PlainTextExtractor::mimetypes()
 {
     QStringList list;
@@ -63,5 +69,6 @@ SimpleResourceGraph PlainTextExtractor::extract(const QUrl& resUri, const QUrl& 
     return SimpleResourceGraph() << fileRes;
 }
 
-
 }
+
+NEPOMUK_EXPORT_EXTRACTOR( Nepomuk2::PlainTextExtractor, "nepomukplaintextextractor" )

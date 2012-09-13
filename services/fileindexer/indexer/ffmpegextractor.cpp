@@ -53,6 +53,12 @@ using namespace Soprano::Vocabulary;
 
 namespace Nepomuk2 {
 
+FFmpegExtractor::FFmpegExtractor(QObject* parent, const QVariantList&)
+: Extractor(parent)
+{
+
+}
+
 QStringList FFmpegExtractor::mimetypes()
 {
     QStringList types;
@@ -101,7 +107,7 @@ SimpleResourceGraph FFmpegExtractor::extract(const QUrl& resUri, const QUrl& fil
     fileRes.setProperty( NFO::duration(), totalSecs );
     fileRes.setProperty( NFO::averageBitrate(), bitrate );
 
-    for( int i=0; i<fmt_ctx->nb_streams; i++ ) {
+    for( uint i=0; i<fmt_ctx->nb_streams; i++ ) {
         const AVStream* stream = fmt_ctx->streams[i];
         const AVCodecContext* codec = stream->codec;
 
@@ -229,3 +235,5 @@ SimpleResourceGraph FFmpegExtractor::extract(const QUrl& resUri, const QUrl& fil
 }
 
 }
+
+NEPOMUK_EXPORT_EXTRACTOR( Nepomuk2::FFmpegExtractor, "nepomukffmpegextractor" )

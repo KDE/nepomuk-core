@@ -28,7 +28,15 @@
 
 using namespace Nepomuk2::Vocabulary;
 
-QStringList Nepomuk2::PopplerExtractor::mimetypes()
+namespace Nepomuk2 {
+
+PopplerExtractor::PopplerExtractor(QObject* parent, const QVariantList&)
+: Extractor(parent)
+{
+
+}
+
+QStringList PopplerExtractor::mimetypes()
 {
     QStringList list;
     list << QLatin1String("application/pdf");
@@ -37,7 +45,7 @@ QStringList Nepomuk2::PopplerExtractor::mimetypes()
 }
 
 
-Nepomuk2::SimpleResourceGraph Nepomuk2::PopplerExtractor::extract(const QUrl& resUri, const QUrl& fileUrl)
+SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fileUrl)
 {
     SimpleResourceGraph graph;
     SimpleResource fileRes( resUri );
@@ -78,3 +86,7 @@ Nepomuk2::SimpleResourceGraph Nepomuk2::PopplerExtractor::extract(const QUrl& re
     graph << fileRes;
     return graph;
 }
+
+}
+
+NEPOMUK_EXPORT_EXTRACTOR( Nepomuk2::PopplerExtractor, "nepomukpopplerextractor" )

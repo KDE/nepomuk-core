@@ -26,6 +26,7 @@
 #include <QtCore/QObject>
 #include <QStringList>
 #include <KUrl>
+#include "extractor.h"
 
 class QDateTime;
 class QDataStream;
@@ -73,6 +74,7 @@ namespace Nepomuk2 {
 
     private:
         QString m_lastError;
+        QHash<QString, Extractor*> m_extractors;
     };
 }
 

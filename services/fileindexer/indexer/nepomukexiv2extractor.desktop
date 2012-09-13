@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=NepomukFileExtractor
+X-KDE-Library=nepomukexiv2extractor
+Name=Nepomuk Exiv2 Extractor
+Comment=Nepomuk File extractor for Image files

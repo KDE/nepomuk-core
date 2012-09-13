@@ -28,6 +28,8 @@ namespace Nepomuk2 {
 class PlainTextExtractor : public Extractor
 {
 public:
+    PlainTextExtractor(QObject* parent, const QVariantList&);
+
     virtual Nepomuk2::SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl);
     virtual QStringList mimetypes();
 };

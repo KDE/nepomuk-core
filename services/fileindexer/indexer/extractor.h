@@ -25,19 +25,32 @@
 
 #include "simpleresourcegraph.h"
 #include "simpleresource.h"
+#include "nepomuk_export.h"
+
+#include <KService>
 
 namespace Nepomuk2 {
 
-    class Extractor
+    class NEPOMUK_EXPORT Extractor : public QObject
     {
+        Q_OBJECT
     public:
+        Extractor(QObject* parent);
         virtual ~Extractor();
 
         virtual QStringList mimetypes() = 0;
         virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl) = 0;
-
-        static QList<Extractor*> extractorsForMimeType(const QString& mimeType);
     };
 }
+
+/**
+ * Export a Nepomuk file extractor.
+ *
+ * \param classname The name of the subclass to export
+ * \param libname The name of the library which should export the extractor
+ */
+#define NEPOMUK_EXPORT_EXTRACTOR( classname, libname )    \
+K_PLUGIN_FACTORY(factory, registerPlugin<classname>();) \
+K_EXPORT_PLUGIN(factory(#libname))
 
 #endif // EXTRACTOR_H

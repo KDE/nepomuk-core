@@ -29,6 +29,8 @@ namespace Nepomuk2 {
     {
 
     public:
+        Exiv2Extractor(QObject* parent, const QVariantList&);
+
         virtual Nepomuk2::SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl);
         virtual QStringList mimetypes();
     };

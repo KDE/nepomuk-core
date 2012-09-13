@@ -20,35 +20,16 @@
 
 #include "extractor.h"
 
-#include "popplerextractor.h"
-#include "taglibextractor.h"
-#include "exiv2extractor.h"
-#include "ffmpegextractor.h"
-#include "plaintextextractor.h"
+namespace Nepomuk2 {
 
-#include <QtCore/QMultiHash>
-
-QList<Nepomuk2::Extractor*> Nepomuk2::Extractor::extractorsForMimeType(const QString& mimeType)
+Extractor::Extractor(QObject* parent): QObject(parent)
 {
-    static QMultiHash<QString, Extractor*> hash;
-    if( hash.isEmpty() ) {
-        QList<Extractor*> extractors;
-        extractors << new PopplerExtractor;
-        extractors << new TagLibExtractor;
-        extractors << new Exiv2Extractor;
-        extractors << new FFmpegExtractor;
-        extractors << new PlainTextExtractor;
 
-        foreach(Extractor* ex, extractors) {
-            foreach(const QString& mime, ex->mimetypes())
-                hash.insertMulti( mime, ex );
-        }
-    }
-
-    return hash.values( mimeType );
 }
 
-Nepomuk2::Extractor::~Extractor()
+Extractor::~Extractor()
 {
+
+}
 
 }

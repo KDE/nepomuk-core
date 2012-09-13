@@ -28,6 +28,8 @@ namespace Nepomuk2 {
     {
 
     public:
+        TagLibExtractor(QObject* parent, const QVariantList&);
+
         virtual Nepomuk2::SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl);
         virtual QStringList mimetypes();
     };

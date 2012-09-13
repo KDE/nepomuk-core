@@ -35,6 +35,11 @@ using namespace Nepomuk2::Vocabulary;
 
 namespace Nepomuk2 {
 
+TagLibExtractor::TagLibExtractor(QObject* parent, const QVariantList&)
+: Extractor(parent)
+{
+}
+
 QStringList TagLibExtractor::mimetypes()
 {
     QStringList types;
@@ -147,3 +152,5 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
 }
 
 }
+
+NEPOMUK_EXPORT_EXTRACTOR( Nepomuk2::TagLibExtractor, "nepomuktaglibextextractor" )

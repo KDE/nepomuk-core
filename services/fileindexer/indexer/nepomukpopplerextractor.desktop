@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=NepomukFileExtractor
+X-KDE-Library=nepomukpopplerextractor
+Name=Nepomuk Poppler Extractor
+Comment=Nepomuk File extractor for PDF files

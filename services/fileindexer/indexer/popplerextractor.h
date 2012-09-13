@@ -23,12 +23,12 @@
 
 #include "extractor.h"
 
-
 namespace Nepomuk2 {
 
     class PopplerExtractor : public Extractor
     {
     public:
+        PopplerExtractor(QObject* parent, const QVariantList&);
 
         virtual QStringList mimetypes();
         virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl);

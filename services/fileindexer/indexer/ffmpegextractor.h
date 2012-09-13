@@ -25,10 +25,11 @@
 
 namespace Nepomuk2 {
 
-    class FFmpegExtractor : public Nepomuk2::Extractor
+    class FFmpegExtractor : public Extractor
     {
-
     public:
+        FFmpegExtractor(QObject* parent, const QVariantList&);
+
         virtual Nepomuk2::SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl);
         virtual QStringList mimetypes();
     };
