@@ -60,9 +60,6 @@ using namespace Soprano::Vocabulary;
 using namespace Nepomuk2::Vocabulary;
 
 namespace {
-    const int s_reducedSpeedDelay = 500; // ms
-    const int s_snailPaceDelay = 3000;   // ms
-
     QHash<QString, QDateTime> getChildren( const QString& dir )
     {
         QHash<QString, QDateTime> children;
@@ -164,7 +161,6 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     : QObject( parent ),
       m_suspended( false ),
       m_indexing( false ),
-      m_indexingDelay( 0 ),
       m_currentIndexerJob( 0 )
 {
     // remove old indexing error log
@@ -221,29 +217,6 @@ void Nepomuk2::IndexScheduler::setSuspended( bool suspended )
     else
         resume();
 }
-
-
-void Nepomuk2::IndexScheduler::setIndexingSpeed( IndexingSpeed speed )
-{
-    kDebug() << speed;
-    m_indexingDelay = 0;
-    if ( speed != FullSpeed ) {
-        m_indexingDelay = (speed == ReducedSpeed) ? s_reducedSpeedDelay : s_snailPaceDelay;
-    }
-    if( m_cleaner ) {
-        m_cleaner->setDelay(m_indexingDelay);
-    }
-}
-
-
-void Nepomuk2::IndexScheduler::setReducedIndexingSpeed( bool reduced )
-{
-    if ( reduced )
-        setIndexingSpeed( ReducedSpeed );
-    else
-        setIndexingSpeed( FullSpeed );
-}
-
 
 bool Nepomuk2::IndexScheduler::isSuspended() const
 {
@@ -448,10 +421,10 @@ void Nepomuk2::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk2::IndexS
 }
 
 
-void Nepomuk2::IndexScheduler::callDoIndexing(bool noDelay)
+void Nepomuk2::IndexScheduler::callDoIndexing()
 {
     if( !m_suspended ) {
-        QTimer::singleShot( noDelay ? 0 : m_indexingDelay, this, SLOT(doIndexing()) );
+        QTimer::singleShot( 0, this, SLOT(doIndexing()) );
     }
 }
 
@@ -527,7 +500,7 @@ void Nepomuk2::IndexScheduler::analyzeFile( const QString& path )
 
     // continue indexing without any delay. We want changes reflected as soon as possible
     if( !m_indexing ) {
-        callDoIndexing(true);
+        callDoIndexing();
     }
 }
 
@@ -540,23 +513,6 @@ void Nepomuk2::IndexScheduler::deleteEntries( const QStringList& entries )
         deleteEntries( getChildren( entries[i] ).keys() );
     }
     Nepomuk2::clearIndexedData(KUrl::List(entries));
-}
-
-
-QDebug Nepomuk2::operator<<( QDebug dbg, IndexScheduler::IndexingSpeed speed )
-{
-    dbg << ( int )speed;
-    switch( speed ) {
-    case IndexScheduler::FullSpeed:
-        return dbg << "FullSpeed";
-    case IndexScheduler::ReducedSpeed:
-        return dbg << "ReducedSpeed";
-    case IndexScheduler::SnailPace:
-        return dbg << "SnailPace";
-    }
-
-    // make gcc shut up
-    return dbg;
 }
 
 #include "indexscheduler.moc"

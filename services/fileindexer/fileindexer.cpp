@@ -69,18 +69,13 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     connect( m_indexScheduler, SIGNAL( indexingSuspended(bool) ),
              this, SIGNAL( statusStringChanged() ) );
 
-    // setup the indexer to index at snail speed for the first two minutes
-    // this is done for KDE startup - to not slow that down too much
-    m_indexScheduler->setIndexingSpeed( IndexScheduler::SnailPace );
-
     // start initial indexing honoring the hidden config option to disable it
+    m_indexScheduler->suspend();
     if( FileIndexerConfig::self()->isInitialRun() || !FileIndexerConfig::self()->initialUpdateDisabled() ) {
         m_indexScheduler->updateAll();
     }
 
-    // delayed init for the rest which uses IO and CPU
-    // FIXME: do not use a random delay value but wait for KDE to be started completely (using the session manager)
-    QTimer::singleShot( 2*60*1000, this, SLOT( finishInitialization() ) );
+    QTimer::singleShot( 0, this, SLOT( finishInitialization() ) );
 
     // Connect some signals used in the DBus interface
     connect( this, SIGNAL( statusStringChanged() ),
@@ -108,9 +103,6 @@ void Nepomuk2::FileIndexer::finishInitialization()
     connect( idleTime, SIGNAL(timeoutReached(int)), this, SLOT(slotIdleTimeoutReached()) );
     connect( idleTime, SIGNAL(resumingFromIdle()), this, SLOT(slotIdleTimerResume()) );
 
-    // start out with reduced speed until the user is idle for 2 min
-    m_indexScheduler->setIndexingSpeed( IndexScheduler::ReducedSpeed );
-
     // Creation of watches is a memory intensive process as a large number of
     // watch file descriptors need to be created ( one for each directory )
     updateWatches();
@@ -118,13 +110,13 @@ void Nepomuk2::FileIndexer::finishInitialization()
 
 void Nepomuk2::FileIndexer::slotIdleTimeoutReached()
 {
-    m_indexScheduler->setIndexingSpeed( IndexScheduler::FullSpeed );
+    m_indexScheduler->resume();
     KIdleTime::instance()->catchNextResumeEvent();
 }
 
 void Nepomuk2::FileIndexer::slotIdleTimerResume()
 {
-    m_indexScheduler->setIndexingSpeed( IndexScheduler::ReducedSpeed );
+    m_indexScheduler->suspend();
 }
 
 
