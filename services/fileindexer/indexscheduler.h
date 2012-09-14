@@ -19,6 +19,8 @@
 #ifndef _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
 #define _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
 
+#include "queues.h"
+
 #include <QtCore/QQueue>
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
@@ -145,8 +147,6 @@ namespace Nepomuk2 {
     private Q_SLOTS:
         void slotConfigChanged();
         void slotCleaningDone();
-        void slotIndexingDone( KJob* job );
-        void doIndexing();
 
     private:
         /**
@@ -169,34 +169,17 @@ namespace Nepomuk2 {
         // no signal is emitted twice
         void setIndexingStarted( bool started );
 
-        /**
-         * Continue indexing async after waiting for the configured delay.
-         */
-        void callDoIndexing();
-
         bool m_suspended;
         bool m_indexing;
-
-        // A specialized queue that gives priority to dirs that do not use the AutoUpdateFolder flag.
-        class UpdateDirQueue : public QQueue<QPair<QString, UpdateDirFlags> >
-        {
-        public:
-            void enqueueDir( const QString& dir, UpdateDirFlags flags );
-            void prependDir( const QString& dir, UpdateDirFlags flags );
-            void clearByFlags( UpdateDirFlags mask );
-        };
-        // queue of folders to update (+flags defined in the source file) - changed by updateDir
-        UpdateDirQueue m_dirsToUpdate;
-
-        // queue of files to update. This is filled from the dirs queue and manual methods like analyzeFile
-        QQueue<QFileInfo> m_filesToUpdate;
 
         KUrl m_currentUrl;
         UpdateDirFlags m_currentFlags;
 
         IndexCleaner* m_cleaner;
 
-        Indexer* m_currentIndexerJob;
+        // Queues
+        FastIndexingQueue* m_fastQueue;
+        SlowIndexingQueue* m_slowQueue;
     };
 }
 
