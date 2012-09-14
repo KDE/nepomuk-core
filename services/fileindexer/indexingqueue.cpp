@@ -37,12 +37,14 @@ void IndexingQueue::processNext()
     if( m_suspended )
         return;
 
+    bool startedIndexing = false;
+
     // First process all the iterators and then the paths
     if( !m_iterators.isEmpty() ) {
         QDirIterator* it = m_iterators.first();
 
         if( it->hasNext() ) {
-            process( it->next() );
+            startedIndexing = process( it->next() );
         }
         else {
             delete m_iterators.dequeue();
@@ -51,22 +53,28 @@ void IndexingQueue::processNext()
 
     else if( !m_paths.isEmpty() ) {
         QString path = m_paths.dequeue();
-        process( path );
+        startedIndexing = process( path );
     }
 
-    m_sentEvent = false;
-    callForNextIteration();
+
+    if( !startedIndexing ) {
+        m_sentEvent = false;
+        callForNextIteration();
+    }
 }
 
-void IndexingQueue::process(const QString& path)
+bool IndexingQueue::process(const QString& path)
 {
+    bool startedIndexing = false;
+
     QFileInfo info( path );
     if( info.isDir() ) {
-
         if( shouldIndex(path) ) {
+            m_currentUrl = QUrl::fromLocalFile( path );
             emit beginIndexing( path );
+
+            startedIndexing = true;
             indexDir( path );
-            emit endIndexing( path );
         }
 
         if( shouldIndexContents(path) ) {
@@ -75,10 +83,14 @@ void IndexingQueue::process(const QString& path)
         }
     }
     else if( info.isFile() && shouldIndex(path) ) {
+        m_currentUrl = QUrl::fromLocalFile( path );
         emit beginIndexing( path );
+
+        startedIndexing = true;
         indexFile( path );
-        emit endIndexing( path );
     }
+
+    return startedIndexing;
 }
 
 void IndexingQueue::enqueue(const QString& path)
@@ -110,5 +122,21 @@ void IndexingQueue::callForNextIteration()
         m_sentEvent = true;
     }
 }
+
+void IndexingQueue::finishedIndexingFile()
+{
+    m_sentEvent = false;
+    callForNextIteration();
+
+    QUrl url = m_currentUrl;
+    m_currentUrl.clear();
+    emit endIndexing( url.toLocalFile() );
+}
+
+QUrl IndexingQueue::currentUrl() const
+{
+    return m_currentUrl;
+}
+
 
 }

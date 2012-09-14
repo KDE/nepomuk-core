@@ -22,6 +22,7 @@
 #define NEPOMUK_FILE_INDEXER_QUEUES_H
 
 #include "indexingqueue.h"
+#include <KJob>
 
 namespace Nepomuk2 {
 
@@ -30,12 +31,22 @@ namespace Nepomuk2 {
     public:
         explicit FastIndexingQueue(QObject* parent = 0);
 
-        virtual void indexDir(const QString& dir);
-        virtual void indexFile(const QString& file);
+        virtual void indexDir(const QString& dir) {
+            index( dir );
+        }
+        virtual void indexFile(const QString& file) {
+            index( file );
+        }
 
         virtual bool shouldIndex(const QString& file);
         virtual bool shouldIndexContents(const QString& dir);
+
+    private slots:
+        void slotClearIndexedDataFinished(KJob* job);
+        void slotIndexingFinished(KJob* job);
+
     private:
+        void index(const QString& path);
     };
 
     class SlowIndexingQueue : public IndexingQueue {
@@ -43,11 +54,11 @@ namespace Nepomuk2 {
     public:
         explicit SlowIndexingQueue(QObject* parent = 0);
 
-        virtual void indexDir(const QString& dir) {}
+        virtual void indexDir(const QString&);
         virtual void indexFile(const QString& file);
 
         virtual bool shouldIndex(const QString&) { return true; }
-        virtual bool shouldIndexContents(const QString&) { return true; }
+        virtual bool shouldIndexContents(const QString&) { return false; }
     };
 }
 

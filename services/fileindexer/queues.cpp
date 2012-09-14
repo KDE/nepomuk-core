@@ -40,27 +40,33 @@ FastIndexingQueue::FastIndexingQueue(QObject* parent)
 
 }
 
-void FastIndexingQueue::indexDir(const QString& dir)
+void FastIndexingQueue::index(const QString& path)
 {
-    const QUrl fileUrl = QUrl::fromLocalFile( dir );
+    const QUrl fileUrl = QUrl::fromLocalFile( path );
 
     KJob* job = clearIndexedData( fileUrl );
-    job->exec();
-
-    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( fileUrl );
-    indexingJob->exec();
+    connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotClearIndexedDataFinished(KJob*)) );
 }
 
-void FastIndexingQueue::indexFile(const QString& file)
+void FastIndexingQueue::slotClearIndexedDataFinished(KJob* job)
 {
-    const QUrl fileUrl = QUrl::fromLocalFile( file );
+    if( job->error() ) {
+        kDebug() << job->errorString();
+    }
 
-    KJob* job = clearIndexedData( fileUrl );
-    job->exec();
-
-    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( fileUrl );
-    indexingJob->exec();
+    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( currentUrl() );
+    connect( indexingJob, SIGNAL(finished(KJob*)), this, SLOT(slotIndexingFinished(KJob*)) );
 }
+
+void FastIndexingQueue::slotIndexingFinished(KJob* job)
+{
+    if( job->error() ) {
+        kDebug() << job->errorString();
+    }
+
+    finishedIndexingFile();
+}
+
 
 bool FastIndexingQueue::shouldIndex(const QString& path)
 {
@@ -107,6 +113,10 @@ bool FastIndexingQueue::shouldIndexContents(const QString& dir)
 }
 
 
+//
+// Slow Indexer
+//
+
 SlowIndexingQueue::SlowIndexingQueue(QObject* parent)
 : IndexingQueue(parent)
 {
@@ -116,11 +126,12 @@ SlowIndexingQueue::SlowIndexingQueue(QObject* parent)
 void SlowIndexingQueue::indexFile(const QString& file)
 {
     KJob* job = new Indexer( QFileInfo(file) );
-    job->exec();
+    connect( job, SIGNAL(finished(KJob*)), this, SLOT(finishedIndexingFile()) );
+}
 
-    if( job->error() ) {
-        kError() << "Indexing Error: " << job->errorString();
-    }
+void SlowIndexingQueue::indexDir(const QString& )
+{
+    finishedIndexingFile();
 }
 
 

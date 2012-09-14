@@ -23,7 +23,8 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QQueue>
-#include <QDirIterator>
+#include <QtCore/QDirIterator>
+#include <QtCore/QUrl>
 
 namespace Nepomuk2 {
 
@@ -32,6 +33,8 @@ namespace Nepomuk2 {
         Q_OBJECT
     public:
         explicit IndexingQueue(QObject* parent = 0);
+
+        QUrl currentUrl() const;
 
     public slots:
         void enqueue(const QString& path);
@@ -44,13 +47,25 @@ namespace Nepomuk2 {
 
     protected:
         virtual void indexDir(const QString& dir) = 0;
+
+        /**
+         * This method does not need to be synchronous. The indexing operation may be started
+         * and on completion, the finishedIndexing method should be called
+         */
         virtual void indexFile(const QString& file) = 0;
 
         virtual bool shouldIndex(const QString& file) = 0;
         virtual bool shouldIndexContents(const QString& dir) = 0;
 
+    protected slots:
+        /**
+         * Call this function when you have finished indexing one file, and want the indexing
+         * queue to continue
+         */
+        void finishedIndexingFile();
+
     private slots:
-        void process(const QString& path);
+        bool process(const QString& path);
         void processNext();
 
     private:
@@ -58,6 +73,8 @@ namespace Nepomuk2 {
 
         QQueue<QString> m_paths;
         QQueue< QDirIterator* > m_iterators;
+
+        QUrl m_currentUrl;
 
         bool m_suspended;
         bool m_sentEvent;
