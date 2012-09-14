@@ -27,7 +27,6 @@
 
 #include <KDebug>
 #include <KDirNotify>
-#include <KIdleTime>
 #include <KLocale>
 
 #include "resourcemanager.h"
@@ -75,7 +74,11 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
         m_indexScheduler->updateAll();
     }
 
-    QTimer::singleShot( 0, this, SLOT( finishInitialization() ) );
+    // Creation of watches is a memory intensive process as a large number of
+    // watch file descriptors need to be created ( one for each directory )
+    // So we start it after 2 minutes in order to reduce startup time
+    // FIXME: Add the watches in the file watcher
+    QTimer::singleShot( 2 * 60 * 1000, this, SLOT( updateWatches() ) );
 
     // Connect some signals used in the DBus interface
     connect( this, SIGNAL( statusStringChanged() ),
@@ -92,33 +95,6 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
 Nepomuk2::FileIndexer::~FileIndexer()
 {
 }
-
-
-void Nepomuk2::FileIndexer::finishInitialization()
-{
-    // slow down on user activity (start also only after 2 minutes)
-    KIdleTime* idleTime = KIdleTime::instance();
-    idleTime->addIdleTimeout( 1000 * 60 * 2 ); // 2 min
-
-    connect( idleTime, SIGNAL(timeoutReached(int)), this, SLOT(slotIdleTimeoutReached()) );
-    connect( idleTime, SIGNAL(resumingFromIdle()), this, SLOT(slotIdleTimerResume()) );
-
-    // Creation of watches is a memory intensive process as a large number of
-    // watch file descriptors need to be created ( one for each directory )
-    updateWatches();
-}
-
-void Nepomuk2::FileIndexer::slotIdleTimeoutReached()
-{
-    m_indexScheduler->resume();
-    KIdleTime::instance()->catchNextResumeEvent();
-}
-
-void Nepomuk2::FileIndexer::slotIdleTimerResume()
-{
-    m_indexScheduler->suspend();
-}
-
 
 void Nepomuk2::FileIndexer::slotIndexingDone()
 {

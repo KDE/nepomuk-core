@@ -88,10 +88,7 @@ namespace Nepomuk2 {
         void indexFile( const QString& path );
 
     private Q_SLOTS:
-        void finishInitialization();
         void updateWatches();
-        void slotIdleTimeoutReached();
-        void slotIdleTimerResume();
         void slotIndexingDone();
 
     private:

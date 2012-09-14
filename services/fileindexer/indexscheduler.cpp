@@ -38,27 +38,18 @@
 #include <KTemporaryFile>
 #include <KUrl>
 #include <KStandardDirs>
+#include <KIdleTime>
 
 #include "resource.h"
 #include "resourcemanager.h"
 #include "variant.h"
-#include "query/resourceterm.h"
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
 #include <Soprano/NodeIterator>
 #include <Soprano/Node>
 
-#include <Soprano/Vocabulary/RDF>
-#include "nie.h"
-
-#include <map>
-#include <vector>
 #include "indexcleaner.h"
-
-using namespace Soprano::Vocabulary;
-using namespace Nepomuk2::Vocabulary;
-
 
 Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     : QObject( parent ),
@@ -82,11 +73,26 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
 
     connect( m_fastQueue, SIGNAL(endIndexing(QString)),
              m_slowQueue, SLOT(enqueue(QString)) );
+
+    m_slowQueue->suspend();
+
+    // stop the slow queue on user activity
+    KIdleTime* idleTime = KIdleTime::instance();
+    idleTime->addIdleTimeout( 1000 * 60 * 2 ); // 2 min
+
+    connect( idleTime, SIGNAL(timeoutReached(int)), this, SLOT(slotIdleTimeoutReached()) );
+    connect( idleTime, SIGNAL(resumingFromIdle()), m_slowQueue, SLOT(suspend()) );
 }
 
 
 Nepomuk2::IndexScheduler::~IndexScheduler()
 {
+}
+
+void Nepomuk2::IndexScheduler::slotIdleTimeoutReached()
+{
+    m_slowQueue->resume();
+    KIdleTime::instance()->catchNextResumeEvent();
 }
 
 
@@ -98,9 +104,7 @@ void Nepomuk2::IndexScheduler::suspend()
             m_cleaner->suspend();
         }
 
-        m_slowQueue->suspend();
         m_fastQueue->suspend();
-
         emit indexingSuspended( true );
     }
 }
@@ -115,9 +119,7 @@ void Nepomuk2::IndexScheduler::resume()
             m_cleaner->resume();
         }
 
-        m_slowQueue->resume();
         m_fastQueue->resume();
-
         emit indexingSuspended( false );
     }
 }

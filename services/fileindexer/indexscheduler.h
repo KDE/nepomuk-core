@@ -147,6 +147,7 @@ namespace Nepomuk2 {
     private Q_SLOTS:
         void slotConfigChanged();
         void slotCleaningDone();
+        void slotIdleTimeoutReached();
 
     private:
         /**
