@@ -99,13 +99,15 @@ bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uin
     }
 
     kDebug() << "Starting SimpleIndexer";
-    SimpleIndexer indexer( url );
-    bool status = indexer.save();
+    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( url );
+    indexingJob->exec();
+
+    bool status = indexingJob->error();
     kDebug() << "Saving data";
 
     if( status ) {
-        QString mimeType = indexer.mimeType();
-        QUrl uri = indexer.uri();
+        QString mimeType = indexingJob->mimeType();
+        QUrl uri = indexingJob->uri();
 
         SimpleResourceGraph graph;
 

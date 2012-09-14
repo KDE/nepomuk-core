@@ -42,20 +42,24 @@ FastIndexingQueue::FastIndexingQueue(QObject* parent)
 
 void FastIndexingQueue::indexDir(const QString& dir)
 {
-    KJob* job = clearIndexedData( QUrl::fromLocalFile(dir) );
+    const QUrl fileUrl = QUrl::fromLocalFile( dir );
+
+    KJob* job = clearIndexedData( fileUrl );
     job->exec();
 
-    SimpleIndexer indexer( QUrl::fromLocalFile(dir) );
-    indexer.save();
+    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( fileUrl );
+    indexingJob->exec();
 }
 
 void FastIndexingQueue::indexFile(const QString& file)
 {
-    KJob* job = clearIndexedData( QUrl::fromLocalFile(file) );
+    const QUrl fileUrl = QUrl::fromLocalFile( file );
+
+    KJob* job = clearIndexedData( fileUrl );
     job->exec();
 
-    SimpleIndexer indexer( QUrl::fromLocalFile(file) );
-    indexer.save();
+    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( fileUrl );
+    indexingJob->exec();
 }
 
 bool FastIndexingQueue::shouldIndex(const QString& path)
