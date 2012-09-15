@@ -40,9 +40,6 @@
 #include <QtCore/QThreadPool>
 #include <QtDBus/QDBusMetaType>
 
-#define USING_SOPRANO_NRLMODEL_UNSTABLE_API
-#include <Soprano/NRLModel>
-
 
 Nepomuk2::DataManagementAdaptor::DataManagementAdaptor(Nepomuk2::DataManagementModel *parent)
     : QObject(parent),
