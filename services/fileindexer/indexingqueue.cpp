@@ -138,5 +138,14 @@ QUrl IndexingQueue::currentUrl() const
     return m_currentUrl;
 }
 
+void IndexingQueue::clear()
+{
+    m_currentUrl.clear();
+    m_paths.clear();
+
+    qDeleteAll( m_iterators );
+    m_iterators.clear();
+}
+
 
 }

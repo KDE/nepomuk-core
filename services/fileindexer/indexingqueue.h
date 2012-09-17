@@ -41,6 +41,8 @@ namespace Nepomuk2 {
         void suspend();
         void resume();
 
+        void clear();
+
     signals:
         void beginIndexing(const QString& path);
         void endIndexing(const QString& path);

@@ -301,7 +301,7 @@ void Nepomuk2::IndexScheduler::updateAll( bool forceUpdate )
 
 void Nepomuk2::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
 {
-    // TODO: Clear the queues
+    m_fastQueue->clear();
 
     /*
     UpdateDirFlags flags = UpdateRecursive|AutoUpdateFolder;
