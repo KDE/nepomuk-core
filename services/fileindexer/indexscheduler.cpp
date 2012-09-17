@@ -157,7 +157,7 @@ QString Nepomuk2::IndexScheduler::currentFile() const
 }
 
 
-Nepomuk2::IndexScheduler::UpdateDirFlags Nepomuk2::IndexScheduler::currentFlags() const
+Nepomuk2::UpdateDirFlags Nepomuk2::IndexScheduler::currentFlags() const
 {
     return m_currentFlags;
 }
@@ -181,115 +181,9 @@ void Nepomuk2::IndexScheduler::slotCleaningDone()
     m_cleaner = 0;
 }
 
-/*
-void Nepomuk2::IndexScheduler::analyzeDir( const QString& dir_, Nepomuk2::IndexScheduler::UpdateDirFlags flags )
-{
-    kDebug() << dir_;
-
-    // normalize the dir name, otherwise things might break below
-    QString dir( dir_ );
-    if( dir.endsWith(QLatin1String("/")) ) {
-        dir.truncate( dir.length()-1 );
-    }
-
-    // inform interested clients
-    emit indexingFolder( dir );
-    m_currentUrl = KUrl( dir );
-    m_currentFlags = flags;
-
-    const bool recursive = flags&UpdateRecursive;
-    const bool forceUpdate = flags&ForceUpdate;
-
-    // we start by updating the folder itself
-    QFileInfo dirInfo( dir );
-    KUrl dirUrl( dir );
-    if ( !compareIndexedMTime(dirUrl, dirInfo.lastModified()) ) {
-        KJob * indexer = new Indexer( dirInfo );
-        connect( indexer, SIGNAL(finished(KJob*)), this, SLOT(slotIndexingDone(KJob*)) );
-        indexer->start();
-    }
-
-    // get a map of all indexed files from the dir including their stored mtime
-    QHash<QString, QDateTime> filesInStore = getChildren( dir );
-    QHash<QString, QDateTime>::iterator filesInStoreEnd = filesInStore.end();
-
-    QList<QFileInfo> filesToIndex;
-    QStringList filesToDelete;
-
-    // iterate over all files in the dir
-    // and select the ones we need to add or delete from the store
-    QDir::Filters dirFilter = QDir::NoDotAndDotDot|QDir::Readable|QDir::Files|QDir::Dirs;
-    QDirIterator dirIt( dir, dirFilter );
-    while ( dirIt.hasNext() ) {
-        QString path = dirIt.next();
-
-        // FIXME: we cannot use canonialFilePath here since that could lead into another folder. Thus, we probably
-        // need to use another approach than the getChildren one.
-        QFileInfo fileInfo = dirIt.fileInfo();//.canonialFilePath();
-
-        bool indexFile = Nepomuk2::FileIndexerConfig::self()->shouldFileBeIndexed( fileInfo.fileName() );
-
-        // check if this file is new by looking it up in the store
-        QHash<QString, QDateTime>::iterator filesInStoreIt = filesInStore.find( path );
-        bool newFile = ( filesInStoreIt == filesInStoreEnd );
-        if ( newFile && indexFile )
-            kDebug() << "NEW    :" << path;
-
-        // do we need to update? Did the file change?
-        bool fileChanged = !newFile && fileInfo.lastModified() != filesInStoreIt.value();
-        //TODO: At some point make these "NEW", "CHANGED", and "FORCED" strings public
-        //      so that they can be used to create a better status message.
-        if ( fileChanged )
-            kDebug() << "CHANGED:" << path << fileInfo.lastModified() << filesInStoreIt.value();
-        else if( forceUpdate )
-            kDebug() << "UPDATE FORCED:" << path;
-
-        if ( indexFile && ( newFile || fileChanged || forceUpdate ) )
-            filesToIndex << fileInfo;
-
-        // we do not delete files to update here. We do that in the IndexWriter to make
-        // sure we keep the resource URI
-        else if ( !newFile && !indexFile )
-            filesToDelete.append( filesInStoreIt.key() );
-
-        // cleanup a bit for faster lookups
-        if ( !newFile )
-            filesInStore.erase( filesInStoreIt );
-
-        // prepend sub folders to the dir queue
-        // sub-dirs of auto-update folders are only addded if they are configured as such
-        // all others (manually added ones) are always indexed
-        if ( indexFile &&
-                recursive &&
-                fileInfo.isDir() &&
-                !fileInfo.isSymLink() &&
-                (!(flags & AutoUpdateFolder) || FileIndexerConfig::self()->shouldFolderBeIndexed( path )) ) {
-            m_dirsToUpdate.prependDir( path, flags );
-        }
-    }
-
-    // all the files left in filesInStore are not in the current
-    // directory and should be deleted
-    filesToDelete += filesInStore.keys();
-
-    // remove all files that have been removed recursively
-    deleteEntries( filesToDelete );
-
-    // analyze all files that are new or need updating
-    m_filesToUpdate.append( filesToIndex );
-
-    // reset status
-    m_currentUrl.clear();
-    m_currentFlags = NoUpdateFlags;
-}
-*/
-
-
 void Nepomuk2::IndexScheduler::updateDir( const QString& path, UpdateDirFlags flags )
 {
-    //FIXME: Use UpdateDirFlags
-
-    m_fastQueue->enqueue( path );
+    m_fastQueue->enqueue( path, flags );
 }
 
 
@@ -303,15 +197,13 @@ void Nepomuk2::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
 {
     m_fastQueue->clear();
 
-    /*
     UpdateDirFlags flags = UpdateRecursive|AutoUpdateFolder;
     if ( forceUpdate )
         flags |= ForceUpdate;
-    */
 
     // update everything again in case the folders changed
     foreach( const QString& f, FileIndexerConfig::self()->includeFolders() ) {
-        m_fastQueue->enqueue( f );
+        m_fastQueue->enqueue( f, flags );
     }
 }
 
@@ -337,27 +229,6 @@ void Nepomuk2::IndexScheduler::analyzeFile( const QString& path )
 {
     kDebug() << path;
     m_fastQueue->enqueue( path );
-
-    /*
-
-    // we prepend the file to give preference to newly created and changed files over
-    // the initial indexing. Sadly operator== cannot be relied on for QFileInfo. Thus
-    // we need to do a dumb search
-    QMutableListIterator<QFileInfo> it(m_filesToUpdate);
-    while(it.hasNext()) {
-        if(it.next().filePath() == path) {
-            kDebug() << "Already queued:" << path << "Moving to front of queue.";
-            it.remove();
-            break;
-        }
-    }
-    kDebug() << "Queuing" << path;
-    m_filesToUpdate.prepend(path);
-
-    // continue indexing without any delay. We want changes reflected as soon as possible
-    if( !m_indexing ) {
-        callDoIndexing();
-    }*/
 }
 
 

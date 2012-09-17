@@ -41,19 +41,20 @@ void IndexingQueue::processNext()
 
     // First process all the iterators and then the paths
     if( !m_iterators.isEmpty() ) {
-        QDirIterator* it = m_iterators.first();
+        QPair< QDirIterator*, UpdateDirFlags > pair = m_iterators.first();
+        QDirIterator* dirIt = pair.first;
 
-        if( it->hasNext() ) {
-            startedIndexing = process( it->next() );
+        if( dirIt->hasNext() ) {
+            startedIndexing = process( dirIt->next(), pair.second );
         }
         else {
-            delete m_iterators.dequeue();
+            delete m_iterators.dequeue().first;
         }
     }
 
     else if( !m_paths.isEmpty() ) {
-        QString path = m_paths.dequeue();
-        startedIndexing = process( path );
+        QPair< QString, UpdateDirFlags > pair = m_paths.dequeue();
+        startedIndexing = process( pair.first, pair.second );
     }
 
 
@@ -63,27 +64,37 @@ void IndexingQueue::processNext()
     }
 }
 
-bool IndexingQueue::process(const QString& path)
+bool IndexingQueue::process(const QString& path, Nepomuk2::UpdateDirFlags flags)
 {
     bool startedIndexing = false;
 
+    bool forced = flags & ForceUpdate;
+    bool recursive = flags & UpdateRecursive;
+    bool indexingRequired = shouldIndex( path );
+
     QFileInfo info( path );
     if( info.isDir() ) {
-        if( shouldIndex(path) ) {
+        if( forced || indexingRequired ) {
             m_currentUrl = QUrl::fromLocalFile( path );
+            m_currentFlags = flags;
+
             emit beginIndexing( path );
 
             startedIndexing = true;
             indexDir( path );
         }
 
-        if( shouldIndexContents(path) ) {
+        if( recursive && shouldIndexContents(path) ) {
             QDir::Filters dirFilter = QDir::NoDotAndDotDot|QDir::Readable|QDir::Files|QDir::Dirs;
-            m_iterators.enqueue( new QDirIterator( path, dirFilter ) );
+
+            QPair<QDirIterator*, UpdateDirFlags> pair = qMakePair( new QDirIterator( path, dirFilter ), flags );
+            m_iterators.enqueue( pair );
         }
     }
-    else if( info.isFile() && shouldIndex(path) ) {
+    else if( info.isFile() && (forced || indexingRequired) ) {
         m_currentUrl = QUrl::fromLocalFile( path );
+        m_currentFlags = flags;
+
         emit beginIndexing( path );
 
         startedIndexing = true;
@@ -95,12 +106,21 @@ bool IndexingQueue::process(const QString& path)
 
 void IndexingQueue::enqueue(const QString& path)
 {
-    m_paths.enqueue( path );
+    UpdateDirFlags flags;
+    flags |= UpdateRecursive;
+
+    enqueue( path, flags );
+}
+
+void IndexingQueue::enqueue(const QString& path, Nepomuk2::UpdateDirFlags flags)
+{
+    m_paths.enqueue( qMakePair( path, flags ) );
 
     if( !m_suspended ) {
         callForNextIteration();
     }
 }
+
 
 void IndexingQueue::resume()
 {
@@ -130,6 +150,8 @@ void IndexingQueue::finishedIndexingFile()
 
     QUrl url = m_currentUrl;
     m_currentUrl.clear();
+    m_currentFlags = NoUpdateFlags;
+
     emit endIndexing( url.toLocalFile() );
 }
 
@@ -141,9 +163,13 @@ QUrl IndexingQueue::currentUrl() const
 void IndexingQueue::clear()
 {
     m_currentUrl.clear();
+    m_currentFlags = NoUpdateFlags;
     m_paths.clear();
 
-    qDeleteAll( m_iterators );
+    typedef QPair<QDirIterator*, UpdateDirFlags> DirPair;
+    foreach( const DirPair& pair, m_iterators )
+        delete pair.first;
+
     m_iterators.clear();
 }
 

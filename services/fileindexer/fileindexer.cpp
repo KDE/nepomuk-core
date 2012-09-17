@@ -135,7 +135,7 @@ QString Nepomuk2::FileIndexer::userStatusString( bool simple ) const
     }
     else if ( indexing ) {
         QString folder = m_indexScheduler->currentFolder();
-        bool autoUpdate =  m_indexScheduler->currentFlags() & IndexScheduler::AutoUpdateFolder;
+        bool autoUpdate =  m_indexScheduler->currentFlags() & AutoUpdateFolder;
 
         if ( folder.isEmpty() || simple ) {
             if( autoUpdate ) {
@@ -252,11 +252,11 @@ void Nepomuk2::FileIndexer::indexFolder(const QString& path, bool recursive, boo
 
         kDebug() << "Updating : " << dirPath;
 
-        Nepomuk2::IndexScheduler::UpdateDirFlags flags;
+        Nepomuk2::UpdateDirFlags flags;
         if(recursive)
-            flags |= Nepomuk2::IndexScheduler::UpdateRecursive;
+            flags |= Nepomuk2::UpdateRecursive;
         if(forced)
-            flags |= Nepomuk2::IndexScheduler::ForceUpdate;
+            flags |= Nepomuk2::ForceUpdate;
 
         m_indexScheduler->updateDir( dirPath, flags );
     }

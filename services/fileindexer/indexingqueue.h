@@ -28,6 +28,32 @@
 
 namespace Nepomuk2 {
 
+    enum UpdateDirFlag {
+        /**
+         * No flags, only used to make code more readable
+         */
+        NoUpdateFlags = 0x0,
+
+        /**
+         * The folder should be updated recursive
+         */
+        UpdateRecursive = 0x1,
+
+        /**
+         * The folder has been scheduled to update by the
+         * update system, not by a call to updateDir
+         */
+        AutoUpdateFolder = 0x2,
+
+        /**
+         * The files in the folder should be updated regardless
+         * of their state.
+         */
+        ForceUpdate = 0x4
+    };
+    Q_DECLARE_FLAGS( UpdateDirFlags, UpdateDirFlag )
+
+
     class IndexingQueue : public QObject
     {
         Q_OBJECT
@@ -38,6 +64,8 @@ namespace Nepomuk2 {
 
     public slots:
         void enqueue(const QString& path);
+        void enqueue(const QString& path, UpdateDirFlags flags);
+
         void suspend();
         void resume();
 
@@ -67,21 +95,24 @@ namespace Nepomuk2 {
         void finishedIndexingFile();
 
     private slots:
-        bool process(const QString& path);
+        bool process(const QString& path, Nepomuk2::UpdateDirFlags flags);
         void processNext();
 
     private:
         void callForNextIteration();
 
-        QQueue<QString> m_paths;
-        QQueue< QDirIterator* > m_iterators;
+        QQueue< QPair<QString, UpdateDirFlags> > m_paths;
+        QQueue< QPair<QDirIterator*, UpdateDirFlags> > m_iterators;
 
         QUrl m_currentUrl;
+        UpdateDirFlags m_currentFlags;
 
         bool m_suspended;
         bool m_sentEvent;
     };
 
 }
+
+Q_DECLARE_OPERATORS_FOR_FLAGS(Nepomuk2::UpdateDirFlags)
 
 #endif // FILEINDEXER_INDEXINGQUEUE_H

@@ -71,31 +71,6 @@ namespace Nepomuk2 {
          */
         QString currentFile() const;
 
-        enum UpdateDirFlag {
-            /**
-             * No flags, only used to make code more readable
-             */
-            NoUpdateFlags = 0x0,
-
-            /**
-             * The folder should be updated recursive
-             */
-            UpdateRecursive = 0x1,
-
-            /**
-             * The folder has been scheduled to update by the
-             * update system, not by a call to updateDir
-             */
-            AutoUpdateFolder = 0x2,
-
-            /**
-             * The files in the folder should be updated regardless
-             * of their state.
-             */
-            ForceUpdate = 0x4
-        };
-        Q_DECLARE_FLAGS( UpdateDirFlags, UpdateDirFlag )
-
         /**
          * The UpdateDirFlags of the the current url that is being
          * indexed.
@@ -184,7 +159,6 @@ namespace Nepomuk2 {
     };
 }
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(Nepomuk2::IndexScheduler::UpdateDirFlags)
 
 #endif
 
