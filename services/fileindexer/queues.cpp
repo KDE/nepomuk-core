@@ -70,38 +70,24 @@ void FastIndexingQueue::slotIndexingFinished(KJob* job)
 
 bool FastIndexingQueue::shouldIndex(const QString& path)
 {
-    bool indexFile = FileIndexerConfig::self()->shouldFileBeIndexed( path );
+    bool shouldIndexFile = FileIndexerConfig::self()->shouldFileBeIndexed( path );
+    if( !shouldIndexFile )
+        return false;
+
+    QFileInfo fileInfo( path );
 
     // check if this file is new by looking it up in the store
     Soprano::Model* model = ResourceManager::instance()->mainModel();
-    QString query = QString::fromLatin1("select ?dt where { ?r nie:url %1 ; nie:lastModified ?dt . } LIMIT 1")
-                    .arg( Soprano::Node::resourceToN3(QUrl::fromLocalFile(path)) );
+    QString query = QString::fromLatin1("ask where { ?r nie:url %1 ; nie:lastModified ?dt . FILTER(?dt=%2) .}")
+                    .arg( Soprano::Node::resourceToN3( QUrl::fromLocalFile(path) ),
+                          Soprano::Node::literalToN3( Soprano::LiteralValue(fileInfo.lastModified()) ) );
 
-    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-    QDateTime lastModified;
-    if( it.next() )
-        lastModified = it["dt"].literal().toDateTime();
+    bool needToIndex = !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
 
-    bool newFile = lastModified.isNull();
-
-    if ( newFile && indexFile )
-        kDebug() << "NEW    :" << path;
-
-    // do we need to update? Did the file change?
-    QFileInfo fileInfo( path );
-    bool fileChanged = !newFile && fileInfo.lastModified() != lastModified;
-
-    //TODO: At some point make these "NEW", "CHANGED", and "FORCED" strings public
-    //      so that they can be used to create a better status message.
-
-    if ( fileChanged )
-        kDebug() << "CHANGED:" << path << fileInfo.lastModified() << lastModified;
-    /*
-    else if( forceUpdate )
-        kDebug() << "UPDATE FORCED:" << path;*/
-
-    if ( indexFile && ( newFile || fileChanged ) )
+    if( needToIndex ) {
+        kDebug() << path;
         return true;
+    }
 
     return false;
 }
