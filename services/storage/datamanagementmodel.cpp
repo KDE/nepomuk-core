@@ -2446,18 +2446,18 @@ QUrl Nepomuk2::DataManagementModel::createUri(Nepomuk2::DataManagementModel::Uri
     while( 1 ) {
         QString uuid = QUuid::createUuid().toString();
         uuid = uuid.mid(1, uuid.length()-2);
-        const QUrl uri = QUrl( QLatin1String("nepomuk:/") + typeToken + QLatin1String("/") + uuid );
-        if ( !FilterModel::executeQuery( QString::fromLatin1("ask where { "
-                                                             "{ %1 ?p1 ?o1 . } "
-                                                             "UNION "
-                                                             "{ ?s2 %1 ?o2 . } "
-                                                             "UNION "
-                                                             "{ ?s3 ?p3 %1 . } "
-                                                             "UNION "
-                                                             "{ graph %1 { ?s4 ?4 ?o4 . } . } "
-                                                             "}")
-                                        .arg( Soprano::Node::resourceToN3(uri) ), Soprano::Query::QueryLanguageSparql ).boolValue() ) {
-            return uri;
+
+        QString uriString = QString::fromLatin1("nepomuk:/%1/%2").arg( typeToken, uuid );
+        const QUrl uri( uriString );
+
+        // The iri_to_id command returns an id of the form "#num" if the uri exists in the database
+        // and NULL if it doesn't. This method is a LOT faster than checking if the uri exists
+        // as a subject / predicate / object or graph.
+        QString query = QString::fromLatin1("select iri_to_id( '%1', 0 )") .arg( uriString );
+        Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+        if( it.next() ) {
+            if( it[0].literal().toString().isEmpty() )
+                return uri;
         }
     }
 }
