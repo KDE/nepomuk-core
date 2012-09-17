@@ -436,11 +436,13 @@ QUrl Nepomuk2::ResourceMerger::createGraphUri()
 QList< QUrl > Nepomuk2::ResourceMerger::existingTypes(const QUrl& uri) const
 {
     QList<QUrl> types;
-    QList<Soprano::Node> existingTypes = m_model->listStatements( uri, RDF::type(), Soprano::Node() )
-                                                  .iterateObjects().allNodes();
-    foreach( const Soprano::Node & n, existingTypes ) {
-        types << n.uri();
-    }
+
+    QString query = QString::fromLatin1("select ?t where { %1 rdf:type ?t . }")
+                    .arg( Soprano::Node::resourceToN3( uri ) );
+    Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    while( it.next() )
+        types << it[0].uri();
+
     // all resources have rdfs:Resource type by default
     types << RDFS::Resource();
 
