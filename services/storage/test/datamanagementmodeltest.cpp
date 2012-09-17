@@ -81,7 +81,7 @@ void DataManagementModelTest::initTestCase()
 
     // DataManagementModel relies on the usage of a NRLModel in the storage service
     m_nrlModel = new Soprano::NRLModel(m_model);
-    m_nrlModel->setEnableQueryPrefixExpansion( true );
+    Nepomuk2::insertNamespaceAbbreviations( m_model );
 
     m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
     m_inferenceModel = new Nepomuk2::VirtuosoInferenceModel(m_nrlModel);

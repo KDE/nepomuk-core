@@ -24,6 +24,7 @@
 #include "../virtuosoinferencemodel.h"
 #include "../datamanagementadaptor.h"
 #include "../classandpropertytree.h"
+#include "qtest_dms.h"
 
 #include <Soprano/Soprano>
 #include <Soprano/Server/DBusExportModel>
@@ -84,7 +85,7 @@ FakeDataManagementService::FakeDataManagementService(QObject *parent)
 
     // create the data management service stack connected to the fake storage
     m_nrlModel = new Soprano::NRLModel(m_model);
-    m_nrlModel->setEnableQueryPrefixExpansion( true );
+    Nepomuk2::insertNamespaceAbbreviations(m_model);
 
     m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
     m_inferenceModel = new Nepomuk2::VirtuosoInferenceModel(m_nrlModel);

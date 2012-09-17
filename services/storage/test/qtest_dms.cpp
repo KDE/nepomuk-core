@@ -34,6 +34,7 @@
 #include "pimo.h"
 
 #include <Soprano/LiteralValue>
+#include <Soprano/QueryResultIterator>
 
 using namespace Soprano::Vocabulary;
 using namespace Soprano;
@@ -250,4 +251,44 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( PIMO::Agent(), RDFS::subClassOf(), NIE::InformationElement(), graph );
 
     model->addStatement( PIMO::Thing(), RDF::type(), RDFS::Class(), graph );
+}
+
+void Nepomuk2::insertNamespaceAbbreviations(Model* model)
+{
+    typedef QPair<QString, QString> StringPair;
+
+    QList<StringPair> graphs;
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2010/01/25/nuao#", "nuao");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2009/11/08/nso#", "nso");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#", "nrl");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2010/04/30/ndo#", "ndo");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/08/15/nao#", "nao");
+    graphs << qMakePair<QString, QString>("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf");
+    graphs << qMakePair<QString, QString>("http://www.w3.org/2000/01/rdf-schema#", "rdfs");
+    graphs << qMakePair<QString, QString>("http://purl.org/dc/elements/1.1/", "dces");
+    graphs << qMakePair<QString, QString>("http://purl.org/dc/dcmitype/", "dctype");
+    graphs << qMakePair<QString, QString>("http://purl.org/dc/terms/", "dcterms");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/04/02/ncal#", "ncal");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/05/10/nexif#", "nexif");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/05/10/nid3#", "nid3");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/01/19/nie#", "nie");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#", "nfo");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2009/02/19/nmm#", "nmm");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/03/22/nco#", "nco");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#", "nmo");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2008/05/20/tmo#", "tmo");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/11/01/pimo#", "pimo");
+    graphs << qMakePair<QString, QString>("http://nepomuk.kde.org/ontologies/2010/08/18/kuvo#", "kuvo");
+    graphs << qMakePair<QString, QString>("http://nepomuk.kde.org/ontologies/2010/11/11/nrio#", "nrio");
+    graphs << qMakePair<QString, QString>("http://nepomuk.kde.org/ontologies/2010/11/29/kext#", "kext");
+    graphs << qMakePair<QString, QString>("http://www.example.org/ontologies/2010/05/29/ndco#", "ndco");
+    graphs << qMakePair<QString, QString>("http://akonadi-project.org/ontologies/aneo#", "aneo");
+    graphs << qMakePair<QString, QString>("http://nepomuk.kde.org/ontologies/2012/02/29/kao#", "kao");
+
+    foreach(const StringPair& pair, graphs) {
+        QString command = QString::fromLatin1("DB.DBA.XML_SET_NS_DECL( '%1', '%2', 2 )")
+                          .arg( pair.second, pair.first );
+
+        model->executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+    }
 }

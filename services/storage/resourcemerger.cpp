@@ -504,18 +504,26 @@ Soprano::Node Nepomuk2::ResourceMerger::resolveUnmappedNode(const Soprano::Node&
     if( !node.isBlank() )
         return node;
 
-    QHash< QUrl, QUrl >::const_iterator it = m_mappings.constFind( QUrl(node.toN3()) );
+    const QUrl nodeN3( node.toN3() );
+    QHash< QUrl, QUrl >::const_iterator it = m_mappings.constFind( nodeN3 );
     if( it != m_mappings.constEnd() ) {
         return it.value();
     }
 
     const QUrl newUri = createResourceUri();
-    m_mappings.insert( QUrl(node.toN3()), newUri );
+    m_mappings.insert( nodeN3, newUri );
 
     // FIXME: trueg: IMHO these statements should instead be added to the list of all statements so there is only one place where anything is actually added to the model
-    Soprano::Node dateTime( (Soprano::LiteralValue( QDateTime::currentDateTime() )) );
-    m_model->addStatement( newUri, NAO::created(), dateTime, m_graph );
-    m_model->addStatement( newUri, NAO::lastModified(), dateTime, m_graph );
+    Soprano::LiteralValue dateTime( QDateTime::currentDateTime() );
+
+    // OPTIMIZATION: Use a hand made query instead of the generic addStatement.
+    // They way we avoid the extra resourceToN3 for the properties, uri and graph
+    QString addQuery = QString::fromLatin1("sparql insert into %1 { %2 nao:created %3 ; nao:lastModified %3 . }")
+                        .arg( Soprano::Node::resourceToN3( m_graph ),
+                              Soprano::Node::resourceToN3( newUri ),
+                              Soprano::Node::literalToN3( dateTime ) );
+    // We use sql instead of sparql so that we can avoid any changes done by any of the other models
+    m_model->executeQuery( addQuery, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 
     return newUri;
 }
