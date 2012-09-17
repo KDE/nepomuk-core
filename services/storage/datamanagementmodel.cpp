@@ -46,6 +46,7 @@
 #include <Soprano/Util/SimpleStatementIterator>
 
 #include <QtCore/QHash>
+#include <QtCore/QCache>
 #include <QtCore/QUrl>
 #include <QtCore/QVariant>
 #include <QtCore/QDateTime>
@@ -183,6 +184,8 @@ public:
 
     /// If true the creation date of graphs is ignored. This results in a lot less graphs
     bool m_ignoreCreationDate;
+
+    QCache<QString, QUrl> m_appCache;
 };
 
 Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTree* tree, Soprano::Model* model, QObject *parent)
@@ -192,6 +195,7 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
     d->m_classAndPropertyTree = tree;
     d->m_watchManager = new ResourceWatcherManager(this);
     d->m_ignoreCreationDate = false;
+    d->m_appCache.setMaxCost( 10 );
 
     setParent(parent);
 
@@ -210,6 +214,12 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
         addStatement( QUrl("nepomuk:/me"), RDF::type(), PIMO::Person(), graph );
     }
 }
+
+void Nepomuk2::DataManagementModel::clearCache()
+{
+    d->m_appCache.clear();
+}
+
 
 Nepomuk2::DataManagementModel::~DataManagementModel()
 {
@@ -2405,14 +2415,20 @@ QUrl Nepomuk2::DataManagementModel::splitGraph(const QUrl &graph, const QUrl& me
 
 QUrl Nepomuk2::DataManagementModel::findApplicationResource(const QString &app, bool create)
 {
+    QUrl* uri = d->m_appCache.object( app );
+    if( uri ) {
+        return *uri;
+    }
+
     Soprano::QueryResultIterator it =
-            executeQuery(QString::fromLatin1("select ?r where { ?r a %1 . ?r %2 %3 . } LIMIT 1")
-                         .arg(Soprano::Node::resourceToN3(NAO::Agent()),
-                              Soprano::Node::resourceToN3(NAO::identifier()),
-                              Soprano::Node::literalToN3(app)),
+            executeQuery(QString::fromLatin1("select ?r where { ?r a nao:Agent . ?r nao:identifier %1 . } LIMIT 1")
+                         .arg( Soprano::Node::literalToN3(app) ),
                          Soprano::Query::QueryLanguageSparql);
     if(it.next()) {
-        return it[0].uri();
+        const QUrl newUri = it[0].uri();
+        d->m_appCache.insert( app, new QUrl(newUri) );
+
+        return newUri;
     }
     else if(create) {
         const QUrl graph = createGraph(QString(), QMultiHash<QUrl, Soprano::Node>());
@@ -2428,6 +2444,7 @@ QUrl Nepomuk2::DataManagementModel::findApplicationResource(const QString &app, 
             addStatement(uri, NAO::prefLabel(), Soprano::LiteralValue(services.first()->name()), graph);
         }
 
+        d->m_appCache.insert( app, new QUrl(uri) );
         return uri;
     }
     else {

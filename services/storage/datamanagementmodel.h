@@ -225,6 +225,11 @@ public Q_SLOTS:
                             const QList<QUrl>& targetParties = QList<QUrl>() ) const;
     //@}
 
+    /**
+     * Clear the internal cache present in the model
+     */
+    void clearCache();
+
 private:
     QUrl createGraph(const QString& app = QString(), const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()));
     QUrl createGraph(const QString& app, const QMultiHash<QUrl, Soprano::Node>& additionalMetadata);
