@@ -23,6 +23,7 @@
 #include <KService>
 #include <KServiceTypeTrader>
 #include <KDebug>
+#include <KApplication>
 
 #include <QtCore/QTextStream>
 #include <QtCore/QTimer>
@@ -103,8 +104,14 @@ int main( int argc, char** argv )
     args->clear();
 
     aboutData.setAppName( serviceName.toLocal8Bit() );
-    KComponentData component(aboutData);
-    QApplication app( argc, argv );
+    KApplication app( /*GuiEnabeled - Required for KIdleTime*/ true );
+    app.disableSessionManagement();
+
+    // We explicitly remove the MainApplication object cause it inteferes with the ability to
+    // properly shut down the nepomuk services
+    QDBusConnection con = QDBusConnection::sessionBus();
+    con.unregisterObject( QLatin1String("/MainApplication"), QDBusConnection::UnregisterNode );
+
     installSignalHandler();
     KGlobal::locale()->insertCatalog( serviceName );
 
