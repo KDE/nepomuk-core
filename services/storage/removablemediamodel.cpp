@@ -190,11 +190,17 @@ Soprano::StatementIterator Nepomuk2::RemovableMediaModel::listStatements(const S
 
 Soprano::QueryResultIterator Nepomuk2::RemovableMediaModel::executeQuery(const QString &query, Soprano::Query::QueryLanguage language, const QString &userQueryLanguage) const
 {
-    return new QueryResultIteratorBackend(this, FilterModel::executeQuery(convertFileUrls(query), language, userQueryLanguage));
+    if( language == Soprano::Query::QueryLanguageSparql ) {
+        return new QueryResultIteratorBackend(this, FilterModel::executeQuery(convertFileUrls(query), language, userQueryLanguage));
+    }
+    return Soprano::FilterModel::executeQuery(query, language, userQueryLanguage);
 }
 
 Soprano::Node Nepomuk2::RemovableMediaModel::convertFileUrl(const Soprano::Node &node, bool forRegEx) const
 {
+    if( m_removableMediaCache->isEmpty() )
+        return node;
+
     if(node.isResource()) {
         const QUrl url = node.uri();
         if(url.scheme() == QLatin1String("file")) {
@@ -213,6 +219,9 @@ Soprano::Node Nepomuk2::RemovableMediaModel::convertFileUrl(const Soprano::Node 
 
 QString Nepomuk2::RemovableMediaModel::convertFilePathOrUrl(const QString &pathOrUrl) const
 {
+    if( m_removableMediaCache->isEmpty() )
+        return pathOrUrl;
+
     QString path(pathOrUrl);
 
     // strip the file: prefix
@@ -233,6 +242,9 @@ QString Nepomuk2::RemovableMediaModel::convertFilePathOrUrl(const QString &pathO
 
 Soprano::Statement Nepomuk2::RemovableMediaModel::convertFileUrls(const Soprano::Statement &statement) const
 {
+    if( m_removableMediaCache->isEmpty() )
+        return statement;
+
     if(statement.predicate().uri() == NIE::url() ||
             (statement.predicate().isEmpty() && statement.object().isResource())) {
         Soprano::Statement newStatement(statement);
@@ -246,6 +258,9 @@ Soprano::Statement Nepomuk2::RemovableMediaModel::convertFileUrls(const Soprano:
 
 Soprano::Statement Nepomuk2::RemovableMediaModel::convertFilexUrls(const Soprano::Statement &s) const
 {
+    if( m_removableMediaCache->isEmpty() )
+        return s;
+
     if(s.predicate().uri() == NIE::url()) {
         Soprano::Statement newStatement(s);
         newStatement.setObject(convertFilexUrl(s.object()));
@@ -258,6 +273,9 @@ Soprano::Statement Nepomuk2::RemovableMediaModel::convertFilexUrls(const Soprano
 
 Soprano::Node Nepomuk2::RemovableMediaModel::convertFilexUrl(const Soprano::Node &node) const
 {
+    if( m_removableMediaCache->isEmpty() )
+        return node;
+
     if(node.isResource()) {
         const QUrl url = node.uri();
         if(m_removableMediaCache->hasRemovableSchema(url)) {
@@ -274,6 +292,9 @@ Soprano::Node Nepomuk2::RemovableMediaModel::convertFilexUrl(const Soprano::Node
 
 QString Nepomuk2::RemovableMediaModel::convertFileUrls(const QString &query) const
 {
+    if( m_removableMediaCache->isEmpty() )
+        return query;
+
     //
     // There are at least two cases to handle:
     // 1. Simple file:/ URLs used as resources (Example: "<file:///home/foobar>")

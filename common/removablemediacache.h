@@ -97,6 +97,11 @@ public:
      */
     bool hasRemovableSchema(const KUrl& url) const;
 
+    /**
+     * Returns true if they are no devices in the RemoveableMediaCache
+     */
+    bool isEmpty() const;
+
 signals:
     void deviceAdded(const Nepomuk2::RemovableMediaCache::Entry* entry);
     void deviceRemoved(const Nepomuk2::RemovableMediaCache::Entry* entry);
