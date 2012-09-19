@@ -69,7 +69,6 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
              this, SIGNAL( statusStringChanged() ) );
 
     // start initial indexing honoring the hidden config option to disable it
-    m_indexScheduler->suspend();
     if( FileIndexerConfig::self()->isInitialRun() || !FileIndexerConfig::self()->initialUpdateDisabled() ) {
         m_indexScheduler->updateAll();
     }

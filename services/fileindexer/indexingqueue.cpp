@@ -34,8 +34,10 @@ IndexingQueue::IndexingQueue(QObject* parent): QObject(parent)
 
 void IndexingQueue::processNext()
 {
-    if( m_suspended )
+    if( m_suspended ) {
+        m_sentEvent = false;
         return;
+    }
 
     bool startedIndexing = false;
 

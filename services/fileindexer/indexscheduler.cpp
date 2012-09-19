@@ -202,8 +202,11 @@ void Nepomuk2::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
         flags |= ForceUpdate;
 
     // update everything again in case the folders changed
+
+    // TODO: Improve the architecture. This is not good
     foreach( const QString& f, FileIndexerConfig::self()->includeFolders() ) {
         m_fastQueue->enqueue( f, flags );
+        m_slowQueue->enqueue( f, flags );
     }
 }
 

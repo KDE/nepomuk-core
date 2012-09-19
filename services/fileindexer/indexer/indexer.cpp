@@ -24,6 +24,7 @@
 #include "extractor.h"
 #include "simpleindexer.h"
 #include "../util.h"
+#include "kext.h"
 
 #include "storeresourcesjob.h"
 
@@ -43,6 +44,7 @@
 #include <Soprano/Vocabulary/RDF>
 
 using namespace Soprano::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 Nepomuk2::Indexer::Indexer( QObject* parent )
     : QObject( parent )
@@ -103,9 +105,9 @@ bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uin
     indexingJob->exec();
 
     bool status = indexingJob->error();
-    kDebug() << "Saving data";
+    kDebug() << "Saving data " << indexingJob->errorString();
 
-    if( status ) {
+    if( !status ) {
         QString mimeType = indexingJob->mimeType();
         QUrl uri = indexingJob->uri();
 
@@ -116,14 +118,18 @@ bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uin
             graph += ex->extract( uri, url );
         }
 
+        // Indexing Level
+        graph.add( uri, KExt::indexingLevel(), 2 );
+
         if( !graph.isEmpty() ) {
             QHash<QUrl, QVariant> additionalMetadata;
             additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
 
             // we do not have an event loop - thus, we need to delete the job ourselves
             kDebug() << "Saving proper";
-            QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNone,
-                                                        NoStoreResourcesFlags, additionalMetadata ) );
+            // HACK: Use OverwriteProperties for the setting the indexingLevel
+            QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNew,
+                                                        OverwriteProperties, additionalMetadata ) );
             job->setAutoDelete(false);
             job->exec();
             if( job->error() ) {

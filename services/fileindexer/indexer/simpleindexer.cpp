@@ -80,6 +80,9 @@ void Nepomuk2::SimpleIndexingJob::start()
     m_res.setProperty(NIE::created(), fileInfo.created());
     m_res.setProperty(NIE::lastModified(), fileInfo.lastModified());
 
+    // Indexing Level
+    m_res.setProperty(KExt::indexingLevel(), 1);
+
 #ifdef Q_OS_UNIX
     KDE_struct_stat statBuf;
     if( KDE_stat( QFile::encodeName(fileInfo.absoluteFilePath()).data(), &statBuf ) == 0 ) {

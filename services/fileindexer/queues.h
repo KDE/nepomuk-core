@@ -57,8 +57,8 @@ namespace Nepomuk2 {
         virtual void indexDir(const QString&);
         virtual void indexFile(const QString& file);
 
-        virtual bool shouldIndex(const QString&) { return true; }
-        virtual bool shouldIndexContents(const QString&) { return false; }
+        virtual bool shouldIndex(const QString& file);
+        virtual bool shouldIndexContents(const QString& path);
     };
 }
 

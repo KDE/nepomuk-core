@@ -44,7 +44,7 @@ KJob* Nepomuk2::clearIndexedData( const QList<QUrl>& urls )
     if ( urls.isEmpty() )
         return 0;
 
-    kDebug() << urls;
+    //kDebug() << urls;
 
     //
     // New way of storing File Indexing Data

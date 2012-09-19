@@ -85,7 +85,7 @@ bool FastIndexingQueue::shouldIndex(const QString& path)
     bool needToIndex = !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
 
     if( needToIndex ) {
-        kDebug() << path;
+        //kDebug() << path;
         return true;
     }
 
@@ -94,7 +94,6 @@ bool FastIndexingQueue::shouldIndex(const QString& path)
 
 bool FastIndexingQueue::shouldIndexContents(const QString& dir)
 {
-    // FIXME: Check the mtime as well
     return FileIndexerConfig::self()->shouldFolderBeIndexed( dir );
 }
 
@@ -106,18 +105,33 @@ bool FastIndexingQueue::shouldIndexContents(const QString& dir)
 SlowIndexingQueue::SlowIndexingQueue(QObject* parent)
 : IndexingQueue(parent)
 {
-
 }
 
 void SlowIndexingQueue::indexFile(const QString& file)
 {
     KJob* job = new Indexer( QFileInfo(file) );
+    job->start();
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(finishedIndexingFile()) );
 }
 
 void SlowIndexingQueue::indexDir(const QString& )
 {
     finishedIndexingFile();
+}
+
+bool SlowIndexingQueue::shouldIndex(const QString& file)
+{
+    QString query = QString::fromLatin1("ask where { ?r nie:url %1 ; kext:indexingLevel ?l . "
+                                        " FILTER( ?l < 2 ) . }")
+                    .arg( Soprano::Node::resourceToN3( QUrl::fromLocalFile(file) ) );
+
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    return model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+}
+
+bool SlowIndexingQueue::shouldIndexContents(const QString& path)
+{
+    return FileIndexerConfig::self()->shouldFolderBeIndexed( path );
 }
 
 
