@@ -103,9 +103,14 @@ void Nepomuk2::SimpleIndexingJob::start()
     SimpleResourceGraph graph;
     graph << m_res;
 
-    // we do not have an event loop - thus, we need to delete the job ourselves
+    // In order to be compatibile with earlier releases we keep the old app name
+    KComponentData component = KGlobal::mainComponent();
+    if( component.componentName() != QLatin1String("nepomukindexer") ) {
+        component = KComponentData( QByteArray("nepomukindexer"),
+                                    QByteArray(), KComponentData::SkipMainComponentRegistration );
+    }
     StoreResourcesJob* job( Nepomuk2::storeResources( graph, IdentifyNew,
-                                                      NoStoreResourcesFlags, additionalMetadata ) );
+                                                      NoStoreResourcesFlags, additionalMetadata, component ) );
 
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotJobFinished(KJob*)) );
 }
