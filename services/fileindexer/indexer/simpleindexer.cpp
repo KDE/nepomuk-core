@@ -45,7 +45,6 @@ Nepomuk2::SimpleIndexingJob::SimpleIndexingJob(const QUrl& fileUrl, QObject* par
     : KJob( parent )
     , m_nieUrl( fileUrl )
 {
-    start();
 }
 
 void Nepomuk2::SimpleIndexingJob::start()

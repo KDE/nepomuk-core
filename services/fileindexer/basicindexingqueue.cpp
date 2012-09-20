@@ -182,6 +182,8 @@ void BasicIndexingQueue::slotClearIndexedDataFinished(KJob* job)
     }
 
     SimpleIndexingJob* indexingJob = new SimpleIndexingJob( currentUrl() );
+    indexingJob->start();
+
     connect( indexingJob, SIGNAL(finished(KJob*)), this, SLOT(slotIndexingFinished(KJob*)) );
 }
 
