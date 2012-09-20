@@ -28,31 +28,6 @@
 
 namespace Nepomuk2 {
 
-    enum UpdateDirFlag {
-        /**
-         * No flags, only used to make code more readable
-         */
-        NoUpdateFlags = 0x0,
-
-        /**
-         * The folder should be updated recursive
-         */
-        UpdateRecursive = 0x1,
-
-        /**
-         * The folder has been scheduled to update by the
-         * update system, not by a call to updateDir
-         */
-        AutoUpdateFolder = 0x2,
-
-        /**
-         * The files in the folder should be updated regardless
-         * of their state.
-         */
-        ForceUpdate = 0x4
-    };
-    Q_DECLARE_FLAGS( UpdateDirFlags, UpdateDirFlag )
-
 
     class IndexingQueue : public QObject
     {
@@ -60,59 +35,36 @@ namespace Nepomuk2 {
     public:
         explicit IndexingQueue(QObject* parent = 0);
 
-        QUrl currentUrl() const;
+        virtual bool isEmpty() = 0;
 
     public slots:
-        void enqueue(const QString& path);
-        void enqueue(const QString& path, UpdateDirFlags flags);
-
         void suspend();
         void resume();
 
-        void clear();
-
-    signals:
-        void beginIndexing(const QString& path);
-        void endIndexing(const QString& path);
-
     protected:
-        virtual void indexDir(const QString& dir) = 0;
-
         /**
-         * This method does not need to be synchronous. The indexing operation may be started
-         * and on completion, the finishedIndexing method should be called
+         * Returns true if a file has been sent for indexing
          */
-        virtual void indexFile(const QString& file) = 0;
-
-        virtual bool shouldIndex(const QString& file) = 0;
-        virtual bool shouldIndexContents(const QString& dir) = 0;
+        virtual bool processNextIteration() = 0;
 
     protected slots:
         /**
          * Call this function when you have finished indexing one file, and want the indexing
          * queue to continue
          */
-        void finishedIndexingFile();
+        void finishIndexingFile();
+
+        void callForNextIteration();
 
     private slots:
-        bool process(const QString& path, Nepomuk2::UpdateDirFlags flags);
         void processNext();
 
     private:
-        void callForNextIteration();
-
-        QQueue< QPair<QString, UpdateDirFlags> > m_paths;
-        QQueue< QPair<QDirIterator*, UpdateDirFlags> > m_iterators;
-
-        QUrl m_currentUrl;
-        UpdateDirFlags m_currentFlags;
-
         bool m_suspended;
         bool m_sentEvent;
     };
 
 }
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(Nepomuk2::UpdateDirFlags)
 
 #endif // FILEINDEXER_INDEXINGQUEUE_H

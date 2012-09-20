@@ -13,7 +13,8 @@ set(nepomukfileindexer_SRCS
   fileindexer.cpp
   indexscheduler.cpp
   indexingqueue.cpp
-  queues.cpp
+  basicindexingqueue.cpp
+  fileindexingqueue.cpp
   indexcleaner.cpp
   fileindexerconfig.cpp
   indexer/simpleindexer.cpp

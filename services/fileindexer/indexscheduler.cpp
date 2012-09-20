@@ -25,6 +25,8 @@
 #include "nepomukindexer.h"
 #include "util.h"
 #include "datamanagement.h"
+#include "fileindexingqueue.h"
+#include "basicindexingqueue.h"
 
 #include <QtCore/QList>
 #include <QtCore/QFile>
@@ -68,20 +70,17 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     connect( FileIndexerConfig::self(), SIGNAL( configChanged() ),
              this, SLOT( slotConfigChanged() ) );
 
-    m_fastQueue = new FastIndexingQueue( this );
-    m_slowQueue = new SlowIndexingQueue( this );
+    m_basicIQ = new BasicIndexingQueue( this );
+    m_fileIQ = new FileIndexingQueue( this );
 
-    connect( m_fastQueue, SIGNAL(endIndexing(QString)),
-             m_slowQueue, SLOT(enqueue(QString)) );
-
-    m_slowQueue->suspend();
+    m_fileIQ->suspend();
 
     // stop the slow queue on user activity
     KIdleTime* idleTime = KIdleTime::instance();
     idleTime->addIdleTimeout( 1000 * 60 * 2 ); // 2 min
 
     connect( idleTime, SIGNAL(timeoutReached(int)), this, SLOT(slotIdleTimeoutReached()) );
-    connect( idleTime, SIGNAL(resumingFromIdle()), m_slowQueue, SLOT(suspend()) );
+    connect( idleTime, SIGNAL(resumingFromIdle()), m_fileIQ, SLOT(suspend()) );
 }
 
 
@@ -91,7 +90,8 @@ Nepomuk2::IndexScheduler::~IndexScheduler()
 
 void Nepomuk2::IndexScheduler::slotIdleTimeoutReached()
 {
-    m_slowQueue->resume();
+    kDebug() << "Resuming File indexing queue";
+    m_fileIQ->resume();
     KIdleTime::instance()->catchNextResumeEvent();
 }
 
@@ -104,7 +104,7 @@ void Nepomuk2::IndexScheduler::suspend()
             m_cleaner->suspend();
         }
 
-        m_fastQueue->suspend();
+        m_basicIQ->suspend();
         emit indexingSuspended( true );
     }
 }
@@ -119,7 +119,7 @@ void Nepomuk2::IndexScheduler::resume()
             m_cleaner->resume();
         }
 
-        m_fastQueue->resume();
+        m_basicIQ->resume();
         emit indexingSuspended( false );
     }
 }
@@ -183,7 +183,7 @@ void Nepomuk2::IndexScheduler::slotCleaningDone()
 
 void Nepomuk2::IndexScheduler::updateDir( const QString& path, UpdateDirFlags flags )
 {
-    m_fastQueue->enqueue( path, flags );
+    m_basicIQ->enqueue( path, flags );
 }
 
 
@@ -195,18 +195,15 @@ void Nepomuk2::IndexScheduler::updateAll( bool forceUpdate )
 
 void Nepomuk2::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
 {
-    m_fastQueue->clear();
+    m_basicIQ->clear();
 
     UpdateDirFlags flags = UpdateRecursive|AutoUpdateFolder;
     if ( forceUpdate )
         flags |= ForceUpdate;
 
     // update everything again in case the folders changed
-
-    // TODO: Improve the architecture. This is not good
     foreach( const QString& f, FileIndexerConfig::self()->includeFolders() ) {
-        m_fastQueue->enqueue( f, flags );
-        m_slowQueue->enqueue( f, flags );
+        m_basicIQ->enqueue( f, flags );
     }
 }
 
@@ -231,7 +228,7 @@ void Nepomuk2::IndexScheduler::slotConfigChanged()
 void Nepomuk2::IndexScheduler::analyzeFile( const QString& path )
 {
     kDebug() << path;
-    m_fastQueue->enqueue( path );
+    m_basicIQ->enqueue( path );
 }
 
 

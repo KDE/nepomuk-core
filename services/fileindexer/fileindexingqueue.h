@@ -18,61 +18,39 @@
 */
 
 
+#ifndef FILEINDEXINGQUEUE_H
+#define FILEINDEXINGQUEUE_H
+
 #include "indexingqueue.h"
 
-#include <QtCore/QTimer>
-#include <KDebug>
+#include <KJob>
+#include <Soprano/QueryResultIterator>
 
 namespace Nepomuk2 {
 
+    class FileIndexingQueue : public IndexingQueue
+    {
+        Q_OBJECT
+    public:
+        explicit FileIndexingQueue(QObject* parent = 0);
+        virtual bool isEmpty();
 
-IndexingQueue::IndexingQueue(QObject* parent): QObject(parent)
-{
-    m_sentEvent = false;
-    m_suspended = false;
+        void clear();
+        QUrl currentUrl();
+
+    protected:
+        virtual bool processNextIteration();
+
+    private slots:
+        void slotFinishedIndexingFile(KJob* job);
+
+    private:
+        void process(const QUrl& url);
+        void fillQueue();
+
+        QQueue<QUrl> m_fileQueue;
+        QUrl m_currentUrl;
+    };
 }
 
-void IndexingQueue::processNext()
-{
-    if( m_suspended ) {
-        m_sentEvent = false;
-        return;
-    }
-
-    bool startedIndexing = processNextIteration();
-
-    if( !startedIndexing ) {
-        m_sentEvent = false;
-        callForNextIteration();
-    }
-}
-
-
-void IndexingQueue::resume()
-{
-    m_suspended = false;
-    callForNextIteration();
-}
-
-void IndexingQueue::suspend()
-{
-    m_suspended = true;
-}
-
-void IndexingQueue::callForNextIteration()
-{
-    if( !m_suspended && !m_sentEvent && !isEmpty() ) {
-        QTimer::singleShot( 0, this, SLOT(processNext()) );
-        m_sentEvent = true;
-    }
-}
-
-void IndexingQueue::finishIndexingFile()
-{
-    m_sentEvent = false;
-    callForNextIteration();
-}
-
-
-
-}
+#endif // FILEINDEXINGQUEUE_H

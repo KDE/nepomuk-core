@@ -19,14 +19,11 @@
 #ifndef _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
 #define _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
 
-#include "queues.h"
+#include "basicindexingqueue.h"
 
 #include <QtCore/QQueue>
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
-
-#include <vector>
-#include <string>
 
 #include <KUrl>
 
@@ -37,7 +34,7 @@ class QByteArray;
 namespace Nepomuk2 {
 
     class IndexCleaner;
-    class Indexer;
+    class FileIndexingQueue;
 
     /**
      * The IndexScheduler performs the normal indexing,
@@ -154,8 +151,8 @@ namespace Nepomuk2 {
         IndexCleaner* m_cleaner;
 
         // Queues
-        FastIndexingQueue* m_fastQueue;
-        SlowIndexingQueue* m_slowQueue;
+        BasicIndexingQueue* m_basicIQ;
+        FileIndexingQueue* m_fileIQ;
     };
 }
 
