@@ -36,6 +36,7 @@
 
 #include <KDebug>
 #include <KUrl>
+#include <KJob>
 
 int main(int argc, char *argv[])
 {
@@ -81,7 +82,13 @@ int main(int argc, char *argv[])
         }
     }
     else if( args->isSet("clear") ) {
-        Nepomuk2::clearIndexedData( args->url(0) );
+        kDebug();
+        KJob* job = Nepomuk2::clearIndexedData( args->url(0) );
+        job->exec();
+        if( job->error() ) {
+            kDebug() << job->errorString();
+            return 1;
+        }
         kDebug() << "Removed indexed data for" << args->url(0);
         return 0;
     }
