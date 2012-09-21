@@ -52,8 +52,20 @@ namespace Nepomuk2 {
         ~Indexer();
 
         /**
+         * Clears the previous index of the file, runs the basic indexing
+         * and then runs the file indexing on the url.
+         *
+         * These 3 steps are generally split among different parts, but they are combined
+         * over here for debugging purposes.
+         */
+        bool indexFileDebug( const KUrl& url );
+
+        /**
          * Index a single local file or folder (files in a folder will
          * not be indexed recursively).
+         *
+         * This method just calls the appropriate file indexing plugins and then saves
+         * the graph.
          */
         bool indexFile( const KUrl& url );
 

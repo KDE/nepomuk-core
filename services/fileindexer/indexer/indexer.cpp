@@ -27,6 +27,10 @@
 #include "kext.h"
 
 #include "storeresourcesjob.h"
+#include "resourcemanager.h"
+
+#include <Soprano/Model>
+#include <Soprano/QueryResultIterator>
 
 #include <KDebug>
 #include <KJob>
@@ -38,7 +42,7 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
-#include <QTimer>
+#include <QtCore/QTimer>
 
 #include <Soprano/Vocabulary/NRL>
 #include <Soprano/Vocabulary/RDF>
@@ -74,8 +78,60 @@ Nepomuk2::Indexer::~Indexer()
 }
 
 
+bool Nepomuk2::Indexer::indexFile(const KUrl& url)
+{
+    QFileInfo info( url.toLocalFile() );
+    if( !info.exists() ) {
+        m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
+        return false;
+    }
 
-bool Nepomuk2::Indexer::indexFile( const KUrl& url )
+    QString query = QString::fromLatin1("select ?r ?mtype where { ?r nie:url %1; nie:mimeType ?mtype . }")
+                    .arg( Soprano::Node::resourceToN3( url ) );
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+
+    QUrl uri;
+    QString mimeType;
+    if( it.next() ) {
+        uri = it[0].uri();
+        mimeType = it[1].literal().toString();
+    }
+
+    kDebug() << uri << mimeType;
+    SimpleResourceGraph graph;
+
+    QList<Extractor*> extractors = m_extractors.values( mimeType );
+    foreach( Extractor* ex, extractors ) {
+        graph += ex->extract( uri, url );
+    }
+
+    // Indexing Level
+    graph.add( uri, KExt::indexingLevel(), 2 );
+
+    if( !graph.isEmpty() ) {
+        QHash<QUrl, QVariant> additionalMetadata;
+        additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
+
+        // we do not have an event loop - thus, we need to delete the job ourselves
+        // HACK: Use OverwriteProperties for the setting the indexingLevel
+        QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNew,
+                                                                         OverwriteProperties, additionalMetadata ) );
+        job->setAutoDelete(false);
+        job->exec();
+        if( job->error() ) {
+            m_lastError = job->errorString();
+            kError() << "SimpleIndexerError: " << job->errorString();
+            return false;
+        }
+        kDebug() << "Done";
+    }
+
+    return true;
+}
+
+bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
 {
     QFileInfo info( url.toLocalFile() );
     if( !info.exists() ) {

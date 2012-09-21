@@ -57,6 +57,7 @@ int main(int argc, char *argv[])
     KCmdLineOptions options;
     options.add("+[url]", ki18n("The URL of the file to be indexed"));
     options.add("clear", ki18n("Remove all indexed data of the URL provided"));
+    options.add("debug", ki18n("First clears the existing index, and the runs both the basic and file indexing"));
 
     KCmdLineArgs::addCmdLineOptions(options);
     const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
@@ -84,6 +85,18 @@ int main(int argc, char *argv[])
     }
 
     Nepomuk2::Indexer indexer;
+    // Debugging
+    if( args->isSet("debug") ) {
+        if( !indexer.indexFileDebug( args->url(0) ) ) {
+            QTextStream s(stdout);
+            s << indexer.lastError();
+
+            return 1;
+        }
+        return 0;
+    }
+
+    // Normal Indexing
     if( !indexer.indexFile( args->url(0) ) ) {
         QTextStream s(stdout);
         s << indexer.lastError();
