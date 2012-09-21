@@ -74,20 +74,15 @@ Nepomuk2::Indexer::~Indexer()
 }
 
 
-bool Nepomuk2::Indexer::indexFile( const KUrl& url, const KUrl resUri, uint mtime )
-{
-    return indexFile( QFileInfo( url.toLocalFile() ), resUri, mtime );
-}
 
-
-bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uint mtime )
+bool Nepomuk2::Indexer::indexFile( const KUrl& url )
 {
+    QFileInfo info( url.toLocalFile() );
     if( !info.exists() ) {
         m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
         return false;
     }
 
-    QUrl url = QUrl::fromLocalFile( info.filePath() );
     kDebug() << "Starting to clear";
     KJob* job = Nepomuk2::clearIndexedData( url );
     kDebug() << "Done";
@@ -133,6 +128,7 @@ bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uin
             job->setAutoDelete(false);
             job->exec();
             if( job->error() ) {
+                m_lastError = job->errorString();
                 kError() << "SimpleIndexerError: " << job->errorString();
                 return false;
             }
@@ -141,11 +137,6 @@ bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uin
     }
 
     return status;
-}
-
-bool Nepomuk2::Indexer::indexStdin(const KUrl resUri, uint mtime)
-{
-    return false;
 }
 
 QString Nepomuk2::Indexer::lastError() const

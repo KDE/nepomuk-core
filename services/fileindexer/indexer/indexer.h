@@ -55,20 +55,7 @@ namespace Nepomuk2 {
          * Index a single local file or folder (files in a folder will
          * not be indexed recursively).
          */
-        bool indexFile( const KUrl& url, const KUrl resUri, uint mtime = 0 );
-
-        /**
-         * Index a single local file or folder (files in a folder will
-         * not be indexed recursively). This method does the exact same
-         * as the above except that it saves an addditional stat of the
-         * file.
-         */
-        bool indexFile( const QFileInfo& info, const KUrl resUri, uint mtime=0 );
-
-        /**
-         * Index a file whose contents are provided via standard input.
-         */
-        bool indexStdin( const KUrl resUri, uint mtime=0 );
+        bool indexFile( const KUrl& url );
 
         QString lastError() const;
 

@@ -55,8 +55,6 @@ int main(int argc, char *argv[])
     KCmdLineArgs::init(argc, argv, &aboutData);
 
     KCmdLineOptions options;
-    options.add("uri <uri>", ki18n("The URI provided will be forced on the resource"));
-    options.add("mtime <time>", ki18n("The modification time of the resource in time_t format"));
     options.add("+[url]", ki18n("The URL of the file to be indexed"));
     options.add("clear", ki18n("Remove all indexed data of the URL provided"));
 
@@ -67,22 +65,14 @@ int main(int argc, char *argv[])
     QCoreApplication app( argc, argv );
     KComponentData data( aboutData, KComponentData::RegisterAsMainComponent );
 
-    const KUrl uri = args->getOption("uri");
-    const uint mtime = args->getOption("mtime").toUInt();
-
     if( args->count() == 0 ) {
-        Nepomuk2::Indexer indexer;
-        if( !indexer.indexStdin( uri, mtime ) ) {
-            QTextStream s(stdout);
-            s << indexer.lastError();
-            return 1;
-        }
-        else {
-            return 0;
-        }
+        QTextStream err( stderr );
+        err << "Must input url of the file to be indexed";
+
+        return 1;
     }
-    else if( args->isSet("clear") ) {
-        kDebug();
+
+    if( args->isSet("clear") ) {
         KJob* job = Nepomuk2::clearIndexedData( args->url(0) );
         job->exec();
         if( job->error() ) {
@@ -92,17 +82,14 @@ int main(int argc, char *argv[])
         kDebug() << "Removed indexed data for" << args->url(0);
         return 0;
     }
-    else {
-        Nepomuk2::Indexer indexer;
-        if( !indexer.indexFile( args->url(0), uri, mtime ) ) {
-            QTextStream s(stdout);
-            s << indexer.lastError();
 
-            return 1;
-        }
-        else {
-            kDebug() << "Indexed data for" << args->url(0);
-            return 0;
-        }
+    Nepomuk2::Indexer indexer;
+    if( !indexer.indexFile( args->url(0) ) ) {
+        QTextStream s(stdout);
+        s << indexer.lastError();
+
+        return 1;
     }
+
+    return 0;
 }
