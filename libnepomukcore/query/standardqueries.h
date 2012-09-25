@@ -19,8 +19,8 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef _NEPOMUK_STANDARD_QUERIES_H_
-#define _NEPOMUK_STANDARD_QUERIES_H_
+#ifndef _NEPOMUK2_STANDARD_QUERIES_H_
+#define _NEPOMUK2_STANDARD_QUERIES_H_
 
 #include "nepomuk_export.h"
 #include "term.h"

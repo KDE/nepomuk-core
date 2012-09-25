@@ -18,8 +18,8 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_SEARCH_DBUS_OPERATORS_H_
-#define _NEPOMUK_SEARCH_DBUS_OPERATORS_H_
+#ifndef _NEPOMUK2_SEARCH_DBUS_OPERATORS_H_
+#define _NEPOMUK2_SEARCH_DBUS_OPERATORS_H_
 
 #include <QtDBus/QDBusArgument>
 

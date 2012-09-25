@@ -17,8 +17,8 @@
     Boston, MA 02110-1301, USA.
 */
 
-#ifndef _NEPOMUK_ENTITY_PRIVATE_H_
-#define _NEPOMUK_ENTITY_PRIVATE_H_
+#ifndef _NEPOMUK2_ENTITY_PRIVATE_H_
+#define _NEPOMUK2_ENTITY_PRIVATE_H_
 
 #include "entity.h"
 

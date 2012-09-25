@@ -17,8 +17,8 @@
     Boston, MA 02110-1301, USA.
 */
 
-#ifndef NEPOMUK_EXPORT_H
-#define NEPOMUK_EXPORT_H
+#ifndef _NEPOMUK2_EXPORT_H
+#define _NEPOMUK2_EXPORT_H
 
 /* needed for KDE_EXPORT and KDE_IMPORT macros */
 #include <kdemacros.h>

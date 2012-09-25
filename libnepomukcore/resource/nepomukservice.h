@@ -16,8 +16,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef _NEPOMUK_SERVICE_H_
-#define _NEPOMUK_SERVICE_H_
+#ifndef _NEPOMUK2_SERVICE_H_
+#define _NEPOMUK2_SERVICE_H_
 
 #include <QtCore/QObject>
 #include "nepomuk_export.h"
