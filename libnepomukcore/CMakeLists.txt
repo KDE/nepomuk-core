@@ -195,6 +195,7 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/tmo.h
   ${CMAKE_CURRENT_BINARY_DIR}/nuao.h
   ${CMAKE_CURRENT_BINARY_DIR}/ndo.h
+  vocabulary.h
 
   DESTINATION ${INCLUDE_INSTALL_DIR}/nepomuk2 COMPONENT Devel
 )
