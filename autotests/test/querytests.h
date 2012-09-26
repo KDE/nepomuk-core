@@ -46,8 +46,24 @@ private Q_SLOTS:
     void comparisonTerm_comparators();
     void comparisonTerm_comparators_data();
 
+    void comparisonTerm_withInvalid();
+    void comparisonTerm_withInvalid_data();
+
+    void invertedComparisonTerm();
+    void invertedComparisonTerm_data();
+
+    void optionalTerm();
+    void optionalTerm_data();
+
+    void variableNames();
+    void variableNames_data();
+
+    void orderByTerm();
+    void orderByTerm_data();
+
     void fileQueries();
     void fileQueries_data();
+
 private:
 
 };

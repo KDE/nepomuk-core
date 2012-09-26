@@ -55,6 +55,7 @@
 #include <Soprano/Vocabulary/XMLSchema>
 #include <Soprano/QueryResultIterator>
 #include <Soprano/StatementIterator>
+#include <Soprano/NodeIterator>
 
 #include <KDebug>
 #include <KTemporaryFile>
@@ -642,6 +643,345 @@ void QueryTests::comparisonTerm()
     literalTerm();
 }
 
+void QueryTests::comparisonTerm_withInvalid_data()
+{
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "actualResults" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "expectedResults" );
+
+    // Add some music
+    QUrl whistleSongUri;
+    {
+        QLatin1String artist("Floname Rida");
+        QLatin1String album("Wild Ones");
+
+        Test::DataGenerator gen;
+        whistleSongUri = gen.createMusicFile( QLatin1String("Whistle"), artist, album );
+        gen.createMusicFile( QLatin1String("Wild Ones"), artist, album );
+        gen.createMusicFile( QLatin1String("Let it Roll"), artist, album );
+        gen.createMusicFile( QLatin1String("Good Feeling"), artist, album );
+        gen.createMusicFile( QLatin1String("Sweet Spot"), artist, album );
+    }
+
+    // Comparsion Term with invalid property
+    {
+        Query::Query query;
+        query.setTerm( ComparisonTerm(QUrl(), ResourceTerm(whistleSongUri)) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it;
+        while( it.next() ) {
+            if( it.object().uri() == whistleSongUri )
+                uris << it.subject().uri();
+        }
+
+        QTest::newRow( "comparsion term with invalid property" )
+            << fetchResults( query )
+            << toResultList( uris );
+    }
+
+    // Comparsion Term with invalid term
+    {
+        Query::Query query( ComparisonTerm(NMM::performer(), Term()) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NMM::performer() );
+        while( it.next() ) {
+            uris << it.subject().uri();
+        }
+
+        QTest::newRow( "comparsion term with invalid term" )
+            << fetchResults( query )
+            << toResultList( uris );
+    }
+
+    // Comparsion Term with invalid term and property
+    {
+        Query::Query query;
+        query.setTerm( ComparisonTerm( QUrl(), Term() ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it;
+        while( it.next() ) {
+            uris << it.subject().uri();
+        }
+
+        QTest::newRow( "comparsion term with invalid term and property" )
+            << fetchResults( query )
+            << toResultList( uris );
+    }
+}
+
+void QueryTests::comparisonTerm_withInvalid()
+{
+    literalTerm();
+}
+
+
+void QueryTests::invertedComparisonTerm_data()
+{
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "actualResults" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "expectedResults" );
+
+    // Add some music
+    QUrl whistleSongUri;
+    {
+        QLatin1String artist("Floname Rida");
+        QLatin1String album("Wild Ones");
+
+        Test::DataGenerator gen;
+        whistleSongUri = gen.createMusicFile( QLatin1String("Whistle"), artist, album );
+        gen.createMusicFile( QLatin1String("Wild Ones"), artist, album );
+        gen.createMusicFile( QLatin1String("Let it Roll"), artist, album );
+        gen.createMusicFile( QLatin1String("Good Feeling"), artist, album );
+        gen.createMusicFile( QLatin1String("Sweet Spot"), artist, album );
+    }
+
+    // property inversion with term
+    {
+        Query::Query query( ComparisonTerm(NMM::performer(), ResourceTerm(whistleSongUri)).inverted() );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NMM::performer() );
+        while( it.next() ) {
+            if( it.subject().uri() == whistleSongUri )
+                uris << it.object().uri();
+        }
+
+
+        QTest::newRow( "property inversion with term" )
+            << fetchResults( query )
+            << toResultList( uris );
+    }
+
+    // property inversion without term
+    {
+        Query::Query query( ComparisonTerm(NMM::performer(), Term()).inverted() );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NMM::performer() );
+        while( it.next() ) {
+            uris << it.object().uri();
+        }
+
+        QTest::newRow( "property inversion without term" )
+            << fetchResults( query )
+            << toResultList( uris );
+    }
+}
+
+void QueryTests::invertedComparisonTerm()
+{
+    literalTerm();
+}
+
+void QueryTests::optionalTerm()
+{
+    literalTerm();
+}
+
+void QueryTests::optionalTerm_data()
+{
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "actualResults" );
+    QTest::addColumn< QList<Nepomuk2::Query::Result> >( "expectedResults" );
+
+    QString mainArtist;
+    QString mainAlbum;
+
+    // Add some music
+    {
+        QLatin1String artist("Floname Rida");
+        QLatin1String album("Wild Ones");
+
+        Test::DataGenerator gen;
+        gen.createMusicFile( QLatin1String("Whistle"), artist, album );
+        gen.createMusicFile( QLatin1String("Wild Ones"), artist, album );
+        gen.createMusicFile( QLatin1String("Let it Roll"), artist, album );
+        gen.createMusicFile( QLatin1String("Good Feeling"), artist, album );
+        gen.createMusicFile( QLatin1String("Sweet Spot"), artist, album );
+
+        QLatin1String artist2("Outlandish");
+        QLatin1String album2("Bread & Barrels of Water");
+
+        gen.createMusicFile( QLatin1String("Peelo"), artist2, album2 );
+        gen.createMusicFile( QLatin1String("Walou"), artist2, album2 );
+        gen.createMusicFile( QLatin1String("Aicha"), artist2, album2 );
+        gen.createMusicFile( QLatin1String("If Only"), artist2, album2 );
+
+        gen.createMusicFile( QLatin1String("Random Song"), artist, album2 );
+
+        mainAlbum = album2;
+        mainArtist = artist;
+    }
+
+    QUrl albumUri;
+    QUrl artistUri;
+    {
+        Soprano::Model* model = ResourceManager::instance()->mainModel();
+        QList< Soprano::Node > nodes = model->listStatements( QUrl(), NIE::title(), Soprano::LiteralValue(mainAlbum) ).iterateSubjects().allNodes();
+
+        QCOMPARE( nodes.size(), 1 );
+        albumUri = nodes.first().uri();
+
+        nodes = model->listStatements( QUrl(), NCO::fullname(), Soprano::LiteralValue(mainArtist) ).iterateSubjects().allNodes();
+        QCOMPARE( nodes.size(), 1 );
+        artistUri = nodes.first().uri();
+    }
+
+    {
+        Query::ComparisonTerm ct1( NMM::performer(), ResourceTerm(artistUri) );
+        Query::ComparisonTerm ct2( NMM::musicAlbum(), ResourceTerm(albumUri) );
+        Query::Query query( AndTerm( ct1,
+                                     OptionalTerm::optionalizeTerm( ct2 ) ) );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NMM::performer() );
+        while( it.next() ) {
+            if( it.object().uri() == artistUri )
+                uris << it.subject().uri();
+        }
+
+        NepomukStatementIterator it2( NMM::musicAlbum() );
+        while( it.next() ) {
+            if( it2.object().uri() == albumUri )
+                uris << it.subject().uri();
+        }
+
+        QTest::newRow( "optional term" )
+            << fetchResults( query )
+            << toResultList( uris );
+    }
+}
+
+void QueryTests::variableNames_data()
+{
+    QTest::addColumn< QList<QUrl> >( "actualResults" );
+    QTest::addColumn< QList<QUrl> >( "expectedResults" );
+
+    // Add some music
+    {
+        QLatin1String artist("Floname Rida");
+        QLatin1String album("Wild Ones");
+
+        Test::DataGenerator gen;
+        gen.createMusicFile( QLatin1String("Whistle"), artist, album );
+        gen.createMusicFile( QLatin1String("Wild Ones"), artist, album );
+        gen.createMusicFile( QLatin1String("Let it Roll"), artist, album );
+        gen.createMusicFile( QLatin1String("Good Feeling"), artist, album );
+        gen.createMusicFile( QLatin1String("Sweet Spot"), artist, album );
+    }
+
+    {
+        QString varName("artist");
+
+        Query::ComparisonTerm ct1( NMM::performer(), Term() );
+        ct1.setVariableName( varName );
+
+        Query::Query query( ct1 );
+
+        QSet<QUrl> uris;
+        NepomukStatementIterator it( NMM::performer() );
+        while( it.next() ) {
+            uris << it.object().uri();
+        }
+
+        QList<Query::Result> queryResults = fetchResults( query );
+        QList<QUrl> actualResults;
+        foreach( const Query::Result& res, queryResults ) {
+            actualResults << res.additionalBinding( varName ).toUrl();
+        }
+
+        QTest::newRow( "variable names" )
+            << actualResults
+            << uris.toList();
+    }
+}
+
+void QueryTests::variableNames()
+{
+    QFETCH( QList<QUrl>, actualResults );
+    QFETCH( QList<QUrl>, expectedResults );
+
+    QSet<QUrl> actualUris = actualResults.toSet();
+    QSet<QUrl> expectedUris = expectedResults.toSet();
+
+    //kDebug() << "Actual Results: " << actualResults;
+    //kDebug() << "Expected Results: " << expectedResults;
+
+    // What about duplicates?
+    QCOMPARE( actualUris, expectedUris );
+}
+
+
+void QueryTests::orderByTerm_data()
+{
+    resetRepository();
+
+    QTest::addColumn< QList<QUrl> >( "actualResults" );
+    QTest::addColumn< QList<QUrl> >( "expectedResults" );
+
+    // Generate a bunch of text files with numeric ratings
+    QList<QUrl> expectedResults;
+
+    Test::DataGenerator gen;
+
+    QUrl res1 = gen.createPlainTextFile( QLatin1String("ABC") );
+    QUrl res2 = gen.createPlainTextFile( QLatin1String("ABCD") );
+    QUrl res3 = gen.createPlainTextFile( QLatin1String("ABCE") );
+    QUrl res4 = gen.createPlainTextFile( QLatin1String("ABD") );
+    QUrl res5 = gen.createPlainTextFile( QLatin1String("AB") );
+    QUrl res6 = gen.createPlainTextFile( QLatin1String("A") );
+    QUrl res7 = gen.createPlainTextFile( QLatin1String("NO MATTER") );
+
+    SimpleResourceGraph graph;
+    graph.addStatement( res1, NAO::numericRating(), Soprano::LiteralValue(1) );
+    graph.addStatement( res2, NAO::numericRating(), Soprano::LiteralValue(2) );
+    graph.addStatement( res3, NAO::numericRating(), Soprano::LiteralValue(3) );
+    graph.addStatement( res4, NAO::numericRating(), Soprano::LiteralValue(3) );
+    graph.addStatement( res5, NAO::numericRating(), Soprano::LiteralValue(2) );
+    graph.addStatement( res6, NAO::numericRating(), Soprano::LiteralValue(1) );
+    graph.addStatement( res7, NAO::numericRating(), Soprano::LiteralValue(6) );
+
+    KJob* job = graph.save();
+    job->exec();
+    QVERIFY( !job->error() );
+
+    {
+        Query::ComparisonTerm ct1( NAO::numericRating(), LiteralTerm(4), ComparisonTerm::Smaller );
+        Query::ComparisonTerm ct2( NIE::plainTextContent(), Term() );
+
+        ct1.setSortWeight( 10, Qt::DescendingOrder );
+        ct2.setSortWeight( 2, Qt::AscendingOrder );
+
+        Query::Query query( AndTerm( ct1, ct2 ) );
+        kDebug() << query.toSparqlQuery();
+
+        QList<Query::Result> queryResults = fetchResults( query );
+        QList<QUrl> actualResults;
+        foreach( const Query::Result& res, queryResults ) {
+            actualResults << res.resource().uri();
+        }
+
+        // The correct order will be -
+        expectedResults << res3 << res4;
+        expectedResults << res5 << res2;
+        expectedResults << res6 << res1;
+
+        QTest::newRow( "order by" )
+            << actualResults
+            << expectedResults;
+    }
+
+}
+
+void QueryTests::orderByTerm()
+{
+    QFETCH( QList<QUrl>, actualResults );
+    QFETCH( QList<QUrl>, expectedResults );
+
+    QCOMPARE( actualResults, expectedResults );
+}
+
+
 void QueryTests::fileQueries()
 {
     literalTerm();
@@ -649,8 +989,6 @@ void QueryTests::fileQueries()
 
 void QueryTests::fileQueries_data()
 {
-    resetRepository();
-
     QTest::addColumn< QList<Nepomuk2::Query::Result> >( "actualResults" );
     QTest::addColumn< QList<Nepomuk2::Query::Result> >( "expectedResults" );
 
@@ -664,7 +1002,6 @@ void QueryTests::fileQueries_data()
 
     QString includeDir( dir.name() + "includeFolder/" );
     QString excludeDir( includeDir + "excludeFolder/" );
-
     SimpleResourceGraph graph;
     graph += Test::DataGenerator::createFolder( QUrl::fromLocalFile(includeDir) );
     for( int i=0; i<10; i++ ) {
