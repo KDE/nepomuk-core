@@ -14,9 +14,9 @@ target_link_libraries(queryparsertest nepomukcore
   ${KDE4_KDECORE_LIBS}
 )
 
-set(querytest_SRC querytest.cpp)
-kde4_add_unit_test(querytest TESTNAME nepomuk-querytest NOGUI ${querytest_SRC})
-target_link_libraries(querytest nepomukcore
+set(querylibtest_SRC querylibtest.cpp)
+kde4_add_unit_test(querylibtest TESTNAME nepomuk-querylibtest NOGUI ${querylibtest_SRC})
+target_link_libraries(querylibtest nepomukcore
   ${QT_QTTEST_LIBRARY}
   ${SOPRANO_LIBRARIES}
   ${KDE4_KDECORE_LIBS}

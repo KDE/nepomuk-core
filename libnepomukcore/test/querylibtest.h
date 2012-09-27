@@ -19,20 +19,16 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_QUERY_TEST_H_
-#define _NEPOMUK_QUERY_TEST_H_
+#ifndef _NEPOMUK_QUERYLIB_TEST_H_
+#define _NEPOMUK_QUERYLIB_TEST_H_
 
 #include <QtCore/QObject>
-#include "query.h"
-#include "term.h"
 
-class QueryTest : public QObject
+class QueryLibTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
-    void testToSparql_data();
-    void testToSparql();
     void testOptimization();
     void testLogicalOperators();
     void testComparison_data();
