@@ -20,6 +20,7 @@
 */
 
 #include "backupgenerationjob.h"
+#include "backupstatementiterator.h"
 #include "backupfile.h"
 
 #include <QtCore/QTimer>
@@ -38,14 +39,7 @@ void Nepomuk2::BackupGenerationJob::start()
 
 void Nepomuk2::BackupGenerationJob::doWork()
 {
-    QString query = QString::fromLatin1("select ?r ?p ?o ?g where { "
-                                        "graph ?g { ?r ?p ?o. } "
-                                        "FILTER NOT EXISTS { ?g a nrl:DiscardableInstanceBase . }"
-                                        "FILTER(regex(str(?r), '^nepomuk')). "
-                                         "}");
-
-    // We don't care about inference
-    Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    BackupStatementIterator it( m_model );
     BackupFile::createBackupFile( m_url, it );
 
     emitResult();

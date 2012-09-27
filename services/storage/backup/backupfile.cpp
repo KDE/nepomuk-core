@@ -19,6 +19,7 @@
 
 
 #include "backupfile.h"
+#include "backupstatementiterator.h"
 
 #include <QtCore/QFile>
 #include <QtCore/QMutableListIterator>
@@ -45,7 +46,7 @@ Soprano::StatementIterator BackupFile::iterator()
     return m_stIter;
 }
 
-bool BackupFile::createBackupFile(const QUrl& url, Soprano::QueryResultIterator& it)
+bool BackupFile::createBackupFile(const QUrl& url, BackupStatementIterator& it)
 {
     KTemporaryFile tempFile;
     tempFile.open();
@@ -61,7 +62,8 @@ bool BackupFile::createBackupFile(const QUrl& url, Soprano::QueryResultIterator&
     const Soprano::Serializer * serializer = Soprano::PluginManager::instance()->discoverSerializerForSerialization( Soprano::SerializationNQuads );
     while( it.next() ) {
         QList<Soprano::Statement> stList;
-        stList << Soprano::Statement( it["r"], it["p"], it["o"], it["g"] );
+        stList << it.current();
+        kDebug() << stList;
 
         Soprano::Util::SimpleStatementIterator iter( stList );
         serializer->serialize( iter, out, Soprano::SerializationNQuads );

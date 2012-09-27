@@ -18,29 +18,35 @@
 */
 
 
-#ifndef BACKUPFILE_H
-#define BACKUPFILE_H
+#ifndef _NEPOMUK2_BACKUPSTATEMENTITERATOR_H
+#define _NEPOMUK2_BACKUPSTATEMENTITERATOR_H
 
-#include <QtCore/QUrl>
+#include <Soprano/Model>
+#include <Soprano/Statement>
 #include <Soprano/QueryResultIterator>
-#include <Soprano/StatementIterator>
 
 namespace Nepomuk2 {
 
-    class BackupStatementIterator;
+class BackupStatementIterator
+{
+public:
+    BackupStatementIterator(Soprano::Model* model);
 
-    class BackupFile
-    {
-    public:
-        BackupFile();
+    bool next();
+    Soprano::Statement current();
 
-        Soprano::StatementIterator iterator();
+private:
+    Soprano::Model* m_model;
+    Soprano::QueryResultIterator m_it;
 
-        static BackupFile fromUrl(const QUrl& url);
-        static bool createBackupFile(const QUrl& url, BackupStatementIterator& it);
-    private:
-        Soprano::StatementIterator m_stIter;
+    enum State {
+        State_ProcessingResources,
+        State_ProcessingGraphs,
+        State_Done
     };
+    State m_state;
+};
 
 }
-#endif // BACKUPFILE_H
+
+#endif // _NEPOMUK2_BACKUPSTATEMENTITERATOR_H
