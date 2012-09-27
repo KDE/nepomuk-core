@@ -436,11 +436,13 @@ QUrl Nepomuk2::ResourceMerger::createGraphUri()
 QList< QUrl > Nepomuk2::ResourceMerger::existingTypes(const QUrl& uri) const
 {
     QList<QUrl> types;
-    QList<Soprano::Node> existingTypes = m_model->listStatements( uri, RDF::type(), Soprano::Node() )
-                                                  .iterateObjects().allNodes();
-    foreach( const Soprano::Node & n, existingTypes ) {
-        types << n.uri();
-    }
+
+    QString query = QString::fromLatin1("select ?t where { %1 rdf:type ?t . }")
+                    .arg( Soprano::Node::resourceToN3( uri ) );
+    Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    while( it.next() )
+        types << it[0].uri();
+
     // all resources have rdfs:Resource type by default
     types << RDFS::Resource();
 
@@ -502,18 +504,26 @@ Soprano::Node Nepomuk2::ResourceMerger::resolveUnmappedNode(const Soprano::Node&
     if( !node.isBlank() )
         return node;
 
-    QHash< QUrl, QUrl >::const_iterator it = m_mappings.constFind( QUrl(node.toN3()) );
+    const QUrl nodeN3( node.toN3() );
+    QHash< QUrl, QUrl >::const_iterator it = m_mappings.constFind( nodeN3 );
     if( it != m_mappings.constEnd() ) {
         return it.value();
     }
 
     const QUrl newUri = createResourceUri();
-    m_mappings.insert( QUrl(node.toN3()), newUri );
+    m_mappings.insert( nodeN3, newUri );
 
     // FIXME: trueg: IMHO these statements should instead be added to the list of all statements so there is only one place where anything is actually added to the model
-    Soprano::Node dateTime( (Soprano::LiteralValue( QDateTime::currentDateTime() )) );
-    m_model->addStatement( newUri, NAO::created(), dateTime, m_graph );
-    m_model->addStatement( newUri, NAO::lastModified(), dateTime, m_graph );
+    Soprano::LiteralValue dateTime( QDateTime::currentDateTime() );
+
+    // OPTIMIZATION: Use a hand made query instead of the generic addStatement.
+    // They way we avoid the extra resourceToN3 for the properties, uri and graph
+    QString addQuery = QString::fromLatin1("sparql insert into %1 { %2 nao:created %3 ; nao:lastModified %3 . }")
+                        .arg( Soprano::Node::resourceToN3( m_graph ),
+                              Soprano::Node::resourceToN3( newUri ),
+                              Soprano::Node::literalToN3( dateTime ) );
+    // We use sql instead of sparql so that we can avoid any changes done by any of the other models
+    m_model->executeQuery( addQuery, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 
     return newUri;
 }

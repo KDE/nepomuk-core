@@ -20,6 +20,7 @@
 #include "searchrunnable.h"
 #include "folder.h"
 
+#include "resourcemanager.h"
 #include "resource.h"
 
 #include <Soprano/Version>
@@ -48,10 +49,7 @@
 #include <QtCore/QStringList>
 
 
-
-using namespace Soprano;
-
-Nepomuk2::Query::SearchRunnable::SearchRunnable( Model* model, Nepomuk2::Query::Folder* folder )
+Nepomuk2::Query::SearchRunnable::SearchRunnable( Soprano::Model* model, Nepomuk2::Query::Folder* folder )
     : QRunnable(),
       m_model( model ),
       m_folder( folder )

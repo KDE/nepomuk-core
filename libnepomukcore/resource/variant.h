@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef _NEPOMUK_VARIANT_H_
-#define _NEPOMUK_VARIANT_H_
+#ifndef _NEPOMUK2_VARIANT_H_
+#define _NEPOMUK2_VARIANT_H_
 
 #include "nepomuk_export.h"
 #include "resource.h"

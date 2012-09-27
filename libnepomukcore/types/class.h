@@ -17,8 +17,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef _NEPOMUK_CLASS_H_
-#define _NEPOMUK_CLASS_H_
+#ifndef _NEPOMUK2_CLASS_H_
+#define _NEPOMUK2_CLASS_H_
 
 #include <QtCore/QList>
 #include <QtCore/QUrl>

@@ -21,6 +21,7 @@
 #include "ontologyloader.h"
 #include "query/queryservice.h"
 #include "backup/backupmanager.h"
+#include "resourcemanager.h"
 
 #include <KDebug>
 #include <KSharedConfig>
@@ -74,6 +75,10 @@ void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
         emit initializationDone( success );
     }
     else if( !m_ontologyLoader ) {
+        // We overide the main model cause certain classes utilize the Resource class, and we
+        // don't want them using the NepomukMainModel which communicates over a local socket.
+        ResourceManager::instance()->setOverrideMainModel( repo );
+
         // create the ontology loader, let it update all the ontologies,
         // and only then mark the service as initialized
         // TODO: fail the initialization in case loading the ontologies
@@ -84,7 +89,7 @@ void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
         m_ontologyLoader->updateLocalOntologies();
 
         // Query Service
-        m_queryService = new Query::QueryService( repo, this);
+        m_queryService = new Query::QueryService( repo, this );
 
         // Backup Service
         m_backupManager = new BackupManager( m_ontologyLoader, repo, this );

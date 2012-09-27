@@ -5,7 +5,6 @@ add_definitions(-DKDE_DEFAULT_DEBUG_AREA=300001)
 include_directories(
   ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
-  ${NEPOMUK_INCLUDE_DIR}
   ${nepomukserver_BINARY_DIR}
   )
 

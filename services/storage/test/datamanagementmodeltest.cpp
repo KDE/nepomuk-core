@@ -67,6 +67,7 @@ void DataManagementModelTest::resetModel()
     // rebuild the internals of the data management model
     m_classAndPropertyTree->rebuildTree(m_dmModel);
     m_inferenceModel->updateOntologyGraphs(true);
+    m_dmModel->clearCache();
 }
 
 
@@ -80,6 +81,8 @@ void DataManagementModelTest::initTestCase()
 
     // DataManagementModel relies on the usage of a NRLModel in the storage service
     m_nrlModel = new Soprano::NRLModel(m_model);
+    Nepomuk2::insertNamespaceAbbreviations( m_model );
+
     m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
     m_inferenceModel = new Nepomuk2::VirtuosoInferenceModel(m_nrlModel);
     m_dmModel = new Nepomuk2::DataManagementModel(m_classAndPropertyTree, m_inferenceModel);
@@ -1856,7 +1859,7 @@ void DataManagementModelTest::testRemoveResources_deletedFile()
 void DataManagementModelTest::testCreateResource()
 {
     // the simple test: we just create a resource using all params
-    const QUrl resUri = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA") << QUrl("class:/typeB"), QLatin1String("the label"), QLatin1String("the desc"), QLatin1String("A"));
+    const QUrl resUri = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA") << NCO::Contact(), QLatin1String("the label"), QLatin1String("the desc"), QLatin1String("A"));
 
     // this call should succeed
     QVERIFY(!m_dmModel->lastError());
@@ -1867,7 +1870,7 @@ void DataManagementModelTest::testCreateResource()
 
     // check if the resource was created properly
     QVERIFY(m_model->containsAnyStatement(resUri, RDF::type(), QUrl("class:/typeA")));
-    QVERIFY(m_model->containsAnyStatement(resUri, RDF::type(), QUrl("class:/typeB")));
+    QVERIFY(m_model->containsAnyStatement(resUri, RDF::type(), NCO::Contact()));
     QVERIFY(m_model->containsAnyStatement(resUri, NAO::prefLabel(), LiteralValue::createPlainLiteral(QLatin1String("the label"))));
     QVERIFY(m_model->containsAnyStatement(resUri, NAO::description(), LiteralValue::createPlainLiteral(QLatin1String("the desc"))));
 
@@ -1875,21 +1878,45 @@ void DataManagementModelTest::testCreateResource()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
+void DataManagementModelTest::testCreateResource_types()
+{
+    QList<QUrl> types;
+    types << NMM::MusicPiece() << NFO::FileDataObject() << RDFS::Resource();
+
+    QUrl uri = m_dmModel->createResource( types, QString(), QString(), QLatin1String("app") );
+    QVERIFY(!m_dmModel->lastError());
+
+    QList<Node> typeNodes = m_model->listStatements( uri, RDF::type(), QUrl() ).iterateObjects().allNodes();
+    QCOMPARE( typeNodes.size(), 1 );
+    QCOMPARE( typeNodes.first().uri(), NMM::MusicPiece() );
+
+    types << NFO::Folder();
+    QUrl uri2 = m_dmModel->createResource( types, QString(), QString(), QLatin1String("app") );
+    QVERIFY(!m_dmModel->lastError());
+
+    typeNodes = m_model->listStatements( uri2, RDF::type(), QUrl() ).iterateObjects().allNodes();
+    QCOMPARE( typeNodes.size(), 2 );
+    QVERIFY( typeNodes.contains( NMM::MusicPiece() ) );
+    QVERIFY( typeNodes.contains( NFO::Folder() ) );
+
+    QVERIFY(!haveTrailingGraphs());
+    QVERIFY(!haveDataInDefaultGraph());
+}
+
+
 void DataManagementModelTest::testCreateResource_invalid_args()
 {
+    // try to create a resource without any types
+    const QUrl uri = m_dmModel->createResource(QList<QUrl>(), QString(), QString(), QLatin1String("A"));
+    QVERIFY(!m_dmModel->lastError());
+
+    // should have been created with RDFS::Resource
+    QList<Node> nodes = m_model->listStatements( uri, RDF::type(), QUrl() ).iterateObjects().allNodes();
+    QCOMPARE( nodes.size(), 1 );
+    QCOMPARE( nodes.front().uri(), RDFS::Resource() );
+
     // remember current state to compare later on
     Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
-
-    // try to create a resource without any types
-    m_dmModel->createResource(QList<QUrl>(), QString(), QString(), QLatin1String("A"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
 
     // use an invalid type
     m_dmModel->createResource(QList<QUrl>() << QUrl("class:/non-existing-type"), QString(), QString(), QLatin1String("A"));
@@ -4747,6 +4774,37 @@ void DataManagementModelTest::testStoreResources_duplicates2()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
+void DataManagementModelTest::testStoreResources_duplicates3()
+{
+    SimpleResource contact;
+    contact.addType( NCO::Contact() );
+    contact.setProperty( NCO::fullname(), QLatin1String("Peter") );
+
+    QHash<QUrl, QUrl> map = m_dmModel->storeResources( SimpleResourceGraph() << contact, QLatin1String("app") );
+    QVERIFY(!m_dmModel->lastError());
+    const QUrl contactUri  = map.value( contact.uri() );
+
+    SimpleResourceGraph graph;
+    SimpleResource con1( contactUri );
+    con1.addType( NCO::Contact() );
+    con1.addProperty( NCO::gender(), NCO::male() );
+
+    SimpleResource con2;
+    con2.addType( NCO::Contact() );
+    con2.addProperty( NCO::gender(), NCO::male() );
+
+    // These 2 contacts are the same but they shouldn't get merged cause one is not a blank uri
+    graph << con1 << con2;
+    map = m_dmModel->storeResources( graph, QLatin1String("app") );
+    QVERIFY(!m_dmModel->lastError());
+
+    QList< Node > nodeList = m_model->listStatements( Node(), RDF::type(), NCO::Contact() ).iterateSubjects().allNodes();
+    QCOMPARE( nodeList.size(), 2 );
+
+    QVERIFY(!haveTrailingGraphs());
+    QVERIFY(!haveDataInDefaultGraph());
+}
+
 void DataManagementModelTest::testStoreResources_duplicatesInMerger()
 {
     SimpleResource contact1;
@@ -5274,7 +5332,9 @@ void DataManagementModelTest::testMergeResources()
 
 
     // now merge the resources
-    m_dmModel->mergeResources(resA, resB, QLatin1String("A"));
+    m_dmModel->mergeResources(QList<QUrl>() << resA << resB, QLatin1String("A"));
+    kDebug() << m_dmModel->lastError();
+    QVERIFY(m_dmModel->lastError() == Soprano::Error::ErrorNone);
 
     // make sure B is gone
     QVERIFY(!m_model->containsAnyStatement(resB, Node(), Node()));
@@ -5319,7 +5379,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // property 1
-    m_dmModel->mergeResources(resA, QUrl("prop:/int"), QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << resA << QUrl("prop:/int"), QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
@@ -5329,7 +5389,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // property 2
-    m_dmModel->mergeResources(QUrl("prop:/int"), resA, QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << QUrl("prop:/int") << resA, QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
@@ -5339,7 +5399,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // class 1
-    m_dmModel->mergeResources(resA, NRL::Graph(), QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << resA << NRL::Graph(), QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
@@ -5349,7 +5409,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // property 2
-    m_dmModel->mergeResources(NRL::Graph(), resA, QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << NRL::Graph() << resA, QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
@@ -5359,7 +5419,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // graph 1
-    m_dmModel->mergeResources(resA, QUrl("graph:/onto"), QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << resA << QUrl("graph:/onto"), QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());
@@ -5369,7 +5429,7 @@ void DataManagementModelTest::testMergeResources_protectedTypes()
 
 
     // graph 2
-    m_dmModel->mergeResources(QUrl("graph:/onto"), resA, QLatin1String("testapp"));
+    m_dmModel->mergeResources(QList<QUrl>() << QUrl("graph:/onto") << resA, QLatin1String("testapp"));
 
     // this call should fail
     QVERIFY(m_dmModel->lastError());

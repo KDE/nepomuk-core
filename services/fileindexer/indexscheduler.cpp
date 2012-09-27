@@ -165,6 +165,7 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     : QObject( parent ),
       m_suspended( false ),
       m_indexing( false ),
+      m_suspendMutex( QMutex::Recursive ),
       m_indexingDelay( 0 ),
       m_currentIndexerJob( 0 )
 {

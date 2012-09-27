@@ -17,8 +17,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef _NEPOMUK_PROPERTY_H_
-#define _NEPOMUK_PROPERTY_H_
+#ifndef _NEPOMUK2_PROPERTY_H_
+#define _NEPOMUK2_PROPERTY_H_
 
 #include <QtCore/QList>
 #include <QtCore/QUrl>
@@ -298,4 +298,4 @@ namespace Nepomuk2 {
     }
 }
 
-#endif // _NEPOMUK_PROPERTY_H_
+#endif // _NEPOMUK2_PROPERTY_H_

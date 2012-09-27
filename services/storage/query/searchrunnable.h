@@ -58,6 +58,7 @@ namespace Nepomuk2 {
             Nepomuk2::Query::Result extractResult( const Soprano::QueryResultIterator& it ) const;
 
             Soprano::Model* m_model;
+
             QPointer<Folder> m_folder;
             mutable QMutex m_folderMutex;
         };

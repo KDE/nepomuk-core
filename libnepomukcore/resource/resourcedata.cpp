@@ -36,6 +36,7 @@
 #include <Soprano/Statement>
 #include <Soprano/StatementIterator>
 #include <Soprano/QueryResultIterator>
+#include <Soprano/NodeIterator>
 #include <Soprano/Model>
 #include <Soprano/Vocabulary/RDFS>
 #include <Soprano/Vocabulary/RDF>
@@ -171,7 +172,7 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
             // See load() for an explanation of the QMetaObject call
 
             // stop the watcher since we do not want to watch all changes in case there is no ResourceData left
-            if(m_rm->m_watcher->resources().count() == 1) {
+            if(m_rm->m_watcher->resourceCount() == 1) {
                 QMetaObject::invokeMethod(m_rm->m_watcher, "stop", Qt::AutoConnection);
             }
 
@@ -202,6 +203,7 @@ QHash<QUrl, Nepomuk2::Variant> Nepomuk2::ResourceData::allProperties()
 bool Nepomuk2::ResourceData::hasProperty( const QUrl& uri )
 {
     load();
+
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( uri );
     if( it == m_cache.constEnd() )
         return false;
@@ -212,6 +214,8 @@ bool Nepomuk2::ResourceData::hasProperty( const QUrl& uri )
 
 bool Nepomuk2::ResourceData::hasProperty( const QUrl& p, const Variant& v )
 {
+    load();
+
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( p );
     if( it == m_cache.constEnd() )
         return false;
@@ -251,33 +255,14 @@ bool Nepomuk2::ResourceData::store()
     if ( m_uri.isEmpty() ) {
         QMutexLocker rmlock(&m_rm->mutex);
 
-        //TODO: Move this logic to the DMS
         QList<QUrl> types;
         if ( m_nieUrl.isValid() && m_nieUrl.isLocalFile() ) {
-            // FIXME: Also check for super classes of nfo:Folder and nfo:FileDataObject
-            // For folders
-            if( QFileInfo(m_nieUrl.toLocalFile()).isDir() ) {
+            types << NFO::FileDataObject();
+            if( QFileInfo(m_nieUrl.toLocalFile()).isDir() )
                 types << NFO::Folder();
-                //FIXME: This should ideally check if m_type is not a subtype of nfo:Folder
-                if( m_type != NFO::FileDataObject() && m_type != NFO::Folder() && m_type != RDFS::Resource() )
-                    types << m_type;
-                m_type.clear();
-            }
-            //
-            // For files
-            if( !m_type.isEmpty() && m_type != NFO::FileDataObject() ) {
-                types << NFO::FileDataObject();
-                m_type.clear();
-            }
         }
+        types << m_type;
 
-        if( !m_type.isEmpty() )
-            types << m_type;
-
-        if( types.isEmpty() )
-            types << RDFS::Resource();
-
-        kDebug() << "Creating with types: " << types;
         Nepomuk2::CreateResourceJob* job = Nepomuk2::createResource(types, QString(), QString());
         if( !job->exec() ) {
             //TODO: Set the error somehow
@@ -286,6 +271,11 @@ bool Nepomuk2::ResourceData::store()
         }
         else {
             m_uri = job->resourceUri();
+            QList<Soprano::Node> nodes = MAINMODEL->listStatements( m_uri, RDF::type(), QUrl() )
+                                         .iterateObjects().allNodes();
+            QList<QUrl> types;
+            foreach(const Soprano::Node& node, nodes)
+                types << node.uri();
             m_cache.insert(RDF::type(), types);
         }
 

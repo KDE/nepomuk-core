@@ -207,8 +207,6 @@ Nepomuk2::ResourceManager::ResourceManager()
                                                             this );
     connect( watcher, SIGNAL(serviceUnregistered(QString)),
              this, SLOT(_k_dbusServiceUnregistered(QString)) );
-
-    init();
 }
 
 
@@ -242,6 +240,10 @@ int Nepomuk2::ResourceManager::init()
 {
     QMutexLocker lock( &d->initMutex );
 
+    if( d->overrideModel ) {
+        return true;
+    }
+
     if( !d->mainModel ) {
         d->mainModel = new MainModel( this );
     }
@@ -255,6 +257,9 @@ int Nepomuk2::ResourceManager::init()
 bool Nepomuk2::ResourceManager::initialized() const
 {
     QMutexLocker lock( &d->initMutex );
+    if( d->overrideModel )
+        return true;
+
     return d->mainModel && d->mainModel->isValid();
 }
 
@@ -310,6 +315,9 @@ Soprano::Model* Nepomuk2::ResourceManager::mainModel()
     if ( !d->overrideModel && !initialized() ) {
         init();
     }
+
+    if( d->overrideModel )
+        return d->overrideModel;
 
     return d->mainModel;
 }

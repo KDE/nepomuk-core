@@ -15,7 +15,6 @@ set(nepomuk_resource_SRCS
   resource/resourcemanager.cpp
   resource/nepomukmainmodel.cpp
   resource/resource.cpp
-  resource/thing.cpp
   resource/file.cpp
   resource/tag.cpp
   resource/nepomukservice.cpp
@@ -147,7 +146,6 @@ install(FILES
   resource/resourcemanager.h
   resource/nepomukservice.h
   resource/resource.h
-  resource/thing.h
   resource/tag.h
   resource/file.h
   types/entity.h
@@ -197,11 +195,10 @@ install(FILES
   ${CMAKE_CURRENT_BINARY_DIR}/tmo.h
   ${CMAKE_CURRENT_BINARY_DIR}/nuao.h
   ${CMAKE_CURRENT_BINARY_DIR}/ndo.h
+  vocabulary.h
 
   DESTINATION ${INCLUDE_INSTALL_DIR}/nepomuk2 COMPONENT Devel
 )
-
-add_subdirectory(test)
 
 # API docs
 find_package(Doxygen)

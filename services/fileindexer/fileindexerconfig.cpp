@@ -128,6 +128,17 @@ QStringList Nepomuk2::FileIndexerConfig::excludeFilters() const
     return QStringList::fromSet(filters);
 }
 
+QStringList Nepomuk2::FileIndexerConfig::excludePlugins() const
+{
+    KConfigGroup cfg = m_config.group( "General" );
+    //Read list of strigi plugins not to use
+    //DigestEventPlugin is a SHA1 indexer.
+    QSet<QString> filters = cfg.readEntry( "exclude plugins", QStringList() << "DigestEventAnalyzer" ).toSet();
+
+    // remove duplicates
+    return QStringList::fromSet(filters);
+}
+
 
 bool Nepomuk2::FileIndexerConfig::indexHiddenFilesAndFolders() const
 {
@@ -331,5 +342,16 @@ bool Nepomuk2::FileIndexerConfig::isDebugModeEnabled() const
 {
     return m_config.group( "General" ).readEntry( "debug mode", false );
 }
+
+QString Nepomuk2::FileIndexerConfig::strigiVersion() const
+{
+    return m_config.group( "General" ).readEntry( "strigiVersion", QString() );
+}
+
+void Nepomuk2::FileIndexerConfig::setStrigiVersion(const QString& version)
+{
+    m_config.group( "General" ).writeEntry( "strigiVersion", version );
+}
+
 
 #include "fileindexerconfig.moc"

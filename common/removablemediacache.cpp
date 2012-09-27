@@ -116,14 +116,17 @@ Nepomuk2::RemovableMediaCache::Entry* Nepomuk2::RemovableMediaCache::createCache
         // we only add to this set and never remove. This is no problem as this is a small set
         m_usedSchemas.insert(KUrl(entry.url()).scheme());
 
-        connect( dev.as<Solid::StorageAccess>(), SIGNAL(accessibilityChanged(bool, QString)),
+        const Solid::StorageAccess* storage = dev.as<Solid::StorageAccess>();
+        connect( storage, SIGNAL(accessibilityChanged(bool, QString)),
                  this, SLOT(slotAccessibilityChanged(bool, QString)) );
+        connect( storage, SIGNAL(teardownRequested(QString)),
+                 this, SLOT(slotTeardownRequested(QString)) );
 
-        m_metadataCache.insert( dev.udi(), entry );
+        QHash<QString, Entry>::iterator it = m_metadataCache.insert( dev.udi(), entry );
 
-        emit deviceAdded(&m_metadataCache[dev.udi()]);
+        emit deviceAdded(&it.value());
 
-        return &m_metadataCache[dev.udi()];
+        return &it.value();
     }
     else {
         kDebug() << "Cannot use device due to empty identifier:" << dev.udi();
@@ -188,6 +191,12 @@ bool Nepomuk2::RemovableMediaCache::hasRemovableSchema(const KUrl &url) const
 }
 
 
+bool Nepomuk2::RemovableMediaCache::isEmpty() const
+{
+    return m_metadataCache.isEmpty();
+}
+
+
 void Nepomuk2::RemovableMediaCache::slotSolidDeviceAdded( const QString& udi )
 {
     kDebug() << udi;
@@ -201,9 +210,11 @@ void Nepomuk2::RemovableMediaCache::slotSolidDeviceAdded( const QString& udi )
 void Nepomuk2::RemovableMediaCache::slotSolidDeviceRemoved( const QString& udi )
 {
     kDebug() << udi;
-    if ( m_metadataCache.contains( udi ) ) {
+    QHash< QString, Entry >::iterator it = m_metadataCache.find( udi );
+    if( it != m_metadataCache.end() ) {
         kDebug() << "Found removable storage volume for Nepomuk undocking:" << udi;
-        m_metadataCache.remove( udi );
+        emit deviceRemoved( &it.value() );
+        m_metadataCache.erase( it );
     }
 }
 
@@ -215,13 +226,26 @@ void Nepomuk2::RemovableMediaCache::slotAccessibilityChanged( bool accessible, c
     //
     // cache new mount path
     //
+    QMutexLocker lock(&m_entryCacheMutex);
+    Entry* entry = &m_metadataCache[udi];
+    Q_ASSERT( entry != 0 );
+
     if ( accessible ) {
-        QMutexLocker lock(&m_entryCacheMutex);
-        Entry* entry = &m_metadataCache[udi];
-        kDebug() << udi << "accessible at" << entry->device().as<Solid::StorageAccess>()->filePath() << "with identifier" << entry->url();
+        kDebug() << udi << "accessible at" << entry->device().as<Solid::StorageAccess>()->filePath()
+                 << "with identifier" << entry->url();
         emit deviceMounted(entry);
     }
 }
+
+void Nepomuk2::RemovableMediaCache::slotTeardownRequested(const QString& udi)
+{
+    QMutexLocker lock(&m_entryCacheMutex);
+    Entry* entry = &m_metadataCache[udi];
+    Q_ASSERT( entry != 0 );
+
+    emit deviceTeardownRequested(entry);
+}
+
 
 
 Nepomuk2::RemovableMediaCache::Entry::Entry()

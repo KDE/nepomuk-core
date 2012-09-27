@@ -19,8 +19,8 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_QUERY_OPTIONAL_TERM_P_H_
-#define _NEPOMUK_QUERY_OPTIONAL_TERM_P_H_
+#ifndef _NEPOMUK2_QUERY_OPTIONAL_TERM_P_H_
+#define _NEPOMUK2_QUERY_OPTIONAL_TERM_P_H_
 
 #include "simpleterm_p.h"
 

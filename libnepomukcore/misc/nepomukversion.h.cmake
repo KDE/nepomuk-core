@@ -19,8 +19,8 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_CORE_VERSION_H_
-#define _NEPOMUK_CORE_VERSION_H_
+#ifndef _NEPOMUK2_CORE_VERSION_H_
+#define _NEPOMUK2_CORE_VERSION_H_
 
 #include "nepomuk_export.h"
 

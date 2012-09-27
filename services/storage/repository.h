@@ -26,7 +26,6 @@
 namespace Soprano {
     class Model;
     class Backend;
-    class NRLModel;
 }
 
 class KJob;
@@ -49,8 +48,6 @@ namespace Nepomuk2 {
      *
      * \li The DataManagementModel provides the actual data modification interface. For this
      *     purpose it is exported via DBus.
-     * \li The Soprano::NRLModel provides query prefix expansion and graph cleanup features
-     *     that are required by the DMM.
      * \li RemovableMediaModel is used to automatically convert the URLs of files
      *     on USB keys, network shares, and so on from and into mount-point independant URLs
      *     like nfs://<HOST>/<HOST-PATH>/local/path.ext.
@@ -106,7 +103,6 @@ namespace Nepomuk2 {
         VirtuosoInferenceModel* m_inferenceModel;
         DataManagementModel* m_dataManagementModel;
         Nepomuk2::DataManagementAdaptor* m_dataManagementAdaptor;
-        Soprano::NRLModel* m_nrlModel;
         const Soprano::Backend* m_backend;
 
         // only used during opening

@@ -440,6 +440,17 @@ namespace Nepomuk2 {
                                                         const KComponentData& component = KGlobal::mainComponent());
 
     /**
+     * \brief Merge multiple resources into one.
+     *
+     * \param resources The list of resources to merge. If any resources have conflicting properties like different
+     * values on a property with a cardinality restriction the values from the first resource take precedence.
+     * See \ref nepomuk_dms_resource_uris for details.
+     * \param component The calling component. Typically this is left to the default.
+     */
+    NEPOMUK_EXPORT KJob* mergeResources(const QList<QUrl>& resources,
+                                        const KComponentData& component = KGlobal::mainComponent());
+
+    /**
      * \brief Store many resources at once.
      *
      * This is the most powerful method of them all. It allows to store a whole set of resources in one

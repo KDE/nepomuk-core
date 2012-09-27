@@ -1,6 +1,6 @@
 /*
    This file is part of the Nepomuk KDE project.
-   Copyright (C) 2009-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2009 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,30 +19,23 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_QTEST_QUERY_TO_STRING_H_
-#define _NEPOMUK_QTEST_QUERY_TO_STRING_H_
+#ifndef _NEPOMUK2_QUERYLIB_TEST_H_
+#define _NEPOMUK2_QUERYLIB_TEST_H_
 
-#include "query.h"
-#include "term.h"
-#include "class.h"
+#include <QtCore/QObject>
 
-#include <QtTest>
+class QueryLibTest : public QObject
+{
+    Q_OBJECT
 
-namespace QTest {
-    template<>
-    char* toString(const Nepomuk2::Query::Query& query) {
-        return qstrdup( query.toString().toUtf8().data() );
-    }
-
-    template<>
-    char* toString(const Nepomuk2::Query::Term& term) {
-        return qstrdup( term.toString().toUtf8().data() );
-    }
-
-    template<>
-    char* toString(const Nepomuk2::Types::Class& e) {
-        return qstrdup( e.uri().toString().toUtf8().data() );
-    }
-}
+private Q_SLOTS:
+    void testOptimization();
+    void testLogicalOperators();
+    void testComparison_data();
+    void testComparison();
+    void testTermFromProperty();
+};
 
 #endif
+
+

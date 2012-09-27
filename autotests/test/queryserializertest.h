@@ -1,6 +1,6 @@
 /*
    This file is part of the Nepomuk KDE project.
-   Copyright (C) 2009 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2010 Sebastian Trueg <trueg@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,25 +19,18 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_QUERY_TEST_H_
-#define _NEPOMUK_QUERY_TEST_H_
+#ifndef _NEPOMUK2_QUERY_SERIALIZER_TEST_H_
+#define _NEPOMUK2_QUERY_SERIALIZER_TEST_H_
 
 #include <QtCore/QObject>
-#include "query.h"
-#include "term.h"
 
-class QueryTest : public QObject
+class QuerySerializerTest : public QObject
 {
     Q_OBJECT
 
 private Q_SLOTS:
-    void testToSparql_data();
-    void testToSparql();
-    void testOptimization();
-    void testLogicalOperators();
-    void testComparison_data();
-    void testComparison();
-    void testTermFromProperty();
+    void testSerialization_data();
+    void testSerialization();
 };
 
 #endif

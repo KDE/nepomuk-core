@@ -185,24 +185,21 @@ private:
 class MergeResourcesCommand : public DataManagementCommand
 {
 public:
-    MergeResourcesCommand(const QUrl& resource1,
-                          const QUrl& resource2,
+    MergeResourcesCommand(const QList<QUrl>& resources,
                           const QString& app,
                           Nepomuk2::DataManagementModel* model,
                           const QDBusMessage& msg)
         : DataManagementCommand(model, msg),
-          m_resource1(resource1),
-          m_resource2(resource2),
+          m_resources(resources),
           m_app(app) {}
 
 private:
     QVariant runCommand() {
-        model()->mergeResources(m_resource1, m_resource2, m_app);
+        model()->mergeResources(m_resources, m_app);
         return QVariant();
     }
 
-    QUrl m_resource1;
-    QUrl m_resource2;
+    QList<QUrl> m_resources;
     QString m_app;
 };
 

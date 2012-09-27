@@ -46,6 +46,7 @@
 #include <Soprano/QueryResultIterator>
 #include <Soprano/Node>
 
+using namespace Nepomuk2::Vocabulary;
 
 NEPOMUK_EXPORT_SERVICE( Nepomuk2::FileWatch, "nepomukfilewatch")
 
@@ -173,10 +174,12 @@ Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
     m_removableMediaCache = new RemovableMediaCache(this);
     connect(m_removableMediaCache, SIGNAL(deviceMounted(const Nepomuk2::RemovableMediaCache::Entry*)),
             this, SLOT(slotDeviceMounted(const Nepomuk2::RemovableMediaCache::Entry*)));
+    connect(m_removableMediaCache, SIGNAL(deviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry*)),
+            this, SLOT(slotDeviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry*)));
     addWatchesForMountedRemovableMedia();
 
     (new InvalidFileResourceCleaner(this))->start();
-    
+
     connect( FileIndexerConfig::self(), SIGNAL( configChanged() ),
              this, SLOT( updateIndexedFoldersWatches() ) );
 }
@@ -249,12 +252,26 @@ void Nepomuk2::FileWatch::slotFileCreated( const QString& path, bool isDir )
     }
 }
 
-
 void Nepomuk2::FileWatch::slotFileClosedAfterWrite( const QString& path )
 {
     if(FileIndexerConfig::self()->shouldBeIndexed(path)) {
-        // we do not tell the file indexer right away but wait a short while in case the file is modified very often (irc logs for example)
-        m_fileModificationQueue->enqueueUrl( path );
+        //
+        // Check the modification time cause loads of applications open files with the write flags
+        // and do not actually modify anything
+        //
+        QFileInfo info(path);
+        QString query = QString::fromLatin1("ask where { ?r %1 %2 ; %3 %4 . }")
+                        .arg( Soprano::Node::resourceToN3(NIE::url()),
+                              Soprano::Node::resourceToN3(QUrl::fromLocalFile(path)),
+                              Soprano::Node::resourceToN3(NIE::lastModified()),
+                              Soprano::Node::literalToN3(info.lastModified().toUTC()) );
+
+        Soprano::Model* model = ResourceManager::instance()->mainModel();
+        if( !model->executeQuery(query, Soprano::Query::QueryLanguageSparql).boolValue() ) {
+            // we do not tell the file indexer right away but wait a short while in case the
+            // file is modified very often (irc logs for example)
+            m_fileModificationQueue->enqueueUrl( path );
+        }
     }
 }
 
@@ -391,6 +408,14 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
     kDebug() << "Installing watch for removable storage at mount point" << entry->mountPath();
     watchFolder(entry->mountPath());
 }
+
+void Nepomuk2::FileWatch::slotDeviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry )
+{
+#ifdef BUILD_KINOTIFY
+    m_dirWatch->removeWatch( entry->mountPath() );
+#endif
+}
+
 
 void Nepomuk2::FileWatch::slotActiveFileQueueTimeout(const KUrl &url)
 {

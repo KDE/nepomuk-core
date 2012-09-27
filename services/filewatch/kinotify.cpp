@@ -79,8 +79,8 @@ public:
     QHash<int, QByteArray> watchPathHash;
     QHash<QByteArray, int> pathWatchHash;
 
-    /// queue of paths to install watches for
-    QQueue<QByteArray> pathsToWatch;
+    /// A list of all the current dirIterators
+    QQueue<QDirIterator*> dirIterators;
 
     unsigned char eventBuffer[EVENT_BUFFER_SIZE];
 
@@ -136,20 +136,6 @@ public:
         }
     }
 
-    bool addWatchesRecursively( const QByteArray& path )
-    {
-        if ( !addWatch( path ) )
-            return false;
-
-        const QString stringPath = QFile::decodeName(path);
-        QDirIterator iter( stringPath, QDir::Dirs | QDir::NoDotAndDotDot );
-        while( iter.hasNext() ) {
-            pathsToWatch.enqueue( QFile::encodeName(iter.next()) );
-        }
-
-        return true;
-    }
-
     void removeWatch( int wd ) {
         kDebug() << wd << watchPathHash[wd];
         pathWatchHash.remove( watchPathHash.take( wd ) );
@@ -158,19 +144,21 @@ public:
 
     void _k_addWatches() {
         // add the next batch of paths
-        for ( int i = 0; i < 100; ++i ) {
-            if ( pathsToWatch.isEmpty() ||
-                 !addWatchesRecursively( pathsToWatch.dequeue() ) ) {
-                return;
+        for ( int i = 0; i < 100 && !dirIterators.isEmpty(); ++i ) {
+            QDirIterator* it = dirIterators.front();
+            if( it->hasNext() ) {
+                it->next();
+                addWatch( QFile::encodeName(it->filePath()) );
+            }
+            else {
+                delete dirIterators.dequeue();
+                break;
             }
         }
 
         // asyncroneously add the next batch
-        if ( !pathsToWatch.isEmpty() ) {
+        if ( !dirIterators.isEmpty() ) {
             QMetaObject::invokeMethod( q, "_k_addWatches", Qt::QueuedConnection );
-        }
-        else {
-            kDebug() << "All watches installed";
         }
     }
 
@@ -212,12 +200,14 @@ bool KInotify::available() const
     if( d->inotify() > 0 ) {
         // trueg: Copied from KDirWatch.
         struct utsname uts;
-        int major, minor, patch;
+        int major, minor, patch=0;
         if ( uname(&uts) < 0 ) {
             return false; // *shrug*
         }
         else if ( sscanf( uts.release, "%d.%d.%d", &major, &minor, &patch) != 3 ) {
-            return false; // *shrug*
+            //Kernels > 3.0 can in principle have two-number versions.
+            if ( sscanf( uts.release, "%d.%d", &major, &minor) != 2 )
+		        return false; // *shrug*
         }
         else if( major * 1000000 + minor * 1000 + patch < 2006014 ) { // <2.6.14
             kDebug(7001) << "Can't use INotify, Linux kernel too old";
@@ -245,7 +235,10 @@ bool KInotify::addWatch( const QString& path, WatchEvents mode, WatchFlags flags
 
     d->mode = mode;
     d->flags = flags;
-    d->pathsToWatch.append( QFile::encodeName( path ) );
+    d->addWatch( QFile::encodeName(path) );
+    QDirIterator* iter = new QDirIterator( path, QDir::Dirs | QDir::NoDotAndDotDot,
+                                           QDirIterator::Subdirectories );
+    d->dirIterators.append( iter );
     d->_k_addWatches();
     return true;
 }
@@ -296,12 +289,16 @@ void KInotify::slotEvent( int socket )
         }
         else {
             // we cannot use event->len here since it contains the size of the buffer and not the length of the string
-            const QByteArray eventName = QByteArray::fromRawData( event->name, qstrlen(event->name) );
+            const QByteArray eventName = QByteArray::fromRawData( event->name, qstrnlen(event->name,event->len) );
             const QByteArray hashedPath = d->watchPathHash.value( event->wd );
             path = concatPath( hashedPath, eventName );
         }
 
         Q_ASSERT( !path.isEmpty() || event->mask & EventIgnored );
+        // This is present cause a unmount event is sent my inotify after unmounting, by
+        // which time the watches have already been removed.
+        if( path == "/" && event->mask & EventUnmount )
+            break;
         Q_ASSERT( path != "/" || event->mask & EventIgnored );
 
         // now signal the event

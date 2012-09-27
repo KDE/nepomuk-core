@@ -418,9 +418,9 @@ QString Nepomuk2::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
         if( d->m_fileMode == FileQuery::QueryFiles )
             fileModeTerm = AndTerm( fileTerm, NegationTerm::negateTerm( folderTerm ) );
         else if( d->m_fileMode == FileQuery::QueryFolders )
-            fileModeTerm = AndTerm( folderTerm, NegationTerm::negateTerm( fileTerm ) );
+            fileModeTerm = folderTerm;
         else
-            fileModeTerm = OrTerm( fileTerm, folderTerm );
+            fileModeTerm = fileTerm;
         term = AndTerm( term, fileModeTerm, d->createFolderFilter() );
     }
 

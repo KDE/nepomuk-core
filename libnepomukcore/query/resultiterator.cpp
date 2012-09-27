@@ -52,6 +52,7 @@ Nepomuk2::Query::ResultIterator::ResultIterator(const QString& sparql, const Nep
 {
     Soprano::Model* model = ResourceManager::instance()->mainModel();
     d->m_it = model->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
+    d->m_requestMap = map;
 }
 
 Nepomuk2::Query::ResultIterator::~ResultIterator()

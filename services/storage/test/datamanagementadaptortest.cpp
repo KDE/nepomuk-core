@@ -27,6 +27,7 @@
 
 #include <QtTest>
 #include "qtest_kde.h"
+#include "qtest_dms.h"
 
 #include <Soprano/Soprano>
 #include <Soprano/Graph>
@@ -74,8 +75,7 @@ void DataManagementAdaptorTest::resetModel()
 
 
     m_classAndPropertyTree->rebuildTree(m_dmModel);
-    m_nrlModel->setEnableQueryPrefixExpansion(false);
-    m_nrlModel->setEnableQueryPrefixExpansion(true);
+    m_dmModel->clearCache();
     QHash<QString, QString> prefixes;
     const QHash<QString, QUrl> namespaces = m_nrlModel->queryPrefixes();
     for(QHash<QString, QUrl>::const_iterator it = namespaces.constBegin();
@@ -95,6 +95,7 @@ void DataManagementAdaptorTest::initTestCase()
 
     // DataManagementModel relies on the ussage of a NRLModel in the storage service
     m_nrlModel = new Soprano::NRLModel(m_model);
+    Nepomuk2::insertNamespaceAbbreviations(m_model);
 
     m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
 

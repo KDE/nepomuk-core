@@ -29,9 +29,8 @@
 #include <Soprano/Node>
 #include <Soprano/Error/Error>
 #include <Soprano/Vocabulary/RDF>
-
-#define USING_SOPRANO_NRLMODEL_UNSTABLE_API
-#include <Soprano/NRLModel>
+#include <Soprano/Vocabulary/NAO>
+#include <Soprano/Vocabulary/NRL>
 
 #include <KStandardDirs>
 #include <KDebug>
@@ -48,6 +47,7 @@
 #include <QtCore/QCoreApplication>
 #include <QtDBus/QDBusConnection>
 
+using namespace Soprano::Vocabulary;
 
 namespace {
     QString createStoragePath( const QString& repositoryId )
@@ -66,7 +66,6 @@ Nepomuk2::Repository::Repository( const QString& name )
       m_inferenceModel( 0 ),
       m_dataManagementModel( 0 ),
       m_dataManagementAdaptor( 0 ),
-      m_nrlModel( 0 ),
       m_backend( 0 ),
       m_modelCopyJob( 0 ),
       m_oldStorageBackend( 0 )
@@ -216,14 +215,9 @@ void Nepomuk2::Repository::open()
     // =================================
     m_removableStorageModel = new Nepomuk2::RemovableMediaModel(m_model);
 
-    // Create the NRLModel which is required by the DMM below
-    // =================================
-    m_nrlModel = new Soprano::NRLModel(m_removableStorageModel);
-    m_nrlModel->setParent(m_removableStorageModel); // memory management
-
     // Create the Inference model which enables Virtuoso inference
     // =================================
-    m_inferenceModel = new VirtuosoInferenceModel(m_nrlModel);
+    m_inferenceModel = new VirtuosoInferenceModel(m_removableStorageModel);
 
     // create the DataManagementModel on top of everything
     // =================================
@@ -404,6 +398,9 @@ Soprano::BackendSettings Nepomuk2::Repository::readVirtuosoSettings() const
     // we have our own notifications through the ResourceWatcher. Thus, we disable the statement signals
     settings << Soprano::BackendSetting( "noStatementSignals", true );
 
+    // We don't care as they screw up performance
+    settings << Soprano::BackendSetting( "fakeBooleans", false );
+
     // Never take more than 5 minutes to answer a query (this is to filter out broken queries and bugs in Virtuoso's query optimizer)
     // trueg: We cannot activate this yet. 1. Virtuoso < 6.3 crashes and 2. even open cursors are subject to the timeout which is really
     //        not what we want!
@@ -414,17 +411,29 @@ Soprano::BackendSettings Nepomuk2::Repository::readVirtuosoSettings() const
 
 void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
 {
-    // the funny way to update the query prefix cache
-    m_nrlModel->setEnableQueryPrefixExpansion(false);
-    m_nrlModel->setEnableQueryPrefixExpansion(true);
+    // Update the query prefixes
+    QHash<QString, QString> prefixes;
+
+    QString query = QString::fromLatin1("select ?g ?abr where { ?r %1 ?g ; %2 ?abr . }")
+                    .arg( Soprano::Node::resourceToN3( NAO::hasDefaultNamespace() ),
+                          Soprano::Node::resourceToN3( NAO::hasDefaultNamespaceAbbreviation() ) );
+
+    Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    while( it.next() ) {
+        QString ontology = it[0].toString();
+        QString prefix = it[1].toString();
+
+        prefixes.insert( prefix, ontology );
+
+        // The '2' is for the prefixes to be global
+        // http://docs.openlinksw.com/virtuoso/fn_xml_set_ns_decl.html
+        QString command = QString::fromLatin1("DB.DBA.XML_SET_NS_DECL( '%1', '%2', 2 )")
+                          .arg( prefix, ontology );
+
+        executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+    }
 
     // update the prefixes in the DMS adaptor for script convenience
-    QHash<QString, QString> prefixes;
-    const QHash<QString, QUrl> namespaces = m_nrlModel->queryPrefixes();
-    for(QHash<QString, QUrl>::const_iterator it = namespaces.constBegin();
-        it != namespaces.constEnd(); ++it) {
-        prefixes.insert(it.key(), QString::fromAscii(it.value().toEncoded()));
-    }
     m_dataManagementAdaptor->setPrefixes(prefixes);
 
     // update the rest

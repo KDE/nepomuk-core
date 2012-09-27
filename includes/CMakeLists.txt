@@ -5,7 +5,6 @@ install(FILES
   ResourceWatcher
   Service
   Tag
-  Thing
   Variant
   CreateResourceJob
   DataManagement

@@ -34,6 +34,8 @@ void Nepomuk2::Query::registerDBusTypes()
     qDBusRegisterMetaType<Nepomuk2::Query::Result>();
     qDBusRegisterMetaType<QList<Nepomuk2::Query::Result> >();
     qDBusRegisterMetaType<Soprano::Node>();
+
+    qRegisterMetaType<RequestPropertyMapDBus>("RequestPropertyMapDBus");
     qDBusRegisterMetaType<RequestPropertyMapDBus>();
 }
 
