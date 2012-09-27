@@ -20,6 +20,7 @@ configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/NepomukTestLibMacros.cmake.in"
 #
 
 set (nepomuk_testlib_SRCS
+    datagenerator.cpp
     testbase.cpp
 )
 

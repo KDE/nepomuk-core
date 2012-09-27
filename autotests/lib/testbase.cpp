@@ -78,16 +78,16 @@ Nepomuk2::TestBase::~TestBase()
     delete d;
 }
 
-
-
-void Nepomuk2::TestBase::init()
-{
-}
-
 void Nepomuk2::TestBase::cleanup()
 {
     resetRepository();
 }
+
+void Nepomuk2::TestBase::cleanupTest()
+{
+    resetRepository();
+}
+
 
 void Nepomuk2::TestBase::resetRepository()
 {
