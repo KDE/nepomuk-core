@@ -107,6 +107,17 @@ void BackupTests::simpleData()
     // We can't check all the data cause some of the ontology data would have changed
     // eg - nao:lastModified
     QCOMPARE( origNepomukData, finalNepomukData );
+
+    QString query;
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+
+    // The Agent should still exist
+    query = QString::fromLatin1("ask where { ?r a nao:Agent . }");
+    QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
+
+    // The pimo:Person - nepomuk:/me should still exist
+    query = QString::fromLatin1("ask where { <nepomuk:/me> ?p ?o . }");
+    QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
 }
 
 void BackupTests::indexedData()
@@ -128,8 +139,28 @@ void BackupTests::indexedData()
     resetRepository();
     restore();
 
-    kDebug() << outputNepomukData();
-    QCOMPARE( outputNepomukData().size(), 0 );
+    QString query;
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+
+    // There should be no Nepomuk Resources with a nie url
+    query = QString::fromLatin1("ask where { ?r nie:url ?o . FILTER( REGEX(STR(?r), '^nepomuk:/res') ). }");
+    QVERIFY( !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
+
+    // Albums - Should not exist
+    query = QString::fromLatin1("ask where { ?r a nmm:MusicAlbum . }");
+    QVERIFY( !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
+
+    // Contacts - Should not exist
+    query = QString::fromLatin1("ask where { ?r a nco:Contact . }");
+    QVERIFY( !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
+
+    // The Agent should still exist
+    query = QString::fromLatin1("ask where { ?r a nao:Agent . }");
+    QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
+
+    // The pimo:Person - nepomuk:/me should still exist
+    query = QString::fromLatin1("ask where { <nepomuk:/me> ?p ?o . }");
+    QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
 }
 
 
