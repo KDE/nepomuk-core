@@ -40,7 +40,6 @@ void Nepomuk2::BackupGenerationJob::doWork()
 {
     QString query = QString::fromLatin1("select ?r ?p ?o ?g where { "
                                         "graph ?g { ?r ?p ?o. } "
-                                        "?g a nrl:InstanceBase . "
                                         "FILTER NOT EXISTS { ?g a nrl:DiscardableInstanceBase . }"
                                         "FILTER(regex(str(?r), '^nepomuk')). "
                                          "}");

@@ -207,6 +207,7 @@ void Nepomuk2::BackupManager::restore(const QString& url)
         return;
 
     KJob* job = new BackupRestorationJob( m_model, m_ontologyLoader, QUrl::fromLocalFile(url) );
+    job->start();
 
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotRestorationDone(KJob*)) );
     connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotRestorationPercent(KJob*,ulong)) );
