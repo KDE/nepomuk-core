@@ -197,8 +197,6 @@ install(FILES
   DESTINATION ${INCLUDE_INSTALL_DIR}/nepomuk2 COMPONENT Devel
 )
 
-add_subdirectory(test)
-
 # API docs
 find_package(Doxygen)
 
