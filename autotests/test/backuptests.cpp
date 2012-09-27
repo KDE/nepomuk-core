@@ -20,8 +20,9 @@
 
 #include "backuptests.h"
 #include "../lib/datagenerator.h"
-#include <resourcemanager.h>
-#include "backupmanagerinterface.h"
+#include "resourcemanager.h"
+#include "storeresourcesjob.h"
+#include "datamanagement.h"
 
 #include <KDebug>
 #include <KJob>
@@ -29,10 +30,13 @@
 #include <Soprano/Model>
 
 #include <QtDBus/QDBusConnection>
+
 #include <Soprano/StatementIterator>
 #include <Soprano/QueryResultIterator>
+#include <Soprano/Vocabulary/RDF>
+#include <Soprano/Vocabulary/NRL>
 
-typedef org::kde::nepomuk::services::nepomukbackupsync::BackupManager BackupManager;
+using namespace Soprano::Vocabulary;
 
 namespace Nepomuk2 {
 
@@ -51,27 +55,43 @@ namespace {
     }
 }
 
+
+BackupTests::BackupTests(QObject* parent): TestBase(parent)
+{
+    m_backupManager = new BackupManager( QLatin1String("org.kde.nepomuk.services.nepomukstorage"),
+                                         QLatin1String("/backupmanager"),
+                                         QDBusConnection::sessionBus(), this);
+}
+
+void BackupTests::backup()
+{
+    KTempDir dir;
+    dir.setAutoRemove( false );
+    m_backupLocation = dir.name() + "backup";
+
+    m_backupManager->backup( m_backupLocation );
+    QEventLoop loop;
+    connect( m_backupManager, SIGNAL(backupDone()), &loop, SLOT(quit()) );
+    loop.exec();
+}
+
+void BackupTests::restore()
+{
+    m_backupManager->restore( m_backupLocation );
+    QEventLoop loop;
+    connect( m_backupManager, SIGNAL(restoreDone()), &loop, SLOT(quit()) );
+    loop.exec();
+
+    m_backupLocation.clear();
+}
+
 void BackupTests::simpleData()
 {
     // Add just one file and check if it is restored
     Test::DataGenerator gen;
     gen.createMusicFile( "Fix you", "Coldplay", "AlbumName") ;
 
-    BackupManager* backupManager = new BackupManager( QLatin1String("org.kde.nepomuk.services.nepomukstorage"),
-                                                      QLatin1String("/backupmanager"),
-                                                      QDBusConnection::sessionBus(), this);
-
-    KTempDir dir;
-    dir.setAutoRemove( false );
-    const QString dirUrl = dir.name() + "backup";
-
-    // Create a backup
-    {
-        backupManager->backup( dirUrl );
-        QEventLoop loop;
-        connect( backupManager, SIGNAL(backupDone()), &loop, SLOT(quit()) );
-        loop.exec();
-    }
+    backup();
 
     // Save all statements in memory
     QList< Soprano::Statement > origNepomukData = outputNepomukData();
@@ -80,12 +100,7 @@ void BackupTests::simpleData()
     resetRepository();
 
     // Restore the backup
-    {
-        backupManager->restore( dirUrl );
-        QEventLoop loop;
-        connect( backupManager, SIGNAL(restoreDone()), &loop, SLOT(quit()) );
-        loop.exec();
-    }
+    restore();
 
     QList< Soprano::Statement > finalNepomukData = outputNepomukData();
 
@@ -93,6 +108,30 @@ void BackupTests::simpleData()
     // eg - nao:lastModified
     QCOMPARE( origNepomukData, finalNepomukData );
 }
+
+void BackupTests::indexedData()
+{
+    KTempDir dir;
+
+    QUrl fileUrl = QUrl::fromLocalFile( dir.name() + "1" ) ;
+
+    SimpleResourceGraph graph = Test::DataGenerator::createMusicFile( fileUrl, "Fix you", "Coldplay", "Album" );
+
+    QHash<QUrl, QVariant> additional;
+    additional.insert( RDF::type(), NRL::DiscardableInstanceBase() );
+
+    KJob* job = storeResources( graph, IdentifyNew, NoStoreResourcesFlags, additional );
+    job->exec();
+    QVERIFY(!job->error());
+
+    backup();
+    resetRepository();
+    restore();
+
+    kDebug() << outputNepomukData();
+    QCOMPARE( outputNepomukData().size(), 0 );
+}
+
 
 }
 

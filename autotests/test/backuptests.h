@@ -24,14 +24,27 @@
 #include <QtCore/QObject>
 #include <QUrl>
 #include "../lib/testbase.h"
+#include "backupmanagerinterface.h"
 
 namespace Nepomuk2 {
 
 class BackupTests : public TestBase
 {
     Q_OBJECT
+public:
+    BackupTests(QObject* parent = 0);
+
 private Q_SLOTS:
     void simpleData();
+    void indexedData();
+
+private:
+    typedef org::kde::nepomuk::services::nepomukbackupsync::BackupManager BackupManager;
+    BackupManager* m_backupManager;
+    QString m_backupLocation;
+
+    void backup();
+    void restore();
 };
 
 }
