@@ -122,9 +122,11 @@ QUrl Nepomuk2::ResourceData::uri() const
 
 QUrl Nepomuk2::ResourceData::type()
 {
-    load();
-
     QUrl mainType = RDFS::Resource();
+
+    if( !load() )
+        return mainType;
+
     QList<QUrl> types = m_cache[RDF::type()].toUrlList();
     foreach(const QUrl& t, types) {
         Types::Class currentTypeClass = mainType;
@@ -195,14 +197,17 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
 
 QHash<QUrl, Nepomuk2::Variant> Nepomuk2::ResourceData::allProperties()
 {
-    load();
-    return m_cache;
+    if( !load() )
+        return QHash<QUrl, Nepomuk2::Variant>();
+    else
+        return m_cache;
 }
 
 
 bool Nepomuk2::ResourceData::hasProperty( const QUrl& uri )
 {
-    load();
+    if( !load() )
+        return false;
 
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( uri );
     if( it == m_cache.constEnd() )
@@ -214,7 +219,8 @@ bool Nepomuk2::ResourceData::hasProperty( const QUrl& uri )
 
 bool Nepomuk2::ResourceData::hasProperty( const QUrl& p, const Variant& v )
 {
-    load();
+    if( !load() )
+        return false;
 
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( p );
     if( it == m_cache.constEnd() )
@@ -232,7 +238,8 @@ bool Nepomuk2::ResourceData::hasProperty( const QUrl& p, const Variant& v )
 
 Nepomuk2::Variant Nepomuk2::ResourceData::property( const QUrl& uri )
 {
-    load();
+    if( !load() )
+        return Variant();
 
     // we need to protect the reading, too. load my be triggered from another thread's
     // connection to a Soprano statement signal
