@@ -42,7 +42,7 @@ namespace Nepomuk2 {
 
     class BackupWizard;
 
-    typedef org::kde::nepomuk::services::nepomukbackupsync::BackupManager BackupManager;
+    typedef org::kde::nepomuk::BackupManager BackupManager;
 
     class IntroPage : public QWizardPage, public Ui::IntroPage {
         Q_OBJECT

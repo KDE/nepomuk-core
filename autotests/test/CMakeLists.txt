@@ -75,14 +75,14 @@ add_nepomuk_test(QueryServiceTest ${CMAKE_CURRENT_BINARY_DIR}/queryservicetest)
 set( BACKUP_TESTS_SRC backuptests.cpp )
 
 set_source_files_properties(
-  ../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
+  ../../interfaces/org.kde.nepomuk.BackupManager.xml
   PROPERTIES INCLUDE "QtCore/QList")
 set_source_files_properties(
-  ../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
+  ../../interfaces/org.kde.nepomuk.BackupManager.xml
   PROPERTIES INCLUDE "QtCore/QString")
 
 qt4_add_dbus_interface( BACKUP_TESTS_SRC
-                        ../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
+                        ../../interfaces/org.kde.nepomuk.BackupManager.xml
                         backupmanagerinterface )
 
 kde4_add_executable(backuptests ${BACKUP_TESTS_SRC})

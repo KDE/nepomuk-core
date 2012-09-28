@@ -39,7 +39,7 @@ private Q_SLOTS:
     void indexedData();
 
 private:
-    typedef org::kde::nepomuk::services::nepomukbackupsync::BackupManager BackupManager;
+    typedef org::kde::nepomuk::BackupManager BackupManager;
     BackupManager* m_backupManager;
     QString m_backupLocation;
 

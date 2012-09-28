@@ -39,7 +39,7 @@ namespace Nepomuk2 {
     class BackupManager : public QObject
     {
         Q_OBJECT
-        Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.services.nepomukbackupsync.BackupManager")
+        Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.BackupManager")
 
     public:
         BackupManager(OntologyLoader* loader, Soprano::Model *model, QObject* parent);

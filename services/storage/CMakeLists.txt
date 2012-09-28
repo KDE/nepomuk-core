@@ -51,7 +51,7 @@ set( Backup_SRCS
   )
 
 qt4_add_dbus_adaptor( Backup_SRCS
-                      ../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
+                      ../../interfaces/org.kde.nepomuk.BackupManager.xml
                       backup/backupmanager.h Nepomuk2::BackupManager )
 
 set(queryservice_SRCS
