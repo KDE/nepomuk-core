@@ -59,7 +59,7 @@ int main( int argc, char** argv )
 
     Nepomuk2::BackupWizard wizard;
 
-    if( QDBusConnection::sessionBus().interface()->isServiceRegistered("org.kde.nepomuk.services.nepomukbackupsync") ) {
+    if( QDBusConnection::sessionBus().interface()->isServiceRegistered("org.kde.NepomukStorage") ) {
         KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
         if( args->isSet( "backup" ) ) {
             wizard.startBackup();
@@ -69,10 +69,10 @@ int main( int argc, char** argv )
         }
     }
     else {
-        wizard.showError(i18nc("@info", "The Nepomuk backup service does not seem to be running. Backups cannot be handled without it.") );
+        wizard.showError(i18nc("@info", "Nepomuk does not seem to be running. Backups cannot be handled without it.") );
     }
-    
+
     wizard.show();
-    
+
     return app.exec();
 }

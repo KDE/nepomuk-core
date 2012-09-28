@@ -67,7 +67,7 @@ Nepomuk2::BackupPage::BackupPage(QWidget* parent)
     setSubTitle( i18n("Performing backup") );
     setCommitPage(true);
 
-    m_backupManager = new BackupManager( QLatin1String("org.kde.nepomuk.services.nepomukbackupsync"),
+    m_backupManager = new BackupManager( QLatin1String("org.kde.NepomukStorage"),
                                          QLatin1String("/backupmanager"),
                                          QDBusConnection::sessionBus(), this);
     connect( m_backupManager, SIGNAL(backupDone()), this, SLOT(slotBackupDone()) );
@@ -181,7 +181,7 @@ Nepomuk2::RestorePage::RestorePage(QWidget* parent)
     setTitle( i18n("Restoring Backup") );
     setSubTitle( i18n("The backup is being restored...") );
 
-    m_backupManager = new BackupManager( QLatin1String("org.kde.nepomuk.services.nepomukbackupsync"),
+    m_backupManager = new BackupManager( QLatin1String("org.kde.NepomukStorage"),
                                          "/backupmanager",
                                          QDBusConnection::sessionBus(), this);
 }
