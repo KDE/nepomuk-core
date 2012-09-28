@@ -34,6 +34,8 @@ kde4_add_library (nepomuktestlib
                   ${nepomuk_testlib_SRCS}
 )
 
+add_dependencies(nepomuktestlib nepomukcore)
+
 target_link_libraries (nepomuktestlib
                        ${QT_QTCORE_LIBRARY}
                        ${QT_QTDBUS_LIBRARY}
