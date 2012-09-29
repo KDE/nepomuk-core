@@ -937,6 +937,20 @@ bool Nepomuk2::ResourceMerger::merge( const Soprano::Graph& stGraph )
     // make sure we do not leave trailing empty graphs
     m_model->removeTrailingGraphs(m_trailingGraphCandidates);
 
+    // Inform the ResourceWatcherManager of these new types
+    QHash<QUrl, QUrl>::const_iterator typeIt = typeHash.constBegin();
+    QHash<QUrl, QUrl>::const_iterator typeItEnd = typeHash.constEnd();
+    for( ; typeIt != typeItEnd; ) {
+        const QUrl blankUri = typeIt.key();
+        QList<QUrl> types;
+        for( ; typeIt != typeItEnd && typeIt.key() == blankUri ; typeIt++)
+            types << typeIt.value();
+
+        // Get its resource uri
+        const QUrl resUri = m_mappings.value( blankUri );
+        m_rvm->createResource( resUri, types );
+    }
+
     // Inform the ResourceWatcherManager of the changed properties
     QHash<QUrl, QHash<QUrl, QList<Soprano::Node> > > addedProperties;
     QHash<QUrl, QHash<QUrl, QList<Soprano::Node> > > removedProperties;
@@ -952,19 +966,6 @@ bool Nepomuk2::ResourceMerger::merge( const Soprano::Graph& stGraph )
         }
     }
 
-    // Inform the ResourceWatcherManager of these new types
-    QHash<QUrl, QUrl>::const_iterator typeIt = typeHash.constBegin();
-    QHash<QUrl, QUrl>::const_iterator typeItEnd = typeHash.constEnd();
-    for( ; typeIt != typeItEnd; ) {
-        const QUrl blankUri = typeIt.key();
-        QList<QUrl> types;
-        for( ; typeIt != typeItEnd && typeIt.key() == blankUri ; typeIt++)
-            types << typeIt.value();
-
-        // Get its resource uri
-        const QUrl resUri = m_mappings.value( blankUri );
-        m_rvm->createResource( resUri, types );
-    }
 
     // Push all the duplicateStatements
     QHashIterator<QUrl, Soprano::Statement> hashIter( m_duplicateStatements );
