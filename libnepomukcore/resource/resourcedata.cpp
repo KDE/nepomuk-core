@@ -176,7 +176,7 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
             }
 
             // remove this Resource from the list of watched resources
-            QMetaObject::invokeMethod(m_rm->m_watcher, "removeResource", Qt::AutoConnection, Q_ARG(Nepomuk2::Resource, Resource::fromResourceUri(m_uri)));
+            QMetaObject::invokeMethod(m_rm->m_watcher, "removeResource", Qt::AutoConnection, Q_ARG(QUrl, m_uri));
             m_addedToWatcher = false;
         }
     }
@@ -318,10 +318,10 @@ void Nepomuk2::ResourceData::addToWatcher()
                             m_rm->m_manager, SLOT(slotPropertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
         QObject::connect( m_rm->m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
                             m_rm->m_manager, SLOT(slotPropertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
-        m_rm->m_watcher->addResource( Nepomuk2::Resource::fromResourceUri(m_uri) );
+        m_rm->m_watcher->addResource( m_uri );
     }
     else {
-        QMetaObject::invokeMethod(m_rm->m_watcher, "addResource", Qt::AutoConnection, Q_ARG(Nepomuk2::Resource, Nepomuk2::Resource::fromResourceUri(m_uri)) );
+        QMetaObject::invokeMethod(m_rm->m_watcher, "addResource", Qt::AutoConnection, Q_ARG(QUrl, m_uri) );
     }
     // (re-)start the watcher in case this resource is the only one in the list of watched
     if(m_rm->m_watcher->resources().count() <= 1) {
