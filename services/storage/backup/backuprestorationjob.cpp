@@ -78,7 +78,7 @@ void BackupRestorationJob::slotOntologyUpdateFinished(bool)
     Soprano::StatementIterator it = bf.iterator();
 
     // TODO: Optimize this
-    // TODO: Emit %
+    int numStatements = 0;
     while( it.next() ) {
         Soprano::Statement st = it.current();
         if( st.predicate() == NIE::url() ) {
@@ -98,6 +98,9 @@ void BackupRestorationJob::slotOntologyUpdateFinished(bool)
         }
 
         m_model->addStatement( st );
+
+        numStatements++;
+        emitPercent( numStatements, bf.numStatements() );
     }
 
     emitResult();

@@ -23,6 +23,7 @@
 
 #include <QtCore/QFile>
 #include <QtCore/QMutableListIterator>
+#include <QtCore/QSettings>
 
 #include <Soprano/Node>
 #include <Soprano/PluginManager>
@@ -48,10 +49,10 @@ Soprano::StatementIterator BackupFile::iterator()
 
 bool BackupFile::createBackupFile(const QUrl& url, BackupStatementIterator& it)
 {
-    KTemporaryFile tempFile;
-    tempFile.open();
+    KTemporaryFile dataFile;
+    dataFile.open();
 
-    QFile file( tempFile.fileName() );
+    QFile file( dataFile.fileName() );
     if( !file.open( QIODevice::ReadWrite | QIODevice::Append | QIODevice::Text ) ) {
         kWarning() << "File couldn't be opened for saving : " << url;
         return false;
@@ -60,24 +61,39 @@ bool BackupFile::createBackupFile(const QUrl& url, BackupStatementIterator& it)
     QTextStream out( &file );
 
     const Soprano::Serializer * serializer = Soprano::PluginManager::instance()->discoverSerializerForSerialization( Soprano::SerializationNQuads );
+    int numStatements = 0;
     while( it.next() ) {
+        numStatements++;
+
         QList<Soprano::Statement> stList;
         stList << it.current();
-        kDebug() << stList;
 
         Soprano::Util::SimpleStatementIterator iter( stList );
         serializer->serialize( iter, out, Soprano::SerializationNQuads );
     }
     file.close();
 
+    // Metadata
+    KTemporaryFile tmpFile;
+    tmpFile.open();
+    tmpFile.setAutoRemove( false );
+    QString metdataFile = tmpFile.fileName();
+    tmpFile.close();
+
+    QSettings iniFile( metdataFile, QSettings::IniFormat );
+    iniFile.setValue("NumStatements", numStatements);
+    iniFile.setValue("Created", QDateTime::currentDateTime().toString() );
+    iniFile.sync();
+
+    // Push to tar file
     KTar tarFile( url.toLocalFile(), QString::fromLatin1("application/x-gzip") );
     if( !tarFile.open( QIODevice::WriteOnly ) ) {
         kWarning() << "File could not be opened : " << url.toLocalFile();
         return false;
     }
 
-    tarFile.addLocalFile( tempFile.fileName(), "data" );
-    tarFile.close();
+    tarFile.addLocalFile( dataFile.fileName(), "data" );
+    tarFile.addLocalFile( metdataFile, "metadata" );
 
     return true;
 }
@@ -107,7 +123,27 @@ BackupFile BackupFile::fromUrl(const QUrl& url)
 
     BackupFile bf;
     bf.m_stIter = parser->parseFile( fileUrl.toLocalFile(), QUrl(), Soprano::SerializationNQuads );
+
+    // Metadata
+    QString metadataFileUrl = tempDir.name() + QLatin1String("metadata");
+    QSettings iniFile( metadataFileUrl, QSettings::IniFormat );
+
+    bf.m_numStatements = iniFile.value("NumStatements").toInt();
+    bf.m_created = QDateTime::fromString( iniFile.value("Created").toString() );
+
     return bf;
 }
+
+QDateTime BackupFile::created()
+{
+    return m_created;
+}
+
+int BackupFile::numStatements()
+{
+    return m_numStatements;
+}
+
+
 
 }

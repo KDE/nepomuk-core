@@ -22,6 +22,7 @@
 #define BACKUPFILE_H
 
 #include <QtCore/QUrl>
+#include <QtCore/QDateTime>
 #include <Soprano/QueryResultIterator>
 #include <Soprano/StatementIterator>
 
@@ -38,8 +39,15 @@ namespace Nepomuk2 {
 
         static BackupFile fromUrl(const QUrl& url);
         static bool createBackupFile(const QUrl& url, BackupStatementIterator& it);
+
+        int numStatements();
+        QDateTime created();
+
     private:
         Soprano::StatementIterator m_stIter;
+
+        QDateTime m_created;
+        int m_numStatements;
     };
 
 }
