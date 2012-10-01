@@ -195,9 +195,6 @@ Nepomuk2::RestorePage::RestorePage(QWidget* parent)
     layout->addWidget( m_progressBar );
     layout->addWidget( m_status );
 
-    // FIXME: Not really true, we need a page for handling non identified files
-    setCommitPage( true );
-
     // Page Properties
     setTitle( i18n("Restoring Backup") );
     setSubTitle( i18n("The backup is being restored...") );
@@ -221,13 +218,14 @@ void Nepomuk2::RestorePage::initializePage()
 
 int Nepomuk2::RestorePage::nextId() const
 {
-    return -1; //BackupWizard::Id_RestoreFinalPage;
+    return BackupWizard::Id_FileConflictPage;
 }
 
-bool Nepomuk2::RestorePage::validatePage()
+bool Nepomuk2::RestorePage::isComplete() const
 {
-    return true;
+    return false;
 }
+
 
 
 //
@@ -287,5 +285,27 @@ void Nepomuk2::ErrorPage::setMessage(const QString& s)
 {
     m_labelMessage->setText(s);
 }
+
+//
+// File Conflict
+//
+
+Nepomuk2::FileConflictPage::FileConflictPage(QWidget* parent): QWizardPage(parent)
+{
+    setTitle( i18n("Nepomuk Backup") );
+    setSubTitle( i18n("The following files were not found. Please either discard them or find them manually") );
+
+    setFinalPage( true );
+}
+
+void Nepomuk2::FileConflictPage::initializePage()
+{
+    m_conflictWidget = new FileConflictWidget( this );
+    QVBoxLayout* layout = new QVBoxLayout( this );
+    layout->addWidget( m_conflictWidget );
+
+    setLayout( layout );
+}
+
 
 #include "backupwizardpages.moc"

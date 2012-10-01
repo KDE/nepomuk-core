@@ -11,6 +11,7 @@ include_directories(
   )
 
 set( NepomukBackup_GUI_SRCS
+  fileconflictwidget.cpp
   backupwizardpages.cpp
   backupwizard.cpp
   main.cpp

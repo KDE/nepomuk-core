@@ -30,12 +30,11 @@
 #include <QtGui/QListWidget>
 
 #include "backupmanagerinterface.h"
+#include "fileconflictwidget.h"
 
 #include "ui_intropage.h"
-#include "ui_backuppage.h"
 #include "ui_backupsettingspage.h"
 #include "ui_restoreselection.h"
-#include "ui_restorefinal.h"
 #include "ui_errorpage.h"
 
 namespace Nepomuk2 {
@@ -122,7 +121,7 @@ namespace Nepomuk2 {
 
         void initializePage();
         int nextId() const;
-        bool validatePage();
+        bool isComplete() const;
 
     private:
         BackupManager* m_backupManager;
@@ -143,6 +142,24 @@ namespace Nepomuk2 {
     public Q_SLOTS:
         void setMessage(const QString& s);
     };
+
+    /**
+     * File Conflict Page
+     *
+     * Used to resolve all the files that were not found during backup restoration
+     */
+    class FileConflictPage : public QWizardPage {
+        Q_OBJECT
+
+    public:
+        FileConflictPage(QWidget* parent = 0);
+
+        void initializePage();
+
+    private:
+        FileConflictWidget* m_conflictWidget;
+    };
+
 }
 
 #endif // BACKUPWIZARDPAGES_H
