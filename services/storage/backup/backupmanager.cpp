@@ -85,9 +85,11 @@ void Nepomuk2::BackupManager::backup(const QString& oldUrl)
     QFile::remove( url );
 
     KJob * job = new BackupGenerationJob( m_model, url, this );
-
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotBackupDone(KJob*)) );
+    connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotBackupPercent(KJob*,ulong)) );
     job->start();
+
+    emit backupStarted();
 }
 
 
@@ -198,6 +200,11 @@ void Nepomuk2::BackupManager::slotBackupDone(KJob* job)
     if( !job->error() ) {
         emit backupDone();
     }
+}
+
+void Nepomuk2::BackupManager::slotBackupPercent(KJob* job, ulong percent)
+{
+    emit backupPercent( percent );
 }
 
 void Nepomuk2::BackupManager::restore(const QString& url)

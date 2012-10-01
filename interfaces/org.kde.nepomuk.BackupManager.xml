@@ -7,7 +7,14 @@
     <method name="restore">
         <arg name="url" type="s" direction="in"/>
     </method>
+    <signal name="backupStarted">
+    </signal>
     <signal name="backupDone">
+    </signal>
+    <signal name="backupPercent">
+        <arg name="percent" type="i" direction="out"/>
+    </signal>
+    <signal name="restoreStarted">
     </signal>
     <signal name="restoreDone">
     </signal>

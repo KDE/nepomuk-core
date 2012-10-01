@@ -50,7 +50,11 @@ namespace Nepomuk2 {
         void restore(const QString & url );
 
     signals:
+        void backupStarted();
         void backupDone();
+        void backupPercent(ulong percent);
+
+        void restoreStarted();
         void restoreDone();
         void restorePercent(ulong percent);
 
@@ -73,7 +77,10 @@ namespace Nepomuk2 {
     private slots:
         void slotConfigDirty();
         void automatedBackup();
+
+        // Backup
         void slotBackupDone(KJob * job);
+        void slotBackupPercent(KJob* job, ulong percent);
 
         // Backup Restoration
         void slotRestorationDone(KJob* job);

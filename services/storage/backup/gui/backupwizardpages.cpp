@@ -64,6 +64,9 @@ Nepomuk2::BackupPage::BackupPage(QWidget* parent)
 {
     QVBoxLayout* layout = new QVBoxLayout( this );
     m_progressBar = new QProgressBar( this );
+    m_progressBar->setMinimum( 0 );
+    m_progressBar->setMaximum( 100 );
+
     m_status = new QLabel( this );
 
     layout->addWidget( m_progressBar );
@@ -77,6 +80,7 @@ Nepomuk2::BackupPage::BackupPage(QWidget* parent)
                                          QLatin1String("/backupmanager"),
                                          QDBusConnection::sessionBus(), this);
     connect( m_backupManager, SIGNAL(backupDone()), this, SLOT(slotBackupDone()) );
+    connect( m_backupManager, SIGNAL(backupPercent(int)), m_progressBar, SLOT(setValue(int)) );
 }
 
 void Nepomuk2::BackupPage::initializePage()
@@ -105,8 +109,6 @@ void Nepomuk2::BackupPage::slotBackupDone()
     m_status->setText( i18nc("@info","Backup of the Nepomuk database successfully written to <filename>%1</filename>.",
                              field(QLatin1String("backupUrl")).value<KUrl>().pathOrUrl()) );
     setSubTitle( i18n("Backup completed successfully") );
-    m_progressBar->setMaximum( 100 );
-    m_progressBar->setValue( 100 );
 
     emit completeChanged();
 }
