@@ -31,6 +31,7 @@
 #include <QtCore/QListIterator>
 #include <QtCore/QTimer>
 #include <QtCore/QDir>
+#include <QtCore/QThread>
 
 #include <KDebug>
 #include <KStandardDirs>
@@ -84,9 +85,16 @@ void Nepomuk2::BackupManager::backup(const QString& oldUrl)
 
     QFile::remove( url );
 
-    KJob * job = new BackupGenerationJob( m_model, url, this );
-    connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotBackupDone(KJob*)) );
-    connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotBackupPercent(KJob*,ulong)) );
+    KJob* job = new BackupGenerationJob( m_model, url );
+
+    QThread* backupThread = new QThread( this );
+    job->moveToThread( backupThread );
+    backupThread->start();
+
+    connect( job, SIGNAL(finished(KJob*)), backupThread, SLOT(quit()), Qt::QueuedConnection );
+    connect( backupThread, SIGNAL(finished()), backupThread, SLOT(deleteLater()) );
+    connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotBackupDone(KJob*)), Qt::QueuedConnection );
+    connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotBackupPercent(KJob*,ulong)), Qt::QueuedConnection );
     job->start();
 
     emit backupStarted();
