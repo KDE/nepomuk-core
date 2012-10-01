@@ -38,6 +38,8 @@ private Q_SLOTS:
     void simpleData();
     void indexedData();
 
+    void nonExistingData();
+
 private:
     typedef org::kde::nepomuk::BackupManager BackupManager;
     BackupManager* m_backupManager;

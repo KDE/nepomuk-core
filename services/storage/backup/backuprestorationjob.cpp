@@ -90,7 +90,7 @@ void BackupRestorationJob::slotOntologyUpdateFinished(bool)
                 if( !QFile::exists( url.toLocalFile() ) ) {
                     url = translateHomeUri( url );
                     if( !QFile::exists( url.toLocalFile() ) ) {
-                        url.setScheme("file-backup");
+                        url.setScheme("nepomuk-backup");
                     }
                     st.setObject( url );
                 }

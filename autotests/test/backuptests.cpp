@@ -163,6 +163,41 @@ void BackupTests::indexedData()
     QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
 }
 
+void BackupTests::nonExistingData()
+{
+    // Create the file
+    KTempDir dir;
+    QUrl fileUrl = QUrl::fromLocalFile( dir.name() + "1" ) ;
+
+    SimpleResourceGraph graph = Test::DataGenerator::createMusicFile( fileUrl, "Fix you", "Coldplay", "Album" );
+    KJob* job = graph.save();
+    job->exec();
+    QVERIFY( !job->error() );
+
+    backup();
+
+    resetRepository();
+    QFile::remove( fileUrl.toLocalFile() );
+
+    restore();
+
+    QString query;
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+
+    query = QLatin1String("select ?url where { ?r nie:url ?url . }");
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+
+    QList<QUrl> urls;
+    while( it.next() )
+        urls << it[0].uri();
+
+    QCOMPARE( urls.size(), 1 );
+
+    QUrl url = urls.first();
+    QCOMPARE( url.scheme(), QLatin1String("nepomuk-backup") );
+    QCOMPARE( url.path(), fileUrl.toLocalFile() );
+}
+
 
 }
 
