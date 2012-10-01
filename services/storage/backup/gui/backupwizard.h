@@ -48,6 +48,8 @@ namespace Nepomuk2 {
 
         void startBackup();
         void startRestore();
+        void startConflictResolution();
+
         void showError(const QString& error);
 
     public:

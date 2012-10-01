@@ -57,6 +57,12 @@ void Nepomuk2::BackupWizard::startRestore()
     setStartId(Id_RestoreSelectionPage);
 }
 
+void Nepomuk2::BackupWizard::startConflictResolution()
+{
+    setStartId(Id_FileConflictPage);
+}
+
+
 void Nepomuk2::BackupWizard::showError(const QString &error)
 {
     setField(QLatin1String("errorMessage"), error);

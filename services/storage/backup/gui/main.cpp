@@ -52,6 +52,7 @@ int main( int argc, char** argv )
     KCmdLineOptions options;
     options.add("backup", ki18n("Start the application in backup mode"));
     options.add("restore", ki18n("Start the application in restore mode"));
+    options.add("conflicts", ki18n("Start the application in conflict resolution mode"));
     KCmdLineArgs::addCmdLineOptions( options );
     KUniqueApplication::addCmdLineOptions();
 
@@ -66,6 +67,9 @@ int main( int argc, char** argv )
         }
         else if( args->isSet("restore") ) {
             wizard.startRestore();
+        }
+        else if( args->isSet("conflicts") ) {
+            wizard.startConflictResolution();
         }
     }
     else {
