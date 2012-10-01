@@ -24,8 +24,6 @@
 #include "backupwizardpages.h"
 #include "backupwizard.h"
 
-#include "identifierwidget.h"
-
 #include <KDebug>
 #include <KLineEdit>
 #include <KStandardDirs>

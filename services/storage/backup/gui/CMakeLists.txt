@@ -13,12 +13,7 @@ include_directories(
 set( NepomukBackup_GUI_SRCS
   backupwizardpages.cpp
   backupwizard.cpp
-  mergeconflictdelegate.cpp
   main.cpp
-  identifiermodel.cpp
-  identifiermodeltree.cpp
-  identifierwidget.cpp
-  filesystemtree.cpp
 )
 
 #----- DBus interfaces --------
@@ -39,17 +34,9 @@ qt4_add_dbus_interface( NepomukBackup_GUI_SRCS
 kde4_add_ui_files( NepomukBackup_GUI_SRCS
   intropage.ui
   backupsettingspage.ui
-  mergeconflictwidget.ui
   restoreselection.ui
   errorpage.ui
 )
-
-#--------- Ontologies -------#
-soprano_add_ontology(NepomukBackup_GUI_SRCS
-   ${CMAKE_CURRENT_SOURCE_DIR}/../../../../ontologies/nrio.trig
-  "NRIO"
-  "Nepomuk2::Vocabulary"
-  "trig")
 
 kde4_add_executable(nepomukbackup ${NepomukBackup_GUI_SRCS})
 
