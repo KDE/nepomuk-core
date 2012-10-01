@@ -23,12 +23,16 @@
 
 #include "backupwizardpages.h"
 #include "backupwizard.h"
+#include "resourcemanager.h"
 
 #include <KDebug>
 #include <KLineEdit>
 #include <KStandardDirs>
 #include <KFileDialog>
 #include <KUrlRequester>
+
+#include <Soprano/Model>
+#include <Soprano/QueryResultIterator>
 
 #include <QtGui/QVBoxLayout>
 #include <QtGui/QGroupBox>
@@ -191,6 +195,7 @@ Nepomuk2::RestorePage::RestorePage(QWidget* parent)
     m_progressBar->setMaximum( 100 );
 
     m_status = new QLabel( i18n("Restoring Backup"), this );
+    m_restoreDone = false;
 
     layout->addWidget( m_progressBar );
     layout->addWidget( m_status );
@@ -212,18 +217,28 @@ void Nepomuk2::RestorePage::initializePage()
     kDebug() << "Restoring " << backupUrl;
     m_backupManager->restore( backupUrl );
 
-    connect( m_backupManager, SIGNAL(restoreDone()), wizard(), SLOT(next()) );
+    connect( m_backupManager, SIGNAL(restoreDone()), this, SLOT(slotRestoreDone()) );
     connect( m_backupManager, SIGNAL(restorePercent(int)), m_progressBar, SLOT(setValue(int)) );
 }
 
-int Nepomuk2::RestorePage::nextId() const
+void Nepomuk2::RestorePage::slotRestoreDone()
 {
-    return BackupWizard::Id_FileConflictPage;
+    m_restoreDone = true;
+
+    // vHanda: Maybe we shouldn't auto go to next
+    wizard()->next();
 }
 
-bool Nepomuk2::RestorePage::isComplete() const
+
+int Nepomuk2::RestorePage::nextId() const
 {
-    return false;
+    if( !m_restoreDone )
+        return -1;
+
+    if( FileConflictPage::hasConflicts() )
+        return BackupWizard::Id_FileConflictPage;
+    else
+        return BackupWizard::Id_RestoreEndPage;
 }
 
 
@@ -294,8 +309,6 @@ Nepomuk2::FileConflictPage::FileConflictPage(QWidget* parent): QWizardPage(paren
 {
     setTitle( i18n("Nepomuk Backup") );
     setSubTitle( i18n("The following files were not found. Please either discard them or find them manually") );
-
-    setFinalPage( true );
 }
 
 void Nepomuk2::FileConflictPage::initializePage()
@@ -306,6 +319,51 @@ void Nepomuk2::FileConflictPage::initializePage()
 
     setLayout( layout );
 }
+
+int Nepomuk2::FileConflictPage::nextId() const
+{
+    return BackupWizard::Id_RestoreEndPage;
+}
+
+
+// static
+bool Nepomuk2::FileConflictPage::hasConflicts()
+{
+    QLatin1String query("select count(?url) where { ?r nie:url ?url . FILTER(REGEX(STR(?url), '^nepomuk-backup')) . }");
+
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+
+    if( it.next() ) {
+        return it[0].literal().toInt();
+    }
+
+    return false;
+}
+
+//
+// Final Page
+//
+
+Nepomuk2::RestoreEndPage::RestoreEndPage(QWidget* parent): QWizardPage(parent)
+{
+}
+
+void Nepomuk2::RestoreEndPage::initializePage()
+{
+    setTitle( i18n("Nepomuk Backup") );
+    setSubTitle( i18n("The Backup has been successfully restored") );
+
+    setFinalPage( true );
+}
+
+int Nepomuk2::RestoreEndPage::nextId() const
+{
+    // Without this a 'next' option in shown in the wizard. Weird.
+    return -1;
+}
+
+
 
 
 #include "backupwizardpages.moc"

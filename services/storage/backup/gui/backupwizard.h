@@ -41,8 +41,8 @@ namespace Nepomuk2 {
             Id_BackupPage,
             Id_RestorePage,
             Id_RestoreSelectionPage,
-            Id_BackupDone,
             Id_FileConflictPage,
+            Id_RestoreEndPage,
             Id_ErrorPage
         };
 

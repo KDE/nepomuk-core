@@ -43,8 +43,13 @@ Nepomuk2::BackupWizard::BackupWizard(QWidget* parent, Qt::WindowFlags flags)
     setPage( Id_RestoreSelectionPage, new RestoreSelectionPage(this) );
     setPage( Id_RestorePage, new RestorePage(this) );
     setPage( Id_FileConflictPage, new FileConflictPage(this) );
+    setPage( Id_RestoreEndPage, new RestoreEndPage(this) );
     setPage( Id_ErrorPage, new ErrorPage( this ) );
     setStartId( Id_IntroPage );
+
+    setOption( HaveFinishButtonOnEarlyPages, false );
+    setOption( HaveNextButtonOnLastPage, false );
+    setOption( DisabledBackButtonOnLastPage, true );
 }
 
 void Nepomuk2::BackupWizard::startBackup()

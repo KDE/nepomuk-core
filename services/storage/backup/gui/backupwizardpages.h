@@ -121,13 +121,16 @@ namespace Nepomuk2 {
 
         void initializePage();
         int nextId() const;
-        bool isComplete() const;
+
+    private slots:
+        void slotRestoreDone();
 
     private:
         BackupManager* m_backupManager;
 
         QLabel* m_status;
         QProgressBar* m_progressBar;
+        bool m_restoreDone;
     };
 
     class ErrorPage : public QWizardPage, public Ui::ErrorPage {
@@ -155,10 +158,27 @@ namespace Nepomuk2 {
         FileConflictPage(QWidget* parent = 0);
 
         void initializePage();
+        int nextId() const;
 
+        /**
+         * Returns true if there are conflicts that need to be solved
+         */
+        static bool hasConflicts();
     private:
         FileConflictWidget* m_conflictWidget;
     };
+
+    /**
+     * Final ending page
+     */
+    class RestoreEndPage : public QWizardPage {
+    public:
+        RestoreEndPage(QWidget* parent = 0);
+
+        void initializePage();
+        int nextId() const;
+    };
+
 
 }
 
