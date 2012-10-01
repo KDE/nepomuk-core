@@ -42,7 +42,7 @@ Nepomuk2::BackupWizard::BackupWizard(QWidget* parent, Qt::WindowFlags flags)
     setPage( Id_BackupSettingsPage, new BackupSettingsPage(this) );
     setPage( Id_RestoreSelectionPage, new RestoreSelectionPage(this) );
     setPage( Id_RestorePage, new RestorePage(this) );
-    setPage( Id_RestoreFinalPage, new RestoreFinalPage( this ) );
+//    setPage( Id_RestoreFinalPage, new RestoreFinalPage( this ) );
     setPage( Id_ErrorPage, new ErrorPage( this ) );
     setStartId( Id_IntroPage );
 }

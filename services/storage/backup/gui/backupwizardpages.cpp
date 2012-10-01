@@ -62,7 +62,13 @@ Nepomuk2::BackupPage::BackupPage(QWidget* parent)
     : QWizardPage(parent),
       m_backupDone(false)
 {
-    setupUi( this );
+    QVBoxLayout* layout = new QVBoxLayout( this );
+    m_progressBar = new QProgressBar( this );
+    m_status = new QLabel( this );
+
+    layout->addWidget( m_progressBar );
+    layout->addWidget( m_status );
+
     setTitle( i18n("Nepomuk Backup") );
     setSubTitle( i18n("Performing backup") );
     setCommitPage(true);
@@ -177,6 +183,21 @@ void Nepomuk2::RestoreSelectionPage::slotCustomBackupUrl()
 Nepomuk2::RestorePage::RestorePage(QWidget* parent)
     : QWizardPage(parent)
 {
+    // GUI
+    QVBoxLayout* layout = new QVBoxLayout( this );
+
+    m_progressBar = new QProgressBar( this );
+    m_progressBar->setMinimum( 0 );
+    m_progressBar->setMaximum( 100 );
+
+    m_status = new QLabel( i18n("Restoring Backup"), this );
+
+    layout->addWidget( m_progressBar );
+    layout->addWidget( m_status );
+
+    // FIXME: Not really true, we need a page for handling non identified files
+    setCommitPage( true );
+
     // Page Properties
     setTitle( i18n("Restoring Backup") );
     setSubTitle( i18n("The backup is being restored...") );
@@ -189,37 +210,18 @@ Nepomuk2::RestorePage::RestorePage(QWidget* parent)
 
 void Nepomuk2::RestorePage::initializePage()
 {
-    /*
     QString backupUrl = field("backupToRestorePath").toString();
-    kDebug() << "Restoring : " << backupUrl;
 
+    kDebug() << "Restoring " << backupUrl;
+    m_backupManager->restore( backupUrl );
 
-    if( backupUrl.isEmpty() )
-        backupUrl = KStandardDirs::locateLocal( "data", "nepomuk/backupsync/backup" );
-
-    //m_id = Identifier::instance()->process( SyncFile(backupUrl) );
-
-    if( m_id == -1 ) {
-        //FIXME: This isn't implemented in the service. It's just there so that we have a
-        // string that can be translated.
-        kDebug() << "Invalid sync file";
-
-        QLabel * invalidLabel = new QLabel( i18n("Invalid backup file"), this );
-        m_identifierWidget->hide();
-        layout()->addWidget( invalidLabel );
-    }
-
-
-    QHBoxLayout * layout = new QHBoxLayout( this );
-    setLayout( layout );
-
-    m_identifierWidget = new IdentifierWidget( m_id, this );
-    layout->addWidget( m_identifierWidget );*/
+    connect( m_backupManager, SIGNAL(restoreDone()), wizard(), SLOT(next()) );
+    connect( m_backupManager, SIGNAL(restorePercent(int)), m_progressBar, SLOT(setValue(int)) );
 }
 
 int Nepomuk2::RestorePage::nextId() const
 {
-    return BackupWizard::Id_RestoreFinalPage;
+    return -1; //BackupWizard::Id_RestoreFinalPage;
 }
 
 bool Nepomuk2::RestorePage::validatePage()
@@ -227,12 +229,6 @@ bool Nepomuk2::RestorePage::validatePage()
     return true;
 }
 
-void Nepomuk2::RestorePage::slotIdentificationDone(int id, int unidentified)
-{
-    if( id == m_id && unidentified == 0 ) {
-        wizard()->next();
-    }
-}
 
 //
 // Backup Settings Page
@@ -270,38 +266,8 @@ int Nepomuk2::BackupSettingsPage::nextId() const
 
 
 //
-// Backup Final Page
+// Error Page
 //
-
-Nepomuk2::RestoreFinalPage::RestoreFinalPage(QWidget* parent): QWizardPage(parent)
-{
-    setupUi( this );
-    setCommitPage( true );
-
-    m_progressBar->setMinimum( 0 );
-    m_progressBar->setMaximum( 100 );
-
-    m_status->setText( i18nc("@info", "Merging the backup into the local Nepomuk database...") );
-}
-
-void Nepomuk2::RestoreFinalPage::initializePage()
-{
-    QWizardPage::initializePage();
-}
-
-int Nepomuk2::RestoreFinalPage::nextId() const
-{
-    return -1;
-}
-
-void Nepomuk2::RestoreFinalPage::slotDone(int per)
-{
-    m_progressBar->setValue( per );
-    if( per == 100 ) {
-        m_status->setText( i18nc("@info", "Backup restored successfully") );
-    }
-}
-
 
 Nepomuk2::ErrorPage::ErrorPage( QWidget* parent )
     : QWizardPage(parent)

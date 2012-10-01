@@ -38,11 +38,9 @@ qt4_add_dbus_interface( NepomukBackup_GUI_SRCS
 
 kde4_add_ui_files( NepomukBackup_GUI_SRCS
   intropage.ui
-  backuppage.ui
   backupsettingspage.ui
   mergeconflictwidget.ui
   restoreselection.ui
-  restorefinal.ui
   errorpage.ui
 )
 

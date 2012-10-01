@@ -66,7 +66,7 @@ namespace Nepomuk2 {
         int nextId() const;
     };
 
-    class BackupPage : public QWizardPage, public Ui::BackupPage {
+    class BackupPage : public QWizardPage {
         Q_OBJECT
 
     public:
@@ -76,12 +76,15 @@ namespace Nepomuk2 {
         bool isComplete() const;
         int nextId() const;
 
+    private slots:
+        void slotBackupDone();
+
     private:
         BackupManager* m_backupManager;
         bool m_backupDone;
 
-    private slots:
-        void slotBackupDone();
+        QLabel* m_status;
+        QProgressBar* m_progressBar;
     };
 
     class RestoreSelectionPage : public QWizardPage, public Ui::RestoreSelection {
@@ -105,8 +108,12 @@ namespace Nepomuk2 {
         QString m_backupFilePath;
     };
 
-    class IdentifierWidget;
 
+    /**
+     * This is the Page that is shown when a restore is being performed.
+     *
+     * It mainly shows a progress bar and a label
+     */
     class RestorePage : public QWizardPage {
         Q_OBJECT
 
@@ -117,27 +124,11 @@ namespace Nepomuk2 {
         int nextId() const;
         bool validatePage();
 
-    private slots:
-        void slotIdentificationDone( int id, int unidentified );
-
     private:
         BackupManager* m_backupManager;
-        int m_id;
-    };
 
-    class RestoreFinalPage : public QWizardPage, public Ui::RestoreFinal {
-        Q_OBJECT
-
-    public:
-        RestoreFinalPage( QWidget* parent = 0 );
-
-        void initializePage();
-        int nextId() const;
-
-    private slots:
-        void slotDone(int per);
-
-    private:
+        QLabel* m_status;
+        QProgressBar* m_progressBar;
     };
 
     class ErrorPage : public QWizardPage, public Ui::ErrorPage {
