@@ -5,8 +5,7 @@ echo "Telling nepomukserver to quit (this may take some time)"
 qdbus org.kde.NepomukServer /nepomukserver org.kde.NepomukServer.quit > /dev/null
 
 # Wait for the nepomuk server to finish shutting down
-while [ `qdbus org.kde.NepomukServer /nepomukserver org.kde.nepomuk.NepomukServer.isNepomukEnabled > /dev/null` ]
-do
+while qdbus org.kde.NepomukServer /nepomukserver isNepomukEnabled > /dev/null; do
   sleep 1
 done
 
