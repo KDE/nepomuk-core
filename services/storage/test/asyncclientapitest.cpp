@@ -175,7 +175,6 @@ void AsyncClientApiTest::testCreateResource()
     const QUrl uri = job->resourceUri();
     QVERIFY(!uri.isEmpty());
 
-    QVERIFY(m_model->containsAnyStatement(uri, RDF::type(), QUrl("class:/typeA")));
     QVERIFY(m_model->containsAnyStatement(uri, RDF::type(), QUrl("class:/typeB")));
     QVERIFY(m_model->containsAnyStatement(uri, NAO::prefLabel(), LiteralValue::createPlainLiteral(QLatin1String("label"))));
     QVERIFY(m_model->containsAnyStatement(uri, NAO::description(), LiteralValue::createPlainLiteral(QLatin1String("desc"))));
