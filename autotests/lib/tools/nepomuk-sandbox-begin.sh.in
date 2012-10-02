@@ -42,8 +42,11 @@ nepomukserver 2> $KDETMP/nepomuk-server.log &
 waitForNepomukService () {
     echo "Waiting for $1 service to be initialized."
 
-    while qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null; do
+    qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null
+    while [ $? -ne 0 ]
+    do
         sleep 1
+        qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null
     done
 }
 
