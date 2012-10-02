@@ -323,7 +323,8 @@ void Nepomuk2::FileWatch::connectToKDirWatch()
 void Nepomuk2::FileWatch::slotInotifyWatchUserLimitReached()
 {
     // we do it the brutal way for now hoping with new kernels and defaults this will never happen
-    delete m_dirWatch;
+    // Delete the KInotify and switch to KDirNotify dbus signals
+    m_dirWatch->deleteLater();
     m_dirWatch = 0;
     connectToKDirWatch();
 }
