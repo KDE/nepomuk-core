@@ -349,13 +349,11 @@ bool Nepomuk2::ResourceData::load()
                                                                       Soprano::Query::QueryLanguageSparqlNoInference);
             while ( it.next() ) {
                 QUrl p = it["p"].uri();
-                Soprano::Node o = it["o"];
-                Nepomuk2::Variant var = Variant::fromNode( o );
-                //FIXME: Is this updating of the kickoff lists required?
-                // (note: remove 'rmlock'if you remove this)
-                updateKickOffLists( p, var );
-                m_cache[p].append( var );
+                m_cache[p].append( Variant::fromNode( it["o"] ) );
             }
+
+            updateIdentifierLists( m_cache[NAO::identifier()].toString() );
+            updateUrlLists( m_cache[NIE::url()].toUrl() );
 
             m_cacheDirty = false;
             return true;
