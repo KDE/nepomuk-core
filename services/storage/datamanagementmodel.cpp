@@ -1558,7 +1558,6 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
 
 
     ResourceIdentifier resIdent( identificationMode, this );
-    QList<Soprano::Statement> allStatements;
     QList<Sync::SyncResource> syncResources;
 
     //
@@ -1567,7 +1566,7 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
     foreach( const SimpleResource& res, resGraph.toList() ) {
         // Convert to a Sync::SyncResource
         //
-        Sync::SyncResource syncRes( res.uri() ); //vHanda: Will this set the uri properly?
+        Sync::SyncResource syncRes( res.uri() );
         QHashIterator<QUrl, QVariant> hit( res.properties() );
         while( hit.hasNext() ) {
             hit.next();
@@ -1744,6 +1743,7 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
     duplicateResources.clear();
 
     // Push it into the Resource Identifier
+    QList<Soprano::Statement> allStatements;
     foreach( const Sync::SyncResource& syncRes, syncResources ) {
         QList< Soprano::Statement > stList = syncRes.toStatementList();
         allStatements << stList;
@@ -1770,36 +1770,6 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
             return QHash<QUrl, QUrl>();
         }
     }
-
-    //
-    // For better identification add rdf:type and nie:url to resolvedNodes
-    //
-    QHashIterator<QUrl, QUrl> it2( resolvedNodes );
-    while( it2.hasNext() ) {
-        it2.next();
-
-        const QUrl fileUrl = it2.key();
-        const QUrl uri = it2.value();
-
-        const Sync::SyncResource existingRes = resIdent.simpleResource( uri );
-
-        Sync::SyncResource res;
-        res.setUri( uri );
-
-        if( !existingRes.contains( RDF::type(), NFO::FileDataObject() ) )
-            res.insert( RDF::type(), NFO::FileDataObject() );
-
-        if( !existingRes.contains( NIE::url(), fileUrl ) )
-            res.insert( NIE::url(), fileUrl );
-
-        if( QFileInfo( fileUrl.toString() ).isDir() && !existingRes.contains( RDF::type(), NFO::Folder() ) )
-            res.insert( RDF::type(), NFO::Folder() );
-
-        resIdent.addSyncResource( res );
-    }
-
-    clearError();
-
 
     //
     // Perform the actual identification
