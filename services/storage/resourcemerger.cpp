@@ -831,7 +831,7 @@ bool Nepomuk2::ResourceMerger::merge( const Soprano::Graph& stGraph )
             else if( st.object().isLiteral() ) {
                 const Soprano::LiteralValue lv = st.object().literal();
                 // Special handling for xsd:duration
-                if( range == xsdDuration() && lv.isUnsignedInt() ) {
+                if( lv.isUnsignedInt() && range == xsdDuration() ) {
                     continue;
                 }
                 if( (!lv.isPlain() && lv.dataTypeUri() != range) ||
