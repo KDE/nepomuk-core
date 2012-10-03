@@ -114,6 +114,7 @@ namespace {
 
 Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
     : Service( parent )
+    , m_dirWatch( 0 )
 {
     // Create the configuration instance singleton (for thread-safety)
     // ==============================================================
@@ -324,8 +325,10 @@ void Nepomuk2::FileWatch::slotInotifyWatchUserLimitReached()
 {
     // we do it the brutal way for now hoping with new kernels and defaults this will never happen
     // Delete the KInotify and switch to KDirNotify dbus signals
-    m_dirWatch->deleteLater();
-    m_dirWatch = 0;
+    if( m_dirWatch ) {
+        m_dirWatch->deleteLater();
+        m_dirWatch = 0;
+    }
     connectToKDirWatch();
 }
 #endif
@@ -413,7 +416,9 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
 void Nepomuk2::FileWatch::slotDeviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry )
 {
 #ifdef BUILD_KINOTIFY
-    m_dirWatch->removeWatch( entry->mountPath() );
+    if( m_dirWatch ) {
+        m_dirWatch->removeWatch( entry->mountPath() );
+    }
 #endif
 }
 
