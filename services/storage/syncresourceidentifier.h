@@ -78,8 +78,6 @@ namespace Nepomuk2 {
              * This returns true if ALL the external ResourceUris have been identified.
              * If this is false, you should manually identify some of the resources by
              * providing the resource.
-             *
-             * \sa forceResource
              */
             bool allIdentified() const;
 
@@ -122,47 +120,6 @@ namespace Nepomuk2 {
 
             ResourceHash resourceHash() const;
 
-            //
-            // Property Settings
-            //
-            /**
-             * The property \p prop will be matched during identification, but it will
-             * not contribute to the actual score if it cannot be matched.
-             */
-            void addOptionalProperty( const QUrl & property );
-
-            void clearOptionalProperties();
-
-            KUrl::List optionalProperties() const;
-
-            //
-            // Manual Identification
-            //
-            /**
-            * Used for manual identification when both the old Resource uri, and
-            * the new resource Uri is provided.
-            *
-            * If the resource \p res provided is of type nfo:FileDataObject and has
-            * a nie:url. That url will be used to attempt to identify the unidentified
-            * resources having a similar nie:url ( same directory or common base directory )
-            * It does not perform the actual identification, but changes the internal identification
-            * statements so that the unidentified resources may be identified during the next
-            * call to identifyAll
-            *
-            * This method should typically be called after identifyAll has been called at least once.
-            */
-            void forceResource( const KUrl & oldUri, const Resource & res);
-
-            /**
-             * Ignores resourceUri (It will no longer play a part in identification )
-             * if @p ignoreSub is true and resourceUri is a Folder, all the sub folders
-             * and files are also ignored.
-             *
-             * This is an expensive method. It will also remove all the statements which
-             * contain \p uri as the object.
-             */
-            bool ignore( const KUrl& uri, bool ignoreSub = false );
-
             virtual bool isIdentifyingProperty( const QUrl & uri );
 
         protected:
@@ -199,11 +156,6 @@ namespace Nepomuk2 {
 
             /// Used to store all the identification statements
             ResourceHash m_resourceHash;
-
-            //
-            // Properties
-            //
-            KUrl::List m_optionalProperties;
 
             /**
              * This contains all the urls that are being identified, at any moment.

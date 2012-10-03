@@ -56,11 +56,6 @@ Nepomuk2::ResourceIdentifier::ResourceIdentifier( Nepomuk2::StoreIdentificationM
     : Nepomuk2::Sync::ResourceIdentifier( model ),
       m_mode( mode )
 {
-    // Resource Metadata
-    addOptionalProperty( NAO::created() );
-    addOptionalProperty( NAO::lastModified() );
-    addOptionalProperty( NAO::creator() );
-    addOptionalProperty( NAO::userVisible() );
 }
 
 
