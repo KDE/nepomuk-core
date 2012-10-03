@@ -4684,7 +4684,7 @@ void DataManagementModelTest::testStoreResources_duplicates()
     SimpleResourceGraph graph;
     graph << res << hash1 << hash2;
 
-    m_dmModel->storeResources( graph, "appA" );
+    m_dmModel->storeResources( graph, "appA", Nepomuk2::IdentifyNew, Nepomuk2::MergeDuplicateResources );
     QVERIFY(!m_dmModel->lastError());
 
     // hash1 and hash2 are the same, they should have been merged together
@@ -4723,7 +4723,7 @@ void DataManagementModelTest::testStoreResources_duplicateHierarchy()
     SimpleResourceGraph graph;
     graph << email1 << contact1 << email2 << contact2;
 
-    m_dmModel->storeResources( graph, "appA" );
+    m_dmModel->storeResources( graph, "appA", Nepomuk2::IdentifyNew, Nepomuk2::MergeDuplicateResources );
     QVERIFY(!m_dmModel->lastError());
 
     int contactCount = m_model->listStatements( Node(), RDF::type(),
@@ -4760,7 +4760,7 @@ void DataManagementModelTest::testStoreResources_duplicates2()
         graph << contact << email;
     }
 
-    m_dmModel->storeResources( graph, QLatin1String("appA") );
+    m_dmModel->storeResources( graph, "appA", Nepomuk2::IdentifyNew, Nepomuk2::MergeDuplicateResources );
     QVERIFY(!m_dmModel->lastError());
 
     // There should only be one email and one contact

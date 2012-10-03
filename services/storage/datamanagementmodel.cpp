@@ -1459,6 +1459,74 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(RemovalFlags flags, 
     removeTrailingGraphs(graphs);
 }
 
+namespace {
+    using namespace Nepomuk2;
+    /**
+     * Looks for pairs of SyncResources that are identical except for the uri and merges
+     * then together into one SyncResource. If any other resources depend on them, they are
+     * accordingly updated.
+     */
+    void mergeDuplicateSyncResources( QList<Sync::SyncResource>& syncResources ) {
+        QHash<Soprano::Node, Soprano::Node> duplicateResources;
+        do {
+            duplicateResources.clear();
+
+            QList<Sync::SyncResource> finalList;
+            QHash< uint, const Sync::SyncResource* > syncResHash;
+            foreach( const Sync::SyncResource& syncRes, syncResources ) {
+
+                // Do not check for duplicates in non blank nodes
+                if( syncRes.uri().url().startsWith("_:") ) {
+
+                    //WARNING: The SyncResource qHash function does not use the uri while preparing the hash.
+                    // If it did, then this would fail miserably.
+                    uint hash = qHash( syncRes );
+                    QHash< uint, const Sync::SyncResource* >::iterator it = syncResHash.find( hash );
+                    if( it != syncResHash.end() ) {
+                        // hash collision : Check the entire contents
+                        const Sync::SyncResource r = *it.value();
+
+                        // We can't use SyncResource::operator== cause that would check the uri as well
+                        // and we don't care about the uri
+                        if( r.QHash<KUrl,Soprano::Node>::operator==(syncRes) ) {
+                            kDebug() << "Adding: " << syncRes.uri() << " " << it.value()->uri();
+                            duplicateResources.insert( convertIfBlankUri( syncRes.uri() ),
+                                                    convertIfBlankUri( it.value()->uri() ) );
+                            continue;
+                        }
+                    }
+
+                    syncResHash.insert( hash, &syncRes );
+                }
+
+                finalList << syncRes;
+            }
+
+            if( !duplicateResources.isEmpty() ) {
+                // Resolve all duplicates in the finalList
+                QMutableListIterator<Sync::SyncResource> it( finalList );
+                while( it.hasNext() ) {
+                    it.next();
+
+                    QMutableHashIterator<KUrl, Soprano::Node> iter( it.value() );
+                    while( iter.hasNext() ) {
+                        iter.next();
+
+                        const Soprano::Node node = iter.value();
+                        if( node.isLiteral() || node.isEmpty() )
+                            continue;
+                        QHash< Soprano::Node, Soprano::Node >::const_iterator fit = duplicateResources.constFind( node );
+                        if( fit != duplicateResources.constEnd() ) {
+                            iter.setValue( fit.value() );
+                        }
+                    }
+                }
+
+                syncResources = finalList;
+            }
+        } while( !duplicateResources.isEmpty() );
+    }
+}
 
 //// TODO: do not allow to create properties or classes this way
 QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::SimpleResourceGraph &resources,
@@ -1683,68 +1751,9 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
 
     blankResources.clear();
 
-    // Look for duplicates in the syncResources and merge them
-    QHash<Soprano::Node, Soprano::Node> duplicateResources;
-    do {
-        duplicateResources.clear();
-
-        QList<Sync::SyncResource> finalList;
-        QHash< uint, const Sync::SyncResource* > syncResHash;
-        foreach( const Sync::SyncResource& syncRes, syncResources ) {
-
-            // Do not check for duplicates in non blank nodes
-            if( syncRes.uri().url().startsWith("_:") ) {
-
-                //WARNING: The SyncResource qHash function does not use the uri while preparing the hash.
-                // If it did, then this would fail miserably.
-                uint hash = qHash( syncRes );
-                QHash< uint, const Sync::SyncResource* >::iterator it = syncResHash.find( hash );
-                if( it != syncResHash.end() ) {
-                    // hash collision : Check the entire contents
-                    const Sync::SyncResource r = *it.value();
-
-                    // We can't use SyncResource::operator== cause that would check the uri as well
-                    // and we don't care about the uri
-                    if( r.QHash<KUrl,Soprano::Node>::operator==(syncRes) ) {
-                        kDebug() << "Adding: " << syncRes.uri() << " " << it.value()->uri();
-                        duplicateResources.insert( convertIfBlankUri( syncRes.uri() ),
-                                                convertIfBlankUri( it.value()->uri() ) );
-                        continue;
-                    }
-                }
-
-                syncResHash.insert( hash, &syncRes );
-            }
-
-            finalList << syncRes;
-        }
-
-        if( !duplicateResources.isEmpty() ) {
-            // Resolve all duplicates in the finalList
-            QMutableListIterator<Sync::SyncResource> it( finalList );
-            while( it.hasNext() ) {
-                it.next();
-
-                QMutableHashIterator<KUrl, Soprano::Node> iter( it.value() );
-                while( iter.hasNext() ) {
-                    iter.next();
-
-                    const Soprano::Node node = iter.value();
-                    if( node.isLiteral() || node.isEmpty() )
-                        continue;
-                    QHash< Soprano::Node, Soprano::Node >::const_iterator fit = duplicateResources.constFind( node );
-                    if( fit != duplicateResources.constEnd() ) {
-                        iter.setValue( fit.value() );
-                    }
-                }
-            }
-
-            syncResources = finalList;
-        }
-    } while( !duplicateResources.isEmpty() );
-
-    // Free up some memory
-    duplicateResources.clear();
+    if( flags & MergeDuplicateResources ) {
+        mergeDuplicateSyncResources( syncResources );
+    }
 
     // Push it into the Resource Identifier
     QList<Soprano::Statement> allStatements;
