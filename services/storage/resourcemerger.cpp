@@ -638,15 +638,14 @@ bool Nepomuk2::ResourceMerger::merge( const Soprano::Graph& stGraph )
     //
     // Resolve all the mapped statements
     //
-    // FIXME: Use toSet() once 4.7 has released. toSet() is faster, but it requires a newer version
-    //        of Soprano
-    QList<Soprano::Statement> statements = stGraph.toList();
-    QMutableListIterator<Soprano::Statement> sit( statements );
-    while( sit.hasNext() ) {
-        Soprano::Statement &st = sit.next();
-        st = resolveStatement( st );
+    QSet<Soprano::Statement> statements;
+    statements.reserve( stGraph.statementCount() );
+    foreach( const Soprano::Statement& st, stGraph.toSet() ) {
+        Soprano::Statement s = resolveStatement( st );
         if( lastError() )
             return false;
+
+        statements.insert( s );
     }
 
     //
