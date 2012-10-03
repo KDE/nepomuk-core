@@ -56,7 +56,7 @@ namespace Nepomuk2 {
         class ResourceIdentifier
         {
         public:
-            ResourceIdentifier( Soprano::Model * model = 0 );
+            ResourceIdentifier( Soprano::Model * model );
             virtual ~ResourceIdentifier();
 
             Soprano::Model * model();

@@ -326,16 +326,6 @@ bool Nepomuk2::Sync::ResourceIdentifier::allIdentified() const
 // Getting the info
 //
 
-Soprano::Model* Nepomuk2::Sync::ResourceIdentifier::model()
-{
-    return m_model;
-}
-
-void Nepomuk2::Sync::ResourceIdentifier::setModel(Soprano::Model* model)
-{
-    m_model = model ? model : ResourceManager::instance()->mainModel();
-}
-
 KUrl Nepomuk2::Sync::ResourceIdentifier::mappedUri(const KUrl& resourceUri) const
 {
     QHash< QUrl, QUrl >::const_iterator it = m_hash.constFind( resourceUri );
