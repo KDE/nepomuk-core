@@ -80,10 +80,9 @@ namespace Nepomuk2 {
         //
         Soprano::Statement resolveStatement( const Soprano::Statement& st );
         Soprano::Node resolveMappedNode( const Soprano::Node& node );
-        Soprano::Node resolveUnmappedNode( const Soprano::Node& node );
+        Soprano::Node resolveBlankNode( const Soprano::Node& node );
 
-        /// This modifies the list
-        void resolveBlankNodes( Sync::SyncResource& res );
+        Sync::ResourceHash resolveBlankNodes( const Sync::ResourceHash& resHash );
 
         /**
          * Removes all the statements that already exist in the model

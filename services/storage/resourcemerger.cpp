@@ -530,7 +530,7 @@ Soprano::Node Nepomuk2::ResourceMerger::resolveMappedNode(const Soprano::Node& n
     return node;
 }
 
-Soprano::Node Nepomuk2::ResourceMerger::resolveUnmappedNode(const Soprano::Node& node)
+Soprano::Node Nepomuk2::ResourceMerger::resolveBlankNode(const Soprano::Node& node)
 {
     if( !node.isBlank() )
         return node;
@@ -544,31 +544,45 @@ Soprano::Node Nepomuk2::ResourceMerger::resolveUnmappedNode(const Soprano::Node&
     const QUrl newUri = createResourceUri();
     m_mappings.insert( nodeN3, newUri );
 
-    // FIXME: trueg: IMHO these statements should instead be added to the list of all statements so there is only one place where anything is actually added to the model
-    Soprano::LiteralValue dateTime( QDateTime::currentDateTime() );
-
-    // OPTIMIZATION: Use a hand made query instead of the generic addStatement.
-    // They way we avoid the extra resourceToN3 for the properties, uri and graph
-    QString addQuery = QString::fromLatin1("sparql insert into %1 { %2 nao:created %3 ; nao:lastModified %3 . }")
-                        .arg( Soprano::Node::resourceToN3( m_graph ),
-                              Soprano::Node::resourceToN3( newUri ),
-                              Soprano::Node::literalToN3( dateTime ) );
-    // We use sql instead of sparql so that we can avoid any changes done by any of the other models
-    m_model->executeQuery( addQuery, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
-
     return newUri;
 }
 
 
-void Nepomuk2::ResourceMerger::resolveBlankNodes(Nepomuk2::Sync::SyncResource& res)
+Nepomuk2::Sync::ResourceHash Nepomuk2::ResourceMerger::resolveBlankNodes(const Nepomuk2::Sync::ResourceHash& resHash_)
 {
-    res.setUri( resolveUnmappedNode( res.uriNode() ) );
+    Sync::ResourceHash resHash;
 
-    QMutableHashIterator<KUrl, Soprano::Node> it( res );
+    QHashIterator<KUrl, Sync::SyncResource> it( resHash_ );
     while( it.hasNext() ) {
-        it.next();
-        it.setValue( resolveUnmappedNode(it.value()) );
+        Sync::SyncResource res = it.next().value();
+        const bool wasBlank = res.isBlank();
+
+        res.setUri( resolveBlankNode( res.uriNode() ) );
+
+        QMutableHashIterator<KUrl, Soprano::Node> it( res );
+        while( it.hasNext() ) {
+            it.next();
+            it.setValue( resolveBlankNode(it.value()) );
+        }
+
+        //
+        // Add the metadata properties for new nodes
+        //
+        if( wasBlank ) {
+            Soprano::LiteralValue dateTime( QDateTime::currentDateTime() );
+
+            // Check if already exists?
+            if( !res.contains( NAO::lastModified() ) )
+                res.insert( NAO::lastModified(), dateTime );
+
+            if( !res.contains( NAO::created() ) )
+                res.insert( NAO::created(), dateTime );
+        }
+
+        resHash.insert( res.uri(), res );
     }
+
+    return resHash;
 }
 
 
@@ -854,7 +868,7 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     resMetadataHash.clear();
 
     //
-    // Node Resolution + ResourceWatcher stuff
+    // Collect the type for the Resource Watcher
     //
     QMultiHash< QUrl, QList<QUrl> > typeHash; // For Blank Nodes
 
@@ -865,10 +879,10 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
             QList<QUrl> types = nodeListToUriList( res.values(RDF::type()) );
             typeHash.insert( res.uri(), types );
         }
-
-        // 6. Create all the blank nodes
-        resolveBlankNodes( res );
     }
+
+    // 6. Create all the blank nodes
+    resHash = resolveBlankNodes( resHash );
 
     //
     // Actual statement pushing
@@ -909,10 +923,10 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     }
 
     // Inform the ResourceWatcherManager of the changed properties
-    it.toFront();
-    while( it.hasNext() ) {
-        Sync::SyncResource& res = it.next().value();
-        Sync::SyncResource& removedRes = m_resRemoveHash[ res.uri() ];
+    QHashIterator<KUrl, Sync::SyncResource> iter( resHash );
+    while( iter.hasNext() ) {
+        const Sync::SyncResource& res = iter.next().value();
+        const Sync::SyncResource& removedRes = m_resRemoveHash.value( res.uri() );
 
         // FIXME: More efficient way of traversing the multi hash?
         const QList<KUrl> properties = res.uniqueKeys();
