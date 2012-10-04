@@ -755,9 +755,10 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
 
         // The newGraph is invalid when the oldGraph and the newGraph are the same
         // In that case those statements can just be ignored.
-        if( !newGraph.isValid() ) {
+        if( !newGraph.isValid() )
             hit.remove();
-        }
+        else
+            m_trailingGraphCandidates << oldGraph;
     }
 
     // Create the main graph, if they are any statements to merge
@@ -770,7 +771,6 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     // Apply the Metadata properties back onto the resHash
     // Also modify the model to remove previous values
     //
-    QSet<QUrl> trailingGraphCandidates = m_graphHash.keys().toSet();
     Soprano::Node currentDateTime = Soprano::LiteralValue( QDateTime::currentDateTime() );
 
     it.toFront();
@@ -792,7 +792,7 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
         while(qit.next()) {
             const Soprano::Node g = qit[0];
             m_model->removeAllStatements( resUri, NAO::lastModified(), Soprano::Node(), g );
-            trailingGraphCandidates << g.uri();
+            m_trailingGraphCandidates << g.uri();
         }
 
         // Add nao:lastModified with currentDateTime (unless provided)
@@ -850,9 +850,6 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
         }
     }
 
-    // make sure we do not leave trailing empty graphs
-    m_model->removeTrailingGraphs(m_trailingGraphCandidates);
-
     // Inform the ResourceWatcherManager of these new types
     QHashIterator< QUrl, QList<QUrl> > typeIt( typeHash );
     while( typeIt.hasNext() ) {
@@ -893,7 +890,8 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     }
 
 
-    m_model->removeTrailingGraphs(trailingGraphCandidates);
+    // make sure we do not leave trailing empty graphs
+    m_model->removeTrailingGraphs(m_trailingGraphCandidates);
 
     return true;
 }
