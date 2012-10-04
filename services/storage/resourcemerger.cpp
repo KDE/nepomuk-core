@@ -58,13 +58,6 @@ Nepomuk2::ResourceMerger::ResourceMerger(Nepomuk2::DataManagementModel* model, c
     m_rvm = model->resourceWatcherManager();
 
     //setModel( m_model );
-
-    // Resource Metadata
-    metadataProperties.reserve( 4 );
-    metadataProperties.insert( NAO::lastModified() );
-    metadataProperties.insert( NAO::userVisible() );
-    metadataProperties.insert( NAO::created() );
-    metadataProperties.insert( NAO::creator() );
 }
 
 
@@ -704,23 +697,34 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
         resHash.insert( res.uri(), res );
     }
 
-    QList<Soprano::Statement> metadataStatements;
-    // FIXME: Better handling for metadata statements
     //
-    // 3 Check the metadata (also retrieve the metadata statements)
+    // 3 Move the metadata from resHash to the metadataHash
     //
+    Sync::ResourceHash resMetadataHash;
+
     QMutableHashIterator<KUrl, Sync::SyncResource> it( resHash );
     while( it.hasNext() ) {
         Sync::SyncResource& res = it.next().value();
 
-        // FIXME: Optimize this
-        // What if there is more than 1 value given for these metaproperties?
-        if( res.contains( NAO::lastModified() ) )
-            metadataStatements << Soprano::Statement( res.uri(), NAO::lastModified(), res.take( NAO::lastModified() ) );
-        if( res.contains( NAO::created() ) )
-            metadataStatements << Soprano::Statement( res.uri(), NAO::created(), res.take( NAO::created() ) );
-        if( res.contains( NAO::userVisible() ) )
-            metadataStatements << Soprano::Statement( res.uri(), NAO::userVisible(), res.take( NAO::userVisible() ) );
+        if( !res.isBlank() ) {
+            Sync::SyncResource metadataRes( res.uri() );
+
+            // Remove the metadata properties - nao:lastModified and nao:created
+            QHash< KUrl, Soprano::Node >::iterator fit = res.find( NAO::lastModified() );
+            if( fit != res.end() ) {
+                metadataRes.insert( NAO::lastModified(), fit.value() );
+                res.erase( fit );
+            }
+
+            fit = res.find( NAO::created() );
+            if( fit != res.end() ) {
+                metadataRes.insert( NAO::created(), fit.value() );
+                res.erase( fit );
+            }
+
+            if( !metadataRes.isEmpty() )
+                resMetadataHash.insert( metadataRes.uri(), metadataRes );
+        }
 
         if( !hasValidData( resHash, res ) )
             return false;
@@ -761,22 +765,67 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
         m_graph = createGraph();
     }
 
-    //
-    // For the Resource Watcher
-    //
-    //FIXME: Inform RWM about typeAdded()
 
-    // Count all the modified resources
-    // Count all the blank nodes
-    QSet<QUrl> modifiedResources;
-    QMultiHash<QUrl, QUrl> typeHash;
+    //
+    // Apply the Metadata properties back onto the resHash
+    // Also modify the model to remove previous values
+    //
+    QSet<QUrl> trailingGraphCandidates = m_graphHash.keys().toSet();
+    Soprano::Node currentDateTime = Soprano::LiteralValue( QDateTime::currentDateTime() );
 
     it.toFront();
     while( it.hasNext() ) {
         Sync::SyncResource& res = it.next().value();
-        if( !res.isBlank() )
-            modifiedResources.insert( res.uri() );
-        else {
+        //TODO: What about the case when a blank node is created with a specific datetime?
+        if( res.isBlank() )
+            continue;
+
+        const Sync::SyncResource metadataRes = resMetadataHash.value( it.key() );
+        const QUrl resUri = res.uri();
+
+        // Remove previous nao:lastModified
+        QString query = QString::fromLatin1("select distinct ?g where { graph ?g { "
+                                            " %1 nao:lastModified ?o . } }")
+                        .arg( Soprano::Node::resourceToN3( resUri ) );
+
+        Soprano::QueryResultIterator qit = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        while(qit.next()) {
+            const Soprano::Node g = qit[0];
+            m_model->removeAllStatements( resUri, NAO::lastModified(), Soprano::Node(), g );
+            trailingGraphCandidates << g.uri();
+        }
+
+        // Add nao:lastModified with currentDateTime (unless provided)
+        QHash< KUrl, Soprano::Node >::const_iterator fit = metadataRes.constFind( NAO::lastModified() );
+        if( fit == metadataRes.constEnd() )
+            res.insert( NAO::lastModified(), currentDateTime );
+        else
+            res.insert( NAO::lastModified(), fit.value() );
+
+        // Check for nao:created
+        fit = metadataRes.constFind( NAO::created() );
+        if( fit != metadataRes.constEnd() ) {
+            query = QString::fromLatin1("ask where { %1 nao:created ?o . }")
+                    .arg( Soprano::Node::resourceToN3( resUri ) );
+
+            // in this case the value of nao:created is not changed
+            bool naoCreatedInRepo = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+            if( !naoCreatedInRepo )
+                res.insert( NAO::created(), fit.value() );
+        }
+    }
+    resMetadataHash.clear();
+
+    //
+    // Node Resolution + ResourceWatcher stuff
+    //
+    //FIXME: Inform RWM about typeAdded()
+    QMultiHash<QUrl, QUrl> typeHash; // For Blank Nodes
+
+    it.toFront();
+    while( it.hasNext() ) {
+        Sync::SyncResource& res = it.next().value();
+        if( !res.isBlank() ) {
             foreach( const Soprano::Node& node, res.values( RDF::type() ) )
                 typeHash.insert( res.uri(), node.uri() );
         }
@@ -833,7 +882,6 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
         }
     }
 
-
     // Push all the duplicateStatements
     QHashIterator<QUrl, Soprano::Statement> hashIter( m_duplicateStatements );
     while( hashIter.hasNext() ) {
@@ -848,64 +896,10 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
         m_model->addStatement( st );
     }
 
-    //
-    // Handle Resource metadata
-    //
-
-    QSet<QUrl> trailingGraphCandidates = m_graphHash.keys().toSet();
-
-    // TODO: Maybe inform the RVM about these metadata changes?
-    // First update the mtime of all the modified resources
-    Soprano::Node currentDateTime = Soprano::LiteralValue( QDateTime::currentDateTime() );
-    foreach( const QUrl & resUri, modifiedResources ) {
-        Soprano::QueryResultIterator it
-                = m_model->executeQuery(QString::fromLatin1("select distinct ?g where { graph ?g { %1 %2 ?o . } . }")
-                                        .arg(Soprano::Node::resourceToN3(resUri),
-                                             Soprano::Node::resourceToN3(NAO::lastModified())),
-                                        Soprano::Query::QueryLanguageSparql);
-        while(it.next()) {
-            const Soprano::Node g = it["g"];
-            m_model->removeAllStatements( resUri, NAO::lastModified(), Soprano::Node(), g );
-            trailingGraphCandidates << g.uri();
-        }
-        m_model->addStatement( resUri, NAO::lastModified(), currentDateTime, m_graph );
-    }
-
-    // then push the individual metadata statements
-    foreach( Soprano::Statement st, metadataStatements ) {
-        addResMetadataStatement( st );
-    }
 
     m_model->removeTrailingGraphs(trailingGraphCandidates);
 
     return true;
-}
-
-
-Soprano::Error::ErrorCode Nepomuk2::ResourceMerger::addResMetadataStatement(const Soprano::Statement& st)
-{
-    const QUrl & predicate = st.predicate().uri();
-
-    // Special handling for nao:lastModified and nao:userVisible: only the latest value is correct
-    if( predicate == NAO::lastModified() ||
-            predicate == NAO::userVisible() ) {
-        m_model->removeAllStatements( st.subject(), st.predicate(), Soprano::Node() );
-    }
-
-    // Special handling for nao:created: only the first value is correct
-    else if( predicate == NAO::created() ) {
-        // If nao:created already exists, then do nothing
-        // FIXME: only write nao:created if we actually create the resource or if it was provided by the client, otherwise drop it.
-        if( m_model->containsAnyStatement( st.subject(), NAO::created(), Soprano::Node() ) )
-            return Soprano::Error::ErrorNone;
-    }
-
-    // Special handling for nao:creator
-    else if( predicate == NAO::creator() ) {
-        // FIXME: handle nao:creator somehow
-    }
-
-    return m_model->addStatement( st );
 }
 
 bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::SyncResource>& resHash,

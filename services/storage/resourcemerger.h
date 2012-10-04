@@ -63,8 +63,6 @@ namespace Nepomuk2 {
         virtual QUrl createResourceUri();
         virtual QUrl createGraphUri();
 
-        virtual Soprano::Error::ErrorCode addResMetadataStatement( const Soprano::Statement & st );
-
         /**
          * Checks the cardinality + domain/range of the properties in the \p res.
          * Returns true if the data is valid, sets an error otherwise.
@@ -143,9 +141,6 @@ namespace Nepomuk2 {
                        const QMultiHash<QUrl, Soprano::Node>& newPropHash );
 
         bool sameTypes( const QSet<QUrl>& t1, const QSet<QUrl>& t2 );
-
-        /// Refers to the properties which are considered as resource metadata
-        QSet<QUrl> metadataProperties;
 
         ResourceWatcherManager *m_rvm;
     };
