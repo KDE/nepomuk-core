@@ -375,6 +375,12 @@ Nepomuk2::Sync::SyncResource Nepomuk2::Sync::ResourceIdentifier::simpleResource(
     return SyncResource();
 }
 
+Nepomuk2::Sync::ResourceHash Nepomuk2::Sync::ResourceIdentifier::resourceHash() const
+{
+    return d->m_resourceHash;
+}
+
+
 
 Soprano::Graph Nepomuk2::Sync::ResourceIdentifier::statements(const KUrl& uri)
 {

@@ -30,6 +30,7 @@
 #include <Soprano/Error/ErrorCache>
 
 #include "datamanagement.h"
+#include "resourceidentifier.h"
 
 namespace Soprano {
     class Node;
@@ -52,7 +53,7 @@ namespace Nepomuk2 {
         void setMappings( const QHash<QUrl, QUrl> & mappings );
         QHash<QUrl, QUrl> mappings() const;
 
-        bool merge(const Soprano::Graph& graph);
+        bool merge(const Sync::ResourceHash& resHash);
 
         void setAdditionalGraphMetadata( const QHash<QUrl, QVariant>& additionalMetadata );
         QHash<QUrl, QVariant> additionalMetadata() const;
@@ -64,6 +65,15 @@ namespace Nepomuk2 {
 
         virtual Soprano::Error::ErrorCode addResMetadataStatement( const Soprano::Statement & st );
 
+        /**
+         * Checks the cardinality + domain/range of the properties in the \p res.
+         * Returns true if the data is valid, sets an error otherwise.
+         *
+         * It does not modify \p res, but temporarily alters it. The pass by reference is to
+         * avoid making a copy
+         */
+        bool hasValidData( const QHash<KUrl, Sync::SyncResource>& resHash, Sync::SyncResource& res );
+
         bool push( const Soprano::Statement & st );
 
         //
@@ -74,12 +84,14 @@ namespace Nepomuk2 {
         Soprano::Node resolveUnmappedNode( const Soprano::Node& node );
 
         /// This modifies the list
-        void resolveBlankNodesInSet( QSet<Soprano::Statement> *stList );
+        void resolveBlankNodes( Sync::SyncResource& res );
 
         /**
          * Removes all the statements that already exist in the model
          * and adds them to m_duplicateStatements
          */
+        void removeDuplicates( Sync::SyncResource& res );
+
         void removeDuplicatesInList( QSet<Soprano::Statement> *stList );
         QMultiHash<QUrl, Soprano::Statement> m_duplicateStatements;
 

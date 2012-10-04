@@ -41,6 +41,7 @@
 #include <KDebug>
 #include <Soprano/Graph>
 #include "resourcewatchermanager.h"
+#include "backupsync/lib/syncresource.h"
 
 using namespace Soprano::Vocabulary;
 using namespace Nepomuk2::Vocabulary;
@@ -528,21 +529,47 @@ Soprano::Node Nepomuk2::ResourceMerger::resolveUnmappedNode(const Soprano::Node&
     return newUri;
 }
 
-void Nepomuk2::ResourceMerger::resolveBlankNodesInSet(QSet<Soprano::Statement> *stList)
+
+void Nepomuk2::ResourceMerger::resolveBlankNodes(Nepomuk2::Sync::SyncResource& res)
 {
-    QSet<Soprano::Statement> newSet;
+    res.setUri( resolveUnmappedNode( res.uriNode() ) );
 
-    QSetIterator<Soprano::Statement> iter( *stList );
-    while( iter.hasNext() ) {
-        Soprano::Statement st = iter.next();
-
-        st.setSubject( resolveUnmappedNode(st.subject()) );
-        st.setObject( resolveUnmappedNode(st.object()) );
-
-        newSet.insert( st );
+    QMutableHashIterator<KUrl, Soprano::Node> it( res );
+    while( it.hasNext() ) {
+        it.next();
+        it.setValue( resolveUnmappedNode(it.value()) );
     }
+}
 
-    *stList = newSet;
+
+void Nepomuk2::ResourceMerger::removeDuplicates(Nepomuk2::Sync::SyncResource& res)
+{
+    QMutableHashIterator<KUrl, Soprano::Node> it( res );
+
+    while( it.hasNext() ) {
+        it.next();
+
+        if( res.isBlank() || it.value().isBlank() )
+            continue;
+
+        // FIXME: Maybe half of this query could be constructed in advance
+        const QString query = QString::fromLatin1("select ?g where { graph ?g { %1 %2 %3 . } . } LIMIT 1")
+                              .arg( Soprano::Node::resourceToN3( res.uri() ),
+                                    Soprano::Node::resourceToN3( it.key() ),
+                                    it.value().toN3() );
+
+        Soprano::QueryResultIterator qit = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql);
+        if(qit.next()) {
+            const QUrl oldGraph = qit[0].uri();
+            qit.close();
+
+            if(!m_model->isProtectedProperty(it.key())) {
+                Soprano::Statement st( res.uri(), it.key(), it.value() );
+                m_duplicateStatements.insert( oldGraph, st );
+            }
+            it.remove();
+        }
+    }
 }
 
 void Nepomuk2::ResourceMerger::removeDuplicatesInList(QSet<Soprano::Statement> *stList)
@@ -593,6 +620,14 @@ namespace {
         }
         return list;
     }
+
+    QList<QUrl> nodeListToUriList( const QList<Soprano::Node>& nodeList ) {
+        QList<QUrl> urls;
+        urls.reserve( nodeList.size() );
+        foreach( const Soprano::Node& node, nodeList )
+            urls << node.uri();
+        return urls;
+    }
 }
 
 /*
@@ -630,10 +665,10 @@ namespace {
  10. You're done!
 
  */
-bool Nepomuk2::ResourceMerger::merge( const Soprano::Graph& stGraph )
+bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash_)
 {
     //
-    // Check if the additional metadata is valid
+    // 1. Check if the additional metadata is valid
     //
     if( !additionalMetadata().isEmpty() ) {
         QMultiHash<QUrl, Soprano::Node> additionalMetadata = toNodeHash(m_additionalMetadata);
@@ -646,243 +681,72 @@ bool Nepomuk2::ResourceMerger::merge( const Soprano::Graph& stGraph )
     }
 
     //
-    // Resolve all the mapped statements
+    // 2. Resolve all the mapped statements
     //
-    QSet<Soprano::Statement> statements;
-    statements.reserve( stGraph.statementCount() );
-    foreach( const Soprano::Statement& st, stGraph.toSet() ) {
-        Soprano::Statement s = resolveStatement( st );
+    QHash<KUrl, Sync::SyncResource> resHash;
+    QHashIterator<KUrl, Sync::SyncResource> it_( resHash_ );
+    while( it_.hasNext() ) {
+        Sync::SyncResource res = it_.next().value();
+        res.setUri( resolveMappedNode(res.uri()) );
         if( lastError() )
             return false;
 
-        statements.insert( s );
-    }
+        QMutableHashIterator<KUrl, Soprano::Node> iter( res );
+        while( iter.hasNext() ) {
+            Soprano::Node& object = iter.next().value();
+            if( ( object.isResource() && object.uri().scheme() == QLatin1String("nepomuk") ) || object.isBlank() )
+                object = resolveMappedNode( object );
 
-    //
-    // Check the statement metadata
-    //
-
-    /// Maps a resource to all its types
-    QMultiHash<QUrl, QUrl> types;
-
-    /// Maps <sub,pred> pair to all its values
-    QMultiHash<QPair<QUrl,QUrl>, Soprano::Node> cardinality;
-
-    ClassAndPropertyTree * tree = m_model->classAndPropertyTree();
-    //
-    // First separate all the statements predicate rdf:type.
-    // and collect info required to check the types and cardinality
-    //
-    QSet<Soprano::Statement> remainingStatements;
-    QSet<Soprano::Statement> typeStatements;
-    QSet<Soprano::Statement> metadataStatements;
-
-    foreach( const Soprano::Statement & st, statements ) {
-        const QUrl subUri = getBlankOrResourceUri( st.subject() );
-        const QUrl objUri = getBlankOrResourceUri( st.object() );
-
-        const QUrl prop = st.predicate().uri();
-        if( prop == RDF::type() ) {
-            typeStatements << st;
-            types.insert( subUri, objUri );
-            continue;
-        }
-        // we ignore the metadata properties as they will get special
-        // treatment duing the merging
-        else if( metadataProperties.contains( prop ) ) {
-            metadataStatements << st;
-            continue;
-        }
-        else {
-            remainingStatements << st;
-        }
-
-        // Get the cardinality
-        if( tree->maxCardinality( prop ) > 0 ) {
-            QPair<QUrl,QUrl> subPredPair( subUri, st.predicate().uri() );
-            if( !cardinality.contains( subPredPair, st.object() ) ) {
-                cardinality.insert( subPredPair, st.object() );
-            }
-        }
-    }
-
-
-    //
-    // Check the cardinality
-    //
-    QMultiHash<QPair<QUrl,QUrl>, Soprano::Node>::const_iterator cIter = cardinality.constBegin();
-    QMultiHash<QPair<QUrl,QUrl>, Soprano::Node>::const_iterator cIterEnd = cardinality.constEnd();
-    for( ; cIter != cIterEnd; ) {
-        const QPair<QUrl,QUrl> subPredPair = cIter.key();
-        QSet<Soprano::Node> objectValues;
-        for( ; cIter != cIterEnd && cIter.key() == subPredPair ; cIter++ ) {
-            objectValues << cIter.value();
-        }
-
-        const QUrl subUri = subPredPair.first;
-        const QUrl propUri = subPredPair.second;
-
-        int maxCardinality = tree->maxCardinality( propUri );
-
-        if( maxCardinality > 0 ) {
-
-            QStringList filterStringList;
-            QStringList objectN3 = nodesToN3( objectValues );
-            foreach( const QString &n3, objectN3 )
-                filterStringList << QString::fromLatin1("?v!=%1").arg( n3 );
-
-            const QString query = QString::fromLatin1("select count(distinct ?v) where {"
-                                                        " %1 %2 ?v ."
-                                                        "FILTER( %3 ) . }")
-                                    .arg( Soprano::Node::resourceToN3( subUri ),
-                                        Soprano::Node::resourceToN3( propUri ),
-                                        filterStringList.join( QLatin1String(" && ") ) );
-
-            int existingCardinality = 0;
-            Soprano::QueryResultIterator exCarIt
-                    = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-            if( exCarIt.next() ) {
-                existingCardinality = exCarIt[0].literal().toInt();
-            }
-
-            const int newCardinality = objectValues.size() + existingCardinality;
-
-            // TODO: This can be made faster by not calculating all these values when flags are set
-            if( newCardinality > maxCardinality ) {
-                // Special handling for max Cardinality == 1
-                if( maxCardinality == 1 ) {
-                    // If the difference is 1, then that is okay, as the OverwriteProperties flag
-                    // has been set
-                    if( (m_flags & OverwriteProperties) && (newCardinality-maxCardinality) == 1 ) {
-                        continue;
-                    }
-                }
-
-                // The LazyCardinalities flag has been set, we don't care about cardinalities any more
-                if( (m_flags & LazyCardinalities) ) {
-                    continue;
-                }
-
-                //
-                // Display a very informative error message
-                //
-                QString query = QString::fromLatin1("select distinct ?v where {"
-                                                    " %1 %2 ?v ."
-                                                    "FILTER( %3 ) . }")
-                                    .arg( Soprano::Node::resourceToN3( subUri ),
-                                          Soprano::Node::resourceToN3( propUri ),
-                                          filterStringList.join( QLatin1String(" && ") ) );
-                QList< Soprano::Node > existingValues = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).iterateBindings(0).allNodes();
-
-                QString error = QString::fromLatin1("%1 has a max cardinality of %2. Provided "
-                                                    "%3 values - %4. Existing - %5")
-                                .arg( propUri.toString(),
-                                      QString::number(maxCardinality),
-                                      QString::number(objectN3.size()),
-                                      objectN3.join(QLatin1String(", ")),
-                                      nodesToN3(existingValues).join(QLatin1String(", ")) );
-                setError( error, Soprano::Error::ErrorInvalidStatement );
+            if( lastError() )
                 return false;
-            }
         }
+
+        resHash.insert( res.uri(), res );
     }
 
-    foreach( const Soprano::Statement & st, remainingStatements ) {
-        const QUrl subUri = getBlankOrResourceUri( st.subject() );
-        const QUrl &propUri = st.predicate().uri();
+    QList<Soprano::Statement> metadataStatements;
+    // FIXME: Better handling for metadata statements
+    //
+    // 3 Check the metadata (also retrieve the metadata statements)
+    //
+    QMutableHashIterator<KUrl, Sync::SyncResource> it( resHash );
+    while( it.hasNext() ) {
+        Sync::SyncResource& res = it.next().value();
 
-        //
-        // Check for rdfs:domain and rdfs:range
-        //
+        // FIXME: Optimize this
+        // What if there is more than 1 value given for these metaproperties?
+        if( res.contains( NAO::lastModified() ) )
+            metadataStatements << Soprano::Statement( res.uri(), NAO::lastModified(), res.take( NAO::lastModified() ) );
+        if( res.contains( NAO::created() ) )
+            metadataStatements << Soprano::Statement( res.uri(), NAO::created(), res.take( NAO::created() ) );
+        if( res.contains( NAO::userVisible() ) )
+            metadataStatements << Soprano::Statement( res.uri(), NAO::userVisible(), res.take( NAO::userVisible() ) );
 
-        QUrl domain = tree->propertyDomain( propUri );
-        QUrl range = tree->propertyRange( propUri );
-
-//        kDebug() << "Domain : " << domain;
-//        kDebug() << "Range : " << range;
-
-        QList<QUrl> subjectNewTypes = types.values( subUri );
-
-        // domain
-        if( !domain.isEmpty() && !isOfType( subUri, domain, subjectNewTypes ) ) {
-            // Error
-            QList<QUrl> allTypes = ( subjectNewTypes + existingTypes(subUri) );
-
-            QString error = QString::fromLatin1("%1 has a rdfs:domain of %2. "
-                                                "%3 only has the following types %4" )
-                            .arg( Soprano::Node::resourceToN3( propUri ),
-                                  Soprano::Node::resourceToN3( domain ),
-                                  Soprano::Node::resourceToN3( subUri ),
-                                  Nepomuk2::resourcesToN3( allTypes ).join(", ") );
-            setError( error, Soprano::Error::ErrorInvalidArgument);
+        if( !hasValidData( resHash, res ) )
             return false;
-        }
+    }
 
-        // range
-        if( !range.isEmpty() ) {
-            if( st.object().isResource() || st.object().isBlank() ) {
-                const QUrl objUri = getBlankOrResourceUri( st.object() );
-                QList<QUrl> objectNewTypes= types.values( objUri );
-
-                if( !isOfType( objUri, range, objectNewTypes ) ) {
-                    // Error
-                    QList<QUrl> allTypes = ( objectNewTypes + existingTypes(objUri) );
-
-                    QString error = QString::fromLatin1("%1 has a rdfs:range of %2. "
-                                                "%3 only has the following types %4" )
-                                    .arg( Soprano::Node::resourceToN3( propUri ),
-                                          Soprano::Node::resourceToN3( range ),
-                                          Soprano::Node::resourceToN3( objUri ),
-                                          resourcesToN3( allTypes ).join(", ") );
-                    setError( error, Soprano::Error::ErrorInvalidArgument );
-                    return false;
-                }
-            }
-            else if( st.object().isLiteral() ) {
-                const Soprano::LiteralValue lv = st.object().literal();
-                // Special handling for xsd:duration
-                if( lv.isUnsignedInt() && range == xsdDuration() ) {
-                    continue;
-                }
-                if( (!lv.isPlain() && lv.dataTypeUri() != range) ||
-                        (lv.isPlain() && range != RDFS::Literal()) ) {
-                    // Error
-                    QString error = QString::fromLatin1("%1 has a rdfs:range of %2. "
-                                                        "Provided %3")
-                                    .arg( Soprano::Node::resourceToN3( propUri ),
-                                          Soprano::Node::resourceToN3( range ),
-                                          Soprano::Node::literalToN3(lv) );
-                    setError( error, Soprano::Error::ErrorInvalidArgument);
-                    return false;
-                }
-            }
-        } // range
-
-    } // foreach
-
-    // The graph is error free.
-
-    //Merge its statements except for the resource metadata statements
-    //QList<Soprano::Statement> mergeStatements = remainingStatements + typeStatements;
-
-    //
     // Graph Handling
-    //
-    removeDuplicatesInList( &remainingStatements );
-
-    // If the resource exists then all the type statements provided must match
-    // Therefore after this typeStatements, will only contain the types for the new types
-    removeDuplicatesInList( &typeStatements );
-
 
     //
-    // Create all the graphs
+    // 4. Remove duplicate statemets
+    //
+    it.toFront();
+    while( it.hasNext() ) {
+        Sync::SyncResource& res = it.next().value();
+
+        removeDuplicates( res );
+        if( res.isEmpty() )
+            it.remove();
+    }
+
+    //
+    // 5. Create all the graphs
     //
     QMutableHashIterator<QUrl, Soprano::Statement> hit( m_duplicateStatements );
     while( hit.hasNext() ) {
         hit.next();
         const QUrl& oldGraph = hit.key();
-
         const QUrl newGraph = mergeGraphs( oldGraph );
 
         // The newGraph is invalid when the oldGraph and the newGraph are the same
@@ -893,44 +757,48 @@ bool Nepomuk2::ResourceMerger::merge( const Soprano::Graph& stGraph )
     }
 
     // Create the main graph, if they are any statements to merge
-    if( !remainingStatements.isEmpty() || !typeStatements.isEmpty() ) {
+    if( !resHash.isEmpty() ) {
         m_graph = createGraph();
     }
 
+    //
+    // For the Resource Watcher
+    //
+    //FIXME: Inform RWM about typeAdded()
+
     // Count all the modified resources
+    // Count all the blank nodes
     QSet<QUrl> modifiedResources;
-    foreach( const Soprano::Statement & st, remainingStatements ) {
-        if( !st.subject().isBlank() )
-            modifiedResources.insert( st.subject().uri() );
-        //FIXME: Inform RWM about typeAdded()
+    QMultiHash<QUrl, QUrl> typeHash;
+
+    it.toFront();
+    while( it.hasNext() ) {
+        Sync::SyncResource& res = it.next().value();
+        if( !res.isBlank() )
+            modifiedResources.insert( res.uri() );
+        else {
+            foreach( const Soprano::Node& node, res.values( RDF::type() ) )
+                typeHash.insert( res.uri(), node.uri() );
+        }
+
+        // 6. Create all the blank nodes
+        resolveBlankNodes( res );
     }
 
     //
     // Actual statement pushing
     //
+    QHashIterator<KUrl, Sync::SyncResource> iter( resHash );
+    QList<Soprano::Statement> allStatements;
+    while( iter.hasNext() ) {
+        iter.next();
 
-    // Count all the blank nodes
-    /// Maps a blank node with all its types
-    QMultiHash<QUrl, QUrl> typeHash;
-    foreach( const Soprano::Statement& st, typeStatements ) {
-        if( st.subject().isBlank() )
-            typeHash.insert( st.subject().toN3(), st.object().uri() );
-    }
-
-    // Create all the blank nodes
-    resolveBlankNodesInSet( &typeStatements );
-    resolveBlankNodesInSet( &remainingStatements );
-    resolveBlankNodesInSet( &metadataStatements );
-
-    // Push all these statements and get the list of all the modified resource
-    foreach( Soprano::Statement st, typeStatements ) {
-        st.setContext( m_graph );
-        m_model->addStatement( st );
-    }
-
-    foreach( const Soprano::Statement &st, remainingStatements ) {
-        push( st );
-        m_rvm->addStatement( st );
+        // FIXME: Find a more efficient way of pushing and avoid this 'allStatements'
+        allStatements << iter.value().toStatementList();
+        foreach( const Soprano::Statement& st, iter.value().toStatementList() ) {
+            push( st );
+            m_rvm->addStatement( st );
+        }
     }
 
     // make sure we do not leave trailing empty graphs
@@ -956,7 +824,7 @@ bool Nepomuk2::ResourceMerger::merge( const Soprano::Graph& stGraph )
     foreach(const Soprano::Statement& s, m_removedStatements) {
         removedProperties[s.subject().uri()][s.predicate().uri()].append(s.object());
     }
-    foreach(const Soprano::Statement& s, remainingStatements + typeStatements) {
+    foreach(const Soprano::Statement& s, allStatements) {
         addedProperties[s.subject().uri()][s.predicate().uri()].append(s.object());
     }
     foreach(const QUrl& res, addedProperties.keys().toSet() + removedProperties.keys().toSet()) {
@@ -1038,4 +906,159 @@ Soprano::Error::ErrorCode Nepomuk2::ResourceMerger::addResMetadataStatement(cons
     }
 
     return m_model->addStatement( st );
+}
+
+bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::SyncResource>& resHash,
+                                            Nepomuk2::Sync::SyncResource& res)
+{
+    // Remove the types for now, will add again later
+    // There is no point in checking the domain and range of rdf:type
+    QList<Soprano::Node> resNodeTypes = res.values( RDF::type() );
+    QList<QUrl> resTypes = nodeListToUriList( resNodeTypes );
+    res.remove( RDF::type() );
+
+    // FIXME: Optimize iteration over a multi hash
+    QList<KUrl> properties = res.uniqueKeys();
+    foreach( const KUrl& propUri, properties ) {
+        QList<Soprano::Node> objectValues = res.values( propUri );
+
+        //
+        // 3.a Check the max cardinality
+        //
+        int maxCardinality = ClassAndPropertyTree::self()->maxCardinality( propUri );
+        if( maxCardinality > 0 ) {
+
+            QStringList filterStringList;
+            QStringList objectN3 = nodesToN3( objectValues );
+            foreach( const QString &n3, objectN3 )
+                filterStringList << QString::fromLatin1("?v!=%1").arg( n3 );
+
+            const QString query = QString::fromLatin1("select count(distinct ?v) where {"
+                                                      " %1 %2 ?v ."
+                                                      "FILTER( %3 ) . }")
+                                  .arg( Soprano::Node::resourceToN3( res.uri() ),
+                                        Soprano::Node::resourceToN3( propUri ),
+                                        filterStringList.join( QLatin1String(" && ") ) );
+
+            int existingCardinality = 0;
+            Soprano::QueryResultIterator exCarIt
+            = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+            if( exCarIt.next() ) {
+                existingCardinality = exCarIt[0].literal().toInt();
+            }
+
+            const int newCardinality = objectValues.size() + existingCardinality;
+
+            // TODO: This can be made faster by not calculating all these values when flags are set
+            if( newCardinality > maxCardinality ) {
+                // Special handling for max Cardinality == 1
+                if( maxCardinality == 1 ) {
+                    // If the difference is 1, then that is okay, as the OverwriteProperties flag
+                    // has been set
+                    if( (m_flags & OverwriteProperties) && (newCardinality-maxCardinality) == 1 ) {
+                        continue;
+                    }
+                }
+
+                // The LazyCardinalities flag has been set, we don't care about cardinalities any more
+                if( (m_flags & LazyCardinalities) ) {
+                    continue;
+                }
+
+                //
+                // Display a very informative error message
+                //
+                QString query = QString::fromLatin1("select distinct ?v where {" " %1 %2 ?v ."
+                                                    "FILTER( %3 ) . }")
+                                .arg( Soprano::Node::resourceToN3( res.uri() ),
+                                      Soprano::Node::resourceToN3( propUri ),
+                                      filterStringList.join( QLatin1String(" && ") ) );
+                QList< Soprano::Node > existingValues = m_model->executeQuery( query,
+                               Soprano::Query::QueryLanguageSparql ).iterateBindings(0).allNodes();
+
+                QString error = QString::fromLatin1("%1 has a max cardinality of %2. Provided "
+                                                    "%3 values - %4. Existing - %5")
+                                .arg( propUri.url(),
+                                      QString::number(maxCardinality),
+                                      QString::number(objectN3.size()),
+                                      objectN3.join(QLatin1String(", ")),
+                                      nodesToN3(existingValues).join(QLatin1String(", ")) );
+                setError( error, Soprano::Error::ErrorInvalidStatement );
+                return false;
+            }
+        } // if ( maxCardinality > 0 )
+
+        //
+        // 3.b Check the domain and range
+        //
+        ClassAndPropertyTree* tree = ClassAndPropertyTree::self();
+        QUrl domain = tree->propertyDomain( propUri );
+        QUrl range = tree->propertyRange( propUri );
+
+        //        kDebug() << "Domain : " << domain;
+        //        kDebug() << "Range : " << range;
+
+        // domain
+        if( !domain.isEmpty() && !isOfType( res.uri(), domain, resTypes ) ) {
+            // Error
+            QList<QUrl> allTypes = ( resTypes + existingTypes(res.uri()) );
+
+            QString error = QString::fromLatin1("%1 has a rdfs:domain of %2. "
+            "%3 only has the following types %4" )
+            .arg( Soprano::Node::resourceToN3( propUri ),
+                    Soprano::Node::resourceToN3( domain ),
+                    Soprano::Node::resourceToN3( res.uri() ),
+                    Nepomuk2::resourcesToN3( allTypes ).join(", ") );
+            setError( error, Soprano::Error::ErrorInvalidArgument);
+            return false;
+        }
+
+        // range
+        if( range.isEmpty() )
+            continue;
+
+        foreach( const Soprano::Node& object, objectValues ) {
+            if( object.isResource() || object.isBlank() ) {
+                const QUrl objUri = getBlankOrResourceUri( object );
+                QList<QUrl> objectNewTypes =  nodeListToUriList( resHash[ objUri ].values( RDF::type() ) );
+
+                if( !isOfType( objUri, range, objectNewTypes ) ) {
+                    // Error
+                    QList<QUrl> allTypes = ( objectNewTypes + existingTypes(objUri) );
+
+                    QString error = QString::fromLatin1("%1 has a rdfs:range of %2. "
+                                                        "%3 only has the following types %4" )
+                                    .arg( Soprano::Node::resourceToN3( propUri ),
+                                          Soprano::Node::resourceToN3( range ),
+                                          Soprano::Node::resourceToN3( objUri ),
+                                          resourcesToN3( allTypes ).join(", ") );
+                    setError( error, Soprano::Error::ErrorInvalidArgument );
+                    return false;
+                }
+            }
+            else if( object.isLiteral() ) {
+                const Soprano::LiteralValue lv = object.literal();
+                // Special handling for xsd:duration
+                if( lv.isUnsignedInt() && range == xsdDuration() ) {
+                    continue;
+                }
+                if( (!lv.isPlain() && lv.dataTypeUri() != range) || (lv.isPlain() && range != RDFS::Literal()) ) {
+                    // Error
+                    QString error = QString::fromLatin1("%1 has a rdfs:range of %2. Provided %3")
+                                    .arg( Soprano::Node::resourceToN3( propUri ),
+                                          Soprano::Node::resourceToN3( range ),
+                                          Soprano::Node::literalToN3(lv) );
+                    setError( error, Soprano::Error::ErrorInvalidArgument);
+                    return false;
+                }
+            }
+        } // range
+
+    } // SyncResource contents iteration
+
+    // Insert the removed types
+    foreach( const Soprano::Node& node, resNodeTypes )
+        res.insert( RDF::type(), node );
+
+    return true;
 }

@@ -69,9 +69,11 @@ namespace Nepomuk2 {
 
             bool isFileDataObject() const;
             bool isFolder() const;
+            bool isBlank() const;
             KUrl nieUrl() const;
 
             KUrl uri() const;
+            Soprano::Node uriNode() const;
 
             /**
              * If \p node is resource node the uri is set to the node's uri

@@ -1756,10 +1756,8 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
     }
 
     // Push it into the Resource Identifier
-    QList<Soprano::Statement> allStatements;
     foreach( const Sync::SyncResource& syncRes, syncResources ) {
         QList< Soprano::Statement > stList = syncRes.toStatementList();
-        allStatements << stList;
 
         if(stList.isEmpty()) {
             setError(QString::fromLatin1("storeResources: Encountered empty sync resource (%1). This is a bug. Please report.").arg(syncRes.uri().url()));
@@ -1774,17 +1772,6 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
     }
 
     //
-    // Check the created statements
-    //
-    foreach(const Soprano::Statement& s, allStatements) {
-        if(!s.isValid()) {
-            kDebug() << "Invalid statement after resource conversion:" << s;
-            setError(QLatin1String("storeResources: Encountered invalid statement after resource conversion."), Soprano::Error::ErrorInvalidArgument);
-            return QHash<QUrl, QUrl>();
-        }
-    }
-
-    //
     // Perform the actual identification
     //
     resIdent.identifyAll();
@@ -1795,7 +1782,7 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
 
     ResourceMerger merger( this, app, additionalMetadata, flags );
     merger.setMappings( resIdent.mappings() );
-    if( !merger.merge( Soprano::Graph(allStatements) ) ) {
+    if( !merger.merge( resIdent.resourceHash() ) ) {
         kDebug() << " MERGING FAILED! ";
         kDebug() << "Setting error!" << merger.lastError();
         setError( merger.lastError() );

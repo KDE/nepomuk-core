@@ -41,6 +41,7 @@ namespace Nepomuk2 {
     namespace Sync {
 
         class SyncResource;
+        class ResourceHash;
 
         /**
          * \class ResourceIdentifier resourceidentifier.h
@@ -117,6 +118,9 @@ namespace Nepomuk2 {
             QList<Soprano::Statement> identifyingStatements() const;
 
             SyncResource simpleResource( const KUrl & uri );
+
+            ResourceHash resourceHash() const;
+
             //
             // Property Settings
             //

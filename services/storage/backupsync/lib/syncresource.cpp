@@ -129,6 +129,12 @@ KUrl Nepomuk2::Sync::SyncResource::uri() const
     return d->uri;
 }
 
+Soprano::Node Nepomuk2::Sync::SyncResource::uriNode() const
+{
+    return d->uri.url().startsWith("_:") ? Soprano::Node(d->uri.url().mid(2)) : d->uri;
+}
+
+
 QList< Soprano::Node > Nepomuk2::Sync::SyncResource::property(const KUrl& url) const
 {
     return values(url);
@@ -234,6 +240,13 @@ bool Nepomuk2::Sync::SyncResource::isValid() const
 {
     return !d->uri.isEmpty() && !isEmpty();
 }
+
+bool Nepomuk2::Sync::SyncResource::isBlank() const
+{
+    //TODO: Figure out a way to optimize this - Converting a url to a string is expensive
+    return d->uri.url().startsWith(QLatin1String("_:"));
+}
+
 
 uint Nepomuk2::Sync::qHash(const Nepomuk2::Sync::SyncResource& res)
 {
