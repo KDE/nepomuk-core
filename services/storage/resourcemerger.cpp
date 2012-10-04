@@ -820,14 +820,14 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     // Node Resolution + ResourceWatcher stuff
     //
     //FIXME: Inform RWM about typeAdded()
-    QMultiHash<QUrl, QUrl> typeHash; // For Blank Nodes
+    QMultiHash< QUrl, QList<QUrl> > typeHash; // For Blank Nodes
 
     it.toFront();
     while( it.hasNext() ) {
         Sync::SyncResource& res = it.next().value();
-        if( !res.isBlank() ) {
-            foreach( const Soprano::Node& node, res.values( RDF::type() ) )
-                typeHash.insert( res.uri(), node.uri() );
+        if( res.isBlank() ) {
+            QList<QUrl> types = nodeListToUriList( res.values(RDF::type()) );
+            typeHash.insert( res.uri(), types );
         }
 
         // 6. Create all the blank nodes
@@ -854,17 +854,13 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     m_model->removeTrailingGraphs(m_trailingGraphCandidates);
 
     // Inform the ResourceWatcherManager of these new types
-    QHash<QUrl, QUrl>::const_iterator typeIt = typeHash.constBegin();
-    QHash<QUrl, QUrl>::const_iterator typeItEnd = typeHash.constEnd();
-    for( ; typeIt != typeItEnd; ) {
-        const QUrl blankUri = typeIt.key();
-        QList<QUrl> types;
-        for( ; typeIt != typeItEnd && typeIt.key() == blankUri ; typeIt++)
-            types << typeIt.value();
+    QHashIterator< QUrl, QList<QUrl> > typeIt( typeHash );
+    while( typeIt.hasNext() ) {
+        const QUrl blankUri = typeIt.next().key();
 
         // Get its resource uri
         const QUrl resUri = m_mappings.value( blankUri );
-        m_rvm->createResource( resUri, types );
+        m_rvm->createResource( resUri, typeIt.value() );
     }
 
     // Inform the ResourceWatcherManager of the changed properties
