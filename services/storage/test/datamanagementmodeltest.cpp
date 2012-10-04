@@ -2678,7 +2678,7 @@ void DataManagementModelTest::testRemoveDataByApplication_nieUrl()
 
     // The file is tagged via Dolphin
     const QUrl g1 = m_nrlModel->createGraph( NRL::InstanceBase() );
-    m_model->addStatement( res1, RDF::type(), NFO::FileDataObject() );
+    m_model->addStatement( res1, RDF::type(), NFO::FileDataObject(), g1 );
     m_model->addStatement( res1, NIE::url(), fileUrl, g1 );
     QDateTime now = QDateTime::currentDateTime();
     m_model->addStatement( res1, NAO::created(), LiteralValue(QVariant(now)), g1 );

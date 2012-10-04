@@ -117,9 +117,9 @@ Soprano::Statement Nepomuk2::ResourceMerger::resolveStatement(const Soprano::Sta
 }
 
 
-void Nepomuk2::ResourceMerger::push(const Nepomuk2::Sync::ResourceHash& resHash)
+void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::ResourceHash& resHash)
 {
-    if( resHash.isEmpty() )
+    if( resHash.isEmpty() || graph.isEmpty() )
         return;
 
     ClassAndPropertyTree *tree = ClassAndPropertyTree::self();
@@ -128,7 +128,7 @@ void Nepomuk2::ResourceMerger::push(const Nepomuk2::Sync::ResourceHash& resHash)
     const bool overwrite = (m_flags & OverwriteProperties);
 
     QString query = QString::fromLatin1("sparql insert into %1 { ")
-                    .arg( Soprano::Node::resourceToN3( m_graph ) );
+                    .arg( Soprano::Node::resourceToN3( graph ) );
 
     QHashIterator<KUrl, Sync::SyncResource> it( resHash );
     while( it.hasNext() ) {
@@ -889,21 +889,34 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     //
 
     // Push the data in one go
-    push( resHash );
+    push( m_graph, resHash );
 
     // Push all the duplicateStatements
-    QHashIterator<QUrl, Soprano::Statement> hashIter( m_duplicateStatements );
-    while( hashIter.hasNext() ) {
-        hashIter.next();
-        Soprano::Statement st = hashIter.value();
+    QList<QUrl> graphs = m_duplicateStatements.uniqueKeys();
+    foreach( const QUrl& graph, graphs ) {
+        QList<Soprano::Statement> stList = m_duplicateStatements.values( graph );
+        Sync::ResourceHash resHash = Sync::ResourceHash::fromStatementList( stList );
 
-        m_model->removeAllStatements( st.subject(), st.predicate(), st.object(), hashIter.key() );
-        const QUrl newGraph( m_graphHash[hashIter.key()] );
-        st.setContext( newGraph );
+        //
+        // Remove all these statements with the graph
+        //
+        QString stPattern;
+        foreach( const Soprano::Statement& st, stList ) {
+            stPattern += QString::fromLatin1("%1 %2 %3 . ")
+                          .arg( st.subject().toN3(),
+                                st.predicate().toN3(),
+                                st.object().toN3() );
+        }
 
-        // No need to inform the RVM, we're just changing the graph.
-        m_model->addStatement( st );
+        QString query = QString::fromLatin1("sparql delete from %1 { %2 } where { %2 }")
+                        .arg( Soprano::Node::resourceToN3( graph ), stPattern );
+
+        m_model->executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+
+        // Push all these statements
+        push( m_graphHash[graph], resHash );
     }
+    m_duplicateStatements.clear();
 
     // make sure we do not leave trailing empty graphs
     m_model->removeTrailingGraphs(m_trailingGraphCandidates);
