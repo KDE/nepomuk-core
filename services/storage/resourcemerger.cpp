@@ -90,33 +90,6 @@ QHash< QUrl, QVariant > Nepomuk2::ResourceMerger::additionalMetadata() const
     return m_additionalMetadata;
 }
 
-Soprano::Statement Nepomuk2::ResourceMerger::resolveStatement(const Soprano::Statement& st)
-{
-    if( !st.isValid() ) {
-        QString error = QString::fromLatin1("Invalid statement encountered");
-        setError( error, Soprano::Error::ErrorInvalidStatement );
-        return Soprano::Statement();
-    }
-
-    Soprano::Node resolvedSubject = resolveMappedNode( st.subject() );
-    if( lastError() )
-        return Soprano::Statement();
-
-    Soprano::Statement newSt( st );
-    newSt.setSubject( resolvedSubject );
-
-    Soprano::Node object = st.object();
-    if( ( object.isResource() && object.uri().scheme() == QLatin1String("nepomuk") ) || object.isBlank() ) {
-        Soprano::Node resolvedObject = resolveMappedNode( object );
-        if( lastError() )
-            return Soprano::Statement();
-        newSt.setObject( resolvedObject );
-    }
-
-    return newSt;
-}
-
-
 void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::ResourceHash& resHash)
 {
     if( resHash.isEmpty() || graph.isEmpty() )
@@ -543,6 +516,7 @@ Soprano::Node Nepomuk2::ResourceMerger::resolveBlankNode(const Soprano::Node& no
 
     const QUrl newUri = createResourceUri();
     m_mappings.insert( nodeN3, newUri );
+    m_newUris.insert( newUri );
 
     return newUri;
 }
@@ -867,19 +841,6 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     }
     resMetadataHash.clear();
 
-    //
-    // Collect the type for the Resource Watcher
-    //
-    QMultiHash< QUrl, QList<QUrl> > typeHash; // For Blank Nodes
-
-    it.toFront();
-    while( it.hasNext() ) {
-        Sync::SyncResource& res = it.next().value();
-        if( res.isBlank() ) {
-            QList<QUrl> types = nodeListToUriList( res.values(RDF::type()) );
-            typeHash.insert( res.uri(), types );
-        }
-    }
 
     // 6. Create all the blank nodes
     resHash = resolveBlankNodes( resHash );
@@ -925,14 +886,13 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     // Resource Watcher
     //
 
-    // Inform the ResourceWatcherManager of these new types
-    QHashIterator< QUrl, QList<QUrl> > typeIt( typeHash );
-    while( typeIt.hasNext() ) {
-        const QUrl blankUri = typeIt.next().key();
+    // Inform the ResourceWatcherManager of the new resources
+    QSetIterator<QUrl> newUriIt( m_newUris );
+    while( newUriIt.hasNext() ) {
+        const QUrl newUri = newUriIt.next();
 
-        // Get its resource uri
-        const QUrl resUri = m_mappings.value( blankUri );
-        m_rvm->createResource( resUri, typeIt.value() );
+        QList<Soprano::Node> types = resHash[ newUri ].values( RDF::type() );
+        m_rvm->createResource( newUri, nodeListToUriList( types ) );
     }
 
     // Inform the ResourceWatcherManager of the changed properties

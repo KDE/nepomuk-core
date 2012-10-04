@@ -78,11 +78,13 @@ namespace Nepomuk2 {
         //
         // Resolution
         //
-        Soprano::Statement resolveStatement( const Soprano::Statement& st );
-        Soprano::Node resolveMappedNode( const Soprano::Node& node );
         Soprano::Node resolveBlankNode( const Soprano::Node& node );
+        Soprano::Node resolveMappedNode( const Soprano::Node& node );
 
         Sync::ResourceHash resolveBlankNodes( const Sync::ResourceHash& resHash );
+
+        /// The new uris which are being created from blank nodes
+        QSet<QUrl> m_newUris;
 
         /**
          * Removes all the statements that already exist in the model
