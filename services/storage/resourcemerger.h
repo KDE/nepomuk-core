@@ -73,7 +73,7 @@ namespace Nepomuk2 {
          */
         bool hasValidData( const QHash<KUrl, Sync::SyncResource>& resHash, Sync::SyncResource& res );
 
-        void push( const Sync::SyncResource& res );
+        void push( const Sync::ResourceHash& resHash );
 
         //
         // Resolution
