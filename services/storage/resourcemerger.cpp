@@ -117,33 +117,56 @@ Soprano::Statement Nepomuk2::ResourceMerger::resolveStatement(const Soprano::Sta
 }
 
 
-bool Nepomuk2::ResourceMerger::push(const Soprano::Statement& st)
+// TODO: Maybe we can cache the n3 representation
+void Nepomuk2::ResourceMerger::push(const Nepomuk2::Sync::SyncResource& res)
 {
     ClassAndPropertyTree *tree = ClassAndPropertyTree::self();
-    if( tree->maxCardinality(  st.predicate().uri() ) == 1 ) {
-        const bool lazy = ( m_flags & LazyCardinalities );
-        const bool overwrite = (m_flags & OverwriteProperties) &&
-        tree->maxCardinality( st.predicate().uri() ) == 1;
+
+    QString query = QString::fromLatin1("sparql insert into %1 { %2")
+                    .arg ( Soprano::Node::resourceToN3( m_graph ),
+                           Soprano::Node::resourceToN3( res.uri() ) );
+
+    const bool lazy = (m_flags & LazyCardinalities);
+    const bool overwrite = (m_flags & OverwriteProperties);
+
+    QList<KUrl> properties = res.uniqueKeys();
+    foreach( const QUrl& prop, properties ) {
+        QList<Soprano::Node> values = res.values( prop );
 
         if( lazy || overwrite ) {
-            Soprano::StatementIterator it = m_model->listStatements( st.subject(), st.predicate(), Soprano::Node() );
-            while(it.next()) {
-                Soprano::Statement st = it.current();
+            if( tree->maxCardinality( prop ) == 1 ) {
+                QString query = QString::fromLatin1("select ?o ?g where { graph ?g { %1 %2 ?o . } }")
+                                .arg( Soprano::Node::resourceToN3( res.uri() ),
+                                      Soprano::Node::resourceToN3( prop ) );
 
-                m_resRemoveHash[ st.subject().uri() ].insert( st.predicate().uri(), st.object() );
-                m_trailingGraphCandidates.insert( st.context().uri() );
+                Soprano::QueryResultIterator it = m_model->executeQuery(query, Soprano::Query::QueryLanguageSparqlNoInference);
+                while (it.next()) {
+                    kDebug() << it.currentBindings();
+                    m_resRemoveHash[ res.uri() ].insert( prop, it[0] );
+                    m_trailingGraphCandidates.insert( it[1].uri() );
+                }
+                m_model->removeAllStatements( res.uri(), prop, Soprano::Node() );
+
+                // In LazyCardinalities we don't care about the cardinality
+                if( lazy )
+                    values = QList<Soprano::Node>() << values.first();
             }
-            m_model->removeAllStatements( st.subject(), st.predicate(), Soprano::Node() );
         }
+
+        QStringList n3;
+        foreach( const Soprano::Node& node, values )
+            n3 << node.toN3();
+        query += QString::fromLatin1(" %1 %2 ;").arg( Soprano::Node::resourceToN3(prop),
+                                                      n3.join(QString(", ")) );
     }
 
-    Soprano::Statement statement( st );
-    if( statement.context().isEmpty() )
-        statement.setContext( m_graph );
+    query[ query.length() - 1 ] = '.';
+    query += QLatin1String(" } ");
 
-
-    return m_model->addStatement( statement );
+    // We use sql instead of sparql so that we can avoid any changes done by any of the other models
+    m_model->executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 }
+
 
 
 QUrl Nepomuk2::ResourceMerger::createGraph()
@@ -845,12 +868,7 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     //
     QHashIterator<KUrl, Sync::SyncResource> iter( resHash );
     while( iter.hasNext() ) {
-        iter.next();
-
-        const QList<Soprano::Statement> stList = iter.value().toStatementList();
-        foreach( const Soprano::Statement& st, stList ) {
-            push( st );
-        }
+        push( iter.next().value() );
     }
 
     // Push all the duplicateStatements
