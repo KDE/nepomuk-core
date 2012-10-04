@@ -41,7 +41,6 @@
 #include <KDebug>
 #include <Soprano/Graph>
 #include "resourcewatchermanager.h"
-#include "backupsync/lib/syncresource.h"
 
 using namespace Soprano::Vocabulary;
 using namespace Nepomuk2::Vocabulary;
@@ -58,6 +57,12 @@ Nepomuk2::ResourceMerger::ResourceMerger(Nepomuk2::DataManagementModel* model, c
     m_rvm = model->resourceWatcherManager();
 
     //setModel( m_model );
+    // Resource Metadata
+    metadataProperties.reserve( 4 );
+    metadataProperties.insert( NAO::lastModified() );
+    metadataProperties.insert( NAO::userVisible() );
+    metadataProperties.insert( NAO::created() );
+    metadataProperties.insert( NAO::creator() );
 }
 
 
@@ -123,8 +128,10 @@ bool Nepomuk2::ResourceMerger::push(const Soprano::Statement& st)
         if( lazy || overwrite ) {
             Soprano::StatementIterator it = m_model->listStatements( st.subject(), st.predicate(), Soprano::Node() );
             while(it.next()) {
-                m_removedStatements << *it;
-                m_trailingGraphCandidates.insert(it.current().context().uri());
+                Soprano::Statement st = it.current();
+
+                m_resRemoveHash[ st.subject().uri() ].insert( st.predicate().uri(), st.object() );
+                m_trailingGraphCandidates.insert( st.context().uri() );
             }
             m_model->removeAllStatements( st.subject(), st.predicate(), Soprano::Node() );
         }
@@ -819,7 +826,6 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     //
     // Node Resolution + ResourceWatcher stuff
     //
-    //FIXME: Inform RWM about typeAdded()
     QMultiHash< QUrl, QList<QUrl> > typeHash; // For Blank Nodes
 
     it.toFront();
@@ -838,40 +844,12 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     // Actual statement pushing
     //
     QHashIterator<KUrl, Sync::SyncResource> iter( resHash );
-    QList<Soprano::Statement> allStatements;
     while( iter.hasNext() ) {
         iter.next();
 
-        // FIXME: Find a more efficient way of pushing and avoid this 'allStatements'
-        allStatements << iter.value().toStatementList();
-        foreach( const Soprano::Statement& st, iter.value().toStatementList() ) {
+        const QList<Soprano::Statement> stList = iter.value().toStatementList();
+        foreach( const Soprano::Statement& st, stList ) {
             push( st );
-            m_rvm->addStatement( st );
-        }
-    }
-
-    // Inform the ResourceWatcherManager of these new types
-    QHashIterator< QUrl, QList<QUrl> > typeIt( typeHash );
-    while( typeIt.hasNext() ) {
-        const QUrl blankUri = typeIt.next().key();
-
-        // Get its resource uri
-        const QUrl resUri = m_mappings.value( blankUri );
-        m_rvm->createResource( resUri, typeIt.value() );
-    }
-
-    // Inform the ResourceWatcherManager of the changed properties
-    QHash<QUrl, QHash<QUrl, QList<Soprano::Node> > > addedProperties;
-    QHash<QUrl, QHash<QUrl, QList<Soprano::Node> > > removedProperties;
-    foreach(const Soprano::Statement& s, m_removedStatements) {
-        removedProperties[s.subject().uri()][s.predicate().uri()].append(s.object());
-    }
-    foreach(const Soprano::Statement& s, allStatements) {
-        addedProperties[s.subject().uri()][s.predicate().uri()].append(s.object());
-    }
-    foreach(const QUrl& res, addedProperties.keys().toSet() + removedProperties.keys().toSet()) {
-        foreach(const QUrl& prop, addedProperties[res].keys().toSet() + removedProperties[res].keys().toSet()) {
-            m_rvm->changeProperty(res, prop, addedProperties[res][prop], removedProperties[res][prop]);
         }
     }
 
@@ -889,9 +867,41 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
         m_model->addStatement( st );
     }
 
-
     // make sure we do not leave trailing empty graphs
     m_model->removeTrailingGraphs(m_trailingGraphCandidates);
+
+    //
+    // Resource Watcher
+    //
+
+    // Inform the ResourceWatcherManager of these new types
+    QHashIterator< QUrl, QList<QUrl> > typeIt( typeHash );
+    while( typeIt.hasNext() ) {
+        const QUrl blankUri = typeIt.next().key();
+
+        // Get its resource uri
+        const QUrl resUri = m_mappings.value( blankUri );
+        m_rvm->createResource( resUri, typeIt.value() );
+    }
+
+    // Inform the ResourceWatcherManager of the changed properties
+    it.toFront();
+    while( it.hasNext() ) {
+        Sync::SyncResource& res = it.next().value();
+        Sync::SyncResource& removedRes = m_resRemoveHash[ res.uri() ];
+
+        // FIXME: More efficient way of traversing the multi hash?
+        const QList<KUrl> properties = res.uniqueKeys();
+        foreach( const KUrl& propUri, properties ) {
+            if( metadataProperties.contains( propUri ) )
+                continue;
+
+            const QList<Soprano::Node> added = res.values( propUri );
+            const QList<Soprano::Node> removed = removedRes.values( propUri );
+
+            m_rvm->changeProperty( res.uri(), propUri, added, removed );
+        }
+    }
 
     return true;
 }

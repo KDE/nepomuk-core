@@ -1002,7 +1002,7 @@ void ResourceWatcherTest::testStoreResources_propertyChanged()
     }
     else {
         pAddArgs1 = resWpAddSpy[1];
-        pAddArgs2 = resWpAddSpy[2];
+        pAddArgs2 = resWpAddSpy[0];
     }
     resWpAddSpy.clear();
     QCOMPARE(pAddArgs1[0].toString(), resAUri.toString());
@@ -1022,7 +1022,7 @@ void ResourceWatcherTest::testStoreResources_propertyChanged()
     }
     else {
         pChArgs1 = resWpChSpy[1];
-        pChArgs2 = resWpChSpy[2];
+        pChArgs2 = resWpChSpy[0];
     }
     QCOMPARE(pChArgs1[0].toString(), resAUri.toString());
     QCOMPARE(pChArgs1[1].toString(), QLatin1String("prop:/int"));

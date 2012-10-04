@@ -31,6 +31,7 @@
 
 #include "datamanagement.h"
 #include "resourceidentifier.h"
+#include "backupsync/lib/syncresource.h"
 
 namespace Soprano {
     class Node;
@@ -99,7 +100,7 @@ namespace Nepomuk2 {
         QSet<QUrl> m_trailingGraphCandidates;
 
         /// a list of all the statements that have been removed (only used for the resource watcher)
-        QList<Soprano::Statement> m_removedStatements;
+        Sync::ResourceHash m_resRemoveHash;
 
         /// Can set the error
         QMultiHash<QUrl, Soprano::Node> toNodeHash( const QHash<QUrl, QVariant> &hash );
@@ -142,6 +143,7 @@ namespace Nepomuk2 {
 
         bool sameTypes( const QSet<QUrl>& t1, const QSet<QUrl>& t2 );
 
+        QSet<QUrl> metadataProperties;
         ResourceWatcherManager *m_rvm;
     };
 
