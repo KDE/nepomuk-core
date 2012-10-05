@@ -347,44 +347,32 @@ bool Nepomuk2::ResourceMerger::checkGraphMetadata(const QMultiHash< QUrl, Sopran
     QList<QUrl> types;
     types << NRL::Graph();
 
-    QHash<QUrl, int> propCardinality;
-
-    QHash< QUrl, Soprano::Node >::const_iterator it = hash.constBegin();
-    for( ; it != hash.constEnd(); it++ ) {
-        const QUrl& propUri = it.key();
-        if( propUri == RDF::type() ) {
-            Soprano::Node object = it.value();
-            if( !object.isResource() ) {
-                setError(QString::fromLatin1("rdf:type has resource range. '%1' does not have a resource type.").arg(object.toN3()), Soprano::Error::ErrorInvalidArgument);
-                return false;
-            }
-
-            // All the types should be a sub-type of nrl:Graph
-            // FIXME: there could be multiple types in the old graph from inferencing. all superclasses of nrl:Graph. However, it would still be valid.
-            if( !tree->isChildOf( object.uri(), NRL::Graph() ) ) {
-                setError( QString::fromLatin1("Any rdf:type specified in the additional metadata should be a subclass of nrl:Graph. '%1' is not.").arg(object.uri().toString()),
-                                   Soprano::Error::ErrorInvalidArgument );
-                return false;
-            }
-            types << object.uri();
+    QHash< QUrl, Soprano::Node >::const_iterator fit = hash.constFind( RDF::type() );
+    if( fit != hash.constEnd() ) {
+        Soprano::Node object = fit.value();
+        if( !object.isResource() ) {
+            setError(QString::fromLatin1("rdf:type has resource range. '%1' does not have a resource type.").arg(object.toN3()), Soprano::Error::ErrorInvalidArgument);
+            return false;
         }
 
-        // Save the cardinality of each property
-        QHash< QUrl, int >::iterator propIter = propCardinality.find( propUri );
-        if( propIter == propCardinality.end() ) {
-            propCardinality.insert( propUri, 1 );
+        // All the types should be a sub-type of nrl:Graph
+        // FIXME: there could be multiple types in the old graph from inferencing. all superclasses of nrl:Graph. However, it would still be valid.
+        if( !tree->isChildOf( object.uri(), NRL::Graph() ) ) {
+            setError( QString::fromLatin1("Any rdf:type specified in the additional metadata should be a subclass of nrl:Graph. '%1' is not.").arg(object.uri().toString()),
+                                Soprano::Error::ErrorInvalidArgument );
+            return false;
         }
-        else {
-            propIter.value()++;
-        }
+        types << object.uri();
     }
 
-    it = hash.constBegin();
-    for( ; it != hash.constEnd(); it++ ) {
-        const QUrl & propUri = it.key();
-        // Check the cardinality
+    QList<QUrl> properties = hash.uniqueKeys();
+    properties.removeAll( RDF::type() );
+
+    foreach( const QUrl& propUri, properties ) {
+        QList<Soprano::Node> objects = hash.values( propUri );
+
+        int curCardinality = objects.size();
         int maxCardinality = tree->maxCardinality( propUri );
-        int curCardinality = propCardinality.value( propUri );
 
         if( maxCardinality != 0 ) {
             if( curCardinality > maxCardinality ) {
@@ -406,24 +394,24 @@ bool Nepomuk2::ResourceMerger::checkGraphMetadata(const QMultiHash< QUrl, Sopran
 
         // range
         if( !range.isEmpty() ) {
-            const Soprano::Node& object = it.value();
-            if( object.isResource() ) {
-                if( !isOfType( object.uri(), range ) ) {
-                    setError( QString::fromLatin1("%1 has a rdfs:range of %2").arg( propUri.toString(), range.toString() ), Soprano::Error::ErrorInvalidArgument);
-                    return false;
+            foreach(const Soprano::Node& object, objects ) {
+                if( object.isResource() ) {
+                    if( !isOfType( object.uri(), range ) ) {
+                        setError( QString::fromLatin1("%1 has a rdfs:range of %2").arg( propUri.toString(), range.toString() ), Soprano::Error::ErrorInvalidArgument);
+                        return false;
+                    }
                 }
-            }
-            else if( object.isLiteral() ) {
-                const Soprano::LiteralValue lv = object.literal();
-                if( lv.dataTypeUri() != range ) {
-                    setError( QString::fromLatin1("%1 has a rdfs:range of %2").arg( propUri.toString(), range.toString() ), Soprano::Error::ErrorInvalidArgument);
-                    return false;
+                else if( object.isLiteral() ) {
+                    const Soprano::LiteralValue lv = object.literal();
+                    if( lv.dataTypeUri() != range ) {
+                        setError( QString::fromLatin1("%1 has a rdfs:range of %2").arg( propUri.toString(), range.toString() ), Soprano::Error::ErrorInvalidArgument);
+                        return false;
+                    }
                 }
             }
         } // range
     }
 
-    //kDebug() << hash;
     return true;
 }
 
@@ -689,11 +677,11 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     // 1. Check if the additional metadata is valid
     //
     if( !additionalMetadata().isEmpty() ) {
-        QMultiHash<QUrl, Soprano::Node> additionalMetadata = toNodeHash(m_additionalMetadata);
+        m_additionalMetadataHash = toNodeHash(m_additionalMetadata);
         if( lastError() )
             return false;
 
-        if( !checkGraphMetadata( additionalMetadata ) ) {
+        if( !checkGraphMetadata( m_additionalMetadataHash ) ) {
             return false;
         }
     }
