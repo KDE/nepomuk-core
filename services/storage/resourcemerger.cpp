@@ -550,18 +550,18 @@ Nepomuk2::Sync::ResourceHash Nepomuk2::ResourceMerger::resolveBlankNodes(const N
 
 void Nepomuk2::ResourceMerger::removeDuplicates(Nepomuk2::Sync::SyncResource& res)
 {
+    QString baseQuery = QString::fromLatin1("select ?g where { graph ?g { %1 ")
+                        .arg( Soprano::Node::resourceToN3( res.uri() ) );
+
     QMutableHashIterator<KUrl, Soprano::Node> it( res );
-
     while( it.hasNext() ) {
-        it.next();
+        const Soprano::Node& object = it.next().value();
 
-        if( res.isBlank() || it.value().isBlank() )
+        if( res.isBlank() || object.isBlank() )
             continue;
 
-        // FIXME: Maybe half of this query could be constructed in advance
-        const QString query = QString::fromLatin1("select ?g where { graph ?g { %1 %2 %3 . } . } LIMIT 1")
-                              .arg( Soprano::Node::resourceToN3( res.uri() ),
-                                    Soprano::Node::resourceToN3( it.key() ),
+        const QString query = QString::fromLatin1("%1 %2 %3 . } . } LIMIT 1")
+                              .arg( baseQuery, Soprano::Node::resourceToN3( it.key() ),
                                     it.value().toN3() );
 
         Soprano::QueryResultIterator qit = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql);
@@ -578,31 +578,6 @@ void Nepomuk2::ResourceMerger::removeDuplicates(Nepomuk2::Sync::SyncResource& re
     }
 }
 
-void Nepomuk2::ResourceMerger::removeDuplicatesInList(QSet<Soprano::Statement> *stList)
-{
-    QMutableSetIterator<Soprano::Statement> it( *stList );
-    while( it.hasNext() ) {
-        const Soprano::Statement &st = it.next();
-        if( st.subject().isBlank() || st.object().isBlank() )
-            continue;
-
-        const QString query = QString::fromLatin1("select ?g where { graph ?g { %1 %2 %3 . } . } LIMIT 1")
-        .arg(st.subject().toN3(),
-             st.predicate().toN3(),
-             st.object().toN3());
-
-        Soprano::QueryResultIterator qit = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql);
-        if(qit.next()) {
-            const QUrl oldGraph = qit[0].uri();
-            qit.close();
-
-            if(!m_model->isProtectedProperty(st.predicate().uri())) {
-                m_duplicateStatements.insert( oldGraph, st );
-            }
-            it.remove();
-        }
-    }
-}
 
 namespace {
     QUrl getBlankOrResourceUri( const Soprano::Node & n ) {

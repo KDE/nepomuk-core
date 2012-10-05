@@ -91,8 +91,6 @@ namespace Nepomuk2 {
          * and adds them to m_duplicateStatements
          */
         void removeDuplicates( Sync::SyncResource& res );
-
-        void removeDuplicatesInList( QSet<Soprano::Statement> *stList );
         QMultiHash<QUrl, Soprano::Statement> m_duplicateStatements;
 
         QHash<QUrl, QUrl> m_mappings;
