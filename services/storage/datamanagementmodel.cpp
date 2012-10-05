@@ -2265,40 +2265,38 @@ QUrl Nepomuk2::DataManagementModel::createGraph(const QString& app, const QMulti
 
     // determine the graph type
     bool haveGraphType = false;
-    for(QHash<QUrl, Soprano::Node>::const_iterator it = additionalMetadata.constBegin();
-        it != additionalMetadata.constEnd(); ++it) {
-        const QUrl& property = it.key();
+    bool hasNaoCreated = false;
 
-        if(property == RDF::type()) {
-            // check if it is a valid type
-            if(!it.value().isResource()) {
-                setError(QString::fromLatin1("rdf:type has resource range. '%1' does not have a resource type.").arg(it.value().toN3()), Soprano::Error::ErrorInvalidArgument);
-                return QUrl();
-            }
-            else {
-                if(d->m_classAndPropertyTree->isChildOf(it.value().uri(), NRL::Graph()))
-                    haveGraphType = true;
-            }
+    QHash< QUrl, Soprano::Node >::const_iterator it = additionalMetadata.constFind( RDF::type() );
+    if( it != additionalMetadata.constEnd() ) {
+        // check if it is a valid type
+        if(!it.value().isResource()) {
+            setError(QString::fromLatin1("rdf:type has resource range. '%1' does not have a resource type.").arg(it.value().toN3()), Soprano::Error::ErrorInvalidArgument);
+            return QUrl();
         }
-
-        else if(property == NAO::created()) {
-            if(!it.value().literal().isDateTime()) {
-                setError(QString::fromLatin1("nao:created has xsd:dateTime range. '%1' is not convertable to a dateTime.").arg(it.value().toN3()), Soprano::Error::ErrorInvalidArgument);
-                return QUrl();
-            }
-        }
-
         else {
-            // FIXME: check property, domain, and range
-            // Reuse code from ResourceMerger::checkGraphMetadata
+            if(d->m_classAndPropertyTree->isChildOf(it.value().uri(), NRL::Graph()))
+                haveGraphType = true;
         }
     }
+
+    it = additionalMetadata.constFind( NAO::created() );
+    if( it != additionalMetadata.constEnd() ) {
+        if(!it.value().literal().isDateTime()) {
+            setError(QString::fromLatin1("nao:created has xsd:dateTime range. '%1' is not convertable to a dateTime.").arg(it.value().toN3()), Soprano::Error::ErrorInvalidArgument);
+            return QUrl();
+        }
+        hasNaoCreated = true;
+    }
+
+    // FIXME: check property, domain, and range
+    // Reuse code from ResourceMerger::checkGraphMetadata
 
     // add missing metadata
     if(!haveGraphType) {
         graphMetaData.insert(RDF::type(), NRL::InstanceBase());
     }
-    if(!graphMetaData.contains(NAO::created()) && !d->m_ignoreCreationDate) {
+    if(!hasNaoCreated && !d->m_ignoreCreationDate) {
         graphMetaData.insert(NAO::created(), Soprano::LiteralValue(QDateTime::currentDateTime()));
     }
     if(!graphMetaData.contains(NAO::maintainedBy()) && !app.isEmpty()) {
@@ -2338,13 +2336,24 @@ QUrl Nepomuk2::DataManagementModel::createGraph(const QString& app, const QMulti
     const QUrl metadatagraph = createUri(GraphUri);
 
     // add metadata graph itself
-    addStatement(metadatagraph, NRL::coreGraphMetadataFor(), graph, metadatagraph);
-    addStatement(metadatagraph, RDF::type(), NRL::GraphMetadata(), metadatagraph);
+    const QString metaN3 = Soprano::Node::resourceToN3( metadatagraph );
+    const QString graphN3 = Soprano::Node::resourceToN3( graph );
+
+    QString query = QString::fromLatin1("sparql insert into %1 { %1 nrl:coreGraphMetadataFor %2 ;"
+                                        " rdf:type nrl:GraphMetadata . %2 ")
+                    .arg( metaN3, graphN3 );
+
 
     for(QHash<QUrl, Soprano::Node>::const_iterator it = graphMetaData.constBegin();
         it != graphMetaData.constEnd(); ++it) {
-        addStatement(graph, it.key(), it.value(), metadatagraph);
+
+        query += QString::fromLatin1(" %1 %2 ;")
+                 .arg( Soprano::Node::resourceToN3(it.key()), it.value().toN3() );
     }
+    query[ query.length() - 1 ] = QChar::fromLatin1('.');
+    query.append( QLatin1Char('}') );
+
+    executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 
     return graph;
 }
