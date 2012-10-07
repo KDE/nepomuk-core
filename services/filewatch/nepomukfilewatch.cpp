@@ -114,7 +114,9 @@ namespace {
 
 Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
     : Service( parent )
+#ifdef BUILD_KINOTIFY
     , m_dirWatch( 0 )
+#endif
 {
     // Create the configuration instance singleton (for thread-safety)
     // ==============================================================
