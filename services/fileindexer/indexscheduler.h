@@ -122,6 +122,7 @@ namespace Nepomuk2 {
         void slotIdleTimeoutReached();
         void slotIndexingFinished();
 
+        void slotBeginIndexingFile(const QUrl& url);
     private:
         /**
          * It first indexes \p dir. Then it checks all the files in \p dir

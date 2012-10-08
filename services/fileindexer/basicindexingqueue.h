@@ -68,7 +68,8 @@ namespace Nepomuk2 {
         virtual bool isEmpty();
 
     signals:
-        void indexedFile(const QUrl& file);
+        void beginIndexingFile(const QUrl& url);
+        void endIndexingFile(const QUrl& url);
 
     public slots:
         void enqueue(const QString& path);

@@ -176,6 +176,7 @@ void BasicIndexingQueue::index(const QString& path)
 {
     kDebug() << path;
     const QUrl fileUrl = QUrl::fromLocalFile( path );
+    emit beginIndexingFile( fileUrl );
 
     KJob* job = clearIndexedData( fileUrl );
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotClearIndexedDataFinished(KJob*)) );
@@ -203,7 +204,7 @@ void BasicIndexingQueue::slotIndexingFinished(KJob* job)
     m_currentUrl.clear();
     m_currentFlags = NoUpdateFlags;
 
-    emit indexedFile( url );
+    emit endIndexingFile( url );
 
     // Continue the queue
     finishIndexingFile();

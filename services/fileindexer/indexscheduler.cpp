@@ -74,6 +74,7 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     m_fileIQ = new FileIndexingQueue( this );
 
     connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(slotIndexingFinished()) );
+    connect( m_basicIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(slotBeginIndexingFile(QUrl)) );
     connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SLOT(slotIndexingFinished()) );
 
     m_fileIQ->suspend();
@@ -238,6 +239,15 @@ void Nepomuk2::IndexScheduler::slotIndexingFinished()
 {
     if( m_basicIQ->isEmpty() && m_fileIQ->isEmpty() )
         emit indexingDone();
+}
+
+void Nepomuk2::IndexScheduler::slotBeginIndexingFile(const QUrl& url)
+{
+    QString path = url.toLocalFile();
+    if( QFileInfo(path).isDir() )
+        emit indexingFolder( path );
+    else
+        emit indexingFile( path );
 }
 
 
