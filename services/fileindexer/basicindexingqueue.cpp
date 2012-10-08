@@ -56,6 +56,12 @@ QUrl BasicIndexingQueue::currentUrl() const
     return m_currentUrl;
 }
 
+UpdateDirFlags BasicIndexingQueue::currentFlags() const
+{
+    return m_currentFlags;
+}
+
+
 bool BasicIndexingQueue::isEmpty()
 {
     return m_iterators.isEmpty() && m_paths.isEmpty();

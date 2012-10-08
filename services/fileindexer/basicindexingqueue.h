@@ -61,7 +61,9 @@ namespace Nepomuk2 {
         Q_OBJECT
     public:
         explicit BasicIndexingQueue(QObject* parent = 0);
+
         QUrl currentUrl() const;
+        UpdateDirFlags currentFlags() const;
 
         virtual bool isEmpty();
 

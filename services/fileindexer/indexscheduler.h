@@ -145,9 +145,6 @@ namespace Nepomuk2 {
         bool m_suspended;
         bool m_indexing;
 
-        KUrl m_currentUrl;
-        UpdateDirFlags m_currentFlags;
-
         IndexCleaner* m_cleaner;
 
         // Queues
