@@ -21,7 +21,7 @@
 */
 
 #include "indexer.h"
-#include "extractor.h"
+#include "extractorplugin.h"
 #include "simpleindexer.h"
 #include "../util.h"
 #include "kext.h"
@@ -61,7 +61,7 @@ Nepomuk2::Indexer::Indexer( QObject* parent )
         KService::Ptr service = *it;
 
         QString error;
-        Nepomuk2::Extractor* ex = service->createInstance<Nepomuk2::Extractor>( this, QVariantList(), &error );
+        Nepomuk2::ExtractorPlugin* ex = service->createInstance<Nepomuk2::ExtractorPlugin>( this, QVariantList(), &error );
         if( !ex ) {
             kError() << "Could not create Extractor: " << service->library();
             kError() << error;
@@ -102,8 +102,8 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
     kDebug() << uri << mimeType;
     SimpleResourceGraph graph;
 
-    QList<Extractor*> extractors = m_extractors.values( mimeType );
-    foreach( Extractor* ex, extractors ) {
+    QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
+    foreach( ExtractorPlugin* ex, extractors ) {
         graph += ex->extract( uri, url, mimeType );
     }
 
@@ -164,8 +164,8 @@ bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
 
         SimpleResourceGraph graph;
 
-        QList<Extractor*> extractors = m_extractors.values( mimeType );
-        foreach( Extractor* ex, extractors ) {
+        QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
+        foreach( ExtractorPlugin* ex, extractors ) {
             graph += ex->extract( uri, url, mimeType );
         }
 

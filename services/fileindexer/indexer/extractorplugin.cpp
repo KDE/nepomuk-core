@@ -18,16 +18,16 @@
 */
 
 
-#include "extractor.h"
+#include "extractorplugin.h"
 
 namespace Nepomuk2 {
 
-Extractor::Extractor(QObject* parent): QObject(parent)
+ExtractorPlugin::ExtractorPlugin(QObject* parent): QObject(parent)
 {
 
 }
 
-Extractor::~Extractor()
+ExtractorPlugin::~ExtractorPlugin()
 {
 
 }

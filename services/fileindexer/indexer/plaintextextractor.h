@@ -21,11 +21,11 @@
 #ifndef PLAINTEXTEXTRACTOR_H
 #define PLAINTEXTEXTRACTOR_H
 
-#include "extractor.h"
+#include "extractorplugin.h"
 
 namespace Nepomuk2 {
 
-class PlainTextExtractor : public Extractor
+class PlainTextExtractor : public ExtractorPlugin
 {
 public:
     PlainTextExtractor(QObject* parent, const QVariantList&);

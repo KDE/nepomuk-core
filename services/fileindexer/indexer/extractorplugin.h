@@ -31,12 +31,12 @@
 
 namespace Nepomuk2 {
 
-    class NEPOMUK_EXPORT Extractor : public QObject
+    class NEPOMUK_EXPORT ExtractorPlugin : public QObject
     {
         Q_OBJECT
     public:
-        Extractor(QObject* parent);
-        virtual ~Extractor();
+        ExtractorPlugin(QObject* parent);
+        virtual ~ExtractorPlugin();
 
         virtual QStringList mimetypes() = 0;
         virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType) = 0;

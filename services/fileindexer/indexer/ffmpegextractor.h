@@ -21,11 +21,11 @@
 #ifndef FFMPEGEXTRACTOR_H
 #define FFMPEGEXTRACTOR_H
 
-#include "extractor.h"
+#include "extractorplugin.h"
 
 namespace Nepomuk2 {
 
-    class FFmpegExtractor : public Extractor
+    class FFmpegExtractor : public ExtractorPlugin
     {
     public:
         FFmpegExtractor(QObject* parent, const QVariantList&);

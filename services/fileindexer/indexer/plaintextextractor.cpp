@@ -31,7 +31,7 @@ using namespace Nepomuk2::Vocabulary;
 namespace Nepomuk2 {
 
 PlainTextExtractor::PlainTextExtractor(QObject* parent, const QVariantList&)
-: Extractor(parent)
+: ExtractorPlugin(parent)
 {
 
 }

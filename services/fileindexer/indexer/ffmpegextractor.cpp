@@ -54,7 +54,7 @@ using namespace Soprano::Vocabulary;
 namespace Nepomuk2 {
 
 FFmpegExtractor::FFmpegExtractor(QObject* parent, const QVariantList&)
-: Extractor(parent)
+: ExtractorPlugin(parent)
 {
 
 }

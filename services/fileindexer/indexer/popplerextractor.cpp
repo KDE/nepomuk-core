@@ -31,7 +31,7 @@ using namespace Nepomuk2::Vocabulary;
 namespace Nepomuk2 {
 
 PopplerExtractor::PopplerExtractor(QObject* parent, const QVariantList&)
-: Extractor(parent)
+: ExtractorPlugin(parent)
 {
 
 }

@@ -21,11 +21,11 @@
 #ifndef EXIV2EXTRACTOR_H
 #define EXIV2EXTRACTOR_H
 
-#include "extractor.h"
+#include "extractorplugin.h"
 
 namespace Nepomuk2 {
 
-    class Exiv2Extractor : public Extractor
+    class Exiv2Extractor : public ExtractorPlugin
     {
 
     public:

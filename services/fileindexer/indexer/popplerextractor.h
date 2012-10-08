@@ -21,11 +21,11 @@
 #ifndef POPPLEREXTRACTOR_H
 #define POPPLEREXTRACTOR_H
 
-#include "extractor.h"
+#include "extractorplugin.h"
 
 namespace Nepomuk2 {
 
-    class PopplerExtractor : public Extractor
+    class PopplerExtractor : public ExtractorPlugin
     {
     public:
         PopplerExtractor(QObject* parent, const QVariantList&);

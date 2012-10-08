@@ -36,7 +36,7 @@ using namespace Nepomuk2::Vocabulary;
 namespace Nepomuk2 {
 
 TagLibExtractor::TagLibExtractor(QObject* parent, const QVariantList&)
-: Extractor(parent)
+: ExtractorPlugin(parent)
 {
 }
 

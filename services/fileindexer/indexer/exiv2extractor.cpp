@@ -33,7 +33,7 @@ using namespace Nepomuk2::Vocabulary;
 namespace Nepomuk2 {
 
 Exiv2Extractor::Exiv2Extractor(QObject* parent, const QVariantList&)
-: Extractor(parent)
+: ExtractorPlugin(parent)
 {
 
 }

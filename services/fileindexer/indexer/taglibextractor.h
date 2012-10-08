@@ -21,10 +21,10 @@
 #ifndef TAGLIBEXTRACTOR_H
 #define TAGLIBEXTRACTOR_H
 
-#include "extractor.h"
+#include "extractorplugin.h"
 
 namespace Nepomuk2 {
-    class TagLibExtractor : public Extractor
+    class TagLibExtractor : public ExtractorPlugin
     {
 
     public:
