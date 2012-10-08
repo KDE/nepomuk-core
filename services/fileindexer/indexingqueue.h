@@ -41,6 +41,9 @@ namespace Nepomuk2 {
         void suspend();
         void resume();
 
+    signals:
+        void finishedIndexing();
+
     protected:
         /**
          * Returns true if a file has been sent for indexing

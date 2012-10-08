@@ -120,6 +120,7 @@ namespace Nepomuk2 {
         void slotConfigChanged();
         void slotCleaningDone();
         void slotIdleTimeoutReached();
+        void slotIndexingFinished();
 
     private:
         /**
@@ -131,12 +132,6 @@ namespace Nepomuk2 {
         void analyzeDir( const QString& dir, UpdateDirFlags flags );
 
         void queueAllFoldersForUpdate( bool forceUpdate = false );
-
-        /**
-         * Deletes all indexed information about entries and all subfolders and files
-         * from the store
-         */
-        void deleteEntries( const QStringList& entries );
 
         // emits indexingStarted or indexingStopped based on parameter. Makes sure
         // no signal is emitted twice

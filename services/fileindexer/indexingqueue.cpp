@@ -61,7 +61,16 @@ void IndexingQueue::suspend()
 
 void IndexingQueue::callForNextIteration()
 {
-    if( !m_suspended && !m_sentEvent && !isEmpty() ) {
+    // If already called callForNextIteration
+    if( m_sentEvent )
+        return;
+
+    if( isEmpty() ) {
+        emit finishedIndexing();
+        return;
+    }
+
+    if( !m_suspended ) {
         QTimer::singleShot( 0, this, SLOT(processNext()) );
         m_sentEvent = true;
     }

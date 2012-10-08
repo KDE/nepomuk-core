@@ -73,6 +73,9 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     m_basicIQ = new BasicIndexingQueue( this );
     m_fileIQ = new FileIndexingQueue( this );
 
+    connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(slotIndexingFinished()) );
+    connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SLOT(slotIndexingFinished()) );
+
     m_fileIQ->suspend();
 
     // stop the slow queue on user activity
@@ -231,16 +234,11 @@ void Nepomuk2::IndexScheduler::analyzeFile( const QString& path )
     m_basicIQ->enqueue( path );
 }
 
-
-void Nepomuk2::IndexScheduler::deleteEntries( const QStringList& entries )
+void Nepomuk2::IndexScheduler::slotIndexingFinished()
 {
-    /*
-    // recurse into subdirs
-    // TODO: use a less mem intensive method
-    for ( int i = 0; i < entries.count(); ++i ) {
-        deleteEntries( getChildren( entries[i] ).keys() );
-    }
-    Nepomuk2::clearIndexedData(KUrl::List(entries));*/
+    if( m_basicIQ->isEmpty() && m_fileIQ->isEmpty() )
+        emit indexingDone();
 }
+
 
 #include "indexscheduler.moc"

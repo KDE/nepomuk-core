@@ -58,8 +58,10 @@ bool FileIndexingQueue::processNextIteration()
     const QUrl fileUrl = m_fileQueue.dequeue();
     process( fileUrl );
 
-    if( m_fileQueue.isEmpty() )
+    if( m_fileQueue.isEmpty() ) {
         fillQueue();
+        return false;
+    }
 
     return true;
 }
