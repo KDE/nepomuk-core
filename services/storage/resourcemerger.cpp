@@ -99,6 +99,7 @@ void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
 
     const bool lazy = (m_flags & LazyCardinalities);
     const bool overwrite = (m_flags & OverwriteProperties);
+    const bool overwriteAll = (m_flags & OverwriteAllProperties);
 
     QString query = QString::fromLatin1("sparql insert into %1 { ")
                     .arg( Soprano::Node::resourceToN3( graph ) );
@@ -115,8 +116,8 @@ void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
             QList<Soprano::Node> values = res.values( prop );
             const QString propN3 = Soprano::Node::resourceToN3( prop );
 
-            if( lazy || overwrite ) {
-                if( tree->maxCardinality( prop ) == 1 ) {
+            if( lazy || overwrite || overwriteAll ) {
+                if( tree->maxCardinality( prop ) == 1 || overwriteAll ) {
                     QString query = QString::fromLatin1("select ?o ?g where { graph ?g { %1 %2 ?o . } }")
                                     .arg( resN3, propN3 );
 
@@ -898,8 +899,9 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
         // 3.a Check the max cardinality
         //
         bool overWriteProperties = (m_flags & OverwriteProperties);
+        bool overWriteAllProperties = (m_flags & OverwriteAllProperties);
         bool lazyCardinalities = (m_flags & LazyCardinalities);
-        bool shouldCheckCardin = !( overWriteProperties || lazyCardinalities );
+        bool shouldCheckCardin = !( overWriteProperties || lazyCardinalities || overWriteAllProperties );
 
         if( shouldCheckCardin ) {
             int maxCardinality = ClassAndPropertyTree::self()->maxCardinality( propUri );
