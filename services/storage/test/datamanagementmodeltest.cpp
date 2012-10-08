@@ -4866,6 +4866,50 @@ void DataManagementModelTest::testStoreResources_overwriteProperties()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
+void DataManagementModelTest::testStoreResources_overwriteAllProperties()
+{
+    SimpleResource tag1;
+    tag1.addType( NAO::Tag() );
+    tag1.setProperty( NAO::prefLabel(), "Tag1" );
+
+    SimpleResource tag2;
+    tag2.addType( NAO::Tag() );
+    tag2.setProperty( NAO::prefLabel(), "Tag2" );
+
+    SimpleResource tag3;
+    tag3.addType( NAO::Tag() );
+    tag3.setProperty( NAO::prefLabel(), "Tag3" );
+
+    SimpleResource res;
+    res.addType( RDFS::Resource() );
+    res.addProperty( NAO::hasTag(), tag1 );
+
+    QHash< QUrl, QUrl > map = m_dmModel->storeResources( SimpleResourceGraph() << res << tag1, QLatin1String("app") );
+    QVERIFY(!m_dmModel->lastError());
+
+    SimpleResource res2( map.value(res.uri()) );
+    res2.addType( RDFS::Resource() );
+    res2.addProperty( NAO::hasTag(), tag2 );
+    res2.addProperty( NAO::hasTag(), tag3 );
+
+    SimpleResourceGraph graph;
+    graph << tag2 << tag3 << res2;
+
+    map = m_dmModel->storeResources( graph, QLatin1String("app2"), Nepomuk2::IdentifyNew, Nepomuk2::OverwriteAllProperties );
+    QVERIFY(!m_dmModel->lastError());
+
+    kDebug() << "TAG2: " << m_model->containsAnyStatement( res2.uri(), NAO::hasTag(), map.value(tag2.uri()) );
+    kDebug() << "TAG3: " << m_model->containsAnyStatement( res2.uri(), NAO::hasTag(), map.value(tag3.uri()) );
+
+    QList<Node> objects = m_model->listStatements( res2.uri(), NAO::hasTag(), QUrl() ).iterateObjects().allNodes();
+    kDebug() << objects;
+    QCOMPARE( objects.size(), 2 );
+
+    QVERIFY( objects.contains( map.value(tag2.uri()) ) );
+    QVERIFY( objects.contains( map.value(tag3.uri()) ) );
+}
+
+
 // make sure that already existing resource types are taken into account for domain checks
 void DataManagementModelTest::testStoreResources_correctDomainInStore()
 {
