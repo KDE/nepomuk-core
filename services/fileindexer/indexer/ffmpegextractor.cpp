@@ -71,8 +71,10 @@ QStringList FFmpegExtractor::mimetypes()
     return types;
 }
 
-SimpleResourceGraph FFmpegExtractor::extract(const QUrl& resUri, const QUrl& fileUrl)
+SimpleResourceGraph FFmpegExtractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
 {
+    Q_UNUSED( mimeType );
+
     AVFormatContext *fmt_ctx = NULL;
 
     av_register_all();

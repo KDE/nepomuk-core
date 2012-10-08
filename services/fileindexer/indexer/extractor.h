@@ -39,7 +39,7 @@ namespace Nepomuk2 {
         virtual ~Extractor();
 
         virtual QStringList mimetypes() = 0;
-        virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl) = 0;
+        virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType) = 0;
     };
 }
 

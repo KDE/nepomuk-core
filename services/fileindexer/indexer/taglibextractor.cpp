@@ -62,8 +62,10 @@ QStringList TagLibExtractor::mimetypes()
     return types;
 }
 
-Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const QUrl& fileUrl)
+Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
 {
+    Q_UNUSED( mimeType );
+
     TagLib::FileRef file( fileUrl.toLocalFile().toUtf8().data(), true );
     if( file.isNull() ) {
         return SimpleResourceGraph();

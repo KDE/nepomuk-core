@@ -104,7 +104,7 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
 
     QList<Extractor*> extractors = m_extractors.values( mimeType );
     foreach( Extractor* ex, extractors ) {
-        graph += ex->extract( uri, url );
+        graph += ex->extract( uri, url, mimeType );
     }
 
     // Indexing Level
@@ -166,7 +166,7 @@ bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
 
         QList<Extractor*> extractors = m_extractors.values( mimeType );
         foreach( Extractor* ex, extractors ) {
-            graph += ex->extract( uri, url );
+            graph += ex->extract( uri, url, mimeType );
         }
 
         // Indexing Level

@@ -45,8 +45,10 @@ QStringList PopplerExtractor::mimetypes()
 }
 
 
-SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fileUrl)
+SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
 {
+    Q_UNUSED( mimeType );
+
     SimpleResourceGraph graph;
     SimpleResource fileRes( resUri );
 

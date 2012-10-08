@@ -31,7 +31,7 @@ namespace Nepomuk2 {
         PopplerExtractor(QObject* parent, const QVariantList&);
 
         virtual QStringList mimetypes();
-        virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl);
+        virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType);
 
     private:
     };

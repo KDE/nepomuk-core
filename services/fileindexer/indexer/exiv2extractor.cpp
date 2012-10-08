@@ -79,8 +79,10 @@ namespace {
     }
 }
 
-SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& fileUrl)
+SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
 {
+    Q_UNUSED( mimeType );
+
     QByteArray arr = fileUrl.toLocalFile().toUtf8();
     std::string fileString( arr.data(), arr.length() );
 

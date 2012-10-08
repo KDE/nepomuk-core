@@ -30,7 +30,7 @@ class PlainTextExtractor : public Extractor
 public:
     PlainTextExtractor(QObject* parent, const QVariantList&);
 
-    virtual Nepomuk2::SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl);
+    virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType);
     virtual QStringList mimetypes();
 };
 

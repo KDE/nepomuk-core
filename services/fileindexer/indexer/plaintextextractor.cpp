@@ -45,8 +45,10 @@ QStringList PlainTextExtractor::mimetypes()
     return list;
 }
 
-SimpleResourceGraph PlainTextExtractor::extract(const QUrl& resUri, const QUrl& fileUrl)
+SimpleResourceGraph PlainTextExtractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
 {
+    Q_UNUSED( mimeType );
+
     QFile file( fileUrl.toLocalFile() );
     if( !file.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
         return SimpleResourceGraph();
