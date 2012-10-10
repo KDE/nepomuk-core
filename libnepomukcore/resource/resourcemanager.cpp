@@ -325,41 +325,21 @@ Soprano::Model* Nepomuk2::ResourceManager::mainModel()
 
 void Nepomuk2::ResourceManager::slotPropertyAdded(const Resource &res, const Types::Property &prop, const QVariant &value)
 {
+    QMutexLocker lock( &d->mutex );
     ResourceDataHash::iterator it = d->m_initializedData.find(res.uri());
     if(it != d->m_initializedData.end()) {
         ResourceData* data = *it;
-        const Variant var(value);
-        data->updateKickOffLists(prop.uri(), var);
-        data->m_cache[prop.uri()].append(var);
+        data->propertyAdded(prop, value);
     }
 }
 
 void Nepomuk2::ResourceManager::slotPropertyRemoved(const Resource &res, const Types::Property &prop, const QVariant &value_)
 {
+    QMutexLocker lock( &d->mutex );
     ResourceDataHash::iterator it = d->m_initializedData.find(res.uri());
     if(it != d->m_initializedData.end()) {
         ResourceData* data = *it;
-
-        QHash<QUrl, Variant>::iterator cacheIt = data->m_cache.find(prop.uri());
-        if(cacheIt != data->m_cache.end()) {
-            Variant v = *cacheIt;
-            const Variant value(value_);
-            QList<Variant> vl = v.toVariantList();
-            if(vl.contains(value)) {
-                vl.removeAll(value);
-                if(vl.isEmpty()) {
-                    data->updateKickOffLists(prop.uri(), Variant());
-                    data->m_cache.erase(cacheIt);
-                }
-                else {
-                    // The kickoff properties (nao:identifier and nie:url) both have a cardinality of 1
-                    // If we have more than one value, then the properties must not be any of them
-                    if( vl.size() == 1 )
-                        data->updateKickOffLists(prop.uri(), vl.first());
-                    cacheIt.value() = vl;
-                }
-            }
-        }
+        data->propertyRemoved(prop, value_);
     }
 }
 

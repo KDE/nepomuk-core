@@ -17,8 +17,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef _NEPOMUK_ENTITY_MANAGER_H_
-#define _NEPOMUK_ENTITY_MANAGER_H_
+#ifndef _NEPOMUK2_ENTITY_MANAGER_H_
+#define _NEPOMUK2_ENTITY_MANAGER_H_
 
 #include <QtCore/QHash>
 #include <QtCore/QUrl>

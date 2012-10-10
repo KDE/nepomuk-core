@@ -17,8 +17,8 @@
    Boston, MA 02110-1301, USA.
  */
 
-#ifndef _NEPOMUK_SEARCH_QUERY_P_H_
-#define _NEPOMUK_SEARCH_QUERY_P_H_
+#ifndef _NEPOMUK2_SEARCH_QUERY_P_H_
+#define _NEPOMUK2_SEARCH_QUERY_P_H_
 
 #include <QtCore/QSharedData>
 #include <QtCore/QList>

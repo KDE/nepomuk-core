@@ -159,11 +159,17 @@ void Nepomuk2::ResourceWatcher::addProperty(const Nepomuk2::Types::Property& pro
 
 void Nepomuk2::ResourceWatcher::addResource(const Nepomuk2::Resource& res)
 {
-    d->m_resources << res.uri();
+    addResource(res.uri());
+}
+
+void Nepomuk2::ResourceWatcher::addResource(const QUrl& resUri)
+{
+    d->m_resources << resUri;
     if(d->m_connectionInterface) {
-        d->m_connectionInterface->addResource(convertUri(res.uri()));
+        d->m_connectionInterface->addResource(convertUri(resUri));
     }
 }
+
 
 void Nepomuk2::ResourceWatcher::addType(const Nepomuk2::Types::Class& type)
 {
@@ -183,9 +189,14 @@ void Nepomuk2::ResourceWatcher::removeProperty(const Nepomuk2::Types::Property& 
 
 void Nepomuk2::ResourceWatcher::removeResource(const Nepomuk2::Resource& res)
 {
-    d->m_resources.removeAll(res.uri());
+    removeResource(res.uri());
+}
+
+void Nepomuk2::ResourceWatcher::removeResource(const QUrl& resUri)
+{
+    d->m_resources.removeAll(resUri);
     if(d->m_connectionInterface) {
-        d->m_connectionInterface->removeResource(convertUri(res.uri()));
+        d->m_connectionInterface->removeResource(convertUri(resUri));
     }
 }
 

@@ -116,6 +116,16 @@ namespace Nepomuk2 {
         void addResource( const Nepomuk2::Resource & res );
 
         /**
+         * \brief Add a resource to be watched.
+         *
+         * Every change to this resource will be
+         * signalled, depending on the configured properties().
+         *
+         * \sa setResources()
+         */
+        void addResource( const QUrl& resUri );
+
+        /**
          * \brief Add a property to be watched.
          *
          * Every change to a value of this property
@@ -143,6 +153,16 @@ namespace Nepomuk2 {
          * \sa setResources()
          */
         void removeResource( const Nepomuk2::Resource & res );
+
+        /**
+         * \brief Remove a resource to be watched.
+         *
+         * Every change to this resource will be
+         * signalled, depending on the configured properties().
+         *
+         * \sa setResources()
+         */
+        void removeResource( const QUrl& resUri );
 
         /**
          * \brief Remove a property to be watched.

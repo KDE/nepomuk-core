@@ -203,8 +203,11 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
 
     model->addStatement( NCO::Gender(), RDF::type(), RDFS::Resource(), graph );
     model->addStatement( NCO::Gender(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NCO::Gender(), RDFS::subClassOf(), RDFS::Resource(), graph );
     model->addStatement( NCO::male(), RDF::type(), NCO::Gender(), graph );
+    model->addStatement( NCO::male(), RDF::type(), RDFS::Resource(), graph );
     model->addStatement( NCO::female(), RDF::type(), NCO::Gender(), graph );
+    model->addStatement( NCO::female(), RDF::type(), RDFS::Resource(), graph );
 
     model->addStatement( NCO::PersonContact(), RDF::type(), RDFS::Resource(), graph );
     model->addStatement( NCO::PersonContact(), RDF::type(), RDFS::Class(), graph );
@@ -251,6 +254,13 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( PIMO::Agent(), RDFS::subClassOf(), NIE::InformationElement(), graph );
 
     model->addStatement( PIMO::Thing(), RDF::type(), RDFS::Class(), graph );
+
+    // Agent
+    model->addStatement( NAO::Agent(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NAO::Agent(), RDFS::subClassOf(), RDFS::Resource(), graph );
+    model->addStatement( NAO::maintainedBy(), RDF::type(), RDF::Property(), graph );
+    model->addStatement( NAO::maintainedBy(), RDFS::range(), RDFS::Resource(), graph );
+    model->addStatement( NAO::maintainedBy(), RDFS::domain(), NAO::Agent(), graph );
 }
 
 void Nepomuk2::insertNamespaceAbbreviations(Model* model)

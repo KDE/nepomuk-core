@@ -19,8 +19,8 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_QUERY_LITERAL_TERM_H_
-#define _NEPOMUK_QUERY_LITERAL_TERM_H_
+#ifndef _NEPOMUK2_QUERY_LITERAL_TERM_H_
+#define _NEPOMUK2_QUERY_LITERAL_TERM_H_
 
 #include "term.h"
 

@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef _NEPOMUK_RESOURCE_DATA_H_
-#define _NEPOMUK_RESOURCE_DATA_H_
+#ifndef _NEPOMUK2_RESOURCE_DATA_H_
+#define _NEPOMUK2_RESOURCE_DATA_H_
 
 #include <QtCore/QString>
 #include <QtCore/QList>
@@ -46,12 +46,14 @@ namespace Nepomuk2 {
         ~ResourceData();
 
         inline bool ref(Nepomuk2::Resource* res) {
+            // Should this lock m_modificationMutex first?
             m_resources.push_back( res );
             return m_ref.ref();
         }
 
 
         inline bool deref(Nepomuk2::Resource* res) {
+            // Should this lock m_modificationMutex first?
             m_resources.removeAll( res );
             return m_ref.deref();
         }
@@ -136,7 +138,7 @@ namespace Nepomuk2 {
          *
          * \returns The initialized ResourceData object representing the actual resource.
          *
-         * m_determineUriMutex needs to be locked before calling this method
+         * The resource manager mutex needs to be locked before calling this method
          */
         ResourceData* determineUri();
 
@@ -156,13 +158,19 @@ namespace Nepomuk2 {
 
         QHash<QUrl, Variant> m_cache;
 
-        /// Updates ResourceMangerPrivate's list
+        /// Updates ResourceManagerPrivate's list
         void updateKickOffLists( const QUrl& uri, const Variant& variant );
+
+        /// Called by ResourceManager (with the RM mutex locked)
+        void propertyRemoved( const Types::Property &prop, const QVariant &value );
+        void propertyAdded( const Types::Property &prop, const QVariant &value );
+
+    private:
         void updateUrlLists( const QUrl& newUrl );
         void updateIdentifierLists( const QString& string );
 
         void addToWatcher();
-    private:
+
         /// Will reset this instance to 0 as if constructed without parameters
         /// Used by remove() and deleteData()
         void resetAll( bool isDelete = false );
@@ -183,6 +191,8 @@ namespace Nepomuk2 {
 
         QAtomicInt m_ref;
 
+        // Protect m_cache, m_cacheDirty but also m_uri, m_nieUrl, m_naoIdentifier, m_addedToWatcher.
+        // Never lock the ResourceManager mutex after locking this one. Always before (or not at all).
         mutable QMutex m_modificationMutex;
 
         bool m_cacheDirty;

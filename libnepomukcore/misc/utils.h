@@ -19,8 +19,8 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_UTILS_GLOBAL_H_
-#define _NEPOMUK_UTILS_GLOBAL_H_
+#ifndef _NEPOMUK2_UTILS_GLOBAL_H_
+#define _NEPOMUK2_UTILS_GLOBAL_H_
 
 #include "nepomuk_export.h"
 #include "resource.h"

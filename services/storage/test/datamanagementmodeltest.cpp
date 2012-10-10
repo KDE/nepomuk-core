@@ -2678,7 +2678,7 @@ void DataManagementModelTest::testRemoveDataByApplication_nieUrl()
 
     // The file is tagged via Dolphin
     const QUrl g1 = m_nrlModel->createGraph( NRL::InstanceBase() );
-    m_model->addStatement( res1, RDF::type(), NFO::FileDataObject() );
+    m_model->addStatement( res1, RDF::type(), NFO::FileDataObject(), g1 );
     m_model->addStatement( res1, NIE::url(), fileUrl, g1 );
     QDateTime now = QDateTime::currentDateTime();
     m_model->addStatement( res1, NAO::created(), LiteralValue(QVariant(now)), g1 );
@@ -4684,7 +4684,7 @@ void DataManagementModelTest::testStoreResources_duplicates()
     SimpleResourceGraph graph;
     graph << res << hash1 << hash2;
 
-    m_dmModel->storeResources( graph, "appA" );
+    m_dmModel->storeResources( graph, "appA", Nepomuk2::IdentifyNew, Nepomuk2::MergeDuplicateResources );
     QVERIFY(!m_dmModel->lastError());
 
     // hash1 and hash2 are the same, they should have been merged together
@@ -4723,7 +4723,7 @@ void DataManagementModelTest::testStoreResources_duplicateHierarchy()
     SimpleResourceGraph graph;
     graph << email1 << contact1 << email2 << contact2;
 
-    m_dmModel->storeResources( graph, "appA" );
+    m_dmModel->storeResources( graph, "appA", Nepomuk2::IdentifyNew, Nepomuk2::MergeDuplicateResources );
     QVERIFY(!m_dmModel->lastError());
 
     int contactCount = m_model->listStatements( Node(), RDF::type(),
@@ -4760,7 +4760,7 @@ void DataManagementModelTest::testStoreResources_duplicates2()
         graph << contact << email;
     }
 
-    m_dmModel->storeResources( graph, QLatin1String("appA") );
+    m_dmModel->storeResources( graph, "appA", Nepomuk2::IdentifyNew, Nepomuk2::MergeDuplicateResources );
     QVERIFY(!m_dmModel->lastError());
 
     // There should only be one email and one contact
@@ -4769,6 +4769,37 @@ void DataManagementModelTest::testStoreResources_duplicates2()
 
     int emailCount = m_model->listStatements( Node(), RDF::type(), NCO::EmailAddress() ).allStatements().size();
     QCOMPARE( emailCount, 1 );
+
+    QVERIFY(!haveTrailingGraphs());
+    QVERIFY(!haveDataInDefaultGraph());
+}
+
+void DataManagementModelTest::testStoreResources_duplicates3()
+{
+    SimpleResource contact;
+    contact.addType( NCO::Contact() );
+    contact.setProperty( NCO::fullname(), QLatin1String("Peter") );
+
+    QHash<QUrl, QUrl> map = m_dmModel->storeResources( SimpleResourceGraph() << contact, QLatin1String("app") );
+    QVERIFY(!m_dmModel->lastError());
+    const QUrl contactUri  = map.value( contact.uri() );
+
+    SimpleResourceGraph graph;
+    SimpleResource con1( contactUri );
+    con1.addType( NCO::Contact() );
+    con1.addProperty( NCO::gender(), NCO::male() );
+
+    SimpleResource con2;
+    con2.addType( NCO::Contact() );
+    con2.addProperty( NCO::gender(), NCO::male() );
+
+    // These 2 contacts are the same but they shouldn't get merged cause one is not a blank uri
+    graph << con1 << con2;
+    map = m_dmModel->storeResources( graph, QLatin1String("app") );
+    QVERIFY(!m_dmModel->lastError());
+
+    QList< Node > nodeList = m_model->listStatements( Node(), RDF::type(), NCO::Contact() ).iterateSubjects().allNodes();
+    QCOMPARE( nodeList.size(), 2 );
 
     QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());

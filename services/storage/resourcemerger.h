@@ -30,6 +30,8 @@
 #include <Soprano/Error/ErrorCache>
 
 #include "datamanagement.h"
+#include "resourceidentifier.h"
+#include "syncresource.h"
 
 namespace Soprano {
     class Node;
@@ -52,7 +54,7 @@ namespace Nepomuk2 {
         void setMappings( const QHash<QUrl, QUrl> & mappings );
         QHash<QUrl, QUrl> mappings() const;
 
-        bool merge(const Soprano::Graph& graph);
+        bool merge(const Sync::ResourceHash& resHash);
 
         void setAdditionalGraphMetadata( const QHash<QUrl, QVariant>& additionalMetadata );
         QHash<QUrl, QVariant> additionalMetadata() const;
@@ -62,25 +64,33 @@ namespace Nepomuk2 {
         virtual QUrl createResourceUri();
         virtual QUrl createGraphUri();
 
-        virtual Soprano::Error::ErrorCode addResMetadataStatement( const Soprano::Statement & st );
+        /**
+         * Checks the cardinality + domain/range of the properties in the \p res.
+         * Returns true if the data is valid, sets an error otherwise.
+         *
+         * It does not modify \p res, but temporarily alters it. The pass by reference is to
+         * avoid making a copy
+         */
+        bool hasValidData( const QHash<KUrl, Sync::SyncResource>& resHash, Sync::SyncResource& res );
 
-        bool push( const Soprano::Statement & st );
+        void push( const QUrl& graph, const Nepomuk2::Sync::ResourceHash& resHash );
 
         //
         // Resolution
         //
-        Soprano::Statement resolveStatement( const Soprano::Statement& st );
+        Soprano::Node resolveBlankNode( const Soprano::Node& node );
         Soprano::Node resolveMappedNode( const Soprano::Node& node );
-        Soprano::Node resolveUnmappedNode( const Soprano::Node& node );
 
-        /// This modifies the list
-        void resolveBlankNodesInSet( QSet<Soprano::Statement> *stList );
+        Sync::ResourceHash resolveBlankNodes( const Sync::ResourceHash& resHash );
+
+        /// The new uris which are being created from blank nodes
+        QSet<QUrl> m_newUris;
 
         /**
          * Removes all the statements that already exist in the model
          * and adds them to m_duplicateStatements
          */
-        void removeDuplicatesInList( QSet<Soprano::Statement> *stList );
+        void removeDuplicates( Sync::SyncResource& res );
         QMultiHash<QUrl, Soprano::Statement> m_duplicateStatements;
 
         QHash<QUrl, QUrl> m_mappings;
@@ -89,7 +99,7 @@ namespace Nepomuk2 {
         QSet<QUrl> m_trailingGraphCandidates;
 
         /// a list of all the statements that have been removed (only used for the resource watcher)
-        QList<Soprano::Statement> m_removedStatements;
+        Sync::ResourceHash m_resRemoveHash;
 
         /// Can set the error
         QMultiHash<QUrl, Soprano::Node> toNodeHash( const QHash<QUrl, QVariant> &hash );
@@ -132,9 +142,7 @@ namespace Nepomuk2 {
 
         bool sameTypes( const QSet<QUrl>& t1, const QSet<QUrl>& t2 );
 
-        /// Refers to the properties which are considered as resource metadata
         QSet<QUrl> metadataProperties;
-
         ResourceWatcherManager *m_rvm;
     };
 

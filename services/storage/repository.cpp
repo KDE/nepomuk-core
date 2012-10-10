@@ -400,6 +400,7 @@ Soprano::BackendSettings Nepomuk2::Repository::readVirtuosoSettings() const
 
     // We don't care as they screw up performance
     settings << Soprano::BackendSetting( "fakeBooleans", false );
+    settings << Soprano::BackendSetting( "emptyGraphs", false );
 
     // Never take more than 5 minutes to answer a query (this is to filter out broken queries and bugs in Virtuoso's query optimizer)
     // trueg: We cannot activate this yet. 1. Virtuoso < 6.3 crashes and 2. even open cursors are subject to the timeout which is really

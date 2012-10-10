@@ -17,8 +17,8 @@
    Boston, MA 02110-1301, USA.
  */
 
-#ifndef _NEPOMUK_QUERY_RESULT_H_
-#define _NEPOMUK_QUERY_RESULT_H_
+#ifndef _NEPOMUK2_QUERY_RESULT_H_
+#define _NEPOMUK2_QUERY_RESULT_H_
 
 #include <QtCore/QSharedDataPointer>
 #include <QtCore/QUrl>

@@ -52,7 +52,8 @@ public:
     ClassOrProperty()
         : isProperty(false),
           maxCardinality(0),
-          defining(0) {
+          defining(0),
+          hasRdfsLiteralRange(false) {
     }
 
     /// true if this is a property, for classes this is false
@@ -76,6 +77,10 @@ public:
     /// only valid for properties
     QUrl domain;
     QUrl range;
+
+    /// only valid for properties with literal range
+    QVariant::Type literalType;
+    bool hasRdfsLiteralRange;
 };
 
 Nepomuk2::ClassAndPropertyTree::ClassAndPropertyTree(QObject *parent)
@@ -191,131 +196,145 @@ Soprano::Node Nepomuk2::ClassAndPropertyTree::variantToNode(const QVariant &valu
         return *nodes.begin();
 }
 
-
-namespace Soprano {
-namespace Vocabulary {
-    namespace XMLSchema {
-        QUrl xsdDuration() {
-            return QUrl( Soprano::Vocabulary::XMLSchema::xsdNamespace().toString() + QLatin1String("duration") );
-        }
-    }
-}
-}
-
 QSet<Soprano::Node> Nepomuk2::ClassAndPropertyTree::variantListToNodeSet(const QVariantList &vl, const QUrl &property) const
 {
     clearError();
 
     QSet<Soprano::Node> nodes;
-    QUrl range = propertyRange(property);
 
-    //
-    // Special case: xsd:duration - Soprano doesn't handle it
-    //
-    if(range == XMLSchema::xsdDuration()) {
-        range = XMLSchema::unsignedInt();
-    }
+    QUrl range;
+    QVariant::Type literalType;
+    bool hasRdfsLiteralRange = false;
 
-    //
-    // Special case: rdfs:Literal
-    //
-    if(range == RDFS::Literal()) {
-        Q_FOREACH(const QVariant& value, vl) {
-            nodes.insert(Soprano::LiteralValue::createPlainLiteral(value.toString()));
+    // Temporary scope for the locker
+    {
+        QMutexLocker lock(&m_mutex);
+        const ClassOrProperty* propertyNode = findClassOrProperty( property );
+        if( !propertyNode ) {
+            setError( QString::fromLatin1("Cannot set values for abstract property '%1'.")
+                    .arg( Soprano::Node::resourceToN3( property ) ) );
+            return QSet<Soprano::Node>();
         }
+
+        range = propertyNode->range;
+        literalType = propertyNode->literalType;
+        hasRdfsLiteralRange = propertyNode->hasRdfsLiteralRange;
     }
 
     //
     // Special case: abstract properties - we do not allow setting them
     //
-    else if(range.isEmpty()) {
+    if(range.isEmpty()) {
         setError(QString::fromLatin1("Cannot set values for abstract property '%1'.").arg(property.toString()), Soprano::Error::ErrorInvalidArgument);
         return QSet<Soprano::Node>();
     }
 
     //
-    // The standard case
+    // Special case: rdfs:Literal
     //
-    else {
-        const QVariant::Type literalType = Soprano::LiteralValue::typeFromDataTypeUri(range);
-        if(literalType == QVariant::Invalid) {
-            Q_FOREACH(const QVariant& value, vl) {
-                // treat as a resource range for now
-                if(value.type() == QVariant::Url) {
-                    QUrl url = value.toUrl();
-                    if( url.scheme().isEmpty() && !url.toString().startsWith("_:") )
-                        url.setScheme("file");
-                    nodes.insert(url);
-                }
-                else if(value.type() == QVariant::String) {
-                    QString s = value.toString();
-                    if(!s.isEmpty()) {
-                        // for convinience we support local file paths
-                        if(s[0] == QDir::separator() && QFile::exists(s)) {
-                            nodes.insert(QUrl::fromLocalFile(s));
-                        }
-                        else {
-                            // treat it as a URI
-                            nodes.insert(QUrl(s));
-                        }
+    if( hasRdfsLiteralRange ) {
+        Q_FOREACH(const QVariant& value, vl) {
+            nodes.insert(Soprano::LiteralValue::createPlainLiteral(value.toString()));
+        }
+        return nodes;
+    }
+
+    //
+    // Invalid Range - Probably a resource
+    //
+    if(literalType == QVariant::Invalid) {
+        Q_FOREACH(const QVariant& value, vl) {
+            // treat as a resource range for now
+            if(value.type() == QVariant::Url) {
+                QUrl url = value.toUrl();
+                if( url.scheme().isEmpty() && !url.toString().startsWith("_:") )
+                    url.setScheme("file");
+                nodes.insert(url);
+            }
+            else if(value.type() == QVariant::String) {
+                QString s = value.toString();
+                if(!s.isEmpty()) {
+                    // for convinience we support local file paths
+                    if(s[0] == QDir::separator() && QFile::exists(s)) {
+                        nodes.insert(QUrl::fromLocalFile(s));
                     }
                     else {
-                        // empty string
-                        setError(QString::fromLatin1("Encountered an empty string where a resource URI was expected."), Soprano::Error::ErrorInvalidArgument);
-                        return QSet<Soprano::Node>();
+                        // treat it as a URI
+                        nodes.insert(QUrl(s));
                     }
                 }
                 else {
-                    // invalid type
-                    setError(QString::fromLatin1("Encountered '%1' where a resource URI was expected.").arg(value.toString()), Soprano::Error::ErrorInvalidArgument);
+                    // empty string
+                    setError(QString::fromLatin1("Encountered an empty string where a resource URI was expected."), Soprano::Error::ErrorInvalidArgument);
                     return QSet<Soprano::Node>();
                 }
+            }
+            else {
+                // invalid type
+                setError(QString::fromLatin1("Encountered '%1' where a resource URI was expected.").arg(value.toString()), Soprano::Error::ErrorInvalidArgument);
+                return QSet<Soprano::Node>();
             }
         }
-        else {
-            Q_FOREACH(const QVariant& value, vl) {
-                //
-                // Exiv data often contains floating point values encoded as a fraction
-                //
-                if((range == XMLSchema::xsdFloat() || range == XMLSchema::xsdDouble())
-                        && value.type() == QVariant::String) {
-                    int x = 0;
-                    int y = 0;
-                    if ( sscanf( value.toString().toLatin1().data(), "%d/%d", &x, &y ) == 2 && y != 0 ) {
-                        const double v = double( x )/double( y );
-                        nodes.insert(LiteralValue::fromVariant(v, range));
-                        continue;
-                    }
-                }
 
-                //
-                // ID3 tags sometimes only contain the year of publication. We cover this
-                // special case here with a very dumb heuristic
-                //
-                else if(range == XMLSchema::dateTime()
-                        && value.canConvert(QVariant::UInt)) {
-                    bool ok = false;
-                    const int t = value.toInt(&ok);
-                    if(ok && t > 0 && t <= 9999) {
-                        nodes.insert(LiteralValue(QDateTime(QDate(t, 1, 1), QTime(0, 0), Qt::UTC)));
-                        continue;
-                    }
-                }
+        return nodes;
+    }
 
-                Soprano::LiteralValue v = Soprano::LiteralValue::fromVariant(value, range);
-                if(v.isValid()) {
-                    nodes.insert(v);
-                }
-                else {
-                    // failed literal conversion
-                    setError(QString::fromLatin1("Failed to convert '%1' to literal of type '%2'.").arg(value.toString(), range.toString()), Soprano::Error::ErrorInvalidArgument);
-                    return QSet<Soprano::Node>();
-                }
+    //
+    // The standard case
+    //
+    Q_FOREACH(const QVariant& value, vl) {
+        //
+        // Exiv data often contains floating point values encoded as a fraction
+        //
+        if((range == XMLSchema::xsdFloat() || range == XMLSchema::xsdDouble())
+                && value.type() == QVariant::String) {
+            int x = 0;
+            int y = 0;
+            if ( sscanf( value.toString().toLatin1().data(), "%d/%d", &x, &y ) == 2 && y != 0 ) {
+                const double v = double( x )/double( y );
+                nodes.insert(LiteralValue::fromVariant(v, range));
+                continue;
             }
+        }
+
+        //
+        // ID3 tags sometimes only contain the year of publication. We cover this
+        // special case here with a very dumb heuristic
+        //
+        else if(range == XMLSchema::dateTime()
+                && value.canConvert(QVariant::UInt)) {
+            bool ok = false;
+            const int t = value.toInt(&ok);
+            if(ok && t > 0 && t <= 9999) {
+                nodes.insert(LiteralValue(QDateTime(QDate(t, 1, 1), QTime(0, 0), Qt::UTC)));
+                continue;
+            }
+        }
+
+        Soprano::LiteralValue v = Soprano::LiteralValue::fromVariant(value, range);
+        if(v.isValid()) {
+            nodes.insert(v);
+        }
+        else {
+            // failed literal conversion
+            setError(QString::fromLatin1("Failed to convert '%1' to literal of type '%2'.").arg(value.toString(), range.toString()), Soprano::Error::ErrorInvalidArgument);
+            return QSet<Soprano::Node>();
         }
     }
 
     return nodes;
+}
+
+
+namespace Soprano {
+    namespace Vocabulary {
+        namespace XMLSchema {
+            QUrl xsdDuration() {
+                return QUrl( Soprano::Vocabulary::XMLSchema::xsdNamespace().toString() +
+                             QLatin1String("duration") );
+            }
+        }
+    }
 }
 
 void Nepomuk2::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
@@ -379,6 +398,16 @@ void Nepomuk2::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
 
         if(!range.isEmpty()) {
             r_cop->range = range;
+
+            // Special handling for xsd:duration - Soprano doesn't handle it natively
+            if( range == XMLSchema::xsdDuration() )
+                r_cop->literalType = QVariant::UInt;
+            else if( range == RDFS::Literal() ) {
+                r_cop->literalType = QVariant::UserType;
+                r_cop->hasRdfsLiteralRange = true;
+            }
+            else
+                r_cop->literalType = Soprano::LiteralValue::typeFromDataTypeUri( range );
         }
         else {
             // no range -> resource range
