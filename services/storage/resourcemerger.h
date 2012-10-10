@@ -31,7 +31,7 @@
 
 #include "datamanagement.h"
 #include "resourceidentifier.h"
-#include "backupsync/lib/syncresource.h"
+#include "syncresource.h"
 
 namespace Soprano {
     class Node;

@@ -22,6 +22,8 @@ set(storage_SRCS
   classandpropertytree.cpp
   resourcemerger.cpp
   resourceidentifier.cpp
+  syncresourceidentifier.cpp
+  syncresource.cpp
   resourcewatchermanager.cpp
   resourcewatcherconnection.cpp
   virtuosoinferencemodel.cpp
@@ -38,29 +40,19 @@ qt4_add_dbus_adaptor(storage_SRCS
   resourcewatcherconnection.h
   Nepomuk2::ResourceWatcherConnection)
 
-set( BackupSyncService_SRCS
-  # BackupSync Service
-  backupsync/service/backupsyncservice.cpp
-  backupsync/service/backupmanager.cpp
-  backupsync/service/dbusoperators.cpp
-  backupsync/service/tools.cpp
-  backupsync/service/changelog.cpp
-  backupsync/service/changelogrecord.cpp
-  backupsync/service/identificationset.cpp
-  backupsync/service/syncfile.cpp
-  backupsync/service/backupgenerationjob.cpp
+set( Backup_SRCS
+  # Backup Sources
+  backup/backupmanager.cpp
+  backup/dbusoperators.cpp
+  backup/backupfile.cpp
+  backup/backupgenerationjob.cpp
+  backup/backuprestorationjob.cpp
+  backup/backupstatementiterator.cpp
   )
 
-qt4_add_dbus_adaptor( BackupSyncService_SRCS
-                      ../../interfaces/org.kde.nepomuk.services.nepomukbackupsync.backupmanager.xml
-                      backupsync/service/backupmanager.h Nepomuk2::BackupManager )
-
-soprano_add_ontology(BackupSyncService_SRCS
-   ${CMAKE_CURRENT_SOURCE_DIR}/../../ontologies/nrio.trig
-  "NRIO"
-  "Nepomuk::Vocabulary"
-  "trig")
-
+qt4_add_dbus_adaptor( Backup_SRCS
+                      ../../interfaces/org.kde.nepomuk.BackupManager.xml
+                      backup/backupmanager.h Nepomuk2::BackupManager )
 
 set(queryservice_SRCS
   query/queryservice.cpp
@@ -75,7 +67,7 @@ qt4_add_dbus_adaptor(queryservice_SRCS
   query/folderconnection.h
   Nepomuk2::Query::FolderConnection)
 
-kde4_add_plugin(nepomukstorage ${storage_SRCS} ${queryservice_SRCS} ${BackupSyncService_SRCS})
+kde4_add_plugin(nepomukstorage ${storage_SRCS} ${queryservice_SRCS} ${Backup_SRCS})
 
 target_link_libraries(nepomukstorage
   ${SOPRANO_LIBRARIES}
@@ -101,6 +93,6 @@ install(
   DESTINATION ${PLUGIN_INSTALL_DIR})
 # -----------------------------
 
-add_subdirectory(backupsync)
+add_subdirectory(backup)
 add_subdirectory(rcgen)
 add_subdirectory(test)

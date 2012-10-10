@@ -1,6 +1,6 @@
 /*
     <one line to give the library's name and an idea of what it does.>
-    Copyright (C) 2011  Vishesh Handa <handa.vish@gmail.com>
+    Copyright (C) 2012  Vishesh Handa <me@vhanda.in>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,34 +18,35 @@
 */
 
 
-#ifndef RESOURCEIDENTIFIER_H
-#define RESOURCEIDENTIFIER_H
+#ifndef _NEPOMUK2_BACKUPSTATEMENTITERATOR_H
+#define _NEPOMUK2_BACKUPSTATEMENTITERATOR_H
 
-#include "syncresourceidentifier.h"
-#include "datamanagement.h"
-
-#include <KUrl>
+#include <Soprano/Model>
+#include <Soprano/Statement>
+#include <Soprano/QueryResultIterator>
 
 namespace Nepomuk2 {
 
-class ResourceIdentifier : public Sync::ResourceIdentifier
+class BackupStatementIterator
 {
 public:
-    ResourceIdentifier( Nepomuk2::StoreIdentificationMode mode, Soprano::Model *model);
+    BackupStatementIterator(Soprano::Model* model);
 
-protected:
-    virtual KUrl duplicateMatch(const KUrl& uri, const QSet< KUrl >& matchedUris );
-    virtual bool runIdentification(const KUrl& uri);
+    bool next();
+    Soprano::Statement current();
 
 private:
-    bool isIdentifyingProperty( const QUrl& uri );
+    Soprano::Model* m_model;
+    Soprano::QueryResultIterator m_it;
 
-    /// Returns true if a resource with uri \p uri exists
-    bool exists( const KUrl& uri );
-
-    Nepomuk2::StoreIdentificationMode m_mode;
+    enum State {
+        State_ProcessingResources,
+        State_ProcessingGraphs,
+        State_Done
+    };
+    State m_state;
 };
 
 }
 
-#endif // RESOURCEIDENTIFIER_H
+#endif // _NEPOMUK2_BACKUPSTATEMENTITERATOR_H

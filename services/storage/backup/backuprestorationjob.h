@@ -1,6 +1,6 @@
 /*
     <one line to give the library's name and an idea of what it does.>
-    Copyright (C) 2011  Vishesh Handa <handa.vish@gmail.com>
+    Copyright (C) 2012  Vishesh Handa <me@vhanda.in>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,34 +18,35 @@
 */
 
 
-#ifndef RESOURCEIDENTIFIER_H
-#define RESOURCEIDENTIFIER_H
+#ifndef BACKUPRESTORATIONJOB_H
+#define BACKUPRESTORATIONJOB_H
 
-#include "syncresourceidentifier.h"
-#include "datamanagement.h"
+#include <KJob>
+#include <Soprano/Model>
+#include <QtCore/QUrl>
 
-#include <KUrl>
+#include "ontologyloader.h"
 
 namespace Nepomuk2 {
 
-class ResourceIdentifier : public Sync::ResourceIdentifier
-{
-public:
-    ResourceIdentifier( Nepomuk2::StoreIdentificationMode mode, Soprano::Model *model);
+    class BackupRestorationJob : public KJob
+    {
+        Q_OBJECT
+    public:
+        explicit BackupRestorationJob(Soprano::Model* model, OntologyLoader* loader,
+                                      const QUrl& url, QObject* parent = 0);
+        virtual void start();
 
-protected:
-    virtual KUrl duplicateMatch(const KUrl& uri, const QSet< KUrl >& matchedUris );
-    virtual bool runIdentification(const KUrl& uri);
+    private slots:
+        void slotOntologyUpdateFinished(bool);
+        void doWork();
 
-private:
-    bool isIdentifyingProperty( const QUrl& uri );
-
-    /// Returns true if a resource with uri \p uri exists
-    bool exists( const KUrl& uri );
-
-    Nepomuk2::StoreIdentificationMode m_mode;
-};
+    private:
+        Soprano::Model* m_model;
+        OntologyLoader* m_ontologyLoader;
+        QUrl m_url;
+    };
 
 }
 
-#endif // RESOURCEIDENTIFIER_H
+#endif // BACKUPRESTORATIONJOB_H

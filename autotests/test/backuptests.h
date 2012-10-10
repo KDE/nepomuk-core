@@ -1,6 +1,6 @@
 /*
     <one line to give the library's name and an idea of what it does.>
-    Copyright (C) 2011  Vishesh Handa <handa.vish@gmail.com>
+    Copyright (C) 2012  Vishesh Handa <me@vhanda.in>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,34 +18,36 @@
 */
 
 
-#ifndef RESOURCEIDENTIFIER_H
-#define RESOURCEIDENTIFIER_H
+#ifndef BACKUPTESTS_H
+#define BACKUPTESTS_H
 
-#include "syncresourceidentifier.h"
-#include "datamanagement.h"
-
-#include <KUrl>
+#include <QtCore/QObject>
+#include <QUrl>
+#include "../lib/testbase.h"
+#include "backupmanagerinterface.h"
 
 namespace Nepomuk2 {
 
-class ResourceIdentifier : public Sync::ResourceIdentifier
+class BackupTests : public TestBase
 {
+    Q_OBJECT
 public:
-    ResourceIdentifier( Nepomuk2::StoreIdentificationMode mode, Soprano::Model *model);
+    BackupTests(QObject* parent = 0);
 
-protected:
-    virtual KUrl duplicateMatch(const KUrl& uri, const QSet< KUrl >& matchedUris );
-    virtual bool runIdentification(const KUrl& uri);
+private Q_SLOTS:
+    void simpleData();
+    void indexedData();
+
+    void nonExistingData();
 
 private:
-    bool isIdentifyingProperty( const QUrl& uri );
+    typedef org::kde::nepomuk::BackupManager BackupManager;
+    BackupManager* m_backupManager;
+    QString m_backupLocation;
 
-    /// Returns true if a resource with uri \p uri exists
-    bool exists( const KUrl& uri );
-
-    Nepomuk2::StoreIdentificationMode m_mode;
+    void backup();
+    void restore();
 };
 
 }
-
-#endif // RESOURCEIDENTIFIER_H
+#endif // BACKUPTESTS_H

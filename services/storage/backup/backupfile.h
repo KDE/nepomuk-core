@@ -1,6 +1,6 @@
 /*
     <one line to give the library's name and an idea of what it does.>
-    Copyright (C) 2011  Vishesh Handa <handa.vish@gmail.com>
+    Copyright (C) 2012  Vishesh Handa <me@vhanda.in>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,34 +18,37 @@
 */
 
 
-#ifndef RESOURCEIDENTIFIER_H
-#define RESOURCEIDENTIFIER_H
+#ifndef BACKUPFILE_H
+#define BACKUPFILE_H
 
-#include "syncresourceidentifier.h"
-#include "datamanagement.h"
-
-#include <KUrl>
+#include <QtCore/QUrl>
+#include <QtCore/QDateTime>
+#include <Soprano/QueryResultIterator>
+#include <Soprano/StatementIterator>
 
 namespace Nepomuk2 {
 
-class ResourceIdentifier : public Sync::ResourceIdentifier
-{
-public:
-    ResourceIdentifier( Nepomuk2::StoreIdentificationMode mode, Soprano::Model *model);
+    class BackupStatementIterator;
 
-protected:
-    virtual KUrl duplicateMatch(const KUrl& uri, const QSet< KUrl >& matchedUris );
-    virtual bool runIdentification(const KUrl& uri);
+    class BackupFile
+    {
+    public:
+        BackupFile();
 
-private:
-    bool isIdentifyingProperty( const QUrl& uri );
+        Soprano::StatementIterator iterator();
 
-    /// Returns true if a resource with uri \p uri exists
-    bool exists( const KUrl& uri );
+        static BackupFile fromUrl(const QUrl& url);
+        static bool createBackupFile(const QUrl& url, BackupStatementIterator& it);
 
-    Nepomuk2::StoreIdentificationMode m_mode;
-};
+        int numStatements();
+        QDateTime created();
+
+    private:
+        Soprano::StatementIterator m_stIter;
+
+        QDateTime m_created;
+        int m_numStatements;
+    };
 
 }
-
-#endif // RESOURCEIDENTIFIER_H
+#endif // BACKUPFILE_H

@@ -68,6 +68,37 @@ target_link_libraries(queryservicetest
 
 add_nepomuk_test(QueryServiceTest ${CMAKE_CURRENT_BINARY_DIR}/queryservicetest)
 
+#
+# Backup Tests
+#
+
+set( BACKUP_TESTS_SRC backuptests.cpp )
+
+set_source_files_properties(
+  ../../interfaces/org.kde.nepomuk.BackupManager.xml
+  PROPERTIES INCLUDE "QtCore/QList")
+set_source_files_properties(
+  ../../interfaces/org.kde.nepomuk.BackupManager.xml
+  PROPERTIES INCLUDE "QtCore/QString")
+
+qt4_add_dbus_interface( BACKUP_TESTS_SRC
+                        ../../interfaces/org.kde.nepomuk.BackupManager.xml
+                        backupmanagerinterface )
+
+kde4_add_executable(backuptests ${BACKUP_TESTS_SRC})
+
+target_link_libraries(backuptests
+  ${QT_QTCORE_LIBRARY}
+  ${QT_QTDBUS_LIBRARY}
+  ${QT_QTTEST_LIBRARY}
+  ${QT_QTGUI_LIBRARY}
+  ${SOPRANO_LIBRARIES}
+  kdecore
+  nepomuktestlib
+  nepomukcore
+)
+
+add_nepomuk_test(BackupTests ${CMAKE_CURRENT_BINARY_DIR}/backuptests)
 
 #
 # Normal Tests ( Do not require the testing environment )
