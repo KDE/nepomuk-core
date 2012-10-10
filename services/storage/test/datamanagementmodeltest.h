@@ -150,6 +150,7 @@ private Q_SLOTS:
     void testStoreResources_duplicates3();
     void testStoreResources_duplicatesInMerger();
     void testStoreResources_overwriteProperties();
+    void testStoreResources_overwriteProperties_cardinality();
     void testStoreResources_overwriteAllProperties();
     void testStoreResources_correctDomainInStore();
     void testStoreResources_correctDomainInStore2();

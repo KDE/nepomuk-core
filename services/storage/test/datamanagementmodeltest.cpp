@@ -4866,6 +4866,34 @@ void DataManagementModelTest::testStoreResources_overwriteProperties()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
+void DataManagementModelTest::testStoreResources_overwriteProperties_cardinality()
+{
+    SimpleResource contact;
+    contact.addType( NCO::Contact() );
+    contact.addProperty( NCO::fullname(), QLatin1String("Spiderman") );
+
+    m_dmModel->storeResources( SimpleResourceGraph() << contact, QLatin1String("app") );
+    QVERIFY( !m_dmModel->lastError() );
+
+    QList< Statement > stList = m_model->listStatements( Node(), RDF::type(), NCO::Contact() ).allStatements();
+    QCOMPARE( stList.size(), 1 );
+
+    const QUrl resUri = stList.first().subject().uri();
+
+    SimpleResource contact2( resUri );
+    contact2.addType( NCO::Contact() );
+    contact2.addProperty( NCO::fullname(), QLatin1String("Peter Parker") );
+    contact2.addProperty( NCO::fullname(), QLatin1String("The Amazing Spiderman") );
+
+    m_dmModel->storeResources( SimpleResourceGraph() << contact2, QLatin1String("app"), IdentifyNew, OverwriteProperties );
+
+    // There should be an error since contact2 has two fullnames
+    QVERIFY( m_dmModel->lastError() );
+
+    QVERIFY(!haveTrailingGraphs());
+    QVERIFY(!haveDataInDefaultGraph());
+}
+
 void DataManagementModelTest::testStoreResources_overwriteAllProperties()
 {
     SimpleResource tag1;
