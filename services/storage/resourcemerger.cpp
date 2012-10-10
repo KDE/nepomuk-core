@@ -99,6 +99,7 @@ void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
 
     const bool lazy = (m_flags & LazyCardinalities);
     const bool overwrite = (m_flags & OverwriteProperties);
+    const bool overwriteAll = (m_flags & OverwriteAllProperties);
 
     QString query = QString::fromLatin1("sparql insert into %1 { ")
                     .arg( Soprano::Node::resourceToN3( graph ) );
@@ -115,8 +116,8 @@ void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
             QList<Soprano::Node> values = res.values( prop );
             const QString propN3 = Soprano::Node::resourceToN3( prop );
 
-            if( lazy || overwrite ) {
-                if( tree->maxCardinality( prop ) == 1 ) {
+            if( lazy || overwrite || overwriteAll ) {
+                if( tree->maxCardinality( prop ) == 1 || overwriteAll ) {
                     QString query = QString::fromLatin1("select ?o ?g where { graph ?g { %1 %2 ?o . } }")
                                     .arg( resN3, propN3 );
 
@@ -897,11 +898,10 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
         //
         // 3.a Check the max cardinality
         //
-        bool overWriteProperties = (m_flags & OverwriteProperties);
+        bool overwriteProperties = (m_flags & OverwriteProperties) | (m_flags & OverwriteAllProperties);
         bool lazyCardinalities = (m_flags & LazyCardinalities);
-        bool shouldCheckCardin = !( overWriteProperties || lazyCardinalities );
 
-        if( shouldCheckCardin ) {
+        if( !lazyCardinalities ) {
             int maxCardinality = ClassAndPropertyTree::self()->maxCardinality( propUri );
             if( maxCardinality > 0 ) {
 
@@ -910,22 +910,22 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
                 foreach( const QString &n3, objectN3 )
                     filterStringList << QString::fromLatin1("?v!=%1").arg( n3 );
 
-                const QString query = QString::fromLatin1("select count(distinct ?v) where {"
-                                                        " %1 %2 ?v ."
-                                                        "FILTER( %3 ) . }")
-                                    .arg( Soprano::Node::resourceToN3( res.uri() ),
-                                            Soprano::Node::resourceToN3( propUri ),
-                                            filterStringList.join( QLatin1String(" && ") ) );
-
                 int existingCardinality = 0;
-                Soprano::QueryResultIterator exCarIt =
-                                m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-                if( exCarIt.next() ) {
-                    existingCardinality = exCarIt[0].literal().toInt();
+                if( !overwriteProperties ) {
+                    const QString query = QString::fromLatin1("select count(distinct ?v) where {"
+                                                              " %1 %2 ?v . FILTER( %3 ) . }")
+                                        .arg( Soprano::Node::resourceToN3( res.uri() ),
+                                              Soprano::Node::resourceToN3( propUri ),
+                                              filterStringList.join( QLatin1String(" && ") ) );
+
+                    Soprano::QueryResultIterator exCarIt =
+                                    m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+                    if( exCarIt.next() ) {
+                        existingCardinality = exCarIt[0].literal().toInt();
+                    }
                 }
 
                 const int newCardinality = objectValues.size() + existingCardinality;
-
                 if( newCardinality > maxCardinality ) {
                     //
                     // Display a very informative error message

@@ -77,7 +77,6 @@ target_link_libraries(nepomukstorage
   ${KDE4_SOLID_LIBS}
   nepomukcore
   nepomukcommon
-  nepomuksync
   )
 
 install(
