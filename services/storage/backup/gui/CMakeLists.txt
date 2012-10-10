@@ -5,7 +5,6 @@ include_directories(
   ${KDE4_INCLUDES}
   ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
-  ${libnepomuksync_SOURCE_DIR}
   ${CMAKE_CURRENT_BUILD_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/../service/
   )
@@ -46,7 +45,6 @@ target_link_libraries(nepomukbackup
   ${KDE4_KIO_LIBS}
   ${SOPRANO_LIBRARIES}
   nepomukcore
-  nepomuksync
   )
 
 install(TARGETS nepomukbackup ${INSTALL_TARGETS_DEFAULT_ARGS} )
