@@ -415,5 +415,5 @@ bool Nepomuk2::Sync::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
                                 Soprano::Node::resourceToN3( RDFS::range() ),
                                 Soprano::Node::resourceToN3( RDF::Property() ) );
 
-    return model()->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+    return m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
 }

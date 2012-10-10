@@ -59,9 +59,6 @@ namespace Nepomuk2 {
             ResourceIdentifier( Soprano::Model * model );
             virtual ~ResourceIdentifier();
 
-            Soprano::Model * model();
-            void setModel( Soprano::Model * model );
-
             //
             // Processing
             //
@@ -143,7 +140,7 @@ namespace Nepomuk2 {
              */
             void manualIdentification( const KUrl & oldUri, const KUrl & newUri );
 
-        private:
+        protected:
             Soprano::Model * m_model;
 
             /**
