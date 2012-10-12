@@ -295,7 +295,8 @@ void QueryTests::resourceTypeTerm_data()
 
     // Resource Type Term
     {
-        Query::Query query( ResourceTypeTerm( NAO::Tag() ) );
+        ResourceTypeTerm term( NAO::Tag() );
+        Query::Query query( term );
 
         QSet<QUrl> uris;
         NepomukStatementIterator it( RDF::type() );
