@@ -6,7 +6,6 @@ include_directories(
   ${SOPRANO_INCLUDE_DIR}
   ${CMAKE_SOURCE_DIR}
   ${CMAKE_CURRENT_BUILD_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/../service/
   )
 
 set( NepomukBackup_GUI_SRCS
