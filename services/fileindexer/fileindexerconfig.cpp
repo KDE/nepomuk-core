@@ -179,6 +179,10 @@ bool Nepomuk2::FileIndexerConfig::shouldBeIndexed( const QString& path ) const
     }
 }
 
+bool Nepomuk2::FileIndexerConfig::shouldFolderBeWatched( const QString& path ) const
+{
+    return true;
+}
 
 bool Nepomuk2::FileIndexerConfig::shouldFolderBeIndexed( const QString& path ) const
 {

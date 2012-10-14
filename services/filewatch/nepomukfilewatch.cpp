@@ -95,7 +95,6 @@ namespace {
     bool IgnoringKInotify::filterWatch( const QString & path, WatchEvents & modes, WatchFlags & flags )
     {
         Q_UNUSED( flags );
-
         // Only watch the index folders for file creation and change.
         if( Nepomuk2::FileIndexerConfig::self()->shouldFolderBeIndexed( path ) ) {
             modes |= KInotify::EventCloseWrite;
@@ -104,8 +103,8 @@ namespace {
         else {
             modes &= (~KInotify::EventCloseWrite);
             modes &= (~KInotify::EventCreate);
+            return Nepomuk2::FileIndexerConfig::self()->shouldFolderBeWatched( path );
         }
-
         return true;
     }
 }
