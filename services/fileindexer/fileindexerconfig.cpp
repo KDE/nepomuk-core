@@ -21,6 +21,8 @@
 
 #include <QtCore/QStringList>
 #include <QtCore/QDir>
+#include <QWriteLocker>
+#include <QReadLocker>
 
 #include <KDirWatch>
 #include <KStandardDirs>
@@ -209,14 +211,14 @@ bool Nepomuk2::FileIndexerConfig::shouldFolderBeIndexed( const QString& path ) c
 bool Nepomuk2::FileIndexerConfig::shouldFileBeIndexed( const QString& fileName ) const
 {
     // check the filters
-    QMutexLocker lock( &m_folderCacheMutex );
+    QWriteLocker lock( &m_folderCacheMutex );
     return !m_excludeFilterRegExpCache.exactMatch( fileName );
 }
 
 
 bool Nepomuk2::FileIndexerConfig::folderInFolderList( const QString& path, QString& folder ) const
 {
-    QMutexLocker lock( &m_folderCacheMutex );
+    QReadLocker lock( &m_folderCacheMutex );
 
     const QString p = KUrl( path ).path( KUrl::RemoveTrailingSlash );
 
@@ -290,7 +292,7 @@ namespace {
 
 void Nepomuk2::FileIndexerConfig::buildFolderCache()
 {
-    QMutexLocker lock( &m_folderCacheMutex );
+    QWriteLocker lock( &m_folderCacheMutex );
 
     QStringList includeFoldersPlain = m_config.group( "General" ).readPathEntry( "folders", QStringList() << QDir::homePath() );
     QStringList excludeFoldersPlain = m_config.group( "General" ).readPathEntry( "exclude folders", QStringList() );
@@ -304,7 +306,7 @@ void Nepomuk2::FileIndexerConfig::buildFolderCache()
 
 void Nepomuk2::FileIndexerConfig::buildExcludeFilterRegExpCache()
 {
-    QMutexLocker lock( &m_folderCacheMutex );
+    QWriteLocker lock( &m_folderCacheMutex );
     m_excludeFilterRegExpCache.rebuildCacheFromFilterList( excludeFilters() );
 }
 

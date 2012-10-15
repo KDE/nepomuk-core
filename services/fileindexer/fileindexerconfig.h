@@ -22,7 +22,7 @@
 #include <QtCore/QObject>
 #include <QtCore/QList>
 #include <QtCore/QRegExp>
-#include <QtCore/QMutex>
+#include <QReadWriteLock>
 
 #include <kconfig.h>
 #include <kio/global.h>
@@ -198,7 +198,7 @@ namespace Nepomuk2 {
         /// to prevent regexp parsing over and over
         RegExpCache m_excludeFilterRegExpCache;
 
-        mutable QMutex m_folderCacheMutex;
+        mutable QReadWriteLock m_folderCacheMutex;
 
         static FileIndexerConfig* s_self;
     };
