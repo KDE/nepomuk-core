@@ -63,7 +63,6 @@ namespace {
         IgnoringKInotify( RegExpCache* rec, QObject* parent );
         ~IgnoringKInotify();
 
-        bool addWatch( const QString& path, WatchEvents modes, WatchFlags flags = WatchFlags() );
     protected:
         bool filterWatch( const QString & path, WatchEvents & modes, WatchFlags & flags );
 
@@ -79,17 +78,6 @@ namespace {
 
     IgnoringKInotify::~IgnoringKInotify()
     {
-    }
-
-    bool IgnoringKInotify::addWatch( const QString& path, WatchEvents modes, WatchFlags flags )
-    {
-        if( !m_pathExcludeRegExpCache->filenameMatch( path ) ) {
-            return KInotify::addWatch( path, modes, flags );
-        }
-        else {
-            kDebug() << "Ignoring watch patch" << path;
-            return false;
-        }
     }
 
     bool IgnoringKInotify::filterWatch( const QString & path, WatchEvents & modes, WatchFlags & flags )
