@@ -334,7 +334,7 @@ void QueryTests::resourceTypeTerm_data()
 
 void QueryTests::resourceTypeTerm()
 {
-    QEXPECT_FAIL( "negated type query", "User Visibility is broken with negated terms", Continue );
+    QEXPECT_FAIL( "negated type query", "Negated Terms are broken - We get graphs in the results", Continue );
     literalTerm();
 }
 
@@ -642,10 +642,8 @@ void QueryTests::comparisonTerm_data()
 
 void QueryTests::comparisonTerm()
 {
-    QEXPECT_FAIL( "comparison term with datetime",
-                  "User Visibility is broken - Shows ontology results", Continue );
     QEXPECT_FAIL( "negated comparison term with resource",
-                  "Negated terms - User Visibility is broken - Shows ontology results", Continue );
+                  "Negated Terms are broken - We get graphs in the results", Continue );
     literalTerm();
 }
 
@@ -719,8 +717,9 @@ void QueryTests::comparisonTerm_withInvalid_data()
 
 void QueryTests::comparisonTerm_withInvalid()
 {
+    // We seem to get ontology results as well. Even though they are expressly forbidden
     QEXPECT_FAIL( "comparsion term with invalid term and property",
-                  "User Visibility is broken - Shows ontology results", Continue );
+                  "Negated Terms are broken - We get graph results and virtuoso is freaking crazy", Continue );
     literalTerm();
 }
 
