@@ -46,16 +46,20 @@ namespace Nepomuk2 {
         ~ResourceData();
 
         inline bool ref(Nepomuk2::Resource* res) {
-            // Should this lock m_modificationMutex first?
+            // Caller must lock ResourceManager mutex
             m_resources.push_back( res );
             return m_ref.ref();
         }
 
-
         inline bool deref(Nepomuk2::Resource* res) {
-            // Should this lock m_modificationMutex first?
+            // Caller must lock ResourceManager mutex
             m_resources.removeAll( res );
             return m_ref.deref();
+        }
+
+        QList<Resource*> resources() const {
+            // Caller must lock ResourceManager mutex
+            return m_resources;
         }
 
         inline int cnt() const {
@@ -153,9 +157,6 @@ namespace Nepomuk2 {
 
         ResourceManagerPrivate* rm() const { return m_rm; }
 
-        /// Contains a list of resources which use this ResourceData
-        QList<Resource*> m_resources;
-
         QHash<QUrl, Variant> m_cache;
 
         /// Updates ResourceManagerPrivate's list
@@ -166,6 +167,8 @@ namespace Nepomuk2 {
         void propertyAdded( const Types::Property &prop, const QVariant &value );
 
     private:
+        ResourceData(const ResourceData&); // = delete
+        ResourceData& operator = (const ResourceData&); // = delete
         void updateUrlLists( const QUrl& newUrl );
         void updateIdentifierLists( const QString& string );
 
@@ -174,6 +177,9 @@ namespace Nepomuk2 {
         /// Will reset this instance to 0 as if constructed without parameters
         /// Used by remove() and deleteData()
         void resetAll( bool isDelete = false );
+
+        /// Contains a list of resources which use this ResourceData
+        QList<Resource*> m_resources;
 
         /// final resource URI created by determineUri
         KUrl m_uri;

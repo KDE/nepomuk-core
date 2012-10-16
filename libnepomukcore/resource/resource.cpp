@@ -675,8 +675,8 @@ void Nepomuk2::Resource::determineFinalResourceData() const
     // using the old ResourceData to avoid the overhead of calling
     // determineUri over and over
     if( newData != oldData ) {
-        Q_FOREACH( Resource* res, m_data->m_resources) {
-            res->m_data = newData;
+        Q_FOREACH( Resource* res, m_data->resources() ) {
+            res->m_data = newData; // one of these resources is "this", so this updates our m_data.
             oldData->deref( res );
             newData->ref( res );
         }
