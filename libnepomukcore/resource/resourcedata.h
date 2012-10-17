@@ -157,8 +157,6 @@ namespace Nepomuk2 {
 
         ResourceManagerPrivate* rm() const { return m_rm; }
 
-        QHash<QUrl, Variant> m_cache;
-
         /// Updates ResourceManagerPrivate's list
         void updateKickOffLists( const QUrl& uri, const Variant& variant );
 
@@ -200,6 +198,8 @@ namespace Nepomuk2 {
         // Protect m_cache, m_cacheDirty but also m_uri, m_nieUrl, m_naoIdentifier, m_addedToWatcher.
         // Never lock the ResourceManager mutex after locking this one. Always before (or not at all).
         mutable QMutex m_modificationMutex;
+
+        QHash<QUrl, Variant> m_cache;
 
         bool m_cacheDirty;
         bool m_addedToWatcher;
