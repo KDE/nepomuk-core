@@ -167,8 +167,8 @@ namespace Nepomuk2 {
     private:
         ResourceData(const ResourceData&); // = delete
         ResourceData& operator = (const ResourceData&); // = delete
-        void updateUrlLists( const QUrl& newUrl );
-        void updateIdentifierLists( const QString& string );
+        void updateUrlLists( const QUrl& oldUrl, const QUrl& newUrl );
+        void updateIdentifierLists( const QString& oldIdentifier, const QString& newIdentifier );
 
         void addToWatcher();
 

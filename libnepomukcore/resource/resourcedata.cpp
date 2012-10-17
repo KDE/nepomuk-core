@@ -162,8 +162,10 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
     // This is required cause otherwise the Resource::fromResourceUri creates a new
     // resource which is correctly identified to the ResourceData (this), and it is
     // then deleted, which calls resetAll and this cycle continues.
-    m_rm->m_identifierKickOff.remove( m_cache[NAO::identifier()].toString() );
-    m_rm->m_urlKickOff.remove( m_cache[NIE::url()].toUrl() );
+    const QString nao = m_cache[NAO::identifier()].toString();
+    m_rm->m_identifierKickOff.remove( nao );
+    const QUrl nieUrl = m_cache[NIE::url()].toUrl();
+    m_rm->m_urlKickOff.remove( nieUrl );
 
     if( !m_uri.isEmpty() ) {
         m_rm->m_initializedData.remove( m_uri );
@@ -336,35 +338,37 @@ bool Nepomuk2::ResourceData::load()
     QMutexLocker lock(&m_modificationMutex);
 
     if ( m_cacheDirty ) {
+
+        if ( !m_uri.isValid() )
+            return false;
+
+        const QString oldNaoIdentifier = m_cache[NAO::identifier()].toString();
+        const QUrl oldNieUrl = m_cache[NIE::url()].toUrl();
+
         m_cache.clear();
         addToWatcher();
 
-        if ( m_uri.isValid() ) {
-            //
-            // We exclude properties that are part of the inference graph
-            // It would only pollute the user interface
-            //
-            Soprano::QueryResultIterator it = MAINMODEL->executeQuery(QString("select distinct ?p ?o where { "
-                                                                              "%1 ?p ?o . }").arg(Soprano::Node::resourceToN3(m_uri)),
-                                                                      Soprano::Query::QueryLanguageSparqlNoInference);
-            while ( it.next() ) {
-                QUrl p = it["p"].uri();
-                m_cache[p].append( Variant::fromNode( it["o"] ) );
-            }
-
-            updateIdentifierLists( m_cache[NAO::identifier()].toString() );
-            updateUrlLists( m_cache[NIE::url()].toUrl() );
-
-            m_cacheDirty = false;
-            return true;
+        //
+        // We exclude properties that are part of the inference graph
+        // It would only pollute the user interface
+        //
+        Soprano::QueryResultIterator it = MAINMODEL->executeQuery(QString("select distinct ?p ?o where { "
+                                                                          "%1 ?p ?o . }").arg(Soprano::Node::resourceToN3(m_uri)),
+                                                                  Soprano::Query::QueryLanguageSparqlNoInference);
+        while ( it.next() ) {
+            QUrl p = it["p"].uri();
+            m_cache[p].append( Variant::fromNode( it["o"] ) );
         }
-        else {
-            return false;
-        }
+
+        const QString newNaoIdentifier = m_cache[NAO::identifier()].toString();
+        const QUrl newNieUrl = m_cache[NIE::url()].toUrl();
+        updateIdentifierLists( oldNaoIdentifier, newNaoIdentifier );
+        updateUrlLists( oldNieUrl, newNieUrl );
+
+        m_cacheDirty = false;
     }
-    else {
-        return true;
-    }
+
+    return true;
 }
 
 
@@ -635,22 +639,22 @@ QDebug operator<<( QDebug dbg, const Nepomuk2::ResourceData& data )
     return data.operator<<( dbg );
 }
 
-void Nepomuk2::ResourceData::updateUrlLists(const QUrl& newUrl)
+void Nepomuk2::ResourceData::updateUrlLists(const QUrl& oldUrl, const QUrl& newUrl)
 {
-    const QUrl oldUrl = m_cache[NIE::url()].toUrl();
-
-    m_rm->m_urlKickOff.remove( oldUrl );
+    if ( !oldUrl.isEmpty() ) {
+        m_rm->m_urlKickOff.remove( oldUrl );
+    }
 
     if( !newUrl.isEmpty() ) {
         m_rm->m_urlKickOff.insert( newUrl, this );
     }
 }
 
-void Nepomuk2::ResourceData::updateIdentifierLists(const QString& newIdentifier)
+void Nepomuk2::ResourceData::updateIdentifierLists(const QString& oldIdentifier, const QString& newIdentifier)
 {
-    const QString oldIdentifier = m_cache[NAO::identifier()].toString();
-
-    m_rm->m_identifierKickOff.remove( oldIdentifier );
+    if ( !oldIdentifier.isEmpty() ) {
+        m_rm->m_identifierKickOff.remove( oldIdentifier );
+    }
 
     if( !newIdentifier.isEmpty() ) {
         m_rm->m_identifierKickOff.insert( newIdentifier, this );
@@ -661,9 +665,9 @@ void Nepomuk2::ResourceData::updateIdentifierLists(const QString& newIdentifier)
 void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& uri, const Nepomuk2::Variant& variant)
 {
     if( uri == NIE::url() )
-        updateUrlLists( variant.toUrl() );
+        updateUrlLists( m_cache[NIE::url()].toUrl(), variant.toUrl() );
     else if( uri == NAO::identifier() )
-        updateIdentifierLists( variant.toString() );
+        updateIdentifierLists( m_cache[NAO::identifier()].toString(), variant.toString() );
 }
 
 void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const QVariant &value_ )
