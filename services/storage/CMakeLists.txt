@@ -27,6 +27,7 @@ set(storage_SRCS
   resourcewatchermanager.cpp
   resourcewatcherconnection.cpp
   virtuosoinferencemodel.cpp
+  typecache.cpp
   ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
   )
 

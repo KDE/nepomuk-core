@@ -41,6 +41,7 @@
 #include <KDebug>
 #include <Soprano/Graph>
 #include "resourcewatchermanager.h"
+#include "typecache.h"
 
 using namespace Soprano::Vocabulary;
 using namespace Nepomuk2::Vocabulary;
@@ -426,22 +427,6 @@ QUrl Nepomuk2::ResourceMerger::createGraphUri()
     return m_model->createUri( DataManagementModel::GraphUri );
 }
 
-QList< QUrl > Nepomuk2::ResourceMerger::existingTypes(const QUrl& uri) const
-{
-    QList<QUrl> types;
-
-    QString query = QString::fromLatin1("select ?t where { %1 rdf:type ?t . }")
-                    .arg( Soprano::Node::resourceToN3( uri ) );
-    Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
-    while( it.next() )
-        types << it[0].uri();
-
-    // all resources have rdfs:Resource type by default
-    types << RDFS::Resource();
-
-    return types;
-}
-
 bool Nepomuk2::ResourceMerger::isOfType(const Soprano::Node & node, const QUrl& type, const QList<QUrl> & newTypes) const
 {
     //kDebug() << "Checking " << node << " for type " << type;
@@ -449,7 +434,7 @@ bool Nepomuk2::ResourceMerger::isOfType(const Soprano::Node & node, const QUrl& 
 
     QList<QUrl> types( newTypes );
     if( !node.isBlank() ) {
-        types << existingTypes( node.uri() );
+        types << m_model->typeCache()->types( node.uri() );
     }
     types += newTypes;
 
@@ -976,7 +961,7 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
         // domain
         if( !domain.isEmpty() && !isOfType( res.uriNode(), domain, resTypes ) ) {
             // Error
-            QList<QUrl> allTypes = ( resTypes + existingTypes(res.uri()) );
+            QList<QUrl> allTypes = ( resTypes + m_model->typeCache()->types(res.uri()) );
 
             QString error = QString::fromLatin1("%1 has a rdfs:domain of %2. "
                                                 "%3 only has the following types %4" )
@@ -999,7 +984,7 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
 
                 if( !isOfType( object, range, objectNewTypes ) ) {
                     // Error
-                    QList<QUrl> allTypes = ( objectNewTypes + existingTypes(objUri) );
+                    QList<QUrl> allTypes = ( objectNewTypes + m_model->typeCache()->types(objUri) );
 
                     QString error = QString::fromLatin1("%1 has a rdfs:range of %2. "
                                                         "%3 only has the following types %4" )

@@ -34,6 +34,7 @@ set( DMTEST
   ../virtuosoinferencemodel.cpp
   ../syncresource.cpp
   ../syncresourceidentifier.cpp
+  ../typecache.cpp
   ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
   qtest_dms.cpp
 )

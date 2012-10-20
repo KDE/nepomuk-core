@@ -125,8 +125,6 @@ namespace Nepomuk2 {
 
         QUrl mergeGraphs( const QUrl& oldGraph );
 
-        QList<QUrl> existingTypes( const QUrl& uri ) const;
-
         /**
          * Checks if \p node is of rdf:type \p type.
          *
