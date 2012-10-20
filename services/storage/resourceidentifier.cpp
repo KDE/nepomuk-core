@@ -61,6 +61,10 @@ Nepomuk2::ResourceIdentifier::ResourceIdentifier( Nepomuk2::StoreIdentificationM
 
 bool Nepomuk2::ResourceIdentifier::exists(const KUrl& uri)
 {
+    // Special case for blank nodes
+    if( uri.url().startsWith("_:") )
+        return false;
+
     QString query = QString::fromLatin1("ask { %1 ?p ?o . } ").arg( Soprano::Node::resourceToN3(uri) );
     return m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
 }

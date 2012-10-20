@@ -911,7 +911,7 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
                     filterStringList << QString::fromLatin1("?v!=%1").arg( n3 );
 
                 int existingCardinality = 0;
-                if( !overwriteProperties ) {
+                if( !res.isBlank() || !overwriteProperties ) {
                     const QString query = QString::fromLatin1("select count(distinct ?v) where {"
                                                               " %1 %2 ?v . FILTER( %3 ) . }")
                                         .arg( Soprano::Node::resourceToN3( res.uri() ),
@@ -962,7 +962,7 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
         //        kDebug() << "Range : " << range;
 
         // domain
-        if( !domain.isEmpty() && !isOfType( res.uri(), domain, resTypes ) ) {
+        if( !domain.isEmpty() && !isOfType( res.uriNode(), domain, resTypes ) ) {
             // Error
             QList<QUrl> allTypes = ( resTypes + existingTypes(res.uri()) );
 
@@ -985,7 +985,7 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
                 const QUrl objUri = getBlankOrResourceUri( object );
                 QList<QUrl> objectNewTypes =  nodeListToUriList( resHash[ objUri ].values( RDF::type() ) );
 
-                if( !isOfType( objUri, range, objectNewTypes ) ) {
+                if( !isOfType( object, range, objectNewTypes ) ) {
                     // Error
                     QList<QUrl> allTypes = ( objectNewTypes + existingTypes(objUri) );
 
