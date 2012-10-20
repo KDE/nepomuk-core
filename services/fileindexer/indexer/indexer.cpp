@@ -107,17 +107,13 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
         graph += ex->extract( uri, url, mimeType );
     }
 
-    // Indexing Level
-    graph.add( uri, KExt::indexingLevel(), 2 );
-
     if( !graph.isEmpty() ) {
         QHash<QUrl, QVariant> additionalMetadata;
         additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
 
         // we do not have an event loop - thus, we need to delete the job ourselves
-        // HACK: Use OverwriteProperties for the setting the indexingLevel
         QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNew,
-                                                                         OverwriteProperties, additionalMetadata ) );
+                                                                         NoStoreResourcesFlags, additionalMetadata ) );
         job->setAutoDelete(false);
         job->exec();
         if( job->error() ) {
@@ -125,6 +121,9 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
             kError() << "SimpleIndexerError: " << job->errorString();
             return false;
         }
+
+        kDebug() << "Updating indexing level";
+        updateIndexingLevel( uri, 2 );
         kDebug() << "Done";
     }
 
@@ -169,9 +168,6 @@ bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
             graph += ex->extract( uri, url, mimeType );
         }
 
-        // Indexing Level
-        graph.add( uri, KExt::indexingLevel(), 2 );
-
         if( !graph.isEmpty() ) {
             QHash<QUrl, QVariant> additionalMetadata;
             additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
@@ -180,7 +176,7 @@ bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
             kDebug() << "Saving proper";
             // HACK: Use OverwriteProperties for the setting the indexingLevel
             QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNew,
-                                                        OverwriteProperties, additionalMetadata ) );
+                                                        NoStoreResourcesFlags, additionalMetadata ) );
             job->setAutoDelete(false);
             job->exec();
             if( job->error() ) {
@@ -188,6 +184,8 @@ bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
                 kError() << "SimpleIndexerError: " << job->errorString();
                 return false;
             }
+            kDebug() << "Updating the indexing level";
+            updateIndexingLevel( uri, 2 );
             kDebug() << "Done";
         }
     }
@@ -198,6 +196,15 @@ bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
 QString Nepomuk2::Indexer::lastError() const
 {
     return m_lastError;
+}
+
+void Nepomuk2::Indexer::updateIndexingLevel(const QUrl& uri, int level)
+{
+    //FIXME: Maybe this could be done via the manual Soprano Model?
+    QScopedPointer<KJob> job( Nepomuk2::setProperty( QList<QUrl>() << uri, KExt::indexingLevel(),
+                                                            QVariantList() << QVariant(level) ) );
+    job->setAutoDelete(false);
+    job->exec();
 }
 
 

@@ -75,6 +75,8 @@ namespace Nepomuk2 {
     private:
         QString m_lastError;
         QHash<QString, ExtractorPlugin*> m_extractors;
+
+        void updateIndexingLevel( const QUrl& uri, int level );
     };
 }
 
