@@ -911,17 +911,29 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
                     filterStringList << QString::fromLatin1("?v!=%1").arg( n3 );
 
                 int existingCardinality = 0;
-                if( !res.isBlank() || !overwriteProperties ) {
-                    const QString query = QString::fromLatin1("select count(distinct ?v) where {"
-                                                              " %1 %2 ?v . FILTER( %3 ) . }")
+                if( !res.isBlank() && !overwriteProperties ) {
+                    if( maxCardinality > 1 ) {
+                        const QString query = QString::fromLatin1("select count(distinct ?v) where {"
+                                                                " %1 %2 ?v . FILTER( %3 ) . }")
+                                            .arg( Soprano::Node::resourceToN3( res.uri() ),
+                                                  Soprano::Node::resourceToN3( propUri ),
+                                                  filterStringList.join( QLatin1String(" && ") ) );
+
+                        Soprano::QueryResultIterator exCarIt =
+                                        m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+                        if( exCarIt.next() ) {
+                            existingCardinality = exCarIt[0].literal().toInt();
+                        }
+                    }
+                    else {
+                        QString query = QString::fromLatin1("ask where { %1 %2 ?v . FILTER(%3) .}")
                                         .arg( Soprano::Node::resourceToN3( res.uri() ),
                                               Soprano::Node::resourceToN3( propUri ),
-                                              filterStringList.join( QLatin1String(" && ") ) );
+                                              filterStringList.first() );
 
-                    Soprano::QueryResultIterator exCarIt =
-                                    m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-                    if( exCarIt.next() ) {
-                        existingCardinality = exCarIt[0].literal().toInt();
+                        bool e = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference ).boolValue();
+                        if( e )
+                            existingCardinality = 1;
                     }
                 }
 
