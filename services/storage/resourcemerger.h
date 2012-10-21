@@ -49,7 +49,7 @@ namespace Nepomuk2 {
         ResourceMerger( Nepomuk2::DataManagementModel * model, const QString & app,
                         const QHash<QUrl, QVariant>& additionalMetadata,
                         const StoreResourcesFlags& flags );
-        virtual ~ResourceMerger();
+        ~ResourceMerger();
 
         void setMappings( const QHash<QUrl, QUrl> & mappings );
         QHash<QUrl, QUrl> mappings() const;
@@ -60,10 +60,6 @@ namespace Nepomuk2 {
         QHash<QUrl, QVariant> additionalMetadata() const;
 
     private:
-        virtual QUrl createGraph();
-        virtual QUrl createResourceUri();
-        virtual QUrl createGraphUri();
-
         /**
          * Checks the cardinality + domain/range of the properties in the \p res.
          * Returns true if the data is valid, sets an error otherwise.

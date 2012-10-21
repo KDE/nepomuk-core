@@ -127,7 +127,7 @@ void Nepomuk2::ResourceWatcherManager::addStatement(const Soprano::Statement& st
 
 void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &addedValues, const QList<Soprano::Node> &removedValues)
 {
-    kDebug() << res << property << addedValues << removedValues;
+//    kDebug() << res << property << addedValues << removedValues;
 
     //
     // We only need the resource types if any connections are watching types.

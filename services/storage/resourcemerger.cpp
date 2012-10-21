@@ -183,11 +183,6 @@ void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
 }
 
 
-QUrl Nepomuk2::ResourceMerger::createGraph()
-{
-    return m_model->createGraph( m_app, m_additionalMetadata );
-}
-
 QMultiHash< QUrl, Soprano::Node > Nepomuk2::ResourceMerger::getPropertyHashForGraph(const QUrl& graph) const
 {
     Soprano::QueryResultIterator it
@@ -428,15 +423,6 @@ bool Nepomuk2::ResourceMerger::checkGraphMetadata(const QMultiHash< QUrl, Sopran
     return true;
 }
 
-QUrl Nepomuk2::ResourceMerger::createResourceUri()
-{
-    return m_model->createUri( DataManagementModel::ResourceUri );
-}
-
-QUrl Nepomuk2::ResourceMerger::createGraphUri()
-{
-    return m_model->createUri( DataManagementModel::GraphUri );
-}
 
 bool Nepomuk2::ResourceMerger::isOfType(const Soprano::Node & node, const QUrl& type, const QList<QUrl> & newTypes) const
 {
@@ -499,7 +485,7 @@ Soprano::Node Nepomuk2::ResourceMerger::resolveBlankNode(const Soprano::Node& no
         return it.value();
     }
 
-    const QUrl newUri = createResourceUri();
+    const QUrl newUri = m_model->createUri( DataManagementModel::ResourceUri );
     m_mappings.insert( nodeN3, newUri );
     m_newUris.insert( newUri );
 
@@ -716,7 +702,7 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
 
     // Create the main graph, if they are any statements to merge
     if( !resHash.isEmpty() ) {
-        m_graph = createGraph();
+        m_graph = m_model->createGraph( m_app, m_additionalMetadata );
     }
 
 
