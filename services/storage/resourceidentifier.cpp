@@ -107,16 +107,6 @@ bool Nepomuk2::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
 
 bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
 {
-    if( m_mode == IdentifyNone )
-        return false;
-
-    if( m_mode == IdentifyNew ) {
-        if( exists( uri ) ) {
-            manualIdentification( uri, uri );
-            return true;
-        }
-    }
-
     //kDebug() << "Identifying : " << uri;
     //
     // Check if a uri with the same name exists
@@ -147,6 +137,10 @@ bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
 
         return false;
     }
+
+    // If IdentifyNone mode, then we do not run the full identification
+    if( m_mode == IdentifyNone )
+        return false;
 
     // Run the normal identification procedure
     return Sync::ResourceIdentifier::runIdentification( uri );

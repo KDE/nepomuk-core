@@ -2962,6 +2962,8 @@ TypeCache* DataManagementModel::typeCache()
 
 void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resources, RemovalFlags flags)
 {
+    Q_UNUSED(flags);
+
     QSet<QUrl> resolvedResources(resources);
 
     //
