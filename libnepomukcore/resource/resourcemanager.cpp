@@ -207,6 +207,23 @@ Nepomuk2::ResourceManager::ResourceManager()
                                                             this );
     connect( watcher, SIGNAL(serviceUnregistered(QString)),
              this, SLOT(_k_dbusServiceUnregistered(QString)) );
+
+    // now let's see if the service is already running and init, if so
+    QDBusMessage result = QDBusConnection::sessionBus().call(
+            QDBusMessage::createMethodCall(
+                    QLatin1String("org.kde.NepomukStorage"),
+                    QLatin1String("/servicecontrol"),
+                    QLatin1String("org.kde.nepomuk.ServiceControl"),
+                    QLatin1String("isInitialized")
+                )
+            );
+    if ( result.type() == QDBusMessage::ReplyMessage ) {
+        if ( result.arguments().count() > 0 ) {
+            const bool initialized = result.arguments()[0].toBool();
+            d->_k_storageServiceInitialized( initialized );
+        }
+    }
+
 }
 
 
