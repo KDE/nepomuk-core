@@ -56,6 +56,10 @@ Nepomuk2::ResourceIdentifier::ResourceIdentifier( Nepomuk2::StoreIdentificationM
     : Nepomuk2::Sync::ResourceIdentifier( model ),
       m_mode( mode )
 {
+    m_metaProperties.insert( NAO::created() );
+    m_metaProperties.insert( NAO::lastModified() );
+    m_metaProperties.insert( NAO::userVisible() );
+    m_metaProperties.insert( NAO::creator() );
 }
 
 
@@ -93,10 +97,7 @@ KUrl Nepomuk2::ResourceIdentifier::duplicateMatch(const KUrl& origUri,
 
 bool Nepomuk2::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
 {
-    if( uri == NAO::created()
-            || uri == NAO::creator()
-            || uri == NAO::lastModified()
-            || uri == NAO::userVisible() ) {
+    if( m_metaProperties.contains( uri ) ) {
         return false;
     }
     else {

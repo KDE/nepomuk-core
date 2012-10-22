@@ -117,7 +117,7 @@ namespace Nepomuk2 {
 
             ResourceHash resourceHash() const;
 
-            virtual bool isIdentifyingProperty( const QUrl & uri );
+            virtual bool isIdentifyingProperty( const QUrl & uri ) = 0;
 
         protected:
             /**

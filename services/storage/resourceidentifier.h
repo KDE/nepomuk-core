@@ -44,6 +44,7 @@ private:
     bool exists( const KUrl& uri );
 
     Nepomuk2::StoreIdentificationMode m_mode;
+    QSet<QUrl> m_metaProperties;
 };
 
 }
