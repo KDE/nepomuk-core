@@ -449,9 +449,7 @@ void Nepomuk2::Resource::setIdentifiers( const QStringList& value )
 
 void Nepomuk2::Resource::addIdentifier( const QString& value )
 {
-    Variant v = property( Soprano::Vocabulary::NAO::identifier() );
-    v.append( value );
-    setProperty( Soprano::Vocabulary::NAO::identifier(), v );
+    addProperty( Soprano::Vocabulary::NAO::identifier(), Variant( value ) );
 }
 
 
@@ -489,9 +487,7 @@ void Nepomuk2::Resource::addTag( const Nepomuk2::Tag& value )
     // the data and has the advantage that we can mix setProperty calls
     // with the special Resource subclass methods.
     // More importantly Resource loads the data as Resource objects anyway.
-    Variant v = property( Soprano::Vocabulary::NAO::hasTag() );
-    v.append( Resource( value ) );
-    setProperty( Soprano::Vocabulary::NAO::hasTag(), v );
+    addProperty( Soprano::Vocabulary::NAO::hasTag(), Resource(value) );
 }
 
 
@@ -502,7 +498,7 @@ QList<Nepomuk2::Resource> Nepomuk2::Resource::isRelateds() const
     // the data and has the advantage that we can mix setProperty calls
     // with the special Resource subclass methods.
     // More importantly Resource loads the data as Resource objects anyway.
-    return convertResourceList<Resource>( property( Soprano::Vocabulary::NAO::isRelated() ).toResourceList() );
+    return property( Soprano::Vocabulary::NAO::isRelated() ).toResourceList();
 }
 
 
@@ -519,9 +515,7 @@ void Nepomuk2::Resource::addIsRelated( const Nepomuk2::Resource& value )
     // the data and has the advantage that we can mix setProperty calls
     // with the special Resource subclass methods.
     // More importantly Resource loads the data as Resource objects anyway.
-    Variant v = property( Soprano::Vocabulary::NAO::isRelated() );
-    v.append( Resource( value ) );
-    setProperty( Soprano::Vocabulary::NAO::isRelated(), v );
+    addProperty( Soprano::Vocabulary::NAO::isRelated(), Resource(value) );
 }
 
 
