@@ -156,7 +156,7 @@ namespace Nepomuk2 {
          *
          * \return \p true always for now.
          */
-        bool shouldFolderBeWatched( const QString& path ) const
+        bool shouldFolderBeWatched( const QString& path ) const;
         /**
          * Check if the debug mode is enabled. The debug mode is a hidden
          * configuration option (without any GUI) that will make the indexer
