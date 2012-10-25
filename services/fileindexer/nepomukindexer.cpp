@@ -55,13 +55,10 @@ void Nepomuk2::Indexer::start()
     kDebug() << "Running" << exe << m_url.toLocalFile();
 
     m_process = new KProcess( this );
-    //Set list of plugins to exclude from indexing
+
     QStringList args;
-    foreach(const QString &str, FileIndexerConfig::self()->excludePlugins()) {
-        args << QLatin1String("--skip");
-        args << str;
-    }
     args << m_url.toLocalFile();
+
     m_process->setProgram( exe, args );
     m_process->setOutputChannelMode(KProcess::OnlyStdoutChannel);
     connect( m_process, SIGNAL(finished(int)), this, SLOT(slotIndexedFile(int)) );

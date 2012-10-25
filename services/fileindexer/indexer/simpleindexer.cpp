@@ -41,39 +41,95 @@
 using namespace Nepomuk2::Vocabulary;
 using namespace Soprano::Vocabulary;
 
-Nepomuk2::SimpleIndexer::SimpleIndexer(const QUrl& fileUrl)
+Nepomuk2::SimpleIndexingJob::SimpleIndexingJob(const QUrl& fileUrl, QObject* parent)
+    : KJob( parent )
+    , m_nieUrl( fileUrl )
 {
-    SimpleResource res;
+}
 
-    res.addProperty(NIE::url(), fileUrl);
-    res.addProperty(NFO::fileName(), KUrl(fileUrl).fileName());
+void Nepomuk2::SimpleIndexingJob::start()
+{
+    SimpleResource m_res;
+    m_resUri = m_res.uri();
 
-    res.addType(NFO::FileDataObject());
-    res.addType(NIE::InformationElement());
+    m_res.addProperty(NIE::url(), m_nieUrl);
+    m_res.addProperty(NFO::fileName(), m_nieUrl.fileName());
 
-    QFileInfo fileInfo(fileUrl.toLocalFile());
-    if( fileInfo.isDir() )
-        res.addType(NFO::Folder());
+    m_res.addType(NFO::FileDataObject());
+    m_res.addType(NIE::InformationElement());
+
+    QFileInfo fileInfo(m_nieUrl.toLocalFile());
+    if( fileInfo.isDir() ) {
+        m_res.addType(NFO::Folder());
+    }
+    else {
+        m_res.addProperty(NFO::fileSize(), fileInfo.size());
+    }
 
     //
     // Types by mime type
     //
-    QString mimeType = KMimeType::findByUrl( fileUrl )->name();
-    QList<QUrl> types = typesForMimeType( mimeType );
+    m_mimeType = KMimeType::findByUrl( m_nieUrl )->name();
+    QList<QUrl> types = typesForMimeType( m_mimeType );
     foreach(const QUrl& type, types)
-        res.addType( type );
+        m_res.addType( type );
 
-    res.addProperty(NIE::mimeType(), mimeType);
+    m_res.addProperty(NIE::mimeType(), m_mimeType);
 
-    // Do not set NIE::lastModified
-    // We only set that for files which are properly indexed
-    res.setProperty(NIE::created(), fileInfo.created());
+    m_res.setProperty(NIE::created(), fileInfo.created());
+    m_res.setProperty(NIE::lastModified(), fileInfo.lastModified());
 
-    m_graph << res;
+    // Indexing Level
+    m_res.setProperty(KExt::indexingLevel(), 1);
+
+#ifdef Q_OS_UNIX
+    KDE_struct_stat statBuf;
+    if( KDE_stat( QFile::encodeName(fileInfo.absoluteFilePath()).data(), &statBuf ) == 0 ) {
+        m_res.setProperty( KExt::unixFileMode(), int(statBuf.st_mode) );
+    }
+
+    if( !fileInfo.owner().isEmpty() ) {
+        m_res.setProperty( KExt::unixFileOwner(), fileInfo.owner() );
+    }
+    if( !fileInfo.group().isEmpty() ) {
+        m_res.setProperty( KExt::unixFileGroup(), fileInfo.group() );
+    }
+#endif // Q_OS_UNIX
+
+    QHash<QUrl, QVariant> additionalMetadata;
+    additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
+
+    SimpleResourceGraph graph;
+    graph << m_res;
+
+    // In order to be compatibile with earlier releases we keep the old app name
+    KComponentData component = KGlobal::mainComponent();
+    if( component.componentName() != QLatin1String("nepomukindexer") ) {
+        component = KComponentData( QByteArray("nepomukindexer"),
+                                    QByteArray(), KComponentData::SkipMainComponentRegistration );
+    }
+    StoreResourcesJob* job( Nepomuk2::storeResources( graph, IdentifyNew,
+                                                      NoStoreResourcesFlags, additionalMetadata, component ) );
+
+    connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotJobFinished(KJob*)) );
 }
 
-// static
-QList<QUrl> Nepomuk2::SimpleIndexer::typesForMimeType(const QString& mimeType)
+void Nepomuk2::SimpleIndexingJob::slotJobFinished(KJob* job_)
+{
+    StoreResourcesJob* job = dynamic_cast<StoreResourcesJob*>(job_);
+    if( job->error() ) {
+        kError() << "SimpleIndexError: " << job->errorString();
+
+        setError( job->error() );
+        setErrorText( job->errorString() );
+    }
+
+    m_resUri = job->mappings().value( m_resUri );
+    emitResult();
+}
+
+
+QList<QUrl> Nepomuk2::SimpleIndexingJob::typesForMimeType(const QString& mimeType)
 {
     QList<QUrl> types;
 
@@ -118,21 +174,13 @@ QList<QUrl> Nepomuk2::SimpleIndexer::typesForMimeType(const QString& mimeType)
     return types;
 }
 
-bool Nepomuk2::SimpleIndexer::save()
+QString Nepomuk2::SimpleIndexingJob::mimeType()
 {
-    QHash<QUrl, QVariant> additionalMetadata;
-    additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
+    return m_mimeType;
+}
 
-    // we do not have an event loop - thus, we need to delete the job ourselves
-    QScopedPointer<KJob> job( Nepomuk2::storeResources( m_graph, IdentifyNone,
-                                                        NoStoreResourcesFlags, additionalMetadata ) );
-    job->setAutoDelete(false);
-    job->exec();
-    if( job->error() ) {
-        kError() << "SimpleIndexerError: " << job->errorString();
-        return false;
-    }
-
-    return true;
+QUrl Nepomuk2::SimpleIndexingJob::uri()
+{
+    return m_resUri;
 }
 

@@ -1,6 +1,6 @@
 /*
     <one line to give the library's name and an idea of what it does.>
-    Copyright (C) 2011  Vishesh Handa <handa.vish@gmail.com>
+    Copyright (C) 2012  Vishesh Handa <me@vhanda.in>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,35 +18,39 @@
 */
 
 
-#ifndef RESOURCEIDENTIFIER_H
-#define RESOURCEIDENTIFIER_H
+#ifndef FILEINDEXINGQUEUE_H
+#define FILEINDEXINGQUEUE_H
 
-#include "syncresourceidentifier.h"
-#include "datamanagement.h"
+#include "indexingqueue.h"
 
-#include <KUrl>
+#include <KJob>
+#include <Soprano/QueryResultIterator>
 
 namespace Nepomuk2 {
 
-class ResourceIdentifier : public Sync::ResourceIdentifier
-{
-public:
-    ResourceIdentifier( Nepomuk2::StoreIdentificationMode mode, Soprano::Model *model);
+    class FileIndexingQueue : public IndexingQueue
+    {
+        Q_OBJECT
+    public:
+        explicit FileIndexingQueue(QObject* parent = 0);
+        virtual bool isEmpty();
 
-protected:
-    virtual KUrl duplicateMatch(const KUrl& uri, const QSet< KUrl >& matchedUris );
-    virtual bool runIdentification(const KUrl& uri);
+        void clear();
+        QUrl currentUrl();
 
-private:
-    bool isIdentifyingProperty( const QUrl& uri );
+    protected:
+        virtual bool processNextIteration();
 
-    /// Returns true if a resource with uri \p uri exists
-    bool exists( const KUrl& uri );
+    private slots:
+        void slotFinishedIndexingFile(KJob* job);
 
-    Nepomuk2::StoreIdentificationMode m_mode;
-    QSet<QUrl> m_metaProperties;
-};
+    private:
+        void process(const QUrl& url);
+        void fillQueue();
 
+        QQueue<QUrl> m_fileQueue;
+        QUrl m_currentUrl;
+    };
 }
 
-#endif // RESOURCEIDENTIFIER_H
+#endif // FILEINDEXINGQUEUE_H

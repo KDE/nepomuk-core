@@ -71,53 +71,22 @@ namespace Nepomuk2 {
              */
             void identify( const KUrl::List & uriList );
 
-            /**
-             * This returns true if ALL the external ResourceUris have been identified.
-             * If this is false, you should manually identify some of the resources by
-             * providing the resource.
-             */
-            bool allIdentified() const;
-
-            virtual void addStatement( const Soprano::Statement & st );
-            virtual void addStatements( const Soprano::Graph& graph );
-            virtual void addStatements( const QList<Soprano::Statement> & stList );
-            virtual void addSyncResource( const SyncResource & res );
+            void addSyncResource( const SyncResource & res );
 
             //
             // Getting the info
             //
-            /**
-             * Returns the detected uri for the given resourceUri.
-             * This method useful only after identifyAll() method was called
-             */
-            KUrl mappedUri( const KUrl & resourceUri ) const;
-
-            KUrl::List mappedUris() const;
 
             /**
              * Returns mappings of the identified uri
              */
             QHash<QUrl, QUrl> mappings() const;
 
-            /**
-             * Returns urls that were not successfully identified
-             */
-            QSet<KUrl> unidentified() const;
-
-            QSet< QUrl > identified() const;
-
-            /**
-             * Returns all the statements that are being used to identify \p uri
-             */
-            Soprano::Graph statements( const KUrl & uri );
-
-            QList<Soprano::Statement> identifyingStatements() const;
-
             SyncResource simpleResource( const KUrl & uri );
 
             ResourceHash resourceHash() const;
 
-            virtual bool isIdentifyingProperty( const QUrl & uri );
+            virtual bool isIdentifyingProperty( const QUrl & uri ) = 0;
 
         protected:
             /**

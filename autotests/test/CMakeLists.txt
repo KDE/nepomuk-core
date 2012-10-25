@@ -141,3 +141,25 @@ target_link_libraries(simpleresourceclassestest
   ${QT_QTTEST_LIBRARY}
   ${QT_QTCORE_LIBRARY}
 )
+
+#
+# Store Resources Benchmark
+#
+
+set( STORE_RESOURCES_BENCHMARK_SRC storeresourcesbenchmark.cpp )
+
+kde4_add_executable(storeresourcesbenchmark ${STORE_RESOURCES_BENCHMARK_SRC})
+
+target_link_libraries(storeresourcesbenchmark
+  ${QT_QTCORE_LIBRARY}
+  ${QT_QTDBUS_LIBRARY}
+  ${QT_QTTEST_LIBRARY}
+  ${QT_QTGUI_LIBRARY}
+  ${SOPRANO_LIBRARIES}
+  kdecore
+  nepomukcore
+  nepomuktestlib
+)
+
+add_nepomuk_test(StoreResourcesBenchmark ${CMAKE_CURRENT_BINARY_DIR}/storeresourcesbenchmark)
+

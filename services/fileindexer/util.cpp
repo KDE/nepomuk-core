@@ -44,10 +44,10 @@ KJob* Nepomuk2::clearIndexedData( const QList<QUrl>& urls )
     if ( urls.isEmpty() )
         return 0;
 
-    kDebug() << urls;
+    //kDebug() << urls;
 
     //
-    // New way of storing Strigi Data
+    // New way of storing File Indexing Data
     // The Datamanagement API will automatically find the resource corresponding to that url
     //
     KComponentData component = KGlobal::mainComponent();

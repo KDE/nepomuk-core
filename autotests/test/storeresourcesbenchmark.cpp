@@ -1,6 +1,6 @@
 /*
     <one line to give the library's name and an idea of what it does.>
-    Copyright (C) 2011  Vishesh Handa <handa.vish@gmail.com>
+    Copyright (C) 2012  Vishesh Handa <me@vhanda.in>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,35 +18,34 @@
 */
 
 
-#ifndef RESOURCEIDENTIFIER_H
-#define RESOURCEIDENTIFIER_H
+#include "storeresourcesbenchmark.h"
+#include "../lib/datagenerator.h"
 
-#include "syncresourceidentifier.h"
+#include <KDebug>
+#include <KTemporaryFile>
+#include <KJob>
+#include <KTempDir>
+#include <qtest_kde.h>
+
 #include "datamanagement.h"
-
-#include <KUrl>
+#include "storeresourcesjob.h"
 
 namespace Nepomuk2 {
+namespace Test {
 
-class ResourceIdentifier : public Sync::ResourceIdentifier
+void StoreResourcesBenchmark::musicPiece()
 {
-public:
-    ResourceIdentifier( Nepomuk2::StoreIdentificationMode mode, Soprano::Model *model);
+    DataGenerator gen;
+    QBENCHMARK {
+        QString title = QUuid::createUuid().toString();
+        QString artist = QUuid::createUuid().toString();
+        QString album = QUuid::createUuid().toString();
 
-protected:
-    virtual KUrl duplicateMatch(const KUrl& uri, const QSet< KUrl >& matchedUris );
-    virtual bool runIdentification(const KUrl& uri);
-
-private:
-    bool isIdentifyingProperty( const QUrl& uri );
-
-    /// Returns true if a resource with uri \p uri exists
-    bool exists( const KUrl& uri );
-
-    Nepomuk2::StoreIdentificationMode m_mode;
-    QSet<QUrl> m_metaProperties;
-};
-
+        gen.createMusicFile( title, artist, album );
+    }
 }
 
-#endif // RESOURCEIDENTIFIER_H
+}
+}
+
+QTEST_KDEMAIN(Nepomuk2::Test::StoreResourcesBenchmark, NoGUI)

@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=NepomukFileExtractor
+X-KDE-Library=nepomukplaintextextractor
+Name=Nepomuk Plain Text Extractor
+Comment=Nepomuk File extractor for text files

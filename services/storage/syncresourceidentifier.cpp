@@ -59,50 +59,6 @@ Nepomuk2::Sync::ResourceIdentifier::~ResourceIdentifier()
 }
 
 
-void Nepomuk2::Sync::ResourceIdentifier::addStatement(const Soprano::Statement& st)
-{
-    SyncResource res;
-    res.setUri( st.subject() );
-
-    QHash<KUrl, SyncResource>::iterator it = m_resourceHash.find( res.uri() );
-    if( it != m_resourceHash.end() ) {
-        SyncResource & res = it.value();
-        res.insert( st.predicate().uri(), st.object() );
-        return;
-    }
-
-   // Doesn't exist - Create it and insert it into the resourceHash
-   res.insert( st.predicate().uri(), st.object() );
-
-   m_resourceHash.insert( res.uri(), res );
-   m_notIdentified.insert( res.uri() );
-}
-
-void Nepomuk2::Sync::ResourceIdentifier::addStatements(const Soprano::Graph& graph)
-{
-    ResourceHash resHash = ResourceHash::fromGraph( graph );
-
-    KUrl::List uniqueKeys = resHash.uniqueKeys();
-    foreach( const KUrl & resUri, uniqueKeys ) {
-        QHash<KUrl, SyncResource>::iterator it = m_resourceHash.find( resUri );
-        if( it != m_resourceHash.end() ) {
-            it.value() += resHash.value( resUri );
-        }
-        else {
-            m_resourceHash.insert( resUri, resHash.value( resUri ) );
-        }
-    }
-
-    m_notIdentified += uniqueKeys.toSet();
-}
-
-
-void Nepomuk2::Sync::ResourceIdentifier::addStatements(const QList< Soprano::Statement >& stList)
-{
-    addStatements( Soprano::Graph( stList ) );
-}
-
-
 void Nepomuk2::Sync::ResourceIdentifier::addSyncResource(const Nepomuk2::Sync::SyncResource& res)
 {
     Q_ASSERT( !res.uri().isEmpty() );
@@ -159,7 +115,7 @@ void Nepomuk2::Sync::ResourceIdentifier::identify(const KUrl::List& uriList)
 
 bool Nepomuk2::Sync::ResourceIdentifier::runIdentification(const KUrl& uri)
 {
-    const Sync::SyncResource & res = simpleResource( uri );
+    Sync::SyncResource res = simpleResource( uri );
 
     // Make sure that the res has some rdf:type statements
     if( !res.contains( RDF::type() ) ) {
@@ -167,20 +123,17 @@ bool Nepomuk2::Sync::ResourceIdentifier::runIdentification(const KUrl& uri)
         return false;
     }
 
+    // Remove the types
+    QList<Soprano::Node> requiredTypes = res.values( RDF::type() );
+    res.remove( RDF::type() );
+
     QStringList identifyingProperties;
     QHash<KUrl, Soprano::Node> identifyingPropertiesHash;
 
     QHash< KUrl, Soprano::Node >::const_iterator it = res.constBegin();
     QHash< KUrl, Soprano::Node >::const_iterator constEnd = res.constEnd();
-    QList<Soprano::Node> requiredTypes;
     for( ; it != constEnd; it++ ) {
         const QUrl & prop = it.key();
-
-        // Special handling for rdf:type
-        if( prop == RDF::type() ) {
-            requiredTypes << it.value().uri();
-            continue;
-        }
 
         if( !isIdentifyingProperty( prop ) ) {
             continue;
@@ -188,7 +141,9 @@ bool Nepomuk2::Sync::ResourceIdentifier::runIdentification(const KUrl& uri)
 
         identifyingProperties << Soprano::Node::resourceToN3( prop );
 
+        // For the case when the property has a resource range, and is still identifying
         Soprano::Node object = it.value();
+        // vHanda: Should we really be identifying nepomuk uris?
         if( object.isBlank()
             || ( object.isResource() && object.uri().scheme() == QLatin1String("nepomuk") ) ) {
 
@@ -198,7 +153,7 @@ bool Nepomuk2::Sync::ResourceIdentifier::runIdentification(const KUrl& uri)
                 continue;
             }
 
-            object = mappedUri( objectUri );
+            object = m_hash.value( objectUri );
         }
 
         identifyingPropertiesHash.insert(prop, object);
@@ -317,27 +272,9 @@ bool Nepomuk2::Sync::ResourceIdentifier::runIdentification(const KUrl& uri)
 }
 
 
-bool Nepomuk2::Sync::ResourceIdentifier::allIdentified() const
-{
-    return m_notIdentified.isEmpty();
-}
-
 //
 // Getting the info
 //
-
-KUrl Nepomuk2::Sync::ResourceIdentifier::mappedUri(const KUrl& resourceUri) const
-{
-    QHash< QUrl, QUrl >::const_iterator it = m_hash.constFind( resourceUri );
-    if( it != m_hash.constEnd() )
-        return it.value();
-    return KUrl();
-}
-
-KUrl::List Nepomuk2::Sync::ResourceIdentifier::mappedUris() const
-{
-    return m_hash.uniqueKeys();
-}
 
 QHash<QUrl, QUrl> Nepomuk2::Sync::ResourceIdentifier::mappings() const
 {
@@ -359,29 +296,6 @@ Nepomuk2::Sync::ResourceHash Nepomuk2::Sync::ResourceIdentifier::resourceHash() 
     return m_resourceHash;
 }
 
-
-
-Soprano::Graph Nepomuk2::Sync::ResourceIdentifier::statements(const KUrl& uri)
-{
-    return simpleResource( uri ).toStatementList();
-}
-
-QList< Soprano::Statement > Nepomuk2::Sync::ResourceIdentifier::identifyingStatements() const
-{
-    return m_resourceHash.toStatementList();
-}
-
-
-QSet< KUrl > Nepomuk2::Sync::ResourceIdentifier::unidentified() const
-{
-    return m_notIdentified;
-}
-
-QSet< QUrl > Nepomuk2::Sync::ResourceIdentifier::identified() const
-{
-    return m_hash.keys().toSet();
-}
-
 KUrl Nepomuk2::Sync::ResourceIdentifier::duplicateMatch(const KUrl& uri, const QSet< KUrl >& matchedUris)
 {
     Q_UNUSED( uri );
@@ -395,25 +309,4 @@ void Nepomuk2::Sync::ResourceIdentifier::manualIdentification(const KUrl& oldUri
 {
     m_hash[ oldUri ] = newUri;
     m_notIdentified.remove( oldUri );
-}
-
-bool Nepomuk2::Sync::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
-{
-    if( uri == NAO::created()
-        || uri == NAO::creator()
-        || uri == NAO::lastModified()
-        || uri == NAO::userVisible() ) {
-        return false;
-    }
-
-    // TODO: Hanlde nxx:FluxProperty and nxx:resourceRangePropWhichCanIdentified
-    const QString query = QString::fromLatin1("ask { %1 %2 ?range . "
-                                                " %1 a %3 . "
-                                                "{ FILTER( regex(str(?range), '^http://www.w3.org/2001/XMLSchema#') ) . }"
-                                                " UNION { %1 a rdf:Property . } }") // rdf:Property should be nxx:resourceRangePropWhichCanIdentified
-                            .arg( Soprano::Node::resourceToN3( uri ),
-                                Soprano::Node::resourceToN3( RDFS::range() ),
-                                Soprano::Node::resourceToN3( RDF::Property() ) );
-
-    return m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
 }

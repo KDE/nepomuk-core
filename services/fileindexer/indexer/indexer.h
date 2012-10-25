@@ -23,6 +23,8 @@
 #ifndef _NEPOMUK_STRIG_INDEXER_H_
 #define _NEPOMUK_STRIG_INDEXER_H_
 
+#include "extractorplugin.h"
+
 #include <QtCore/QObject>
 #include <QStringList>
 #include <KUrl>
@@ -43,7 +45,7 @@ namespace Nepomuk2 {
         /**
          * Create a new indexer.
          */
-        Indexer( QObject* parent = 0, const QStringList& disabledPlugin = QStringList());
+        Indexer( QObject* parent = 0 );
 
         /**
          * Destructor
@@ -51,29 +53,30 @@ namespace Nepomuk2 {
         ~Indexer();
 
         /**
+         * Clears the previous index of the file, runs the basic indexing
+         * and then runs the file indexing on the url.
+         *
+         * These 3 steps are generally split among different parts, but they are combined
+         * over here for debugging purposes.
+         */
+        bool indexFileDebug( const KUrl& url );
+
+        /**
          * Index a single local file or folder (files in a folder will
          * not be indexed recursively).
+         *
+         * This method just calls the appropriate file indexing plugins and then saves
+         * the graph.
          */
-        bool indexFile( const KUrl& url, const KUrl resUri, uint mtime = 0 );
+        bool indexFile( const KUrl& url );
 
-        /**
-         * Index a single local file or folder (files in a folder will
-         * not be indexed recursively). This method does the exact same
-         * as the above except that it saves an addditional stat of the
-         * file.
-         */
-        bool indexFile( const QFileInfo& info, const KUrl resUri, uint mtime=0 );
-
-        /**
-         * Index a file whose contents are provided via standard input.
-         */
-        bool indexStdin( const KUrl resUri, uint mtime=0 );
-        
         QString lastError() const;
 
     private:
-        class Private;
-        Private* const d;
+        QString m_lastError;
+        QHash<QString, ExtractorPlugin*> m_extractors;
+
+        void updateIndexingLevel( const QUrl& uri, int level );
     };
 }
 

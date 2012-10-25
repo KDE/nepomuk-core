@@ -56,11 +56,19 @@ Nepomuk2::ResourceIdentifier::ResourceIdentifier( Nepomuk2::StoreIdentificationM
     : Nepomuk2::Sync::ResourceIdentifier( model ),
       m_mode( mode )
 {
+    m_metaProperties.insert( NAO::created() );
+    m_metaProperties.insert( NAO::lastModified() );
+    m_metaProperties.insert( NAO::userVisible() );
+    m_metaProperties.insert( NAO::creator() );
 }
 
 
 bool Nepomuk2::ResourceIdentifier::exists(const KUrl& uri)
 {
+    // Special case for blank nodes
+    if( uri.url().startsWith("_:") )
+        return false;
+
     QString query = QString::fromLatin1("ask { %1 ?p ?o . } ").arg( Soprano::Node::resourceToN3(uri) );
     return m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
 }
@@ -89,10 +97,7 @@ KUrl Nepomuk2::ResourceIdentifier::duplicateMatch(const KUrl& origUri,
 
 bool Nepomuk2::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
 {
-    if( uri == NAO::created()
-            || uri == NAO::creator()
-            || uri == NAO::lastModified()
-            || uri == NAO::userVisible() ) {
+    if( m_metaProperties.contains( uri ) ) {
         return false;
     }
     else {
@@ -103,16 +108,6 @@ bool Nepomuk2::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
 
 bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
 {
-    if( m_mode == IdentifyNone )
-        return false;
-
-    if( m_mode == IdentifyNew ) {
-        if( exists( uri ) ) {
-            manualIdentification( uri, uri );
-            return true;
-        }
-    }
-
     //kDebug() << "Identifying : " << uri;
     //
     // Check if a uri with the same name exists
@@ -143,6 +138,10 @@ bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
 
         return false;
     }
+
+    // If IdentifyNone mode, then we do not run the full identification
+    if( m_mode == IdentifyNone )
+        return false;
 
     // Run the normal identification procedure
     return Sync::ResourceIdentifier::runIdentification( uri );

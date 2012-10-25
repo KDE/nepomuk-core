@@ -1,6 +1,6 @@
 /*
     <one line to give the library's name and an idea of what it does.>
-    Copyright (C) 2011  Vishesh Handa <handa.vish@gmail.com>
+    Copyright (C) 2012  Vishesh Handa <me@vhanda.in>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,35 +18,32 @@
 */
 
 
-#ifndef RESOURCEIDENTIFIER_H
-#define RESOURCEIDENTIFIER_H
+#ifndef NEPOMUK2_TYPECACHE_H
+#define NEPOMUK2_TYPECACHE_H
 
-#include "syncresourceidentifier.h"
-#include "datamanagement.h"
+#include <QtCore/QCache>
+#include <QtCore/QUrl>
 
-#include <KUrl>
+namespace Soprano {
+    class Model;
+}
 
 namespace Nepomuk2 {
 
-class ResourceIdentifier : public Sync::ResourceIdentifier
+class TypeCache
 {
 public:
-    ResourceIdentifier( Nepomuk2::StoreIdentificationMode mode, Soprano::Model *model);
+    TypeCache( Soprano::Model* model );
+    ~TypeCache();
 
-protected:
-    virtual KUrl duplicateMatch(const KUrl& uri, const QSet< KUrl >& matchedUris );
-    virtual bool runIdentification(const KUrl& uri);
+    QList<QUrl> types( const QUrl& uri );
+    void clear();
 
 private:
-    bool isIdentifyingProperty( const QUrl& uri );
-
-    /// Returns true if a resource with uri \p uri exists
-    bool exists( const KUrl& uri );
-
-    Nepomuk2::StoreIdentificationMode m_mode;
-    QSet<QUrl> m_metaProperties;
+    Soprano::Model* m_model;
+    QCache< QUrl, QList<QUrl> > m_cache;
 };
 
 }
 
-#endif // RESOURCEIDENTIFIER_H
+#endif // NEPOMUK2_TYPECACHE_H

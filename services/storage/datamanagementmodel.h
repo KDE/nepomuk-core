@@ -34,6 +34,7 @@ class ClassAndPropertyTree;
 class ResourceMerger;
 class SimpleResourceGraph;
 class ResourceWatcherManager;
+class TypeCache;
 
 class DataManagementModel : public Soprano::FilterModel
 {
@@ -229,6 +230,8 @@ public Q_SLOTS:
      * Clear the internal cache present in the model
      */
     void clearCache();
+
+    TypeCache* typeCache();
 
 private:
     QUrl createGraph(const QString& app = QString(), const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()));

@@ -27,16 +27,31 @@
 #include "simpleresource.h"
 #include "simpleresourcegraph.h"
 
-namespace Nepomuk2 {
-    class SimpleIndexer
-    {
-    public:
-        SimpleIndexer(const QUrl& fileUrl);
-        bool save();
+#include <KJob>
+#include <KUrl>
 
-        static QList<QUrl> typesForMimeType(const QString& mimeType);
+namespace Nepomuk2 {
+
+    class SimpleIndexingJob : public KJob
+    {
+        Q_OBJECT
+    public:
+        SimpleIndexingJob(const QUrl& fileUrl, QObject* parent = 0);
+
+        virtual void start();
+
+        QUrl uri();
+        QString mimeType();
+
+    private slots:
+        void slotJobFinished(KJob* job);
+
     private:
-        SimpleResourceGraph m_graph;
+        KUrl m_nieUrl;
+        QUrl m_resUri;
+        QString m_mimeType;
+
+        QList<QUrl> typesForMimeType(const QString& mimeType);
     };
 }
 

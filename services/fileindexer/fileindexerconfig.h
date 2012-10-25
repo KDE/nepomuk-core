@@ -16,8 +16,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef _NEPOMUK_STRIGI_SERVICE_CONFIG_H_
-#define _NEPOMUK_STRIGI_SERVICE_CONFIG_H_
+#ifndef _NEPOMUK_FILEINDEXER_SERVICE_CONFIG_H_
+#define _NEPOMUK_FILEINDEXER_SERVICE_CONFIG_H_
 
 #include <QtCore/QObject>
 #include <QtCore/QList>
@@ -70,11 +70,6 @@ namespace Nepomuk2 {
         QStringList excludeFolders() const;
 
         QStringList excludeFilters() const;
-
-        /**
-         * Strigi plugins not to call.
-         */
-	QStringList excludePlugins() const;
 
         bool indexHiddenFilesAndFolders() const;
 
@@ -164,12 +159,6 @@ namespace Nepomuk2 {
          */
         bool isDebugModeEnabled() const;
 
-        /**
-         * Returns the libstreamanalyzer version which was last used when all
-         * the files were checked, and indexed
-         */
-        QString strigiVersion() const;
-
     Q_SIGNALS:
         void configChanged();
 
@@ -186,13 +175,6 @@ namespace Nepomuk2 {
          * have been indexed.
          */
         void setInitialRun(bool isInitialRun);
-
-        /**
-         * Should be called once all the files have been indexed. This is done in
-         * order to avoid rechecking all the files if the strigi version has not
-         * changed.
-         */
-        void setStrigiVersion(const QString& version);
 
     private Q_SLOTS:
         void slotConfigDirty();

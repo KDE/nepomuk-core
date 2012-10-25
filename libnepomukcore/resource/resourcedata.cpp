@@ -32,6 +32,7 @@
 #include "datamanagement.h"
 #include "createresourcejob.h"
 #include "resourcewatcher.h"
+#include "dbustypes.h"
 
 #include <Soprano/Statement>
 #include <Soprano/StatementIterator>
@@ -51,6 +52,9 @@
 #include <kdebug.h>
 #include <kurl.h>
 #include <kcomponentdata.h>
+
+#include <QtDBus/QDBusConnection>
+#include <QtDBus/QDBusMessage>
 
 using namespace Soprano;
 
@@ -270,14 +274,26 @@ bool Nepomuk2::ResourceData::store()
         }
         types << m_type;
 
-        Nepomuk2::CreateResourceJob* job = Nepomuk2::createResource(types, QString(), QString());
-        if( !job->exec() ) {
+        QDBusMessage msg = QDBusMessage::createMethodCall( QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                           QLatin1String("/datamanagement"),
+                                                           QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                           QLatin1String("createResource") );
+
+        msg.setArguments( QVariantList()
+                          << DBus::convertUriList(types)
+                          << QString() << QString()
+                          << KGlobal::mainComponent().componentName() );
+
+        QDBusConnection bus = QDBusConnection::sessionBus();
+        QDBusMessage reply = bus.call( msg );
+        if( reply.type() == QDBusMessage::ErrorMessage ) {
             //TODO: Set the error somehow
-            kWarning() << job->errorString();
+            kWarning() << reply.errorMessage();
             return false;
         }
         else {
-            m_uri = job->resourceUri();
+            m_uri = reply.arguments().at(0).toUrl();
+
             QList<Soprano::Node> nodes = MAINMODEL->listStatements( m_uri, RDF::type(), QUrl() )
                                          .iterateObjects().allNodes();
             QList<QUrl> types;
@@ -394,10 +410,23 @@ void Nepomuk2::ResourceData::setProperty( const QUrl& uri, const Nepomuk2::Varia
             }
         }
 
-        KJob* job = Nepomuk2::setProperty(QList<QUrl>() << m_uri, uri, varList);
-        if( !job->exec() ) {
+        // update the store
+        QDBusMessage msg = QDBusMessage::createMethodCall( QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                           QLatin1String("/datamanagement"),
+                                                           QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                           QLatin1String("setProperty") );
+
+        msg.setArguments( QVariantList()
+                          << DBus::convertUriList(QList<QUrl>() << m_uri)
+                          << DBus::convertUri(uri)
+                          << QVariant(DBus::normalizeVariantList(varList))
+                          << KGlobal::mainComponent().componentName() );
+
+        QDBusConnection bus = QDBusConnection::sessionBus();
+        QDBusMessage reply = bus.call( msg );
+        if( reply.type() == QDBusMessage::ErrorMessage ) {
             //TODO: Set the error somehow
-            kWarning() << job->errorString();
+            kWarning() << reply.errorMessage();
             return;
         }
 
@@ -436,10 +465,21 @@ void Nepomuk2::ResourceData::addProperty( const QUrl& uri, const Nepomuk2::Varia
             }
         }
 
-        KJob* job = Nepomuk2::addProperty(QList<QUrl>() << m_uri, uri, varList);
-        if( !job->exec() ) {
+        QDBusMessage msg = QDBusMessage::createMethodCall( QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                           QLatin1String("/datamanagement"),
+                                                           QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                           QLatin1String("addProperty") );
+        msg.setArguments( QVariantList()
+                          << DBus::convertUriList(QList<QUrl>() << m_uri)
+                          << DBus::convertUri(uri)
+                          << QVariant(DBus::normalizeVariantList(varList))
+                          << KGlobal::mainComponent().componentName() );
+
+        QDBusConnection bus = QDBusConnection::sessionBus();
+        QDBusMessage reply = bus.call( msg );
+        if( reply.type() == QDBusMessage::ErrorMessage ) {
             //TODO: Set the error somehow
-            kWarning() << job->errorString();
+            kWarning() << reply.errorMessage();
             return;
         }
 
@@ -461,10 +501,20 @@ void Nepomuk2::ResourceData::removeProperty( const QUrl& uri )
     QMutexLocker lock(&m_modificationMutex);
 
     if( !m_uri.isEmpty() ) {
-        KJob* job = Nepomuk2::removeProperties(QList<QUrl>() << m_uri, QList<QUrl>() << uri);
-        if( !job->exec() ) {
+        QDBusMessage msg = QDBusMessage::createMethodCall( QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                           QLatin1String("/datamanagement"),
+                                                           QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                           QLatin1String("removeProperties") );
+        msg.setArguments( QVariantList()
+                          << DBus::convertUri(m_uri)
+                          << DBus::convertUri(uri)
+                          << KGlobal::mainComponent().componentName() );
+
+        QDBusConnection bus = QDBusConnection::sessionBus();
+        QDBusMessage reply = bus.call( msg );
+        if( reply.type() == QDBusMessage::ErrorMessage ) {
             //TODO: Set the error somehow
-            kWarning() << job->errorString();
+            kWarning() << reply.errorMessage();
             return;
         }
 
@@ -484,10 +534,20 @@ void Nepomuk2::ResourceData::remove( bool recursive )
     QMutexLocker lock(&m_modificationMutex);
 
     if( !m_uri.isEmpty() ) {
-        KJob* job = Nepomuk2::removeResources(QList<QUrl>() << m_uri);
-        if( !job->exec() ) {
+        QDBusMessage msg = QDBusMessage::createMethodCall( QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                           QLatin1String("/datamanagement"),
+                                                           QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                           QLatin1String("removeResources") );
+        msg.setArguments( QVariantList()
+                          << DBus::convertUriList(QList<QUrl>() << m_uri)
+                          << 0 /* no flags */
+                          << KGlobal::mainComponent().componentName());
+
+        QDBusConnection bus = QDBusConnection::sessionBus();
+        QDBusMessage reply = bus.call( msg );
+        if( reply.type() == QDBusMessage::ErrorMessage ) {
             //TODO: Set the error somehow
-            kWarning() << job->errorString();
+            kWarning() << reply.errorMessage();
             return;
         }
     }

@@ -1,6 +1,6 @@
 /*
     <one line to give the library's name and an idea of what it does.>
-    Copyright (C) 2011  Vishesh Handa <handa.vish@gmail.com>
+    Copyright (C) 2012  Vishesh Handa <me@vhanda.in>
 
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
@@ -18,35 +18,22 @@
 */
 
 
-#ifndef RESOURCEIDENTIFIER_H
-#define RESOURCEIDENTIFIER_H
+#ifndef PLAINTEXTEXTRACTOR_H
+#define PLAINTEXTEXTRACTOR_H
 
-#include "syncresourceidentifier.h"
-#include "datamanagement.h"
-
-#include <KUrl>
+#include "extractorplugin.h"
 
 namespace Nepomuk2 {
 
-class ResourceIdentifier : public Sync::ResourceIdentifier
+class PlainTextExtractor : public ExtractorPlugin
 {
 public:
-    ResourceIdentifier( Nepomuk2::StoreIdentificationMode mode, Soprano::Model *model);
+    PlainTextExtractor(QObject* parent, const QVariantList&);
 
-protected:
-    virtual KUrl duplicateMatch(const KUrl& uri, const QSet< KUrl >& matchedUris );
-    virtual bool runIdentification(const KUrl& uri);
-
-private:
-    bool isIdentifyingProperty( const QUrl& uri );
-
-    /// Returns true if a resource with uri \p uri exists
-    bool exists( const KUrl& uri );
-
-    Nepomuk2::StoreIdentificationMode m_mode;
-    QSet<QUrl> m_metaProperties;
+    virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType);
+    virtual QStringList mimetypes();
 };
 
 }
 
-#endif // RESOURCEIDENTIFIER_H
+#endif // PLAINTEXTEXTRACTOR_H

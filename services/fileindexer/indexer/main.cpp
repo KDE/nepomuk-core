@@ -21,7 +21,6 @@
 */
 
 #include "indexer.h"
-#include "simpleindexer.h"
 #include "../util.h"
 #include "../../../servicestub/priority.h"
 #include "nepomukversion.h"
@@ -37,6 +36,7 @@
 
 #include <KDebug>
 #include <KUrl>
+#include <KJob>
 
 int main(int argc, char *argv[])
 {
@@ -55,11 +55,9 @@ int main(int argc, char *argv[])
     KCmdLineArgs::init(argc, argv, &aboutData);
 
     KCmdLineOptions options;
-    options.add("uri <uri>", ki18n("The URI provided will be forced on the resource"));
-    options.add("mtime <time>", ki18n("The modification time of the resource in time_t format"));
     options.add("+[url]", ki18n("The URL of the file to be indexed"));
     options.add("clear", ki18n("Remove all indexed data of the URL provided"));
-    options.add("skip <skip>", ki18n("Strigi plugins to disable."));
+    options.add("debug", ki18n("First clears the existing index, and the runs both the basic and file indexing"));
 
     KCmdLineArgs::addCmdLineOptions(options);
     const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
@@ -68,41 +66,43 @@ int main(int argc, char *argv[])
     QCoreApplication app( argc, argv );
     KComponentData data( aboutData, KComponentData::RegisterAsMainComponent );
 
-    const KUrl uri = args->getOption("uri");
-    const uint mtime = args->getOption("mtime").toUInt();
-
-    const QStringList disabledPlugins = args->getOptionList("skip");
-
     if( args->count() == 0 ) {
-        Nepomuk2::Indexer indexer(0,disabledPlugins);
-        if( !indexer.indexStdin( uri, mtime ) ) {
-            QTextStream s(stdout);
-            s << indexer.lastError();
+        QTextStream err( stderr );
+        err << "Must input url of the file to be indexed";
+
+        return 1;
+    }
+
+    if( args->isSet("clear") ) {
+        KJob* job = Nepomuk2::clearIndexedData( args->url(0) );
+        job->exec();
+        if( job->error() ) {
+            kDebug() << job->errorString();
             return 1;
         }
-        else {
-            return 0;
-        }
-    }
-    else if( args->isSet("clear") ) {
-        Nepomuk2::clearIndexedData( args->url(0) );
         kDebug() << "Removed indexed data for" << args->url(0);
         return 0;
     }
-    else {
-        Nepomuk2::Indexer indexer(0,disabledPlugins);
-        if( !indexer.indexFile( args->url(0), uri, mtime ) ) {
+
+    Nepomuk2::Indexer indexer;
+    // Debugging
+    if( args->isSet("debug") ) {
+        if( !indexer.indexFileDebug( args->url(0) ) ) {
             QTextStream s(stdout);
             s << indexer.lastError();
 
-            Nepomuk2::SimpleIndexer simpleIndexer( args->url(0) );
-            simpleIndexer.save();
-
             return 1;
         }
-        else {
-            kDebug() << "Indexed data for" << args->url(0);
-            return 0;
-        }
+        return 0;
     }
+
+    // Normal Indexing
+    if( !indexer.indexFile( args->url(0) ) ) {
+        QTextStream s(stdout);
+        s << indexer.lastError();
+
+        return 1;
+    }
+
+    return 0;
 }

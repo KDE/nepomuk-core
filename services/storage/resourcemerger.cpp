@@ -41,10 +41,43 @@
 #include <KDebug>
 #include <Soprano/Graph>
 #include "resourcewatchermanager.h"
+#include "typecache.h"
 
 using namespace Soprano::Vocabulary;
 using namespace Nepomuk2::Vocabulary;
 
+
+namespace {
+    QUrl getBlankOrResourceUri( const Soprano::Node & n ) {
+        if( n.isResource() ) {
+            return n.uri();
+        }
+        else if( n.isBlank() ) {
+            return QString( QLatin1String("_:") + n.identifier() );
+        }
+        return QUrl();
+    }
+
+    QUrl xsdDuration() {
+        return QUrl( Soprano::Vocabulary::XMLSchema::xsdNamespace().toString() + QLatin1String("duration") );
+    }
+
+    template<typename T> QStringList nodesToN3( const T &nodes ) {
+        QStringList list;
+        foreach( const Soprano::Node& node, nodes ) {
+            list << node.toN3();
+        }
+        return list;
+    }
+
+    QList<QUrl> nodeListToUriList( const QList<Soprano::Node>& nodeList ) {
+        QList<QUrl> urls;
+        urls.reserve( nodeList.size() );
+        foreach( const Soprano::Node& node, nodeList )
+            urls << node.uri();
+        return urls;
+    }
+}
 
 Nepomuk2::ResourceMerger::ResourceMerger(Nepomuk2::DataManagementModel* model, const QString& app,
                                         const QHash< QUrl, QVariant >& additionalMetadata,
@@ -150,20 +183,12 @@ void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
 }
 
 
-QUrl Nepomuk2::ResourceMerger::createGraph()
-{
-    return m_model->createGraph( m_app, m_additionalMetadata );
-}
-
 QMultiHash< QUrl, Soprano::Node > Nepomuk2::ResourceMerger::getPropertyHashForGraph(const QUrl& graph) const
 {
-    // trueg: this is more a hack than anything else: exclude the inference types
-    // a real solution would either ignore supertypes of nrl:Graph in checkGraphMetadata()
-    // or only check the new metadata for consistency
     Soprano::QueryResultIterator it
-            = m_model->executeQuery(QString::fromLatin1("select ?p ?o where { graph ?g { %1 ?p ?o . } . FILTER(?g!=<urn:crappyinference2:inferredtriples>) . }")
+            = m_model->executeQuery(QString::fromLatin1("select ?p ?o where { %1 ?p ?o . }")
                                     .arg(Soprano::Node::resourceToN3(graph)),
-                                    Soprano::Query::QueryLanguageSparql);
+                                    Soprano::Query::QueryLanguageSparqlNoInference);
     //Convert to prop hash
     QMultiHash<QUrl, Soprano::Node> propHash;
     while(it.next()) {
@@ -186,41 +211,31 @@ bool Nepomuk2::ResourceMerger::areEqual(const QMultiHash<QUrl, Soprano::Node>& o
     QSet<QUrl> oldTypes;
     QSet<QUrl> newTypes;
 
-    QHash< QUrl, Soprano::Node >::const_iterator it = oldPropHash.constBegin();
-    for( ; it != oldPropHash.constEnd(); it++ ) {
-        const QUrl & propUri = it.key();
-        if( propUri == NAO::maintainedBy() || propUri == NAO::created() )
-            continue;
+    QMultiHash<QUrl, Soprano::Node> oldHash( oldPropHash );
+    oldHash.remove( NAO::created() );
 
-        if( propUri == RDF::type() ) {
-            oldTypes << it.value().uri();
-            continue;
-        }
+    oldTypes = nodeListToUriList(oldHash.values( RDF::type() )).toSet();
+    oldHash.remove( RDF::type() );
 
-        //kDebug() << " --> " << it.key() << " " << it.value();
-        if( !newPropHash.contains( it.key(), it.value() ) ) {
-            //kDebug() << "False value : " << newPropHash.value( it.key() );
-            return false;
-        }
-    }
+    // Maintainership
+    // No nao:maintainedBy => legacy data, not the same
+    QHash< QUrl, Soprano::Node >::iterator it = oldHash.find( NAO::maintainedBy() );
+    if( it == oldHash.constEnd() )
+        return false;
+    else if( it.value().uri() != m_model->findApplicationResource(m_app, false) )
+        return false;
 
-    it = newPropHash.constBegin();
-    for( ; it != newPropHash.constEnd(); it++ ) {
-        const QUrl & propUri = it.key();
-        if( propUri == NAO::maintainedBy() || propUri == NAO::created() )
-            continue;
+    oldHash.remove( NAO::maintainedBy() );
 
-        if( propUri == RDF::type() ) {
-            newTypes << it.value().uri();
-            continue;
-        }
+    QMultiHash<QUrl, Soprano::Node> newHash( newPropHash );
+    newHash.remove( NAO::created() );
+    newHash.remove( NAO::maintainedBy() );
 
-        //kDebug() << " --> " << it.key() << " " << it.value();
-        if( !oldPropHash.contains( it.key(), it.value() ) ) {
-            //kDebug() << "False value : " << oldPropHash.value( it.key() );
-            return false;
-        }
-    }
+    newTypes = nodeListToUriList(newHash.values( RDF::type() )).toSet();
+    newHash.remove( RDF::type() );
+
+    if( oldHash != newHash )
+        return false;
 
     //
     // Check the types
@@ -229,14 +244,6 @@ bool Nepomuk2::ResourceMerger::areEqual(const QMultiHash<QUrl, Soprano::Node>& o
     if( !sameTypes(oldTypes, newTypes) ) {
         return false;
     }
-
-    // Check nao:maintainedBy
-    it = oldPropHash.find( NAO::maintainedBy() );
-    if( it == oldPropHash.constEnd() )
-        return false;
-
-    if( it.value().uri() != m_model->findApplicationResource(m_app, false) )
-        return false;
 
     return true;
 }
@@ -416,31 +423,6 @@ bool Nepomuk2::ResourceMerger::checkGraphMetadata(const QMultiHash< QUrl, Sopran
     return true;
 }
 
-QUrl Nepomuk2::ResourceMerger::createResourceUri()
-{
-    return m_model->createUri( DataManagementModel::ResourceUri );
-}
-
-QUrl Nepomuk2::ResourceMerger::createGraphUri()
-{
-    return m_model->createUri( DataManagementModel::GraphUri );
-}
-
-QList< QUrl > Nepomuk2::ResourceMerger::existingTypes(const QUrl& uri) const
-{
-    QList<QUrl> types;
-
-    QString query = QString::fromLatin1("select ?t where { %1 rdf:type ?t . }")
-                    .arg( Soprano::Node::resourceToN3( uri ) );
-    Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
-    while( it.next() )
-        types << it[0].uri();
-
-    // all resources have rdfs:Resource type by default
-    types << RDFS::Resource();
-
-    return types;
-}
 
 bool Nepomuk2::ResourceMerger::isOfType(const Soprano::Node & node, const QUrl& type, const QList<QUrl> & newTypes) const
 {
@@ -449,7 +431,7 @@ bool Nepomuk2::ResourceMerger::isOfType(const Soprano::Node & node, const QUrl& 
 
     QList<QUrl> types( newTypes );
     if( !node.isBlank() ) {
-        types << existingTypes( node.uri() );
+        types << m_model->typeCache()->types( node.uri() );
     }
     types += newTypes;
 
@@ -503,7 +485,7 @@ Soprano::Node Nepomuk2::ResourceMerger::resolveBlankNode(const Soprano::Node& no
         return it.value();
     }
 
-    const QUrl newUri = createResourceUri();
+    const QUrl newUri = m_model->createUri( DataManagementModel::ResourceUri );
     m_mappings.insert( nodeN3, newUri );
     m_newUris.insert( newUri );
 
@@ -579,38 +561,6 @@ void Nepomuk2::ResourceMerger::removeDuplicates(Nepomuk2::Sync::SyncResource& re
     }
 }
 
-
-namespace {
-    QUrl getBlankOrResourceUri( const Soprano::Node & n ) {
-        if( n.isResource() ) {
-            return n.uri();
-        }
-        else if( n.isBlank() ) {
-            return QString( QLatin1String("_:") + n.identifier() );
-        }
-        return QUrl();
-    }
-
-    QUrl xsdDuration() {
-        return QUrl( Soprano::Vocabulary::XMLSchema::xsdNamespace().toString() + QLatin1String("duration") );
-    }
-
-    template<typename T> QStringList nodesToN3( const T &nodes ) {
-        QStringList list;
-        foreach( const Soprano::Node& node, nodes ) {
-            list << node.toN3();
-        }
-        return list;
-    }
-
-    QList<QUrl> nodeListToUriList( const QList<Soprano::Node>& nodeList ) {
-        QList<QUrl> urls;
-        urls.reserve( nodeList.size() );
-        foreach( const Soprano::Node& node, nodeList )
-            urls << node.uri();
-        return urls;
-    }
-}
 
 /*
  Rough algorithm -
@@ -752,7 +702,7 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
 
     // Create the main graph, if they are any statements to merge
     if( !resHash.isEmpty() ) {
-        m_graph = createGraph();
+        m_graph = m_model->createGraph( m_app, m_additionalMetadata );
     }
 
 
@@ -911,17 +861,30 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
                     filterStringList << QString::fromLatin1("?v!=%1").arg( n3 );
 
                 int existingCardinality = 0;
-                if( !overwriteProperties ) {
-                    const QString query = QString::fromLatin1("select count(distinct ?v) where {"
-                                                              " %1 %2 ?v . FILTER( %3 ) . }")
+
+                if( !res.isBlank() && !overwriteProperties ) {
+                    if( maxCardinality > 1 ) {
+                        const QString query = QString::fromLatin1("select count(distinct ?v) where {"
+                                                                " %1 %2 ?v . FILTER( %3 ) . }")
+                                            .arg( Soprano::Node::resourceToN3( res.uri() ),
+                                                  Soprano::Node::resourceToN3( propUri ),
+                                                  filterStringList.join( QLatin1String(" && ") ) );
+
+                        Soprano::QueryResultIterator exCarIt =
+                                        m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+                        if( exCarIt.next() ) {
+                            existingCardinality = exCarIt[0].literal().toInt();
+                        }
+                    }
+                    else {
+                        QString query = QString::fromLatin1("ask where { %1 %2 ?v . FILTER(%3) .}")
                                         .arg( Soprano::Node::resourceToN3( res.uri() ),
                                               Soprano::Node::resourceToN3( propUri ),
-                                              filterStringList.join( QLatin1String(" && ") ) );
+                                              filterStringList.first() );
 
-                    Soprano::QueryResultIterator exCarIt =
-                                    m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-                    if( exCarIt.next() ) {
-                        existingCardinality = exCarIt[0].literal().toInt();
+                        bool e = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference ).boolValue();
+                        if( e )
+                            existingCardinality = 1;
                     }
                 }
 
@@ -962,9 +925,9 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
         //        kDebug() << "Range : " << range;
 
         // domain
-        if( !domain.isEmpty() && !isOfType( res.uri(), domain, resTypes ) ) {
+        if( !domain.isEmpty() && !isOfType( res.uriNode(), domain, resTypes ) ) {
             // Error
-            QList<QUrl> allTypes = ( resTypes + existingTypes(res.uri()) );
+            QList<QUrl> allTypes = ( resTypes + m_model->typeCache()->types(res.uri()) );
 
             QString error = QString::fromLatin1("%1 has a rdfs:domain of %2. "
                                                 "%3 only has the following types %4" )
@@ -985,9 +948,9 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
                 const QUrl objUri = getBlankOrResourceUri( object );
                 QList<QUrl> objectNewTypes =  nodeListToUriList( resHash[ objUri ].values( RDF::type() ) );
 
-                if( !isOfType( objUri, range, objectNewTypes ) ) {
+                if( !isOfType( object, range, objectNewTypes ) ) {
                     // Error
-                    QList<QUrl> allTypes = ( objectNewTypes + existingTypes(objUri) );
+                    QList<QUrl> allTypes = ( objectNewTypes + m_model->typeCache()->types(objUri) );
 
                     QString error = QString::fromLatin1("%1 has a rdfs:range of %2. "
                                                         "%3 only has the following types %4" )

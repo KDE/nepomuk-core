@@ -29,6 +29,7 @@
 #include "resourcewatchermanager.h"
 #include "syncresource.h"
 #include "nepomuktools.h"
+#include "typecache.h"
 
 #include <Soprano/Vocabulary/NRL>
 #include <Soprano/Vocabulary/NAO>
@@ -186,6 +187,7 @@ public:
     bool m_ignoreCreationDate;
 
     QCache<QString, QUrl> m_appCache;
+    TypeCache* m_typeCache;
 };
 
 Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTree* tree, Soprano::Model* model, QObject *parent)
@@ -194,6 +196,7 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
 {
     d->m_classAndPropertyTree = tree;
     d->m_watchManager = new ResourceWatcherManager(this);
+    d->m_typeCache = new TypeCache(this);
     d->m_ignoreCreationDate = false;
     d->m_appCache.setMaxCost( 10 );
 
@@ -218,6 +221,7 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
 void Nepomuk2::DataManagementModel::clearCache()
 {
     d->m_appCache.clear();
+    d->m_typeCache->clear();
 }
 
 
@@ -2951,8 +2955,15 @@ Nepomuk2::ResourceWatcherManager* Nepomuk2::DataManagementModel::resourceWatcher
     return d->m_watchManager;
 }
 
+TypeCache* DataManagementModel::typeCache()
+{
+    return d->m_typeCache;
+}
+
 void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resources, RemovalFlags flags)
 {
+    Q_UNUSED(flags);
+
     QSet<QUrl> resolvedResources(resources);
 
     //
