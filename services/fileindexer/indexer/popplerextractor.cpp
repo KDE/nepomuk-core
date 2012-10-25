@@ -24,7 +24,7 @@
 #include "nie.h"
 #include "nfo.h"
 
-#include <poppler/qt4/poppler-qt4.h>
+#include <poppler-qt4.h>
 
 using namespace Nepomuk2::Vocabulary;
 
