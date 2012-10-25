@@ -384,7 +384,7 @@ namespace Nepomuk2 {
         /// When this is enabled each SimpleResource will be checked to make sure a duplicate of it
         /// does not already exist in the SimpleResourceGraph. If it does exist, then those
         /// SimpleResources are merged together.
-        MergeDuplicateResources = 0x8,
+        MergeDuplicateResources = 0x8
     };
     Q_DECLARE_FLAGS(StoreResourcesFlags, StoreResourcesFlag)
 
