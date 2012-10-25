@@ -77,6 +77,7 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
     for( int i=0; i<pdfDoc->numPages(); i++ ) {
         Poppler::Page* page = pdfDoc->page( i );
         plainTextContent.append( page->text( QRectF() ) );
+        delete page;
     }
 
     if( !plainTextContent.isEmpty() ) {
@@ -84,6 +85,8 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
     }
 
     fileRes.addType( NFO::PaginatedTextDocument() );
+
+    delete pdfDoc;
 
     graph << fileRes;
     return graph;
