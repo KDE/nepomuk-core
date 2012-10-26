@@ -8,7 +8,6 @@
 # NEPOMUK_CORE_ONTOLOGY_DIR : The nepomuk-core ontologies location
 # NEPOMUK_CORE_DBUS_INTERFACES_DIR : The nepomuk-core DBUS Interfaces dir
 # NEPOMUK_CORE_LIBRARY : The nepomukcore library
-# NEPOMUK_CORE_SYNC_LIBRARY : The nepomuksync library
 
 get_filename_component(_currentDir ${CMAKE_CURRENT_LIST_FILE} PATH) # The current directory
 get_filename_component(rootDir ${_currentDir}/@relInstallDir@ ABSOLUTE) # The install prefix
@@ -36,7 +35,6 @@ include(${_currentDir}/NepomukCoreTargetsWithPrefix.cmake)
 
 # Set the libraries names
 set(NEPOMUK_CORE_LIBRARY nepomukcore)
-set(NEPOMUK_CORE_SYNC_LIBRARY nepomuksync)
 
 find_file(NEPOMUK2_ADDONTOLOGYCLASSES_FILE Nepomuk2AddOntologyClasses.cmake
           PATH ${_currentDir}
