@@ -83,6 +83,20 @@ namespace {
     bool IgnoringKInotify::filterWatch( const QString & path, WatchEvents & modes, WatchFlags & flags )
     {
         Q_UNUSED( flags );
+
+        // Some symlink handling.
+        QFileInfo info(path);
+        // Check whether this path is a symlink to a path which has already been watched.
+        // If so, do not watch it. This does not solve *all* double-watching;
+        // the symlink may be watched before the original path.
+        // However, it stops us trying to install infinite watches when, eg,
+        // someone has created a symlink to a parent directory.
+        if( info.isSymLink() && info.exists() ){
+            if( watchingPath( info.symLinkTarget() ) )
+                return false;
+        }
+        if( !Nepomuk2::FileIndexerConfig::self()->shouldFolderBeWatched( path ) )
+            return false;
         // Only watch the index folders for file creation and change.
         if( Nepomuk2::FileIndexerConfig::self()->shouldFolderBeIndexed( path ) ) {
             modes |= KInotify::EventCloseWrite;
