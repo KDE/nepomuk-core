@@ -348,11 +348,7 @@ void KInotify::slotEvent( int socket )
         }
 
         Q_ASSERT( !path.isEmpty() || event->mask & EventIgnored );
-        // This is present cause a unmount event is sent my inotify after unmounting, by
-        // which time the watches have already been removed.
-        if( path == "/" && event->mask & EventUnmount )
-            break;
-        Q_ASSERT( path != "/" || event->mask & EventIgnored );
+        Q_ASSERT( path != "/" || event->mask & EventIgnored  || event->mask & EventUnmount);
 
         // now signal the event
         if ( event->mask & EventAccess) {
@@ -440,7 +436,11 @@ void KInotify::slotEvent( int socket )
             if ( event->mask & IN_ISDIR ) {
                 d->removeWatch( event->wd );
             }
-            emit unmounted( QFile::decodeName(path) );
+            // This is present because a unmount event is sent by inotify after unmounting, by
+            // which time the watches have already been removed.
+            if( path != "/"){
+                emit unmounted( QFile::decodeName(path) );
+            }
         }
         if ( event->mask & EventQueueOverflow ) {
             // This should not happen since we grab all events as soon as they arrive
@@ -448,7 +448,7 @@ void KInotify::slotEvent( int socket )
 //            emit queueOverflow();
         }
         if ( event->mask & EventIgnored ) {
-            kDebug() << path << "EventIgnored";
+//             kDebug() << path << "EventIgnored";
         }
 
         i += EVENT_STRUCT_SIZE + event->len;
