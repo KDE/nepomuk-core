@@ -219,7 +219,7 @@ bool Nepomuk2::ResourceMerger::areEqual(const QMultiHash<QUrl, Soprano::Node>& o
 
     // Maintainership
     // No nao:maintainedBy => legacy data, not the same
-    QHash< QUrl, Soprano::Node >::iterator it = oldHash.find( NAO::maintainedBy() );
+    QHash< QUrl, Soprano::Node >::ConstIterator it = oldHash.constFind( NAO::maintainedBy() );
     if( it == oldHash.constEnd() )
         return false;
     else if( it.value().uri() != m_model->findApplicationResource(m_app, false) )
