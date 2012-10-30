@@ -237,12 +237,15 @@ void Nepomuk2::IndexScheduler::analyzeFile( const QString& path )
 
 void Nepomuk2::IndexScheduler::slotIndexingFinished()
 {
+    setIndexingStarted( false );
     if( m_basicIQ->isEmpty() && m_fileIQ->isEmpty() )
         emit indexingDone();
 }
 
 void Nepomuk2::IndexScheduler::slotBeginIndexingFile(const QUrl& url)
 {
+    setIndexingStarted( true );
+
     QString path = url.toLocalFile();
     if( QFileInfo(path).isDir() )
         emit indexingFolder( path );
