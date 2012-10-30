@@ -43,6 +43,8 @@ TypeCache::~TypeCache()
 
 QList< QUrl > TypeCache::types(const QUrl& uri)
 {
+    QMutexLocker locker( &m_mutex );
+
     QList<QUrl>* obj = m_cache.object( uri );
     if( obj ) {
         return *obj;

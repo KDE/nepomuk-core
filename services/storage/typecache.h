@@ -23,6 +23,7 @@
 
 #include <QtCore/QCache>
 #include <QtCore/QUrl>
+#include <QMutexLocker>
 
 namespace Soprano {
     class Model;
@@ -41,7 +42,9 @@ public:
 
 private:
     Soprano::Model* m_model;
+
     QCache< QUrl, QList<QUrl> > m_cache;
+    QMutex m_mutex;
 };
 
 }
