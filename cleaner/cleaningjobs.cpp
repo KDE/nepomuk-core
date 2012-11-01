@@ -259,6 +259,54 @@ void AkonadiMigrationJob::execute()
     done();
 }
 
+//
+// Duplicate graphs
+//
+
+class DuplicateStatementJob : public CleaningJob {
+public:
+    explicit DuplicateStatementJob(QObject* parent = 0)
+    : CleaningJob(parent) {}
+
+    QString jobName() {
+        return i18n("Duplicate Statement Job");
+    }
+
+private:
+    void execute();
+};
+
+void DuplicateStatementJob::execute()
+{
+    QLatin1String query("select ?r ?p ?o where { graph ?g1 { ?r ?p ?o. } "
+                        " graph ?g2 { ?r ?p ?o. } FILTER( ?g1 != ?g2 ) . }");
+
+    Soprano::Model *model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    while( it.next() ) {
+        Soprano::Statement st( it["r"], it["p"], it["o"] );
+
+        // List all the graphs that it belongs to
+        QString query = QString::fromLatin1("select ?g where { graph ?g { %1 %2 %3 . } }")
+                        .arg( st.subject().toN3(), st.predicate().toN3(), st.object().toN3() );
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+
+        QList<QUrl> graphs;
+        while( it.next() )
+            graphs << it[0].uri();
+
+        // Remove all statements apart from the first graph
+        // TODO: Maybe we should be smarter about it?
+        for( int i=1; i<graphs.size(); i++ ) {
+            Soprano::Statement statement( st );
+            statement.setContext( graphs[i] );
+
+            kDebug() << statement;
+            model->removeAllStatements( statement );
+        }
+    }
+}
+
 
 
 QList< CleaningJob* > allJobs()
@@ -270,6 +318,7 @@ QList< CleaningJob* > allJobs()
     list << new DuplicateFileCleaner();
     list << new DuplicateIconCleaner();
     list << new AkonadiMigrationJob();
+    list << new DuplicateStatementJob();
     return list;
 }
 
