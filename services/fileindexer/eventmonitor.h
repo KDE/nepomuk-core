@@ -16,8 +16,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef _NEPOMUK_STRIGI_EVENT_MONITOR_H_
-#define _NEPOMUK_STRIGI_EVENT_MONITOR_H_
+#ifndef _NEPOMUK_FILEINDEXER_EVENT_MONITOR_H_
+#define _NEPOMUK_FILEINDEXER_EVENT_MONITOR_H_
 
 #include <QtCore/QObject>
 #include <QtCore/QStringList>
@@ -57,7 +57,7 @@ namespace Nepomuk2 {
 
         IndexScheduler* m_indexScheduler;
         int m_pauseState;
-        
+
         bool m_wasIndexingWhenPaused;
 
         // timer used to periodically check for available space

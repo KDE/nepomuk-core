@@ -127,7 +127,7 @@ void Nepomuk2::ResourceWatcherManager::addStatement(const Soprano::Statement& st
 
 void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &addedValues, const QList<Soprano::Node> &removedValues)
 {
-    kDebug() << res << property << addedValues << removedValues;
+//    kDebug() << res << property << addedValues << removedValues;
 
     //
     // We only need the resource types if any connections are watching types.
@@ -211,12 +211,6 @@ void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUr
     //
     foreach(ResourceWatcherConnection* con, connections) {
         // make sure we emit from the correct thread through a queued connection
-        QMetaObject::invokeMethod(con,
-                                  "propertyChanged",
-                                  Q_ARG(QString, convertUri(res)),
-                                  Q_ARG(QString, convertUri(property)),
-                                  Q_ARG(QVariantList, nodeListToVariantList(addedValues)),
-                                  Q_ARG(QVariantList, nodeListToVariantList(removedValues)));
         if(!addedValues.isEmpty()) {
             QMetaObject::invokeMethod(con,
                                       "propertyAdded",
@@ -231,6 +225,12 @@ void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUr
                                       Q_ARG(QString, convertUri(property)),
                                       Q_ARG(QVariantList, nodeListToVariantList(removedValues)));
         }
+        QMetaObject::invokeMethod(con,
+                                  "propertyChanged",
+                                  Q_ARG(QString, convertUri(res)),
+                                  Q_ARG(QString, convertUri(property)),
+                                  Q_ARG(QVariantList, nodeListToVariantList(addedValues)),
+                                  Q_ARG(QVariantList, nodeListToVariantList(removedValues)));
     }
 }
 
@@ -263,8 +263,13 @@ void Nepomuk2::ResourceWatcherManager::createResource(const QUrl &uri, const QLi
     }
 }
 
-void Nepomuk2::ResourceWatcherManager::removeResource(const QUrl &res, const QList<QUrl>& types)
+void Nepomuk2::ResourceWatcherManager::removeResource(const QUrl &res, const QList<QUrl>& _types)
 {
+    QSet<QUrl> types(_types.toSet());
+    if(!m_typeHash.isEmpty()) {
+        types = getTypes(res);
+    }
+
     QSet<ResourceWatcherConnection*> connections(m_watchAllConnections);
     foreach(const QUrl& type, types) {
         foreach(ResourceWatcherConnection* con, m_typeHash.values( type )) {
@@ -471,9 +476,9 @@ void Nepomuk2::ResourceWatcherManager::removeType(Nepomuk2::ResourceWatcherConne
 QSet<QUrl> Nepomuk2::ResourceWatcherManager::getTypes(const Soprano::Node &res) const
 {
     QSet<QUrl> types;
-    Soprano::StatementIterator it = m_model->listStatements(res, RDF::type(), Soprano::Node());
+    Soprano::NodeIterator it = m_model->listStatements(res, RDF::type(), Soprano::Node()).iterateObjects();
     while(it.next()) {
-        types.insert(it.current().object().uri());
+        types.insert(it.current().uri());
     }
     return types;
 }

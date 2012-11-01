@@ -17,8 +17,8 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef _STRIGI_NEPOMUK_UTIL_H_
-#define _STRIGI_NEPOMUK_UTIL_H_
+#ifndef _NEPOMUK_FILEINDEXER_UTIL_H_
+#define _NEPOMUK_FILEINDEXER_UTIL_H_
 
 #include <KUrl>
 

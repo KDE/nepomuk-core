@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef _NEPOMUK_RESOURCE_DATA_H_
-#define _NEPOMUK_RESOURCE_DATA_H_
+#ifndef _NEPOMUK2_RESOURCE_DATA_H_
+#define _NEPOMUK2_RESOURCE_DATA_H_
 
 #include <QtCore/QString>
 #include <QtCore/QList>
@@ -46,14 +46,20 @@ namespace Nepomuk2 {
         ~ResourceData();
 
         inline bool ref(Nepomuk2::Resource* res) {
+            // Caller must lock ResourceManager mutex
             m_resources.push_back( res );
             return m_ref.ref();
         }
 
-
         inline bool deref(Nepomuk2::Resource* res) {
+            // Caller must lock ResourceManager mutex
             m_resources.removeAll( res );
             return m_ref.deref();
+        }
+
+        QList<Resource*> resources() const {
+            // Caller must lock ResourceManager mutex
+            return m_resources;
         }
 
         inline int cnt() const {
@@ -136,7 +142,7 @@ namespace Nepomuk2 {
          *
          * \returns The initialized ResourceData object representing the actual resource.
          *
-         * m_determineUriMutex needs to be locked before calling this method
+         * The resource manager mutex needs to be locked before calling this method
          */
         ResourceData* determineUri();
 
@@ -151,21 +157,27 @@ namespace Nepomuk2 {
 
         ResourceManagerPrivate* rm() const { return m_rm; }
 
-        /// Contains a list of resources which use this ResourceData
-        QList<Resource*> m_resources;
-
-        QHash<QUrl, Variant> m_cache;
-
-        /// Updates ResourceMangerPrivate's list
+        /// Updates ResourceManagerPrivate's list
         void updateKickOffLists( const QUrl& uri, const Variant& variant );
-        void updateUrlLists( const QUrl& newUrl );
-        void updateIdentifierLists( const QString& string );
+
+        /// Called by ResourceManager (with the RM mutex locked)
+        void propertyRemoved( const Types::Property &prop, const QVariant &value );
+        void propertyAdded( const Types::Property &prop, const QVariant &value );
+
+    private:
+        ResourceData(const ResourceData&); // = delete
+        ResourceData& operator = (const ResourceData&); // = delete
+        void updateUrlLists( const QUrl& oldUrl, const QUrl& newUrl );
+        void updateIdentifierLists( const QString& oldIdentifier, const QString& newIdentifier );
 
         void addToWatcher();
-    private:
+
         /// Will reset this instance to 0 as if constructed without parameters
         /// Used by remove() and deleteData()
         void resetAll( bool isDelete = false );
+
+        /// Contains a list of resources which use this ResourceData
+        QList<Resource*> m_resources;
 
         /// final resource URI created by determineUri
         KUrl m_uri;
@@ -183,7 +195,11 @@ namespace Nepomuk2 {
 
         QAtomicInt m_ref;
 
+        // Protect m_cache, m_cacheDirty but also m_uri, m_nieUrl, m_naoIdentifier, m_addedToWatcher.
+        // Never lock the ResourceManager mutex after locking this one. Always before (or not at all).
         mutable QMutex m_modificationMutex;
+
+        QHash<QUrl, Variant> m_cache;
 
         bool m_cacheDirty;
         bool m_addedToWatcher;

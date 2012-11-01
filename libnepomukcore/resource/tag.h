@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef _TAG_H_
-#define _TAG_H_
+#ifndef _NEPOMUK2_TAG_H_
+#define _NEPOMUK2_TAG_H_
 
 #include "resource.h"
 #include "nepomuk_export.h"

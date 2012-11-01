@@ -95,7 +95,6 @@ namespace {
     bool IgnoringKInotify::filterWatch( const QString & path, WatchEvents & modes, WatchFlags & flags )
     {
         Q_UNUSED( flags );
-
         // Only watch the index folders for file creation and change.
         if( Nepomuk2::FileIndexerConfig::self()->shouldFolderBeIndexed( path ) ) {
             modes |= KInotify::EventCloseWrite;
@@ -104,8 +103,8 @@ namespace {
         else {
             modes &= (~KInotify::EventCloseWrite);
             modes &= (~KInotify::EventCreate);
+            return Nepomuk2::FileIndexerConfig::self()->shouldFolderBeWatched( path );
         }
-
         return true;
     }
 }
@@ -114,6 +113,9 @@ namespace {
 
 Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
     : Service( parent )
+#ifdef BUILD_KINOTIFY
+    , m_dirWatch( 0 )
+#endif
 {
     // Create the configuration instance singleton (for thread-safety)
     // ==============================================================
@@ -323,8 +325,11 @@ void Nepomuk2::FileWatch::connectToKDirWatch()
 void Nepomuk2::FileWatch::slotInotifyWatchUserLimitReached()
 {
     // we do it the brutal way for now hoping with new kernels and defaults this will never happen
-    delete m_dirWatch;
-    m_dirWatch = 0;
+    // Delete the KInotify and switch to KDirNotify dbus signals
+    if( m_dirWatch ) {
+        m_dirWatch->deleteLater();
+        m_dirWatch = 0;
+    }
     connectToKDirWatch();
 }
 #endif
@@ -412,7 +417,9 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
 void Nepomuk2::FileWatch::slotDeviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry )
 {
 #ifdef BUILD_KINOTIFY
-    m_dirWatch->removeWatch( entry->mountPath() );
+    if( m_dirWatch ) {
+        m_dirWatch->removeWatch( entry->mountPath() );
+    }
 #endif
 }
 

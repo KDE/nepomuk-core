@@ -363,16 +363,28 @@ namespace Nepomuk2 {
      */
     enum StoreResourcesFlag {
         /// No flags - default behaviour
-        NoStoreResourcesFlags = 0,
+        NoStoreResourcesFlags = 0x0,
 
         /// By default storeResources() will only append data and fail if properties with
         /// cardinality 1 already have a value. This flag changes the behaviour to force the
         /// new values instead.
-        OverwriteProperties = 1,
+        OverwriteProperties = 0x1,
 
         /// When lazy cardinalities are enabled any value that would violate a cardinality restriction
         /// is simply dropped without throwing an error.
-        LazyCardinalities = 2
+        LazyCardinalities = 0x2,
+
+        /// By default storeResources will only append data and fail if properties with
+        /// cardinality 1 already have a value. This flags changes the behaviour to force the
+        /// new value and discards all the previous values. This also works for properties where
+        /// the cardinality is not 1
+        /// It is useful when making large bulk changes
+        OverwriteAllProperties = 0x4,
+
+        /// When this is enabled each SimpleResource will be checked to make sure a duplicate of it
+        /// does not already exist in the SimpleResourceGraph. If it does exist, then those
+        /// SimpleResources are merged together.
+        MergeDuplicateResources = 0x8
     };
     Q_DECLARE_FLAGS(StoreResourcesFlags, StoreResourcesFlag)
 

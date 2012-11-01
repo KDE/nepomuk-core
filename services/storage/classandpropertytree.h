@@ -95,6 +95,7 @@ private:
 
     QHash<QUrl, ClassOrProperty*> m_tree;
 
+    // TODO: Convert to read/write lock
     mutable QMutex m_mutex;
 
     static ClassAndPropertyTree* s_self;

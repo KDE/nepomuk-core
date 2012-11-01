@@ -12,12 +12,18 @@ include_directories(
 set(nepomukfileindexer_SRCS
   fileindexer.cpp
   indexscheduler.cpp
+  indexingqueue.cpp
+  basicindexingqueue.cpp
+  fileindexingqueue.cpp
   indexcleaner.cpp
   fileindexerconfig.cpp
+  indexer/simpleindexer.cpp
   eventmonitor.cpp
   util.cpp
   nepomukindexer.cpp
   )
+
+soprano_add_ontology(nepomukfileindexer_SRCS ${nepomuk_ontologies_SOURCE_DIR}/kext.trig "KExt" "Nepomuk2::Vocabulary" "trig")
 
 qt4_add_dbus_adaptor(nepomukfileindexer_SRCS ../../interfaces/org.kde.nepomuk.FileIndexer.xml fileindexer.h Nepomuk2::FileIndexer )
 
@@ -27,13 +33,13 @@ kde4_add_plugin(nepomukfileindexer ${nepomukfileindexer_SRCS})
 
 target_link_libraries(nepomukfileindexer
   nepomukcommon
+  nepomukcore
   ${KDE4_KDEUI_LIBS}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
   ${KDE4_KIDLETIME_LIBS}
-  nepomukcore
   ${SOPRANO_LIBRARIES}
-  )
+)
 
 install(
   FILES nepomukfileindexer.desktop

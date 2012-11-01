@@ -19,8 +19,8 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_QUERY_AND_TERM_P_H_
-#define _NEPOMUK_QUERY_AND_TERM_P_H_
+#ifndef _NEPOMUK2_QUERY_AND_TERM_P_H_
+#define _NEPOMUK2_QUERY_AND_TERM_P_H_
 
 #include "groupterm_p.h"
 

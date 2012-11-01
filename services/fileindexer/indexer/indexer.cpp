@@ -1,7 +1,7 @@
 /*
    This file is part of the Nepomuk KDE project.
    Copyright (C) 2010-2011 Sebastian Trueg <trueg@kde.org>
-   Copyright (C) 2011 Vishesh Handa <handa.vish@gmail.com>
+   Copyright (C) 2011-2012 Vishesh Handa <handa.vish@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -21,159 +21,192 @@
 */
 
 #include "indexer.h"
-#include "nepomukindexwriter.h"
+#include "extractorplugin.h"
+#include "simpleindexer.h"
+#include "../util.h"
+#include "kext.h"
 
-#include "nie.h"
+#include "storeresourcesjob.h"
+#include "resourcemanager.h"
+
+#include <Soprano/Model>
+#include <Soprano/QueryResultIterator>
 
 #include <KDebug>
+#include <KJob>
+
+#include <KService>
+#include <KServiceTypeTrader>
 
 #include <QtCore/QDataStream>
 #include <QtCore/QDateTime>
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
+#include <QtCore/QTimer>
 
-#include <strigi/strigiconfig.h>
-#include <strigi/indexwriter.h>
-#include <strigi/analysisresult.h>
-#include <strigi/fileinputstream.h>
-#include <strigi/analyzerconfiguration.h>
+#include <Soprano/Vocabulary/NRL>
+#include <Soprano/Vocabulary/RDF>
 
-#include <iostream>
+using namespace Soprano::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
-
-namespace {
-    class StoppableConfiguration : public Strigi::AnalyzerConfiguration
-    {
-    public:
-        StoppableConfiguration(const QStringList& disabled = QStringList())
-            : m_stop(false), disabledPlugins(disabled) {
-#if defined(STRIGI_IS_VERSION)
-#if STRIGI_IS_VERSION( 0, 6, 1 )
-            setIndexArchiveContents( false );
-#endif
-#endif
-        }
-
-        bool indexMore() const {
-            return !m_stop;
-        }
-
-        bool addMoreText() const {
-            return !m_stop;
-        }
-        using Strigi::AnalyzerConfiguration::useFactory;
-
-        bool useFactory(Strigi::StreamAnalyzerFactory* f) const {
-            if(disabledPlugins.contains((*f).name()))
-		return false;
-	    else
-		return true;
-        }
-
-        void setStop( bool s ) {
-            m_stop = s;
-        }
-
-    private:
-        bool m_stop;
-	const QStringList disabledPlugins;
-    };
-}
-
-
-class Nepomuk2::Indexer::Private
+Nepomuk2::Indexer::Indexer( QObject* parent )
+    : QObject( parent )
 {
-public:
-    Private(const QStringList& disabledPlugins)
-	: m_analyzerConfig(disabledPlugins){};
-    StoppableConfiguration m_analyzerConfig;
-    StrigiIndexWriter* m_indexWriter;
-    Strigi::StreamAnalyzer* m_streamAnalyzer;
-    QString m_lastError;
-};
+    // Get all the plugins
+    KService::List plugins = KServiceTypeTrader::self()->query( "NepomukFileExtractor" );
 
-//The final option defaults to empty, for backward compatibility
-Nepomuk2::Indexer::Indexer( QObject* parent , const QStringList& disabledPlugin)
-    : QObject( parent ),
-      d( new Private(disabledPlugin) )
-{
-    d->m_indexWriter = new StrigiIndexWriter();
-    d->m_streamAnalyzer = new Strigi::StreamAnalyzer( d->m_analyzerConfig );
-    d->m_streamAnalyzer->setIndexWriter( *d->m_indexWriter );
+    KService::List::const_iterator it;
+    for( it = plugins.constBegin(); it != plugins.constEnd(); it++ ) {
+        KService::Ptr service = *it;
+
+        QString error;
+        Nepomuk2::ExtractorPlugin* ex = service->createInstance<Nepomuk2::ExtractorPlugin>( this, QVariantList(), &error );
+        if( !ex ) {
+            kError() << "Could not create Extractor: " << service->library();
+            kError() << error;
+            continue;
+        }
+
+        foreach(const QString& mime, ex->mimetypes())
+            m_extractors.insertMulti( mime, ex );
+    }
 }
 
 Nepomuk2::Indexer::~Indexer()
 {
-    delete d->m_streamAnalyzer;
-    delete d->m_indexWriter;
-    delete d;
 }
 
 
-bool Nepomuk2::Indexer::indexFile( const KUrl& url, const KUrl resUri, uint mtime )
+bool Nepomuk2::Indexer::indexFile(const KUrl& url)
 {
-    return indexFile( QFileInfo( url.toLocalFile() ), resUri, mtime );
-}
-
-
-bool Nepomuk2::Indexer::indexFile( const QFileInfo& info, const KUrl resUri, uint mtime )
-{
+    QFileInfo info( url.toLocalFile() );
     if( !info.exists() ) {
-        d->m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
+        m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
         return false;
     }
 
-    d->m_analyzerConfig.setStop( false );
-    d->m_indexWriter->forceUri( resUri );
+    QString query = QString::fromLatin1("select ?r ?mtype where { ?r nie:url %1; nie:mimeType ?mtype . }")
+                    .arg( Soprano::Node::resourceToN3( url ) );
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
 
-    // strigi asserts if the file path has a trailing slash
-    const KUrl url( info.filePath() );
-    const QString filePath = url.toLocalFile( KUrl::RemoveTrailingSlash );
-    const QString dir = url.directory( KUrl::IgnoreTrailingSlash );
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
 
-
-    // WARNING: This extra block is present because the indexing is only finished when
-    // analysis result is destroyed
-    {
-        Strigi::AnalysisResult analysisresult( QFile::encodeName( filePath ).data(),
-                                            mtime ? mtime : info.lastModified().toTime_t(),
-                                            *d->m_indexWriter,
-                                            *d->m_streamAnalyzer,
-                                            QFile::encodeName( dir ).data() );
-        if ( info.isFile() && !info.isSymLink() ) {
-            Strigi::InputStream* stream = Strigi::FileInputStream::open( QFile::encodeName( info.filePath() ) );
-            analysisresult.index( stream );
-            delete stream;
-        }
-        else {
-            analysisresult.index(0);
-        }
-
+    QUrl uri;
+    QString mimeType;
+    if( it.next() ) {
+        uri = it[0].uri();
+        mimeType = it[1].literal().toString();
     }
 
-    d->m_lastError = d->m_indexWriter->lastError();
-    return d->m_lastError.isEmpty();
+    kDebug() << uri << mimeType;
+    SimpleResourceGraph graph;
+
+    QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
+    foreach( ExtractorPlugin* ex, extractors ) {
+        graph += ex->extract( uri, url, mimeType );
+    }
+
+    if( !graph.isEmpty() ) {
+        QHash<QUrl, QVariant> additionalMetadata;
+        additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
+
+        // we do not have an event loop - thus, we need to delete the job ourselves
+        QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNew,
+                                                                         NoStoreResourcesFlags, additionalMetadata ) );
+        job->setAutoDelete(false);
+        job->exec();
+        if( job->error() ) {
+            m_lastError = job->errorString();
+            kError() << "SimpleIndexerError: " << job->errorString();
+            return false;
+        }
+
+        kDebug() << "Updating indexing level";
+        updateIndexingLevel( uri, 2 );
+        kDebug() << "Done";
+    }
+
+    return true;
 }
 
-bool Nepomuk2::Indexer::indexStdin(const KUrl resUri, uint mtime)
+bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
 {
-    d->m_analyzerConfig.setStop( false );
-    d->m_indexWriter->forceUri( resUri );
+    QFileInfo info( url.toLocalFile() );
+    if( !info.exists() ) {
+        m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
+        return false;
+    }
 
-    Strigi::AnalysisResult analysisresult( QFile::encodeName(resUri.fileName()).data(),
-                                           mtime ? mtime : QDateTime::currentDateTime().toTime_t(),
-                                           *d->m_indexWriter,
-                                           *d->m_streamAnalyzer );
-    Strigi::FileInputStream stream( stdin, QFile::encodeName(resUri.toLocalFile()).data() );
-    analysisresult.index( &stream );
+    kDebug() << "Starting to clear";
+    KJob* job = Nepomuk2::clearIndexedData( url );
+    kDebug() << "Done";
 
-    d->m_lastError = d->m_indexWriter->lastError();
-    return d->m_lastError.isEmpty();
+    job->exec();
+    if( job->error() ) {
+        kError() << job->errorString();
+        m_lastError = job->errorString();
+
+        return false;
+    }
+
+    kDebug() << "Starting SimpleIndexer";
+    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( url );
+    indexingJob->exec();
+
+    bool status = indexingJob->error();
+    kDebug() << "Saving data " << indexingJob->errorString();
+
+    if( !status ) {
+        QString mimeType = indexingJob->mimeType();
+        QUrl uri = indexingJob->uri();
+
+        SimpleResourceGraph graph;
+
+        QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
+        foreach( ExtractorPlugin* ex, extractors ) {
+            graph += ex->extract( uri, url, mimeType );
+        }
+
+        if( !graph.isEmpty() ) {
+            QHash<QUrl, QVariant> additionalMetadata;
+            additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
+
+            // we do not have an event loop - thus, we need to delete the job ourselves
+            kDebug() << "Saving proper";
+            // HACK: Use OverwriteProperties for the setting the indexingLevel
+            QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNew,
+                                                        NoStoreResourcesFlags, additionalMetadata ) );
+            job->setAutoDelete(false);
+            job->exec();
+            if( job->error() ) {
+                m_lastError = job->errorString();
+                kError() << "SimpleIndexerError: " << job->errorString();
+                return false;
+            }
+            kDebug() << "Updating the indexing level";
+            updateIndexingLevel( uri, 2 );
+            kDebug() << "Done";
+        }
+    }
+
+    return status;
 }
 
 QString Nepomuk2::Indexer::lastError() const
 {
-    return d->m_lastError;
+    return m_lastError;
 }
+
+void Nepomuk2::Indexer::updateIndexingLevel(const QUrl& uri, int level)
+{
+    //FIXME: Maybe this could be done via the manual Soprano Model?
+    QScopedPointer<KJob> job( Nepomuk2::setProperty( QList<QUrl>() << uri, KExt::indexingLevel(),
+                                                            QVariantList() << QVariant(level) ) );
+    job->setAutoDelete(false);
+    job->exec();
+}
+
+
 
 #include "indexer.moc"

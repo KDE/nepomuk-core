@@ -180,7 +180,7 @@ private:
     class Private;
     Private* const d;
 
-    Q_PRIVATE_SLOT( d, void _k_addWatches() )
+    Q_PRIVATE_SLOT( d, bool _k_addWatches() )
 };
 
 #endif

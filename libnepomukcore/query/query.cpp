@@ -418,9 +418,9 @@ QString Nepomuk2::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
         if( d->m_fileMode == FileQuery::QueryFiles )
             fileModeTerm = AndTerm( fileTerm, NegationTerm::negateTerm( folderTerm ) );
         else if( d->m_fileMode == FileQuery::QueryFolders )
-            fileModeTerm = AndTerm( folderTerm, NegationTerm::negateTerm( fileTerm ) );
+            fileModeTerm = folderTerm;
         else
-            fileModeTerm = OrTerm( fileTerm, folderTerm );
+            fileModeTerm = fileTerm;
         term = AndTerm( term, fileModeTerm, d->createFolderFilter() );
     }
 
@@ -449,24 +449,12 @@ QString Nepomuk2::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
     // actually build the SPARQL query patterns
     QueryBuilderData qbd( d.constData(), sparqlFlags );
 
-
-    //
-    // We restrict results to user visible types only. There is no need for this with file queries as normally all files are visible.
-    //
-    QString userVisibilityRestriction;
-    if( !(queryFlags()&NoResultRestrictions) && !d->m_isFileQuery ) {
-        userVisibilityRestriction = QString::fromLatin1("FILTER EXISTS { ?r a [ %1 %2 ] . } . ")
-                                    .arg(Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::userVisible()),
-                                         Soprano::Node::literalToN3(Soprano::LiteralValue(true)));
-    }
-
-
     if(!term.isValid()) {
         return QString();
     }
 
     QString termGraphPattern;
-    termGraphPattern = term.d_ptr->toSparqlGraphPattern( QLatin1String( "?r" ), 0, userVisibilityRestriction, &qbd );
+    termGraphPattern = term.d_ptr->toSparqlGraphPattern( QLatin1String( "?r" ), 0, QString(), &qbd );
     if( termGraphPattern.isEmpty() ) {
         kDebug() << "Got no valid SPARQL pattern from" << term;
         return QString();
@@ -527,6 +515,9 @@ QString Nepomuk2::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
         query += QString::fromLatin1( " OFFSET %1" ).arg( d->m_offset );
     if ( d->m_limit > 0 )
         query += QString::fromLatin1( " LIMIT %1" ).arg( d->m_limit );
+
+    // We never want to show ontology data to the users
+    query = QLatin1String("define input:default-graph-exclude <nepomuk-ontology-group> ") + query;
 
     return query.simplified();
 }

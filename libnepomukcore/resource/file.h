@@ -19,8 +19,8 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef _NEPOMUK_FILE_H_
-#define _NEPOMUK_FILE_H_
+#ifndef _NEPOMUK2_FILE_H_
+#define _NEPOMUK2_FILE_H_
 
 #include "resource.h"
 #include "nepomuk_export.h"

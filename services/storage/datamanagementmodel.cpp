@@ -1,7 +1,7 @@
 /*
    This file is part of the Nepomuk KDE project.
    Copyright (C) 2010-2012 Sebastian Trueg <trueg@kde.org>
-   Copyright (C) 2011 Vishesh Handa <handa.vish@gmail.com>
+   Copyright (C) 2011-2012 Vishesh Handa <handa.vish@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -27,8 +27,9 @@
 #include "simpleresourcegraph.h"
 #include "simpleresource.h"
 #include "resourcewatchermanager.h"
-#include "backupsync/lib/syncresource.h"
+#include "syncresource.h"
 #include "nepomuktools.h"
+#include "typecache.h"
 
 #include <Soprano/Vocabulary/NRL>
 #include <Soprano/Vocabulary/NAO>
@@ -46,6 +47,7 @@
 #include <Soprano/Util/SimpleStatementIterator>
 
 #include <QtCore/QHash>
+#include <QtCore/QCache>
 #include <QtCore/QUrl>
 #include <QtCore/QVariant>
 #include <QtCore/QDateTime>
@@ -183,6 +185,9 @@ public:
 
     /// If true the creation date of graphs is ignored. This results in a lot less graphs
     bool m_ignoreCreationDate;
+
+    QCache<QString, QUrl> m_appCache;
+    TypeCache* m_typeCache;
 };
 
 Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTree* tree, Soprano::Model* model, QObject *parent)
@@ -191,7 +196,9 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
 {
     d->m_classAndPropertyTree = tree;
     d->m_watchManager = new ResourceWatcherManager(this);
+    d->m_typeCache = new TypeCache(this);
     d->m_ignoreCreationDate = false;
+    d->m_appCache.setMaxCost( 10 );
 
     setParent(parent);
 
@@ -210,6 +217,13 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
         addStatement( QUrl("nepomuk:/me"), RDF::type(), PIMO::Person(), graph );
     }
 }
+
+void Nepomuk2::DataManagementModel::clearCache()
+{
+    d->m_appCache.clear();
+    d->m_typeCache->clear();
+}
+
 
 Nepomuk2::DataManagementModel::~DataManagementModel()
 {
@@ -821,9 +835,10 @@ void Nepomuk2::DataManagementModel::removeProperties(const QList<QUrl> &resource
 QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, const QString &label, const QString &description, const QString &app)
 {
     // 1. create an new graph
-    // 2. check if the app exists, if not create it in the new graph
-    // 3. create the new resource in the new graph
-    // 4. return the resource's URI
+    // 2. simplify the types
+    // 3. check if the app exists, if not create it in the new graph
+    // 4. create the new resource in the new graph
+    // 5. return the resource's URI
 
     //
     // Check parameters
@@ -832,31 +847,47 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
         setError(QLatin1String("createResource: Empty application specified. This is not supported."), Soprano::Error::ErrorInvalidArgument);
         return QUrl();
     }
-    else if(types.isEmpty()) {
-        setError(QLatin1String("createResource: No type specified. Cannot create resources without a type."), Soprano::Error::ErrorInvalidArgument);
-        return QUrl();
-    }
-    else {
-        foreach(const QUrl& type, types) {
-            if(type.isEmpty()) {
-                setError(QLatin1String("createResource: Encountered empty type URI."), Soprano::Error::ErrorInvalidArgument);
-                return QUrl();
-            }
-            else if(!d->m_classAndPropertyTree->isKnownClass(type)) {
-                setError(QLatin1String("createResource: Encountered invalid type URI."), Soprano::Error::ErrorInvalidArgument);
-                return QUrl();
-            }
+    QSet<QUrl> newTypes = types.toSet();
+    QMutableSetIterator<QUrl> iterator( newTypes );
+    while( iterator.hasNext() ) {
+        const QUrl type = iterator.next();
+        if(type.isEmpty()) {
+            iterator.remove();
+            continue;
+        }
+
+        if(!d->m_classAndPropertyTree->isKnownClass(type)) {
+            setError(QLatin1String("createResource: Encountered invalid type URI."), Soprano::Error::ErrorInvalidArgument);
+            return QUrl();
         }
     }
 
+    if( newTypes.isEmpty() ) {
+        newTypes << RDFS::Resource();
+    }
+
     clearError();
+
+    // Simplify the types
+    QSetIterator<QUrl> it( newTypes );
+    while( it.hasNext() ) {
+        const QUrl &type = it.next();
+        QSet<QUrl> superTypes = d->m_classAndPropertyTree->allParents( type );
+
+        foreach( const QUrl& parent, superTypes ) {
+            QSet< QUrl >::iterator iter = newTypes.find( parent );
+            if( iter != newTypes.end() ) {
+                newTypes.erase( iter );
+            }
+        }
+    }
 
     // create new URIs and a new graph
     const QUrl graph = createGraph(app);
     const QUrl resUri = createUri(ResourceUri);
 
     // add provided metadata
-    foreach(const QUrl& type, types) {
+    foreach(const QUrl& type, newTypes) {
         addStatement(resUri, RDF::type(), type, graph);
     }
     if(!label.isEmpty()) {
@@ -872,7 +903,7 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
     addStatement(resUri, NAO::lastModified(), Soprano::LiteralValue(now), graph);
 
     // inform interested parties
-    d->m_watchManager->createResource(resUri, types);
+    d->m_watchManager->createResource(resUri, newTypes.toList());
     d->m_watchManager->changeSomething();
 
     return resUri;
@@ -1432,6 +1463,74 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(RemovalFlags flags, 
     removeTrailingGraphs(graphs);
 }
 
+namespace {
+    using namespace Nepomuk2;
+    /**
+     * Looks for pairs of SyncResources that are identical except for the uri and merges
+     * then together into one SyncResource. If any other resources depend on them, they are
+     * accordingly updated.
+     */
+    void mergeDuplicateSyncResources( QList<Sync::SyncResource>& syncResources ) {
+        QHash<Soprano::Node, Soprano::Node> duplicateResources;
+        do {
+            duplicateResources.clear();
+
+            QList<Sync::SyncResource> finalList;
+            QHash< uint, const Sync::SyncResource* > syncResHash;
+            foreach( const Sync::SyncResource& syncRes, syncResources ) {
+
+                // Do not check for duplicates in non blank nodes
+                if( syncRes.uri().url().startsWith("_:") ) {
+
+                    //WARNING: The SyncResource qHash function does not use the uri while preparing the hash.
+                    // If it did, then this would fail miserably.
+                    uint hash = qHash( syncRes );
+                    QHash< uint, const Sync::SyncResource* >::iterator it = syncResHash.find( hash );
+                    if( it != syncResHash.end() ) {
+                        // hash collision : Check the entire contents
+                        const Sync::SyncResource r = *it.value();
+
+                        // We can't use SyncResource::operator== cause that would check the uri as well
+                        // and we don't care about the uri
+                        if( r.QHash<KUrl,Soprano::Node>::operator==(syncRes) ) {
+                            kDebug() << "Adding: " << syncRes.uri() << " " << it.value()->uri();
+                            duplicateResources.insert( convertIfBlankUri( syncRes.uri() ),
+                                                    convertIfBlankUri( it.value()->uri() ) );
+                            continue;
+                        }
+                    }
+
+                    syncResHash.insert( hash, &syncRes );
+                }
+
+                finalList << syncRes;
+            }
+
+            if( !duplicateResources.isEmpty() ) {
+                // Resolve all duplicates in the finalList
+                QMutableListIterator<Sync::SyncResource> it( finalList );
+                while( it.hasNext() ) {
+                    it.next();
+
+                    QMutableHashIterator<KUrl, Soprano::Node> iter( it.value() );
+                    while( iter.hasNext() ) {
+                        iter.next();
+
+                        const Soprano::Node node = iter.value();
+                        if( node.isLiteral() || node.isEmpty() )
+                            continue;
+                        QHash< Soprano::Node, Soprano::Node >::const_iterator fit = duplicateResources.constFind( node );
+                        if( fit != duplicateResources.constEnd() ) {
+                            iter.setValue( fit.value() );
+                        }
+                    }
+                }
+
+                syncResources = finalList;
+            }
+        } while( !duplicateResources.isEmpty() );
+    }
+}
 
 //// TODO: do not allow to create properties or classes this way
 QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::SimpleResourceGraph &resources,
@@ -1531,7 +1630,6 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
 
 
     ResourceIdentifier resIdent( identificationMode, this );
-    QList<Soprano::Statement> allStatements;
     QList<Sync::SyncResource> syncResources;
 
     //
@@ -1540,7 +1638,7 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
     foreach( const SimpleResource& res, resGraph.toList() ) {
         // Convert to a Sync::SyncResource
         //
-        Sync::SyncResource syncRes( res.uri() ); //vHanda: Will this set the uri properly?
+        Sync::SyncResource syncRes( res.uri() );
         QHashIterator<QUrl, QVariant> hit( res.properties() );
         while( hit.hasNext() ) {
             hit.next();
@@ -1559,6 +1657,9 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
             }
             syncRes.insert( hit.key(), n );
         }
+
+        // Temporarily remove the nie:url, we will add it back later
+        const QUrl nieUrl = syncRes.take( NIE::url() ).uri();
 
         QMutableHashIterator<KUrl, Soprano::Node> it( syncRes );
         while( it.hasNext() ) {
@@ -1585,134 +1686,82 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
             }
 
             else if( object.isResource() ) {
-                if( it.key() != NIE::url() ) {
-                    const UriState state = uriState(object.uri());
-                    if(state==NepomukUri || state == OntologyUri) {
-                        continue;
+                const UriState state = uriState(object.uri());
+                if(state==NepomukUri || state == OntologyUri) {
+                    continue;
+                }
+                else if(state == NonExistingFileUrl) {
+                    setError(QString::fromLatin1("Cannot store information about non-existing local files. File '%1' does not exist.").arg(object.uri().toLocalFile()),
+                                Soprano::Error::ErrorInvalidArgument);
+                    return QHash<QUrl, QUrl>();
+                }
+                else if(state == ExistingFileUrl || state==SupportedUrl) {
+                    const QUrl nieUrl = object.uri();
+                    // Need to resolve it
+                    QHash< QUrl, QUrl >::const_iterator findIter = resolvedNodes.constFind( nieUrl );
+                    if( findIter != resolvedNodes.constEnd() ) {
+                        it.setValue( convertIfBlankUri(findIter.value()) );
                     }
-                    else if(state == NonExistingFileUrl) {
-                        setError(QString::fromLatin1("Cannot store information about non-existing local files. File '%1' does not exist.").arg(object.uri().toLocalFile()),
-                                 Soprano::Error::ErrorInvalidArgument);
-                        return QHash<QUrl, QUrl>();
-                    }
-                    else if(state == ExistingFileUrl || state==SupportedUrl) {
-                        const QUrl nieUrl = object.uri();
-                        // Need to resolve it
-                        QHash< QUrl, QUrl >::const_iterator findIter = resolvedNodes.constFind( nieUrl );
-                        if( findIter != resolvedNodes.constEnd() ) {
-                            it.setValue( convertIfBlankUri(findIter.value()) );
-                        }
-                        else {
-                            Sync::SyncResource newRes;
+                    else {
+                        Sync::SyncResource newRes;
 
-                            // It doesn't exist, create it
-                            QUrl resolvedUri = resolveUrl( nieUrl );
-                            if( resolvedUri.isEmpty() ) {
-                                resolvedUri = SimpleResource().uri(); // HACK: improveme
+                        // It doesn't exist, create it
+                        QUrl resolvedUri = resolveUrl( nieUrl );
+                        if( resolvedUri.isEmpty() ) {
+                            resolvedUri = SimpleResource().uri(); // HACK: improveme
 
-                                newRes.insert( NIE::url(), nieUrl );
-                                if( state == ExistingFileUrl ) {
-                                    newRes.insert( RDF::type(), NFO::FileDataObject() );
-                                    if( QFileInfo( nieUrl.toLocalFile() ).isDir() )
-                                        newRes.insert( RDF::type(), NFO::Folder() );
-                                }
-
-                                newRes.setUri( resolvedUri );
-                                syncResources << newRes;
+                            newRes.insert( NIE::url(), nieUrl );
+                            if( state == ExistingFileUrl ) {
+                                newRes.insert( RDF::type(), NFO::FileDataObject() );
+                                if( QFileInfo( nieUrl.toLocalFile() ).isDir() )
+                                    newRes.insert( RDF::type(), NFO::Folder() );
                             }
 
-                            resolvedNodes.insert( nieUrl, resolvedUri );
-                            it.setValue( convertIfBlankUri(resolvedUri) );
+                            newRes.setUri( resolvedUri );
+                            syncResources << newRes;
                         }
-                    }
-                    else if(state == OtherUri) {
-                        // We use resolveUrl to check if the otherUri exists. If it doesn't exist,
-                        // then resolveUrl which set the last error
-                        // trueg: seems like a waste to not use the resolved uri here!
-                        const QUrl legacyUri = resolveUrl( object.uri() );
-                        if( lastError() )
-                            return QHash<QUrl, QUrl>();
 
-                        // It apparently exists, so we must support it
+                        resolvedNodes.insert( nieUrl, resolvedUri );
+                        it.setValue( convertIfBlankUri(resolvedUri) );
                     }
                 }
-                else {
-                    // Check if the file exists
-                    QUrl url = object.uri();
-                    if( url.scheme() == QLatin1String("file") && !QFile::exists(url.toLocalFile()) ) {
-                        setError(QString::fromLatin1("Cannot store information about non-existing local files. File '%1' does not exist.").arg(object.uri().toLocalFile()),
-                                 Soprano::Error::ErrorInvalidArgument);
+                else if(state == OtherUri) {
+                    // We use resolveUrl to check if the otherUri exists. If it doesn't exist,
+                    // then resolveUrl which set the last error
+                    // trueg: seems like a waste to not use the resolved uri here!
+                    const QUrl legacyUri = resolveUrl( object.uri() );
+                    if( lastError() )
                         return QHash<QUrl, QUrl>();
-                    }
+
+                    // It apparently exists, so we must support it
                 }
             } // if object.isResurce
         } // while( it.hasNext() )
+
+        // Check if the nie:url exists
+        if( nieUrl.scheme() == QLatin1String("file") && !QFile::exists(nieUrl.toLocalFile()) ) {
+            setError(QString::fromLatin1("Cannot store information about non-existing local files. File '%1' does not exist.").arg(nieUrl.toLocalFile()),
+                        Soprano::Error::ErrorInvalidArgument);
+            return QHash<QUrl, QUrl>();
+        }
+
+        // We had removed the nie:url in the begining, we must insert it again
+        if( !nieUrl.isEmpty() )
+            syncRes.insert( NIE::url(), nieUrl );
+
         // The resource is now ready.
         syncResources << syncRes;
     }
 
     blankResources.clear();
 
-    // Look for duplicates in the syncResources and merge them
-    QHash<Soprano::Node, Soprano::Node> duplicateResources;
-    do {
-        duplicateResources.clear();
-
-        QList<Sync::SyncResource> finalList;
-        QHash< uint, const Sync::SyncResource* > syncResHash;
-        foreach( const Sync::SyncResource& syncRes, syncResources ) {
-
-            //WARNING: The SyncResource qHash function does not use the uri while preparing the hash.
-            // If it did, then this would fail miserably.
-            uint hash = qHash( syncRes );
-            QHash< uint, const Sync::SyncResource* >::iterator it = syncResHash.find( hash );
-            if( it != syncResHash.end() ) {
-                // hash collision : Check the entire contents
-                const Sync::SyncResource r = *it.value();
-
-                // We can't use SyncResource::operator== cause that would check the uri as well
-                // and we don't care about the uri
-                if( r.QHash<KUrl,Soprano::Node>::operator==(syncRes) ) {
-                    kDebug() << "Adding: " << syncRes.uri() << " " << it.value()->uri();
-                    duplicateResources.insert( convertIfBlankUri( syncRes.uri() ),
-                                               convertIfBlankUri( it.value()->uri() ) );
-                    continue;
-                }
-            }
-
-            syncResHash.insert( hash, &syncRes );
-            finalList << syncRes;
-        }
-
-        // Resolve all duplicates in the finalList
-        QMutableListIterator<Sync::SyncResource> it( finalList );
-        while( it.hasNext() ) {
-            it.next();
-
-            QMutableHashIterator<KUrl, Soprano::Node> iter( it.value() );
-            while( iter.hasNext() ) {
-                iter.next();
-
-                const Soprano::Node node = iter.value();
-                if( node.isLiteral() || node.isEmpty() )
-                    continue;
-                QHash< Soprano::Node, Soprano::Node >::const_iterator fit = duplicateResources.constFind( node );
-                if( fit != duplicateResources.constEnd() ) {
-                    iter.setValue( fit.value() );
-                }
-            }
-        }
-
-        syncResources = finalList;
-    } while( !duplicateResources.isEmpty() );
-
-    // Free up some memory
-    duplicateResources.clear();
+    if( flags & MergeDuplicateResources ) {
+        mergeDuplicateSyncResources( syncResources );
+    }
 
     // Push it into the Resource Identifier
     foreach( const Sync::SyncResource& syncRes, syncResources ) {
         QList< Soprano::Statement > stList = syncRes.toStatementList();
-        allStatements << stList;
 
         if(stList.isEmpty()) {
             setError(QString::fromLatin1("storeResources: Encountered empty sync resource (%1). This is a bug. Please report.").arg(syncRes.uri().url()));
@@ -1727,47 +1776,6 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
     }
 
     //
-    // Check the created statements
-    //
-    foreach(const Soprano::Statement& s, allStatements) {
-        if(!s.isValid()) {
-            kDebug() << "Invalid statement after resource conversion:" << s;
-            setError(QLatin1String("storeResources: Encountered invalid statement after resource conversion."), Soprano::Error::ErrorInvalidArgument);
-            return QHash<QUrl, QUrl>();
-        }
-    }
-
-    //
-    // For better identification add rdf:type and nie:url to resolvedNodes
-    //
-    QHashIterator<QUrl, QUrl> it2( resolvedNodes );
-    while( it2.hasNext() ) {
-        it2.next();
-
-        const QUrl fileUrl = it2.key();
-        const QUrl uri = it2.value();
-
-        const Sync::SyncResource existingRes = resIdent.simpleResource( uri );
-
-        Sync::SyncResource res;
-        res.setUri( uri );
-
-        if( !existingRes.contains( RDF::type(), NFO::FileDataObject() ) )
-            res.insert( RDF::type(), NFO::FileDataObject() );
-
-        if( !existingRes.contains( NIE::url(), fileUrl ) )
-            res.insert( NIE::url(), fileUrl );
-
-        if( QFileInfo( fileUrl.toString() ).isDir() && !existingRes.contains( RDF::type(), NFO::Folder() ) )
-            res.insert( RDF::type(), NFO::Folder() );
-
-        resIdent.addSyncResource( res );
-    }
-
-    clearError();
-
-
-    //
     // Perform the actual identification
     //
     resIdent.identifyAll();
@@ -1778,7 +1786,7 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
 
     ResourceMerger merger( this, app, additionalMetadata, flags );
     merger.setMappings( resIdent.mappings() );
-    if( !merger.merge( Soprano::Graph(allStatements) ) ) {
+    if( !merger.merge( resIdent.resourceHash() ) ) {
         kDebug() << " MERGING FAILED! ";
         kDebug() << "Setting error!" << merger.lastError();
         setError( merger.lastError() );
@@ -1892,7 +1900,10 @@ void Nepomuk2::DataManagementModel::mergeResources(const QList<QUrl>& resources,
         // if the property has no cardinality of 1 or no value is defined yet we can simply convert the value to res1
         if(d->m_classAndPropertyTree->maxCardinality(prop) != 1 ||
                 binding["c"].literal().toInt() == 0) {
-            addStatement(resUri, prop, binding["v"], binding["g"]);
+            const Soprano::Node v = binding["v"];
+            addStatement(resUri, prop, v, binding["g"]);
+            d->m_watchManager->changeProperty( resUri, prop, QList<Soprano::Node>() << v,
+                                               QList<Soprano::Node>() );
         }
     }
 
@@ -2258,40 +2269,38 @@ QUrl Nepomuk2::DataManagementModel::createGraph(const QString& app, const QMulti
 
     // determine the graph type
     bool haveGraphType = false;
-    for(QHash<QUrl, Soprano::Node>::const_iterator it = additionalMetadata.constBegin();
-        it != additionalMetadata.constEnd(); ++it) {
-        const QUrl& property = it.key();
+    bool hasNaoCreated = false;
 
-        if(property == RDF::type()) {
-            // check if it is a valid type
-            if(!it.value().isResource()) {
-                setError(QString::fromLatin1("rdf:type has resource range. '%1' does not have a resource type.").arg(it.value().toN3()), Soprano::Error::ErrorInvalidArgument);
-                return QUrl();
-            }
-            else {
-                if(d->m_classAndPropertyTree->isChildOf(it.value().uri(), NRL::Graph()))
-                    haveGraphType = true;
-            }
+    QHash< QUrl, Soprano::Node >::const_iterator it = additionalMetadata.constFind( RDF::type() );
+    if( it != additionalMetadata.constEnd() ) {
+        // check if it is a valid type
+        if(!it.value().isResource()) {
+            setError(QString::fromLatin1("rdf:type has resource range. '%1' does not have a resource type.").arg(it.value().toN3()), Soprano::Error::ErrorInvalidArgument);
+            return QUrl();
         }
-
-        else if(property == NAO::created()) {
-            if(!it.value().literal().isDateTime()) {
-                setError(QString::fromLatin1("nao:created has xsd:dateTime range. '%1' is not convertable to a dateTime.").arg(it.value().toN3()), Soprano::Error::ErrorInvalidArgument);
-                return QUrl();
-            }
-        }
-
         else {
-            // FIXME: check property, domain, and range
-            // Reuse code from ResourceMerger::checkGraphMetadata
+            if(d->m_classAndPropertyTree->isChildOf(it.value().uri(), NRL::Graph()))
+                haveGraphType = true;
         }
     }
+
+    it = additionalMetadata.constFind( NAO::created() );
+    if( it != additionalMetadata.constEnd() ) {
+        if(!it.value().literal().isDateTime()) {
+            setError(QString::fromLatin1("nao:created has xsd:dateTime range. '%1' is not convertable to a dateTime.").arg(it.value().toN3()), Soprano::Error::ErrorInvalidArgument);
+            return QUrl();
+        }
+        hasNaoCreated = true;
+    }
+
+    // FIXME: check property, domain, and range
+    // Reuse code from ResourceMerger::checkGraphMetadata
 
     // add missing metadata
     if(!haveGraphType) {
         graphMetaData.insert(RDF::type(), NRL::InstanceBase());
     }
-    if(!graphMetaData.contains(NAO::created()) && !d->m_ignoreCreationDate) {
+    if(!hasNaoCreated && !d->m_ignoreCreationDate) {
         graphMetaData.insert(NAO::created(), Soprano::LiteralValue(QDateTime::currentDateTime()));
     }
     if(!graphMetaData.contains(NAO::maintainedBy()) && !app.isEmpty()) {
@@ -2331,13 +2340,24 @@ QUrl Nepomuk2::DataManagementModel::createGraph(const QString& app, const QMulti
     const QUrl metadatagraph = createUri(GraphUri);
 
     // add metadata graph itself
-    addStatement(metadatagraph, NRL::coreGraphMetadataFor(), graph, metadatagraph);
-    addStatement(metadatagraph, RDF::type(), NRL::GraphMetadata(), metadatagraph);
+    const QString metaN3 = Soprano::Node::resourceToN3( metadatagraph );
+    const QString graphN3 = Soprano::Node::resourceToN3( graph );
+
+    QString query = QString::fromLatin1("sparql insert into %1 { %1 nrl:coreGraphMetadataFor %2 ;"
+                                        " rdf:type nrl:GraphMetadata . %2 ")
+                    .arg( metaN3, graphN3 );
+
 
     for(QHash<QUrl, Soprano::Node>::const_iterator it = graphMetaData.constBegin();
         it != graphMetaData.constEnd(); ++it) {
-        addStatement(graph, it.key(), it.value(), metadatagraph);
+
+        query += QString::fromLatin1(" %1 %2 ;")
+                 .arg( Soprano::Node::resourceToN3(it.key()), it.value().toN3() );
     }
+    query[ query.length() - 1 ] = QChar::fromLatin1('.');
+    query.append( QLatin1Char('}') );
+
+    executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 
     return graph;
 }
@@ -2385,14 +2405,20 @@ QUrl Nepomuk2::DataManagementModel::splitGraph(const QUrl &graph, const QUrl& me
 
 QUrl Nepomuk2::DataManagementModel::findApplicationResource(const QString &app, bool create)
 {
+    QUrl* uri = d->m_appCache.object( app );
+    if( uri ) {
+        return *uri;
+    }
+
     Soprano::QueryResultIterator it =
-            executeQuery(QString::fromLatin1("select ?r where { ?r a %1 . ?r %2 %3 . } LIMIT 1")
-                         .arg(Soprano::Node::resourceToN3(NAO::Agent()),
-                              Soprano::Node::resourceToN3(NAO::identifier()),
-                              Soprano::Node::literalToN3(app)),
+            executeQuery(QString::fromLatin1("select ?r where { ?r a nao:Agent . ?r nao:identifier %1 . } LIMIT 1")
+                         .arg( Soprano::Node::literalToN3(app) ),
                          Soprano::Query::QueryLanguageSparql);
     if(it.next()) {
-        return it[0].uri();
+        const QUrl newUri = it[0].uri();
+        d->m_appCache.insert( app, new QUrl(newUri) );
+
+        return newUri;
     }
     else if(create) {
         const QUrl graph = createGraph(QString(), QMultiHash<QUrl, Soprano::Node>());
@@ -2408,6 +2434,7 @@ QUrl Nepomuk2::DataManagementModel::findApplicationResource(const QString &app, 
             addStatement(uri, NAO::prefLabel(), Soprano::LiteralValue(services.first()->name()), graph);
         }
 
+        d->m_appCache.insert( app, new QUrl(uri) );
         return uri;
     }
     else {
@@ -2426,18 +2453,18 @@ QUrl Nepomuk2::DataManagementModel::createUri(Nepomuk2::DataManagementModel::Uri
     while( 1 ) {
         QString uuid = QUuid::createUuid().toString();
         uuid = uuid.mid(1, uuid.length()-2);
-        const QUrl uri = QUrl( QLatin1String("nepomuk:/") + typeToken + QLatin1String("/") + uuid );
-        if ( !FilterModel::executeQuery( QString::fromLatin1("ask where { "
-                                                             "{ %1 ?p1 ?o1 . } "
-                                                             "UNION "
-                                                             "{ ?s2 %1 ?o2 . } "
-                                                             "UNION "
-                                                             "{ ?s3 ?p3 %1 . } "
-                                                             "UNION "
-                                                             "{ graph %1 { ?s4 ?4 ?o4 . } . } "
-                                                             "}")
-                                        .arg( Soprano::Node::resourceToN3(uri) ), Soprano::Query::QueryLanguageSparql ).boolValue() ) {
-            return uri;
+
+        QString uriString = QString::fromLatin1("nepomuk:/%1/%2").arg( typeToken, uuid );
+        const QUrl uri( uriString );
+
+        // The iri_to_id command returns an id of the form "#num" if the uri exists in the database
+        // and NULL if it doesn't. This method is a LOT faster than checking if the uri exists
+        // as a subject / predicate / object or graph.
+        QString query = QString::fromLatin1("select iri_to_id( '%1', 0 )") .arg( uriString );
+        Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+        if( it.next() ) {
+            if( it[0].literal().toString().isEmpty() )
+                return uri;
         }
     }
 }
@@ -2928,8 +2955,15 @@ Nepomuk2::ResourceWatcherManager* Nepomuk2::DataManagementModel::resourceWatcher
     return d->m_watchManager;
 }
 
+TypeCache* DataManagementModel::typeCache()
+{
+    return d->m_typeCache;
+}
+
 void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resources, RemovalFlags flags)
 {
+    Q_UNUSED(flags);
+
     QSet<QUrl> resolvedResources(resources);
 
     //
@@ -2990,8 +3024,11 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resourc
     modifiedResources -= actuallyRemovedResources;
 
 
-    // remove the resources
+    // remove the resources and inform interested parties
     foreach(const Soprano::Node& res, actuallyRemovedResources) {
+        // The WatcherManaager fill automatically fetch the types
+        d->m_watchManager->removeResource(res.uri(), QList<QUrl>());
+
         removeAllStatements(res, Soprano::Node(), Soprano::Node());
         removeAllStatements(Soprano::Node(), Soprano::Node(), res);
     }
@@ -3003,11 +3040,7 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resourc
                                            QList<Soprano::Node>(),
                                            QList<Soprano::Node>() << st.object() );
     }
-    // inform interested parties
-    // TODO: ideally we should also report the types the removed resources had
-    foreach(const Soprano::Node& res, actuallyRemovedResources) {
-        d->m_watchManager->removeResource(res.uri(), QList<QUrl>());
-    }
+
     if(!actuallyRemovedResources.isEmpty()) {
         d->m_watchManager->changeSomething();
     }

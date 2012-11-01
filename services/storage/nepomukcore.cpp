@@ -20,7 +20,8 @@
 #include "repository.h"
 #include "ontologyloader.h"
 #include "query/queryservice.h"
-#include "backupsync/service/backupsyncservice.h"
+#include "backup/backupmanager.h"
+#include "resourcemanager.h"
 
 #include <KDebug>
 #include <KSharedConfig>
@@ -38,7 +39,7 @@ Nepomuk2::Core::Core( QObject* parent )
       m_repository( 0 ),
       m_ontologyLoader( 0 ),
       m_queryService( 0 ),
-      m_backupService( 0 ),
+      m_backupManager( 0 ),
       m_initialized( false )
 {
     // we give the Virtuoso server a server thread max of 100 which is already an insane number
@@ -74,6 +75,10 @@ void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
         emit initializationDone( success );
     }
     else if( !m_ontologyLoader ) {
+        // We overide the main model cause certain classes utilize the Resource class, and we
+        // don't want them using the NepomukMainModel which communicates over a local socket.
+        ResourceManager::instance()->setOverrideMainModel( repo );
+
         // create the ontology loader, let it update all the ontologies,
         // and only then mark the service as initialized
         // TODO: fail the initialization in case loading the ontologies
@@ -84,10 +89,10 @@ void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
         m_ontologyLoader->updateLocalOntologies();
 
         // Query Service
-        m_queryService = new Query::QueryService( repo, this);
+        m_queryService = new Query::QueryService( repo, this );
 
         // Backup Service
-        m_backupService = new BackupSyncService( repo, this );
+        m_backupManager = new BackupManager( m_ontologyLoader, repo, this );
     }
 }
 
@@ -100,8 +105,8 @@ void Nepomuk2::Core::slotRepositoryClosed(Nepomuk2::Repository*)
     delete m_queryService;
     m_queryService = 0;
 
-    delete m_backupService;
-    m_backupService = 0;
+    delete m_backupManager;
+    m_backupManager = 0;
 }
 
 

@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef _NEPOMUK_TOOLS_H_
-#define _NEPOMUK_TOOLS_H_
+#ifndef _NEPOMUK2_TOOLS_H_
+#define _NEPOMUK2_TOOLS_H_
 
 #include <QtCore/QString>
 #include <QtCore/QList>

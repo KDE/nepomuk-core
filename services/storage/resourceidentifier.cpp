@@ -19,7 +19,7 @@
 
 
 #include "resourceidentifier.h"
-#include "backupsync/lib/syncresource.h"
+#include "syncresource.h"
 #include "classandpropertytree.h"
 
 #include <QtCore/QDateTime>
@@ -56,18 +56,21 @@ Nepomuk2::ResourceIdentifier::ResourceIdentifier( Nepomuk2::StoreIdentificationM
     : Nepomuk2::Sync::ResourceIdentifier( model ),
       m_mode( mode )
 {
-    // Resource Metadata
-    addOptionalProperty( NAO::created() );
-    addOptionalProperty( NAO::lastModified() );
-    addOptionalProperty( NAO::creator() );
-    addOptionalProperty( NAO::userVisible() );
+    m_metaProperties.insert( NAO::created() );
+    m_metaProperties.insert( NAO::lastModified() );
+    m_metaProperties.insert( NAO::userVisible() );
+    m_metaProperties.insert( NAO::creator() );
 }
 
 
 bool Nepomuk2::ResourceIdentifier::exists(const KUrl& uri)
 {
+    // Special case for blank nodes
+    if( uri.url().startsWith("_:") )
+        return false;
+
     QString query = QString::fromLatin1("ask { %1 ?p ?o . } ").arg( Soprano::Node::resourceToN3(uri) );
-    return model()->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+    return m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
 }
 
 KUrl Nepomuk2::ResourceIdentifier::duplicateMatch(const KUrl& origUri,
@@ -79,7 +82,7 @@ KUrl Nepomuk2::ResourceIdentifier::duplicateMatch(const KUrl& origUri,
     // For backwards compatibility we keep in mind that three are resources which do not have nao:created defined.
     //
     Soprano::QueryResultIterator it
-            = model()->executeQuery(QString::fromLatin1("select ?r where { ?r %1 ?date . FILTER(?r in (%2)) . } ORDER BY ASC(?date) LIMIT 1")
+            = m_model->executeQuery(QString::fromLatin1("select ?r where { ?r %1 ?date . FILTER(?r in (%2)) . } ORDER BY ASC(?date) LIMIT 1")
                                     .arg(Soprano::Node::resourceToN3(NAO::created()),
                                          resourcesToN3(matchedUris).join(QLatin1String(","))),
                                     Soprano::Query::QueryLanguageSparql);
@@ -94,10 +97,7 @@ KUrl Nepomuk2::ResourceIdentifier::duplicateMatch(const KUrl& origUri,
 
 bool Nepomuk2::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
 {
-    if( uri == NAO::created()
-            || uri == NAO::creator()
-            || uri == NAO::lastModified()
-            || uri == NAO::userVisible() ) {
+    if( m_metaProperties.contains( uri ) ) {
         return false;
     }
     else {
@@ -108,16 +108,6 @@ bool Nepomuk2::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
 
 bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
 {
-    if( m_mode == IdentifyNone )
-        return false;
-
-    if( m_mode == IdentifyNew ) {
-        if( exists( uri ) ) {
-            manualIdentification( uri, uri );
-            return true;
-        }
-    }
-
     //kDebug() << "Identifying : " << uri;
     //
     // Check if a uri with the same name exists
@@ -138,7 +128,7 @@ bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
         QString query = QString::fromLatin1("select ?r where { ?r %1 %2 . }")
                         .arg( Soprano::Node::resourceToN3( NIE::url() ),
                               Soprano::Node::resourceToN3( nieUrl ) );
-        Soprano::QueryResultIterator it = model()->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
         if( it.next() ) {
             const QUrl newUri = it["r"].uri();
             kDebug() << uri << " --> " << newUri;
@@ -148,6 +138,10 @@ bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
 
         return false;
     }
+
+    // If IdentifyNone mode, then we do not run the full identification
+    if( m_mode == IdentifyNone )
+        return false;
 
     // Run the normal identification procedure
     return Sync::ResourceIdentifier::runIdentification( uri );

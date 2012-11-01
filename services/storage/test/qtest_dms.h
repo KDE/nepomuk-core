@@ -44,6 +44,7 @@ inline char* toString(const Soprano::Statement& s) {
 
 namespace Nepomuk2 {
     void insertOntologies( Soprano::Model *model, const QUrl &ontologyGraph );
+    void insertNamespaceAbbreviations( Soprano::Model *model );
 }
 
 #endif // QTEST_DMS_H

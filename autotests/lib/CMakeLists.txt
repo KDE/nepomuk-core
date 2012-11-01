@@ -20,6 +20,7 @@ configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/NepomukTestLibMacros.cmake.in"
 #
 
 set (nepomuk_testlib_SRCS
+    datagenerator.cpp
     testbase.cpp
 )
 
@@ -33,11 +34,13 @@ kde4_add_library (nepomuktestlib
                   ${nepomuk_testlib_SRCS}
 )
 
+add_dependencies(nepomuktestlib nepomukcore)
+
 target_link_libraries (nepomuktestlib
                        ${QT_QTCORE_LIBRARY}
                        ${QT_QTDBUS_LIBRARY}
                        ${QT_QTTEST_LIBRARY}
-                       ${NEPOMUK_CORE_LIBRARY}
+                       nepomukcore
 )
 
 set_target_properties (nepomuktestlib PROPERTIES

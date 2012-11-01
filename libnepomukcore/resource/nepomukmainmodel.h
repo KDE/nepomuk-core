@@ -18,8 +18,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef _NEPOMUK_MAIN_MODEL_H_
-#define _NEPOMUK_MAIN_MODEL_H_
+#ifndef _NEPOMUK2_MAIN_MODEL_H_
+#define _NEPOMUK2_MAIN_MODEL_H_
 
 #include <Soprano/Model>
 #include <Soprano/Vocabulary/RDFS>

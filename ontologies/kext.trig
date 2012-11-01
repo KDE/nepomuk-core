@@ -123,6 +123,15 @@ kext: {
           rdfs:domain kext:ResourceScoreCache ;
           rdfs:label "calculated score" ;
           rdfs:range xsd:float .
+
+    kext:indexingLevel
+          a rdf:Property ;
+          rdfs:comment "The Indexing level of a resource" ;
+          rdfs:domain nfo:FileDataObject ;
+          rdfs:range xsd:int ;
+          rdfs:label "indexing level" ;
+          nrl:maxCardinality 1 ;
+          nao:userVisible false .
 }
 
 <http://nepomuk.kde.org/ontologies/2010/11/29/kext/metadata> {

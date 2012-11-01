@@ -27,13 +27,11 @@
 
 #include <KDebug>
 #include <KDirNotify>
-#include <KIdleTime>
 #include <KLocale>
 
 #include "resourcemanager.h"
 
 #include <QtCore/QTimer>
-
 
 Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     : Service( parent )
@@ -42,13 +40,9 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     // ==============================================================
     (void)new FileIndexerConfig(this);
 
-    // setup the actual index scheduler including strigi stuff
+    // setup the actual index scheduler
     // ==============================================================
-    m_schedulingThread = new QThread( this );
-    m_schedulingThread->start( QThread::IdlePriority );
-
-    m_indexScheduler = new IndexScheduler(); // must not have a parent
-    m_indexScheduler->moveToThread( m_schedulingThread );
+    m_indexScheduler = new IndexScheduler(this);
 
     // monitor all kinds of events
     ( void )new EventMonitor( m_indexScheduler, this );
@@ -74,19 +68,16 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     connect( m_indexScheduler, SIGNAL( indexingSuspended(bool) ),
              this, SIGNAL( statusStringChanged() ) );
 
-    // setup the indexer to index at snail speed for the first two minutes
-    // this is done for KDE startup - to not slow that down too much
-    m_indexScheduler->setIndexingSpeed( IndexScheduler::SnailPace );
-
     // start initial indexing honoring the hidden config option to disable it
-    if(FileIndexerConfig::self()->isInitialRun() ||
-       !FileIndexerConfig::self()->initialUpdateDisabled()) {
+    if( FileIndexerConfig::self()->isInitialRun() || !FileIndexerConfig::self()->initialUpdateDisabled() ) {
         m_indexScheduler->updateAll();
     }
 
-    // delayed init for the rest which uses IO and CPU
-    // FIXME: do not use a random delay value but wait for KDE to be started completely (using the session manager)
-    QTimer::singleShot( 2*60*1000, this, SLOT( finishInitialization() ) );
+    // Creation of watches is a memory intensive process as a large number of
+    // watch file descriptors need to be created ( one for each directory )
+    // So we start it after 2 minutes in order to reduce startup time
+    // FIXME: Add the watches in the file watcher
+    QTimer::singleShot( 2 * 60 * 1000, this, SLOT( updateWatches() ) );
 
     // Connect some signals used in the DBus interface
     connect( this, SIGNAL( statusStringChanged() ),
@@ -102,41 +93,7 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
 
 Nepomuk2::FileIndexer::~FileIndexer()
 {
-    m_schedulingThread->quit();
-    m_schedulingThread->wait();
-
-    delete m_indexScheduler;
 }
-
-
-void Nepomuk2::FileIndexer::finishInitialization()
-{
-    // slow down on user activity (start also only after 2 minutes)
-    KIdleTime* idleTime = KIdleTime::instance();
-    idleTime->addIdleTimeout( 1000 * 60 * 2 ); // 2 min
-
-    connect( idleTime, SIGNAL(timeoutReached(int)), this, SLOT(slotIdleTimeoutReached()) );
-    connect( idleTime, SIGNAL(resumingFromIdle()), this, SLOT(slotIdleTimerResume()) );
-
-    // start out with reduced speed until the user is idle for 2 min
-    m_indexScheduler->setIndexingSpeed( IndexScheduler::ReducedSpeed );
-
-    // Creation of watches is a memory intensive process as a large number of
-    // watch file descriptors need to be created ( one for each directory )
-    updateWatches();
-}
-
-void Nepomuk2::FileIndexer::slotIdleTimeoutReached()
-{
-    m_indexScheduler->setIndexingSpeed( IndexScheduler::FullSpeed );
-    KIdleTime::instance()->catchNextResumeEvent();
-}
-
-void Nepomuk2::FileIndexer::slotIdleTimerResume()
-{
-    m_indexScheduler->setIndexingSpeed( IndexScheduler::ReducedSpeed );
-}
-
 
 void Nepomuk2::FileIndexer::slotIndexingDone()
 {
@@ -177,7 +134,7 @@ QString Nepomuk2::FileIndexer::userStatusString( bool simple ) const
     }
     else if ( indexing ) {
         QString folder = m_indexScheduler->currentFolder();
-        bool autoUpdate =  m_indexScheduler->currentFlags() & IndexScheduler::AutoUpdateFolder;
+        bool autoUpdate =  m_indexScheduler->currentFlags() & AutoUpdateFolder;
 
         if ( folder.isEmpty() || simple ) {
             if( autoUpdate ) {
@@ -294,11 +251,11 @@ void Nepomuk2::FileIndexer::indexFolder(const QString& path, bool recursive, boo
 
         kDebug() << "Updating : " << dirPath;
 
-        Nepomuk2::IndexScheduler::UpdateDirFlags flags;
+        Nepomuk2::UpdateDirFlags flags;
         if(recursive)
-            flags |= Nepomuk2::IndexScheduler::UpdateRecursive;
+            flags |= Nepomuk2::UpdateRecursive;
         if(forced)
-            flags |= Nepomuk2::IndexScheduler::ForceUpdate;
+            flags |= Nepomuk2::ForceUpdate;
 
         m_indexScheduler->updateDir( dirPath, flags );
     }

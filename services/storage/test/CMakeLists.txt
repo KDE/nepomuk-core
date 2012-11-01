@@ -32,6 +32,9 @@ set( DMTEST
   ../resourcemerger.cpp
   ../resourceidentifier.cpp
   ../virtuosoinferencemodel.cpp
+  ../syncresource.cpp
+  ../syncresourceidentifier.cpp
+  ../typecache.cpp
   ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
   qtest_dms.cpp
 )
@@ -49,7 +52,6 @@ target_link_libraries( datamanagementtestlib
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
   nepomukcore
-  nepomuksync
 )
 
 kde4_add_unit_test(classandpropertytreetest
@@ -72,7 +74,6 @@ target_link_libraries(datamanagementmodeltest
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
   nepomukcore
-  nepomuksync
   datamanagementtestlib
 )
 
@@ -88,7 +89,6 @@ target_link_libraries(datamanagementadaptortest
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
   nepomukcore
-  nepomuksync
   datamanagementtestlib
 )
 
@@ -107,7 +107,6 @@ target_link_libraries(fakedms
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
   nepomukcore
-  nepomuksync
   datamanagementtestlib
 )
 
@@ -137,7 +136,6 @@ target_link_libraries(resourcewatchertest
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
   nepomukcore
-  nepomuksync
 
   datamanagementtestlib
 )

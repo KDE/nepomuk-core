@@ -16,18 +16,14 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef _NEPOMUK_STRIGI_INDEX_SCHEDULER_H_
-#define _NEPOMUK_STRIGI_INDEX_SCHEDULER_H_
+#ifndef _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
+#define _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
 
-#include <QtCore/QThread>
-#include <QtCore/QMutex>
-#include <QtCore/QWaitCondition>
+#include "basicindexingqueue.h"
+
 #include <QtCore/QQueue>
 #include <QtCore/QDateTime>
 #include <QtCore/QTimer>
-
-#include <vector>
-#include <string>
 
 #include <KUrl>
 
@@ -38,7 +34,7 @@ class QByteArray;
 namespace Nepomuk2 {
 
     class IndexCleaner;
-    class Indexer;
+    class FileIndexingQueue;
 
     /**
      * The IndexScheduler performs the normal indexing,
@@ -72,75 +68,15 @@ namespace Nepomuk2 {
          */
         QString currentFile() const;
 
-        enum UpdateDirFlag {
-            /**
-             * No flags, only used to make code more readable
-             */
-            NoUpdateFlags = 0x0,
-
-            /**
-             * The folder should be updated recursive
-             */
-            UpdateRecursive = 0x1,
-
-            /**
-             * The folder has been scheduled to update by the
-             * update system, not by a call to updateDir
-             */
-            AutoUpdateFolder = 0x2,
-
-            /**
-             * The files in the folder should be updated regardless
-             * of their state.
-             */
-            ForceUpdate = 0x4
-        };
-        Q_DECLARE_FLAGS( UpdateDirFlags, UpdateDirFlag )
-
         /**
          * The UpdateDirFlags of the the current url that is being
          * indexed.
          */
         UpdateDirFlags currentFlags() const;
 
-        enum IndexingSpeed {
-            /**
-             * Index at full speed, i.e. do not use any artificial
-             * delays.
-             *
-             * This is the mode used if the user is "away".
-             */
-            FullSpeed = 0,
-
-            /**
-             * Reduce the indexing speed mildly. This is the normal
-             * mode used while the user works. The indexer uses small
-             * delay between indexing two files in order to keep the
-             * load on CPU and IO down.
-             */
-            ReducedSpeed,
-
-            /**
-             * Like ReducedSpeed delays are used but they are much longer
-             * to get even less CPU and IO load. This mode is used for the
-             * first 2 minutes after startup to give the KDE session manager
-             * time to start up the KDE session rapidly.
-             */
-            SnailPace
-        };
-
     public Q_SLOTS:
         void suspend();
         void resume();
-
-        void setIndexingSpeed( IndexingSpeed speed );
-
-        /**
-         * A convenience slot which calls setIndexingSpeed
-         * with either FullSpeed or ReducedSpeed, based on the
-         * value of \p reduced.
-         */
-        void setReducedIndexingSpeed( bool reduced = false );
 
         void setSuspended( bool );
 
@@ -183,9 +119,10 @@ namespace Nepomuk2 {
     private Q_SLOTS:
         void slotConfigChanged();
         void slotCleaningDone();
-        void slotIndexingDone( KJob* job );
-        void doIndexing();
+        void slotIdleTimeoutReached();
+        void slotIndexingFinished();
 
+        void slotBeginIndexingFile(const QUrl& url);
     private:
         /**
          * It first indexes \p dir. Then it checks all the files in \p dir
@@ -197,59 +134,21 @@ namespace Nepomuk2 {
 
         void queueAllFoldersForUpdate( bool forceUpdate = false );
 
-        /**
-         * Deletes all indexed information about entries and all subfolders and files
-         * from the store
-         */
-        void deleteEntries( const QStringList& entries );
-
         // emits indexingStarted or indexingStopped based on parameter. Makes sure
         // no signal is emitted twice
         void setIndexingStarted( bool started );
 
-        /**
-         * Continue indexing async after waiting for the configured delay.
-         * \param noDelay If true indexing will be started immediately without any delay.
-         */
-        void callDoIndexing( bool noDelay = false );
-
         bool m_suspended;
         bool m_indexing;
 
-        mutable QMutex m_suspendMutex;
-        mutable QMutex m_indexingMutex;
-
-        // A specialized queue that gives priority to dirs that do not use the AutoUpdateFolder flag.
-        class UpdateDirQueue : public QQueue<QPair<QString, UpdateDirFlags> >
-        {
-        public:
-            void enqueueDir( const QString& dir, UpdateDirFlags flags );
-            void prependDir( const QString& dir, UpdateDirFlags flags );
-            void clearByFlags( UpdateDirFlags mask );
-        };
-        // queue of folders to update (+flags defined in the source file) - changed by updateDir
-        UpdateDirQueue m_dirsToUpdate;
-
-        // queue of files to update. This is filled from the dirs queue and manual methods like analyzeFile
-        QQueue<QFileInfo> m_filesToUpdate;
-
-        QMutex m_dirsToUpdateMutex;
-        QMutex m_filesToUpdateMutex;
-
-        mutable QMutex m_currentMutex;
-        KUrl m_currentUrl;
-        UpdateDirFlags m_currentFlags;
-
-        int m_indexingDelay;
         IndexCleaner* m_cleaner;
 
-        Indexer* m_currentIndexerJob;
+        // Queues
+        BasicIndexingQueue* m_basicIQ;
+        FileIndexingQueue* m_fileIQ;
     };
-
-    QDebug operator<<( QDebug dbg, IndexScheduler::IndexingSpeed speed );
 }
 
-Q_DECLARE_OPERATORS_FOR_FLAGS(Nepomuk2::IndexScheduler::UpdateDirFlags)
 
 #endif
 

@@ -21,7 +21,7 @@
 #ifndef RESOURCEIDENTIFIER_H
 #define RESOURCEIDENTIFIER_H
 
-#include "backupsync/lib/resourceidentifier.h"
+#include "syncresourceidentifier.h"
 #include "datamanagement.h"
 
 #include <KUrl>
@@ -44,6 +44,7 @@ private:
     bool exists( const KUrl& uri );
 
     Nepomuk2::StoreIdentificationMode m_mode;
+    QSet<QUrl> m_metaProperties;
 };
 
 }

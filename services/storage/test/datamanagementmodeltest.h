@@ -87,6 +87,7 @@ private Q_SLOTS:
     void testRemoveResources_deletedFile();
 
     void testCreateResource();
+    void testCreateResource_types();
     void testCreateResource_invalid_args();
 
     void testRemoveDataByApplication1();
@@ -146,8 +147,11 @@ private Q_SLOTS:
     void testStoreResources_duplicates();
     void testStoreResources_duplicateHierarchy();
     void testStoreResources_duplicates2();
+    void testStoreResources_duplicates3();
     void testStoreResources_duplicatesInMerger();
     void testStoreResources_overwriteProperties();
+    void testStoreResources_overwriteProperties_cardinality();
+    void testStoreResources_overwriteAllProperties();
     void testStoreResources_correctDomainInStore();
     void testStoreResources_correctDomainInStore2();
     void testStoreResources_correctRangeInStore();

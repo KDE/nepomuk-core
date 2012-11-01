@@ -31,8 +31,10 @@
 #include "nmm.h"
 #include "nco.h"
 #include "nie.h"
+#include "pimo.h"
 
 #include <Soprano/LiteralValue>
+#include <Soprano/QueryResultIterator>
 
 using namespace Soprano::Vocabulary;
 using namespace Soprano;
@@ -154,6 +156,7 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NMM::TVShow(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( NMM::TVSeries(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( NMM::MusicPiece(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NMM::MusicPiece(), RDFS::subClassOf(), NFO::FileDataObject(), graph );
 
     // used by testStoreResources_duplicates
     model->addStatement( NFO::hashAlgorithm(), RDF::type(), RDF::Property(), graph );
@@ -192,6 +195,19 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NCO::Role(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( NCO::Contact(), RDFS::subClassOf(), NCO::Role(), graph );
     model->addStatement( NCO::Contact(), RDFS::subClassOf(), NAO::Party(), graph );
+    model->addStatement( NCO::Contact(), RDFS::subClassOf(), NIE::InformationElement(), graph );
+
+    model->addStatement( NCO::gender(), RDF::type(), RDF::Property(), graph );
+    model->addStatement( NCO::gender(), RDFS::range(), NCO::Gender(), graph );
+    model->addStatement( NCO::gender(), RDFS::domain(), NCO::Contact(), graph );
+
+    model->addStatement( NCO::Gender(), RDF::type(), RDFS::Resource(), graph );
+    model->addStatement( NCO::Gender(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NCO::Gender(), RDFS::subClassOf(), RDFS::Resource(), graph );
+    model->addStatement( NCO::male(), RDF::type(), NCO::Gender(), graph );
+    model->addStatement( NCO::male(), RDF::type(), RDFS::Resource(), graph );
+    model->addStatement( NCO::female(), RDF::type(), NCO::Gender(), graph );
+    model->addStatement( NCO::female(), RDF::type(), RDFS::Resource(), graph );
 
     model->addStatement( NCO::PersonContact(), RDF::type(), RDFS::Resource(), graph );
     model->addStatement( NCO::PersonContact(), RDF::type(), RDFS::Class(), graph );
@@ -199,9 +215,16 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
 
     model->addStatement( NAO::Tag(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( NFO::FileDataObject(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NFO::FileDataObject(), RDFS::subClassOf(), NIE::DataObject(), graph );
+    model->addStatement( NIE::DataObject(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NIE::DataObject(), RDFS::subClassOf(), RDFS::Resource(), graph );
     model->addStatement( NFO::Folder(), RDF::type(), RDFS::Class(), graph );
-    model->addStatement( NFO::Video(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NFO::Folder(), RDFS::subClassOf(), NFO::DataContainer(), graph );
+    model->addStatement( NFO::DataContainer(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NFO::DataContainer(), RDFS::subClassOf(), NIE::InformationElement(), graph );
     model->addStatement( NIE::InformationElement(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NIE::InformationElement(), RDFS::subClassOf(), RDFS::Resource(), graph );
+    model->addStatement( NFO::Video(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( QUrl("class:/typeA"), RDF::type(), RDFS::Class(), graph );
     model->addStatement( QUrl("class:/typeB"), RDF::type(), RDFS::Class(), graph );
     model->addStatement( QUrl("class:/typeC"), RDF::type(), RDFS::Class(), graph );
@@ -217,4 +240,65 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NAO::hasTag(), RDF::type(), RDF::Property(), graph );
     model->addStatement( NAO::hasTag(), RDFS::domain(), RDFS::Resource(), graph );
     model->addStatement( NAO::hasTag(), RDFS::range(), NAO::Tag(), graph );
+
+    // PIMO
+    model->addStatement( PIMO::groundingOccurrence(), RDF::type(), RDF::Property(), graph );
+    model->addStatement( PIMO::groundingOccurrence(), RDFS::range(), NIE::InformationElement(), graph );
+    model->addStatement( PIMO::groundingOccurrence(), RDFS::domain(), PIMO::Thing(), graph );
+
+    model->addStatement( PIMO::Person(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( PIMO::Person(), RDFS::subClassOf(), PIMO::Agent(), graph );
+
+    model->addStatement( PIMO::Agent(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( PIMO::Agent(), RDFS::subClassOf(), PIMO::Thing(), graph );
+    model->addStatement( PIMO::Agent(), RDFS::subClassOf(), NIE::InformationElement(), graph );
+
+    model->addStatement( PIMO::Thing(), RDF::type(), RDFS::Class(), graph );
+
+    // Agent
+    model->addStatement( NAO::Agent(), RDF::type(), RDFS::Class(), graph );
+    model->addStatement( NAO::Agent(), RDFS::subClassOf(), RDFS::Resource(), graph );
+    model->addStatement( NAO::maintainedBy(), RDF::type(), RDF::Property(), graph );
+    model->addStatement( NAO::maintainedBy(), RDFS::range(), RDFS::Resource(), graph );
+    model->addStatement( NAO::maintainedBy(), RDFS::domain(), NAO::Agent(), graph );
+}
+
+void Nepomuk2::insertNamespaceAbbreviations(Model* model)
+{
+    typedef QPair<QString, QString> StringPair;
+
+    QList<StringPair> graphs;
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2010/01/25/nuao#", "nuao");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2009/11/08/nso#", "nso");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/08/15/nrl#", "nrl");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2010/04/30/ndo#", "ndo");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/08/15/nao#", "nao");
+    graphs << qMakePair<QString, QString>("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "rdf");
+    graphs << qMakePair<QString, QString>("http://www.w3.org/2000/01/rdf-schema#", "rdfs");
+    graphs << qMakePair<QString, QString>("http://purl.org/dc/elements/1.1/", "dces");
+    graphs << qMakePair<QString, QString>("http://purl.org/dc/dcmitype/", "dctype");
+    graphs << qMakePair<QString, QString>("http://purl.org/dc/terms/", "dcterms");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/04/02/ncal#", "ncal");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/05/10/nexif#", "nexif");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/05/10/nid3#", "nid3");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/01/19/nie#", "nie");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/03/22/nfo#", "nfo");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2009/02/19/nmm#", "nmm");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/03/22/nco#", "nco");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/03/22/nmo#", "nmo");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2008/05/20/tmo#", "tmo");
+    graphs << qMakePair<QString, QString>("http://www.semanticdesktop.org/ontologies/2007/11/01/pimo#", "pimo");
+    graphs << qMakePair<QString, QString>("http://nepomuk.kde.org/ontologies/2010/08/18/kuvo#", "kuvo");
+    graphs << qMakePair<QString, QString>("http://nepomuk.kde.org/ontologies/2010/11/11/nrio#", "nrio");
+    graphs << qMakePair<QString, QString>("http://nepomuk.kde.org/ontologies/2010/11/29/kext#", "kext");
+    graphs << qMakePair<QString, QString>("http://www.example.org/ontologies/2010/05/29/ndco#", "ndco");
+    graphs << qMakePair<QString, QString>("http://akonadi-project.org/ontologies/aneo#", "aneo");
+    graphs << qMakePair<QString, QString>("http://nepomuk.kde.org/ontologies/2012/02/29/kao#", "kao");
+
+    foreach(const StringPair& pair, graphs) {
+        QString command = QString::fromLatin1("DB.DBA.XML_SET_NS_DECL( '%1', '%2', 2 )")
+                          .arg( pair.second, pair.first );
+
+        model->executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+    }
 }

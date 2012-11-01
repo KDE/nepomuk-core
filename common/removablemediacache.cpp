@@ -191,6 +191,12 @@ bool Nepomuk2::RemovableMediaCache::hasRemovableSchema(const KUrl &url) const
 }
 
 
+bool Nepomuk2::RemovableMediaCache::isEmpty() const
+{
+    return m_metadataCache.isEmpty();
+}
+
+
 void Nepomuk2::RemovableMediaCache::slotSolidDeviceAdded( const QString& udi )
 {
     kDebug() << udi;
