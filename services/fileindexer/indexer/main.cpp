@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     KCmdLineOptions options;
     options.add("+[url]", ki18n("The URL of the file to be indexed"));
     options.add("clear", ki18n("Remove all indexed data of the URL provided"));
-    options.add("debug", ki18n("First clears the existing index, and the runs both the basic and file indexing"));
+    options.add("debug", ki18n("First clears the existing index, and then runs both the basic and file indexing"));
 
     KCmdLineArgs::addCmdLineOptions(options);
     const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
