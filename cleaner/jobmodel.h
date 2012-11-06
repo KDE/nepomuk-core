@@ -21,9 +21,10 @@
 #ifndef JOBMODEL_H
 #define JOBMODEL_H
 
-#include "cleaningjobs.h"
 #include <QtCore/QAbstractItemModel>
+#include <KJob>
 
+class CleaningJob;
 
 class JobModel : public QAbstractListModel
 {

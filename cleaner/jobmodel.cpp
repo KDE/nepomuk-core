@@ -20,6 +20,7 @@
 
 #include "jobmodel.h"
 #include "cleaningjobs.h"
+
 #include <KIcon>
 #include <KDebug>
 #include <QThread>

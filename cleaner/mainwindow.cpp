@@ -22,6 +22,7 @@
 #include "jobmodel.h"
 
 #include <QtGui/QVBoxLayout>
+#include <QLabel>
 
 #include <KLocalizedString>
 
@@ -30,17 +31,26 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags): QMainWindow(pare
     QWidget* widget = new QWidget( this );
     QVBoxLayout* layout = new QVBoxLayout( widget );
 
+    QLabel* label = new QLabel( i18n("The Nepomuk Cleaner can be used to cleanup invalid and buggy"
+                                     " data in your Nepomuk database."), this );
+    label->setWordWrap( true );
+
     m_model = new JobModel( this );
+
     m_view = new QListView( widget );
     m_view->setModel( m_model );
+    m_view->setWordWrap( true );
+    m_view->setSelectionMode( QAbstractItemView::NoSelection );
 
     m_button = new KPushButton(i18n("Start"), widget);
     connect(m_button, SIGNAL(clicked(bool)), this, SLOT(slotStarted()));
 
+    layout->addWidget( label );
     layout->addWidget( m_view );
     layout->addWidget( m_button );
 
     setCentralWidget( widget );
+    setWindowTitle( i18n("Nepomuk Cleaner") );
 }
 
 void MainWindow::slotStarted()
