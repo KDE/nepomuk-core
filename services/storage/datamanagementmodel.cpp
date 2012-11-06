@@ -187,6 +187,8 @@ public:
     bool m_ignoreCreationDate;
 
     QCache<QString, QUrl> m_appCache;
+    QMutex m_appCacheMutex;
+    
     TypeCache* m_typeCache;
 };
 
@@ -220,6 +222,7 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
 
 void Nepomuk2::DataManagementModel::clearCache()
 {
+    QMutexLocker lock( &d->m_appCacheMutex );
     d->m_appCache.clear();
     d->m_typeCache->clear();
 }
@@ -2405,6 +2408,7 @@ QUrl Nepomuk2::DataManagementModel::splitGraph(const QUrl &graph, const QUrl& me
 
 QUrl Nepomuk2::DataManagementModel::findApplicationResource(const QString &app, bool create)
 {
+    QMutexLocker lock( &d->m_appCacheMutex );
     QUrl* uri = d->m_appCache.object( app );
     if( uri ) {
         return *uri;

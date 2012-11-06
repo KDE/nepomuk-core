@@ -67,6 +67,7 @@ QList< QUrl > TypeCache::types(const QUrl& uri)
 
 void TypeCache::clear()
 {
+    QMutexLocker locker( &m_mutex );
     m_cache.clear();
 }
 
