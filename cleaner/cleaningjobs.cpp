@@ -63,11 +63,8 @@ void CleaningJob::slotStartExecution()
 {
     m_status = Started;
     execute();
-}
-
-void CleaningJob::done()
-{
     m_status = Done;
+
     emitResult();
 }
 
@@ -91,8 +88,6 @@ void CrappyInferenceData::execute()
 
     model->removeContext(QUrl::fromEncoded("urn:crappyinference:inferredtriples"));
     model->removeContext(QUrl::fromEncoded("urn:crappyinference2:inferredtriples"));
-
-    done();
 }
 
 //
@@ -121,9 +116,22 @@ void EmptyTagCleaner::execute()
         deleteList << it[0].uri();
 
     KJob* job = Nepomuk2::removeResources( deleteList );
-    connect( job, SIGNAL(finished(KJob*)), this, SLOT(done()) );
+    job->exec();
 }
 
+//
+// Duplicates
+//
+
+class DuplicateMergingJob : public CleaningJob {
+public:
+    explicit DuplicateMergingJob(const QUrl& type, const QUrl& prop, QObject* parent = 0);
+
+private:
+    void execute();
+    QUrl m_type;
+    QUrl m_prop;
+};
 
 DuplicateMergingJob::DuplicateMergingJob(const QUrl& type, const QUrl& prop, QObject* parent)
     : CleaningJob(parent)
@@ -134,8 +142,6 @@ DuplicateMergingJob::DuplicateMergingJob(const QUrl& type, const QUrl& prop, QOb
 
 void DuplicateMergingJob::execute()
 {
-    m_jobs = 0;
-
     QString query = QString::fromLatin1("select distinct ?i where { ?r a %1 . ?r %2 ?i . }")
                     .arg( Soprano::Node::resourceToN3( m_type ),
                           Soprano::Node::resourceToN3( m_prop ) );
@@ -158,23 +164,14 @@ void DuplicateMergingJob::execute()
 
         kDebug() << resourcesToMerge;
         KJob* job = Nepomuk2::mergeResources( resourcesToMerge );
-        connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotJobFinished(KJob*)) );
-        m_jobs++;
+        job->exec();
+        if( job->error() )
+            kError() << job->errorString();
     }
 
-    if( !m_jobs )
-        done();
+    done();
 }
 
-void DuplicateMergingJob::slotJobFinished(KJob* job)
-{
-    if( job->error() )
-        kError() << job->errorString();
-
-    m_jobs--;
-    if( !m_jobs )
-        done();
-}
 
 class DuplicateTagCleaner : public DuplicateMergingJob {
 public:
@@ -256,7 +253,6 @@ void AkonadiMigrationJob::execute()
             return;
         }
     }
-    done();
 }
 
 //

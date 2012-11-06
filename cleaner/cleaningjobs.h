@@ -43,9 +43,6 @@ public:
 
     Status status() const;
 
-protected slots:
-    void done();
-
 private slots:
     void slotStartExecution();
 
@@ -57,24 +54,6 @@ private:
 
 QList<CleaningJob*> allJobs();
 
-//
-// Jobs
-//
-
-class DuplicateMergingJob : public CleaningJob {
-    Q_OBJECT
-public:
-    explicit DuplicateMergingJob(const QUrl& type, const QUrl& prop, QObject* parent = 0);
-
-private slots:
-    void slotJobFinished(KJob* job);
-
-private:
-    void execute();
-    int m_jobs;
-    QUrl m_type;
-    QUrl m_prop;
-};
 
 
 #endif // CLEANINGJOB_H
