@@ -162,14 +162,17 @@ void DuplicateMergingJob::execute()
         if( resourcesToMerge.size() <= 1 )
             continue;
 
-        kDebug() << resourcesToMerge;
-        KJob* job = Nepomuk2::mergeResources( resourcesToMerge );
-        job->exec();
-        if( job->error() )
-            kError() << job->errorString();
-    }
+        if( resourcesToMerge.size() > 10 ) {
+            // Splice the first 10 elements
+            QList<QUrl> list = resourcesToMerge.mid( 0, 10 );
+            resourcesToMerge = resourcesToMerge.mid( 10 );
 
-    done();
+            KJob* job = Nepomuk2::mergeResources( list );
+            job->exec();
+            if( job->error() )
+                kError() << job->errorString();
+        }
+    }
 }
 
 
