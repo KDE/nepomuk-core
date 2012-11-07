@@ -517,7 +517,21 @@ QString Nepomuk2::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
         query += QString::fromLatin1( " LIMIT %1" ).arg( d->m_limit );
 
     // We never want to show ontology data to the users
-    query = QLatin1String("define input:default-graph-exclude <nepomuk-ontology-group> ") + query;
+    // FIXME: This has been causing virtuoso to crash on a large number of queries
+    // For now I'm disabling this. We might need to find a better solution. This just sucks.
+    //
+    // Example query (which causes the crash) -
+    //
+    // sparql DEFINE input:inference <nepomukinference>
+    //        define input:default-graph-exclude <nepomuk-ontology-group>
+    //        select distinct ?r ?reqProp1 where {
+    //        { ?r nie:isPartOf <nepomuk:/res/d5cb1ed7-a80b-46b6-8467-35716f5e7188> .
+    //          ?r nmo:plainTextMessageContent ?v1 .
+    //          FILTER(bif:contains(?v1, "'funcom'")) .
+    //          OPTIONAL { ?r <http://akonadi-project.org/ontologies/aneo#akonadiItemId> ?reqProp1 . }
+    //        } .
+    //  }
+    // query = QLatin1String("define input:default-graph-exclude <nepomuk-ontology-group> ") + query;
 
     return query.simplified();
 }
