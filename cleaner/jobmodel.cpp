@@ -36,10 +36,8 @@ JobModel::JobModel(QObject* parent): QAbstractListModel(parent)
 
 JobModel::~JobModel()
 {
-    if( m_curJob ) {
-        m_curJob->kill();
-        delete m_curJob;
-    }
+    if( m_curJob )
+        m_curJob->quit();
 
     m_jobThread->quit();
     m_jobThread->wait();

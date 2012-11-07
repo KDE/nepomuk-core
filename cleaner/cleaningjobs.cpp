@@ -54,8 +54,19 @@ void CleaningJob::start() {
 
 void CleaningJob::slotStartExecution()
 {
+    m_shouldQuit = false;
     execute();
     emitResult();
+}
+
+void CleaningJob::quit()
+{
+    m_shouldQuit = true;
+}
+
+bool CleaningJob::shouldQuit()
+{
+    return m_shouldQuit;
 }
 
 
@@ -105,8 +116,10 @@ void EmptyTagCleaner::execute()
     while( it.next() )
         deleteList << it[0].uri();
 
-    KJob* job = Nepomuk2::removeResources( deleteList );
-    job->exec();
+    if( !deleteList.isEmpty() && !shouldQuit() ) {
+        KJob* job = Nepomuk2::removeResources( deleteList );
+        job->exec();
+    }
 }
 
 //
@@ -138,7 +151,7 @@ void DuplicateMergingJob::execute()
 
     Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-    while( it.next() ) {
+    while( it.next() && !shouldQuit() ) {
         QString query = QString::fromLatin1("select distinct ?r where { ?r a %1 . ?r %2 %3 . }")
                         .arg( Soprano::Node::resourceToN3( m_type ),
                               Soprano::Node::resourceToN3( m_prop ),
@@ -152,7 +165,7 @@ void DuplicateMergingJob::execute()
         if( resourcesToMerge.size() <= 1 )
             continue;
 
-        if( resourcesToMerge.size() > 10 ) {
+        if( resourcesToMerge.size() > 10 && !shouldQuit() ) {
             // Splice the first 10 elements
             QList<QUrl> list = resourcesToMerge.mid( 0, 10 );
             resourcesToMerge = resourcesToMerge.mid( 10 );
@@ -222,7 +235,7 @@ void AkonadiMigrationJob::execute()
 
     Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-    while( it.next() ) {
+    while( it.next() && !shouldQuit() ) {
         // FIXME: What about the agent?
         Nepomuk2::CreateResourceJob* cjob = Nepomuk2::createResource( QList<QUrl>() << akonadiDataObject, QString(), QString() );
         cjob->exec();
@@ -272,7 +285,7 @@ void DuplicateStatementJob::execute()
 
     Soprano::Model *model = Nepomuk2::ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
-    while( it.next() ) {
+    while( it.next() && !shouldQuit() ) {
         Soprano::Statement st( it["r"], it["p"], it["o"] );
 
         // List all the graphs that it belongs to
@@ -286,7 +299,7 @@ void DuplicateStatementJob::execute()
 
         // Remove all statements apart from the first graph
         // TODO: Maybe we should be smarter about it?
-        for( int i=1; i<graphs.size(); i++ ) {
+        for( int i=1; i<graphs.size() && !shouldQuit(); i++ ) {
             Soprano::Statement statement( st );
             statement.setContext( graphs[i] );
 

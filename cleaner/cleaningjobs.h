@@ -35,11 +35,18 @@ public:
     virtual void start();
     virtual QString jobName() = 0;
 
+    void quit();
+
+protected:
+    bool shouldQuit();
+
 private slots:
     void slotStartExecution();
 
 private:
     virtual void execute() = 0;
+
+    bool m_shouldQuit;
 };
 
 QList<CleaningJob*> allJobs();
