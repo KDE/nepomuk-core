@@ -23,6 +23,7 @@
 
 #include <QtGui/QVBoxLayout>
 #include <QLabel>
+#include <QCoreApplication>
 
 #include <KLocalizedString>
 
@@ -36,6 +37,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags): QMainWindow(pare
     label->setWordWrap( true );
 
     m_model = new JobModel( this );
+    connect( m_model, SIGNAL(finished()), this, SLOT(slotModelFinished()) );
 
     m_view = new QListView( widget );
     m_view->setModel( m_model );
@@ -43,7 +45,7 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags): QMainWindow(pare
     m_view->setSelectionMode( QAbstractItemView::NoSelection );
 
     m_button = new KPushButton(i18n("Start"), widget);
-    connect(m_button, SIGNAL(clicked(bool)), this, SLOT(slotStarted()));
+    connect(m_button, SIGNAL(clicked(bool)), this, SLOT(slotButtonClicked()));
 
     layout->addWidget( label );
     layout->addWidget( m_view );
@@ -53,9 +55,26 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags): QMainWindow(pare
     setWindowTitle( i18n("Nepomuk Cleaner") );
 }
 
-void MainWindow::slotStarted()
+void MainWindow::slotButtonClicked()
 {
-    m_model->start();
+    if( m_model->status() == JobModel::NotStarted ) {
+        m_model->start();
+        m_button->setText( i18n("Pause") );
+    }
+    else if( m_model->status() == JobModel::Running ) {
+        m_model->pause();
+        m_button->setText( i18n("Resume") );
+    }
+    else if( m_model->status() == JobModel::Paused ) {
+        m_model->resume();
+        m_button->setText( i18n("Pause") );
+    }
+    else if( m_model->status() == JobModel::Finished ) {
+        QCoreApplication::instance()->quit();
+    }
 }
 
-
+void MainWindow::slotModelFinished()
+{
+    m_button->setText( i18n("Quit") );
+}

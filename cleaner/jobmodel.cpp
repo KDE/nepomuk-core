@@ -29,6 +29,7 @@ JobModel::JobModel(QObject* parent): QAbstractListModel(parent)
 {
     m_allJobs = allJobs();
     m_curJob = 0;
+    m_status = NotStarted;
 
     m_jobThread = new QThread( this );
     m_jobThread->start();
@@ -70,13 +71,43 @@ int JobModel::rowCount(const QModelIndex& parent) const
 
 void JobModel::start()
 {
+    m_status = Running;
     startNextJob();
 }
 
+void JobModel::pause()
+{
+    m_status = Paused;
+    if( m_curJob ) {
+        //FIXME: This will leave this job half done
+        m_curJob->quit();
+        m_curJob = 0;
+    }
+}
+
+void JobModel::resume()
+{
+    m_status = Running;
+    startNextJob();
+}
+
+JobModel::Status JobModel::status()
+{
+    return m_status;
+}
+
+
 void JobModel::startNextJob()
 {
-    if( m_allJobs.isEmpty() )
+    if( m_status == Paused )
         return;
+
+    if( m_allJobs.isEmpty() ) {
+        m_status = Finished;
+        m_curJob = 0;
+        emit finished();
+        return;
+    }
 
     m_curJob = m_allJobs.takeFirst();
     m_curJob->moveToThread( m_jobThread );

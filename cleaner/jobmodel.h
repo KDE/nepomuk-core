@@ -39,10 +39,27 @@ public:
     virtual int rowCount(const QModelIndex& parent = QModelIndex()) const;
 
     void start();
+    void pause();
+    void resume();
+
+    enum Status {
+        NotStarted,
+        Running,
+        Paused,
+        Finished
+    };
+
+    Status status();
+
+signals:
+    void finished();
+
 private slots:
     void slotJobFinished(KJob*);
 
 private:
+    Status m_status;
+
     void startNextJob();
 
     QStringList m_jobs;
