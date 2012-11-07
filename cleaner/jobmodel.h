@@ -22,6 +22,8 @@
 #define JOBMODEL_H
 
 #include <QtCore/QAbstractItemModel>
+#include <QtCore/QStringList>
+
 #include <KJob>
 
 class CleaningJob;
@@ -38,10 +40,16 @@ public:
 
     void start();
 private slots:
-    void slotJobFinished(KJob* job);
+    void slotJobFinished(KJob*);
 
 private:
-    QList<CleaningJob*> m_jobs;
+    void startNextJob();
+
+    QStringList m_jobs;
+
+    QList<CleaningJob*> m_allJobs;
+    CleaningJob* m_curJob;
+
     QThread* m_jobThread;
 };
 

@@ -27,18 +27,18 @@
 
 JobModel::JobModel(QObject* parent): QAbstractListModel(parent)
 {
-    m_jobs = allJobs();
+    m_allJobs = allJobs();
+    m_curJob = 0;
+
     m_jobThread = new QThread( this );
     m_jobThread->start();
 }
 
 JobModel::~JobModel()
 {
-    foreach(CleaningJob* job, m_jobs) {
-        if( job->status() == CleaningJob::Started ) {
-            job->kill();
-        }
-        //delete job;
+    if( m_curJob ) {
+        m_curJob->kill();
+        delete m_curJob;
     }
 
     m_jobThread->quit();
@@ -50,21 +50,13 @@ QVariant JobModel::data(const QModelIndex& index, int role) const
     if( !index.isValid() || index.row() >= m_jobs.size() )
         return QVariant();
 
-    CleaningJob* job = m_jobs[index.row()];
     switch(role) {
         case Qt::DisplayRole:
-            return job->jobName();
-            break;
-        case Qt::DecorationRole: {
-            switch(job->status()) {
-                case CleaningJob::Waiting:
-                    return KIcon();
-                case CleaningJob::Started:
-                    return KIcon("nepomuk");
-                case CleaningJob::Done:
-                    return KIcon("nepomuk");
-            }
-        }
+            return m_jobs[ index.row() ];
+
+        //FIXME: Maybe one should an animated icon for the item that is being processed
+        case Qt::DecorationRole:
+            return KIcon("nepomuk");
     }
 
     return QVariant();
@@ -80,32 +72,27 @@ int JobModel::rowCount(const QModelIndex& parent) const
 
 void JobModel::start()
 {
-    if( m_jobs.isEmpty() )
-        return;
-
-    CleaningJob* job = m_jobs.first();
-    job->moveToThread( m_jobThread );
-
-    connect(job, SIGNAL(finished(KJob*)), this, SLOT(slotJobFinished(KJob*)));
-    job->start();
-
-    emit dataChanged(createIndex(0, 0), createIndex(0, 0));
+    startNextJob();
 }
 
-void JobModel::slotJobFinished(KJob* job)
+void JobModel::startNextJob()
 {
-    CleaningJob* cjob = dynamic_cast<CleaningJob*>(job);
-    kDebug() << "Done with " << cjob->jobName();
-
-    int index = m_jobs.indexOf( cjob );
-    if( index == m_jobs.size() - 1 )
+    if( m_allJobs.isEmpty() )
         return;
 
-    CleaningJob* nextJob = m_jobs[ index + 1 ];
-    nextJob->moveToThread( m_jobThread );
+    m_curJob = m_allJobs.takeFirst();
+    m_curJob->moveToThread( m_jobThread );
 
-    connect(nextJob, SIGNAL(finished(KJob*)), this, SLOT(slotJobFinished(KJob*)));
-    nextJob->start();
+    connect(m_curJob, SIGNAL(finished(KJob*)), this, SLOT(slotJobFinished(KJob*)));
+    m_curJob->start();
 
-    emit dataChanged(createIndex(index, 0), createIndex(index+1, 0));
+    emit beginInsertRows( QModelIndex(), m_jobs.size(), m_jobs.size() + 1 );
+    m_jobs << m_curJob->jobName();
+    emit endInsertRows();
+}
+
+void JobModel::slotJobFinished(KJob*)
+{
+    m_curJob = 0;
+    startNextJob();
 }

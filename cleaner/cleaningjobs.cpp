@@ -41,18 +41,11 @@ using namespace Soprano::Vocabulary;
 
 CleaningJob::CleaningJob(QObject* parent)
     : KJob(parent)
-    , m_status(CleaningJob::Waiting)
 {
-    setAutoDelete( false );
 }
 
 CleaningJob::~CleaningJob()
 {
-}
-
-CleaningJob::Status CleaningJob::status() const
-{
-    return m_status;
 }
 
 void CleaningJob::start() {
@@ -61,10 +54,7 @@ void CleaningJob::start() {
 
 void CleaningJob::slotStartExecution()
 {
-    m_status = Started;
     execute();
-    m_status = Done;
-
     emitResult();
 }
 

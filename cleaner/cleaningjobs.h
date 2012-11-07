@@ -35,20 +35,10 @@ public:
     virtual void start();
     virtual QString jobName() = 0;
 
-    enum Status {
-        Waiting,
-        Started,
-        Done
-    };
-
-    Status status() const;
-
 private slots:
     void slotStartExecution();
 
 private:
-    Status m_status;
-
     virtual void execute() = 0;
 };
 
