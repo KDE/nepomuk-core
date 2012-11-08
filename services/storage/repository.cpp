@@ -201,12 +201,6 @@ void Nepomuk2::Repository::open()
 
     kDebug() << "Successfully created new model for repository" << name();
 
-    //
-    // =================================
-    // Remove the old crappy inference data
-    m_model->removeContext(QUrl::fromEncoded("urn:crappyinference:inferredtriples"));
-    m_model->removeContext(QUrl::fromEncoded("urn:crappyinference2:inferredtriples"));
-
     // create the one class and property tree to be used in DMS
     // =================================
     m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
