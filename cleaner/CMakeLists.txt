@@ -18,3 +18,5 @@ target_link_libraries( nepomukcleaner
 
 install(TARGETS nepomukcleaner
         DESTINATION ${BIN_INSTALL_DIR})
+install(PROGRAMS nepomukcleaner.desktop
+  DESTINATION ${XDG_APPS_INSTALL_DIR})
