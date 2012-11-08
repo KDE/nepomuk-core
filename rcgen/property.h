@@ -139,25 +139,6 @@ public:
      */
     bool hasSimpleType() const;
 
-    /**
-     * Sets the max cardinality of the property
-     */
-    void setMaxCardinality( int value );
-
-    /**
-     * Returns the max cardinality of the property
-     */
-    int maxCardinality() const;
-
-    /**
-     * Sets the cardinality of the property
-     */
-    void setCardinality( int value );
-
-    /**
-     * Returns the cardinality of the property
-     */
-    int cardinality() const;
 private:
     QUrl m_uri;
     ResourceClass* m_range;
@@ -166,8 +147,6 @@ private:
     bool m_isList;
     ResourceClass* m_domain;
     Property* m_inverseProperty;
-    int m_maxCardinality;
-    int m_cardinality;
 };
 
 #endif
