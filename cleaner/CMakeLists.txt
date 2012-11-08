@@ -1,5 +1,7 @@
 project(nepomukcleaner)
 
+include_directories(${nepomuk-core_SOURCE_DIR}/libnepomukcore)
+
 set( cleaner_SRCS
   jobmodel.cpp
   cleaningjobs.cpp

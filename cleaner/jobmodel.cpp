@@ -25,7 +25,7 @@
 #include <KDebug>
 #include <QThread>
 
-#include <Nepomuk2/ResourceManager>
+#include "resourcemanager.h"
 
 JobModel::JobModel(QObject* parent): QAbstractListModel(parent)
 {
