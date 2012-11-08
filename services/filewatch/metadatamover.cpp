@@ -44,12 +44,6 @@ Nepomuk2::MetadataMover::MetadataMover( Soprano::Model* model, QObject* parent )
             this, SLOT(slotWorkUpdateQueue()),
             Qt::DirectConnection);
 
-    // setup the cleanup timer which removes requests that are done
-    m_recentlyFinishedRequestsTimer = new QTimer(this);
-    connect( m_recentlyFinishedRequestsTimer, SIGNAL( timeout() ),
-             this, SLOT( slotClearRecentlyFinishedRequests() ),
-             Qt::DirectConnection );
-    m_recentlyFinishedRequestsTimer->setInterval( 30000 );
 }
 
 
@@ -67,8 +61,7 @@ void Nepomuk2::MetadataMover::moveFileMetadata( const KUrl& from, const KUrl& to
     QMutexLocker lock(&m_queueMutex);
 
     UpdateRequest req( from, to );
-    if ( !m_updateQueue.contains( req ) &&
-         !m_recentlyFinishedRequests.contains( req ) )
+    if ( !m_updateQueue.contains( req ) )
         m_updateQueue.enqueue( req );
 
     QTimer::singleShot(0, this, SLOT(slotStartUpdateTimer()));
@@ -89,8 +82,7 @@ void Nepomuk2::MetadataMover::removeFileMetadata( const KUrl::List& files )
 
     foreach( const KUrl& file, files ) {
         UpdateRequest req( file );
-        if ( !m_updateQueue.contains( req ) &&
-             !m_recentlyFinishedRequests.contains( req ) )
+        if ( !m_updateQueue.contains( req ) )
             m_updateQueue.enqueue( req );
     }
 
@@ -106,7 +98,6 @@ void Nepomuk2::MetadataMover::slotWorkUpdateQueue()
     // work the queue
     if( !m_updateQueue.isEmpty() ) {
         UpdateRequest updateRequest = m_updateQueue.dequeue();
-        m_recentlyFinishedRequests.insert( updateRequest );
 
         // unlock after queue utilization
         lock.unlock();
@@ -208,36 +199,12 @@ void Nepomuk2::MetadataMover::updateMetadata( const KUrl& from, const KUrl& to )
 }
 
 
-// removes all finished requests older than 1 minute
-void Nepomuk2::MetadataMover::slotClearRecentlyFinishedRequests()
-{
-    QMutexLocker lock( &m_queueMutex );
-    QSet<UpdateRequest>::iterator it = m_recentlyFinishedRequests.begin();
-    while ( it != m_recentlyFinishedRequests.end() ) {
-        const UpdateRequest& req = *it;
-        if ( req.timestamp().secsTo( QDateTime::currentDateTime() ) > 60 ) {
-            it = m_recentlyFinishedRequests.erase( it );
-        }
-        else {
-            ++it;
-        }
-    }
-
-    if(m_recentlyFinishedRequests.isEmpty()) {
-        kDebug() << "No more old requests. Stopping timer.";
-        m_recentlyFinishedRequestsTimer->stop();
-    }
-}
-
 
 // start the timer in the update thread
 void Nepomuk2::MetadataMover::slotStartUpdateTimer()
 {
     if(!m_queueTimer->isActive()) {
         m_queueTimer->start();
-    }
-    if(!m_recentlyFinishedRequestsTimer->isActive()) {
-        m_recentlyFinishedRequestsTimer->start();
     }
 }
 

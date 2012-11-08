@@ -59,7 +59,6 @@ namespace Nepomuk2 {
         void movedWithoutData( const QString& path );
 
     private Q_SLOTS:
-        void slotClearRecentlyFinishedRequests();
         void slotWorkUpdateQueue();
 
         /**
@@ -82,18 +81,9 @@ namespace Nepomuk2 {
         // if the second url is empty, just delete the metadata
         QQueue<UpdateRequest> m_updateQueue;
 
-        // we use several systems to watch for file operations.
-        // Thus, we can get the same request more than once. We then
-        // need a way to determine if we have already handled it.
-        // (otherwise we would remove the previously moved data.)
-        // The only way to do that is to keep a list of all requests
-        // that have been handled in the last N seconds.
-        QSet<UpdateRequest> m_recentlyFinishedRequests;
-
         QMutex m_queueMutex;
 
         QTimer* m_queueTimer;
-        QTimer* m_recentlyFinishedRequestsTimer;
 
         Soprano::Model* m_model;
     };
