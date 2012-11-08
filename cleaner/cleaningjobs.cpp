@@ -77,7 +77,7 @@ bool CleaningJob::shouldQuit()
 class CrappyInferenceData : public CleaningJob {
 public:
     QString jobName() {
-        return i18n("Clear Crappy Interference Data");
+        return i18n("Removing legacy data");
     }
 private:
     void execute();
@@ -98,7 +98,7 @@ void CrappyInferenceData::execute()
 class EmptyTagCleaner : public CleaningJob {
 public:
     QString jobName() {
-        return i18n("Clear Empty Tags");
+        return i18n("Removing empty tags");
     }
 private:
     void execute();
@@ -185,7 +185,7 @@ public:
     : DuplicateMergingJob(NAO::Tag(), NAO::identifier(), parent) {}
 
     QString jobName() {
-        return i18n("Merge Duplicate Tags");
+        return i18n("Merging duplicate tags");
     }
 };
 
@@ -196,7 +196,7 @@ public:
     : DuplicateMergingJob(NFO::FileDataObject(), NIE::url(), parent) {}
 
     QString jobName() {
-        return i18n("Merge Duplicate File Metadata");
+        return i18n("Merging duplicate file metadata");
     }
 };
 
@@ -206,7 +206,7 @@ public:
     : DuplicateMergingJob(NAO::FreeDesktopIcon(), NAO::iconName(), parent) {}
 
     QString jobName() {
-        return i18n("Merge Duplicate Icons");
+        return i18n("Merging duplicate icons");
     }
 };
 
@@ -220,7 +220,7 @@ public:
     : CleaningJob(parent) {}
 
     QString jobName() {
-        return i18n("Akonadi Migration Job");
+        return i18n("Porting legacy Akonadi data");
     }
 
 private:
@@ -271,7 +271,7 @@ public:
     : CleaningJob(parent) {}
 
     QString jobName() {
-        return i18n("Duplicate Statement Job");
+        return i18n("Removing duplicate metadata");
     }
 
 private:
