@@ -25,8 +25,14 @@
 #include <KDebug>
 #include <QThread>
 
+#include <Nepomuk2/ResourceManager>
+
 JobModel::JobModel(QObject* parent): QAbstractListModel(parent)
 {
+    // Forcibly initializing the ResourceManager so that it gets initialized
+    // in the main thread and not in the job thread
+    Nepomuk2::ResourceManager::instance()->init();
+
     m_allJobs = allJobs();
     m_curJob = 0;
     m_status = NotStarted;
