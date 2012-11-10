@@ -1,5 +1,12 @@
 [Desktop Entry]
 Name=Nepomuk Cleaner
+Name[es]=Limpiador de Nepomuk
+Name[hu]=Nepomuk tisztító
+Name[pt]=Limpeza do Nepomuk
+Name[pt_BR]=Limpeza do Nepomuk
+Name[sk]=Čistič Nepomuk
+Name[uk]=Чистильник Nepomuk
+Name[x-test]=xxNepomuk Cleanerxx
 Exec=nepomukcleaner
 Icon=nepomuk
 Type=Application
