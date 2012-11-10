@@ -163,6 +163,11 @@ bool Nepomuk2::MainModel::init()
     return isValid();
 }
 
+void Nepomuk2::MainModel::disconnect()
+{
+    s_modelContainer->localSocketClient.disconnect();
+}
+
 
 Soprano::StatementIterator Nepomuk2::MainModel::listStatements( const Statement& partial ) const
 {
