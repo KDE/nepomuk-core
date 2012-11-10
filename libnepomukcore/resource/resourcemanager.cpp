@@ -153,6 +153,9 @@ void Nepomuk2::ResourceManagerPrivate::_k_dbusServiceUnregistered( const QString
 {
     if( serviceName == QLatin1String("org.kde.NepomukStorage") ) {
         kDebug() << "Nepomuk Storage service went down.";
+        if( m_manager->d->mainModel && m_manager->d->mainModel->isValid() ){
+            m_manager->d->mainModel->disconnect();
+        }
         emit m_manager->nepomukSystemStopped();
     }
 }
