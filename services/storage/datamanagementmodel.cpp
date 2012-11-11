@@ -2466,6 +2466,10 @@ QUrl Nepomuk2::DataManagementModel::createUri(Nepomuk2::DataManagementModel::Uri
         // as a subject / predicate / object or graph.
         QString query = QString::fromLatin1("select iri_to_id( '%1', 0 )") .arg( uriString );
         Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+        //Don't loop forever if there was an error executing the query.
+        if( lastError() ){
+            return QUrl();
+        }
         if( it.next() ) {
             if( it[0].literal().toString().isEmpty() )
                 return uri;

@@ -668,6 +668,8 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     // Create the main graph, if they are any statements to merge
     if( !resHash.isEmpty() ) {
         m_graph = m_model->createGraph( m_app, m_additionalMetadata );
+        if( m_graph.isEmpty() )
+            return false;
     }
 
 
