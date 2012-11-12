@@ -49,6 +49,10 @@ QStringList TagLibExtractor::mimetypes()
     types << QLatin1String("audio/mpeg3"); types << QLatin1String("audio/x-mpeg");
 
     // FLAC
+    types << QLatin1String("audio/flac");
+
+    //OGG
+    types << QLatin1String("audio/ogg"); types << QLatin1String("audio/x-vorbis+ogg");
 
     // WAV
     types << QLatin1String("audio/wav");
