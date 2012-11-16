@@ -149,10 +149,15 @@ void Nepomuk2::Query::Folder::init()
 Nepomuk2::Query::Folder::~Folder()
 {
     QMutexLocker lock(&m_runnableMutex);
-    if( m_currentSearchRunnable )
+    if( m_currentSearchRunnable ){
         m_currentSearchRunnable->cancel();
-    if( m_currentCountQueryRunnable )
+        //Zero the pointers in case we somehow end up here again
+        m_currentSearchRunnable = 0;
+    }
+    if( m_currentCountQueryRunnable ){
         m_currentCountQueryRunnable->cancel();
+        m_currentCountQueryRunnable = 0;
+    }
 
     // cannot use qDeleteAll since deleting a connection changes m_connections
     while ( !m_connections.isEmpty() )
