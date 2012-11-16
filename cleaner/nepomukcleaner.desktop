@@ -1,10 +1,18 @@
 [Desktop Entry]
 Name=Nepomuk Cleaner
+Name[cs]=Pročišťovač Nepomuku
+Name[el]=Nepomuk Cleaner
 Name[es]=Limpiador de Nepomuk
+Name[et]=Nepomuki puhastaja
 Name[hu]=Nepomuk tisztító
+Name[nl]=Opschonen van Nepomuk
 Name[pt]=Limpeza do Nepomuk
 Name[pt_BR]=Limpeza do Nepomuk
 Name[sk]=Čistič Nepomuk
+Name[sr]=Непомуков чистач
+Name[sr@ijekavian]=Непомуков чистач
+Name[sr@ijekavianlatin]=Nepomukov čistač
+Name[sr@latin]=Nepomukov čistač
 Name[uk]=Чистильник Nepomuk
 Name[x-test]=xxNepomuk Cleanerxx
 Exec=nepomukcleaner
