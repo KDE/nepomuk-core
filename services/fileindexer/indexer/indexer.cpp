@@ -98,6 +98,12 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
         uri = it[0].uri();
         mimeType = it[1].literal().toString();
     }
+    else {
+        SimpleIndexingJob* indexingJob = new SimpleIndexingJob( url );
+        indexingJob->exec();
+        uri = indexingJob->uri();
+        mimeType = indexingJob->mimeType();
+    }
 
     kDebug() << uri << mimeType;
     SimpleResourceGraph graph;
