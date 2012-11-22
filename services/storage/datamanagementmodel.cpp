@@ -1862,6 +1862,21 @@ void Nepomuk2::DataManagementModel::mergeResources(const QList<QUrl>& resources,
                  Soprano::Error::ErrorInvalidArgument);
         return;
     }
+
+    // Virtuoso cannot handle very large number of resources cause of the complicated queries below
+    // so, we do them in multiple sets of 10
+    if( resources.size() > 10 ) {
+        QList<QUrl> first10Resources = resources.mid( 0, 10 );
+        QList<QUrl> remainingResources = resources.mid( 10 );
+
+        mergeResources( first10Resources, app );
+        if( lastError() )
+            return;
+
+        mergeResources( remainingResources, app );
+        return;
+    }
+
     foreach(const QUrl& uri, resSet) {
         if(uri.isEmpty()) {
             setError(QLatin1String("mergeResources: Encountered empty resource URI."),
