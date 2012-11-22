@@ -24,6 +24,8 @@
 #include "resourcemanager.h"
 #include "datamanagement.h"
 #include "createresourcejob.h"
+#include "property.h"
+#include "literal.h"
 
 #include <QtCore/QTimer>
 
@@ -33,6 +35,7 @@
 
 #include "nie.h"
 #include "nfo.h"
+#include "nco.h"
 
 #include <KDebug>
 
@@ -262,6 +265,82 @@ void AkonadiMigrationJob::execute()
 }
 
 //
+// Duplicate contacts
+//
+
+class DuplicateContactJob : public CleaningJob {
+public:
+    explicit DuplicateContactJob(QObject* parent = 0)
+    : CleaningJob(parent) {}
+
+    virtual QString jobName() {
+        return i18n("Merging duplicate contacts");
+    }
+private:
+    virtual void execute();
+};
+
+void DuplicateContactJob::execute()
+{
+    QLatin1String contactQuery("select distinct ?fn where { ?r a nco:Contact ; nco:fullname ?fn . }");
+
+    Soprano::Model *model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( contactQuery, Soprano::Query::QueryLanguageSparql );
+    while( it.next() && !shouldQuit() ) {
+        const QString name( it[0].literal().toString() );
+        // This happens at times, it's weird
+        if( name.isEmpty() )
+            continue;
+
+        kDebug() << "Looking for " << name;
+        // Get all the contacts with the same first name
+        QString query = QString::fromLatin1("select ?r where { ?r a nco:Contact ; nco:fullname %1 . }")
+                        .arg( Soprano::Node::literalToN3( name ) );
+
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        QSet<QUrl> contactToMerge;
+        while( it.next() && !shouldQuit() ) {
+            const QUrl resUri = it[0].uri();
+            QString propQuery = QString::fromLatin1("select ?p ?o where { %1 ?p ?o . }")
+                                .arg( Soprano::Node::resourceToN3( resUri ) );
+            Soprano::QueryResultIterator qit = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+            bool isCandiate = true;
+
+            while( qit.next() && !shouldQuit() ) {
+                const QUrl prop = qit[0].uri();
+
+                // Ignore meta properties
+                if( prop == NAO::lastModified() || prop == NAO::created() )
+                    continue;
+
+                if( prop == NCO::fullname() )
+                    continue;
+
+                // All other non-resource range properites indicate a failure
+                if( Nepomuk2::Types::Property(prop).literalRangeType().isValid() ) {
+                    isCandiate = false;
+                    break;
+                }
+            }
+
+            if( isCandiate ) {
+                contactToMerge << resUri;
+            }
+        }
+
+
+        // Merge all the candidates
+        if( contactToMerge.size() > 1 && !shouldQuit() ) {
+            kDebug() << "Merging " << contactToMerge.size() << " contacts for " << name;
+            KJob* job = Nepomuk2::mergeResources( contactToMerge.toList() );
+            job->exec();
+            if( job->error() )
+                kError() << job->errorString();
+        }
+    }
+}
+
+//
 // Duplicate graphs
 //
 
@@ -321,6 +400,7 @@ QList< CleaningJob* > allJobs()
     list << new DuplicateIconCleaner();
     list << new AkonadiMigrationJob();
     list << new DuplicateStatementJob();
+    list << new DuplicateContactJob();
     return list;
 }
 
