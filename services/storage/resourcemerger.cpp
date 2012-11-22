@@ -134,9 +134,10 @@ void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
     const bool overwrite = (m_flags & OverwriteProperties);
     const bool overwriteAll = (m_flags & OverwriteAllProperties);
 
-    QString query = QString::fromLatin1("sparql insert into %1 { ")
-                    .arg( Soprano::Node::resourceToN3( graph ) );
+    const QString preQuery = QString::fromLatin1("sparql insert into %1 { ")
+                             .arg( Soprano::Node::resourceToN3( graph ) );
 
+    QString query;
     QHashIterator<KUrl, Sync::SyncResource> it( resHash );
     while( it.hasNext() ) {
         const Sync::SyncResource& res = it.next().value();
@@ -174,12 +175,21 @@ void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
         }
 
         query[ query.length() - 1 ] = '.';
+
+        // Virtuoso does not like commands that are too long. So we use an arbitary limit of 500 characters.
+        if( query.size() >= 500 ) {
+            QString command = QString::fromLatin1("%1 %2 }").arg( preQuery, query );
+            m_model->executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+            query.clear();
+        }
     }
 
-    query += QLatin1String(" } ");
+    if( !query.isEmpty() ) {
+        QString command = QString::fromLatin1("%1 %2 }").arg( preQuery, query );
 
-    // We use sql instead of sparql so that we can avoid any changes done by any of the other models
-    m_model->executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+        // We use sql instead of sparql so that we can avoid any changes done by any of the other models
+        m_model->executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+    }
 }
 
 
