@@ -74,7 +74,7 @@ void Nepomuk2::Indexer::slotIndexedFile(int exitCode)
     // stop the timer since there is no need to kill the process anymore
     m_processTimer->stop();
 
-    kDebug() << "Indexing of " << m_url.toLocalFile() << "finished with exit code" << exitCode;
+    //kDebug() << "Indexing of " << m_url.toLocalFile() << "finished with exit code" << exitCode;
     if(exitCode == 1 && FileIndexerConfig::self()->isDebugModeEnabled()) {
         QFile errorLogFile(KStandardDirs::locateLocal("data", QLatin1String("nepomuk/file-indexer-error-log"), true));
         if(errorLogFile.open(QIODevice::Append)) {

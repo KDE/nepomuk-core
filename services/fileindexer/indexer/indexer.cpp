@@ -127,11 +127,11 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
             kError() << "SimpleIndexerError: " << job->errorString();
             return false;
         }
-
-        kDebug() << "Updating indexing level";
-        updateIndexingLevel( uri, 2 );
-        kDebug() << "Done";
     }
+
+    // Update the indexing level even if no data has changed
+    kDebug() << "Updating indexing level";
+    updateIndexingLevel( uri, 2 );
 
     return true;
 }
@@ -190,10 +190,11 @@ bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
                 kError() << "SimpleIndexerError: " << job->errorString();
                 return false;
             }
-            kDebug() << "Updating the indexing level";
-            updateIndexingLevel( uri, 2 );
-            kDebug() << "Done";
         }
+
+        kDebug() << "Updating the indexing level";
+        updateIndexingLevel( uri, 2 );
+        kDebug() << "Done";
     }
 
     return status;
