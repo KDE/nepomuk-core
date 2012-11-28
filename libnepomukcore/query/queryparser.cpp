@@ -587,7 +587,7 @@ QList<Nepomuk2::Types::Property> Nepomuk2::Query::QueryParser::matchProperty( co
                                  "graph ?g { "
                                  "?p a %1 . "
                                  "?p %2 ?l . "
-                                 "FILTER(REGEX(STR(?l),'^%3','i') || REGEX(STR(?p),'^%3','i')) . "
+                                 "FILTER(REGEX(STR(?l),'%3*','i') || REGEX(STR(?p),'%3*','i')) . "
                                  "} "
                                  "}" )
                         .arg( Soprano::Node::resourceToN3( Soprano::Vocabulary::RDF::Property() ) )
