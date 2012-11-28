@@ -50,9 +50,12 @@ Nepomuk2::Query::ResultIterator::ResultIterator(const Nepomuk2::Query::Query& qu
 Nepomuk2::Query::ResultIterator::ResultIterator(const QString& sparql, const Nepomuk2::Query::RequestPropertyMap& map)
     : d( new Nepomuk2::Query::ResultIterator::Private() )
 {
-    Soprano::Model* model = ResourceManager::instance()->mainModel();
-    d->m_it = model->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
     d->m_requestMap = map;
+
+    if( !sparql.isEmpty() ) {
+        Soprano::Model* model = ResourceManager::instance()->mainModel();
+        d->m_it = model->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
+    }
 }
 
 Nepomuk2::Query::ResultIterator::~ResultIterator()
