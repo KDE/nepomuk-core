@@ -128,7 +128,7 @@ QUrl Nepomuk2::ResourceData::type()
     if( !load() )
         return mainType;
 
-    QList<QUrl> types = m_cache[RDF::type()].toUrlList();
+    QList<QUrl> types = m_cache.value(RDF::type()).toUrlList();
     foreach(const QUrl& t, types) {
         Types::Class currentTypeClass = mainType;
         Types::Class storedTypeClass = t;
@@ -166,9 +166,9 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
     // This is required cause otherwise the Resource::fromResourceUri creates a new
     // resource which is correctly identified to the ResourceData (this), and it is
     // then deleted, which calls resetAll and this cycle continues.
-    const QString nao = m_cache[NAO::identifier()].toString();
+    const QString nao = m_cache.value(NAO::identifier()).toString();
     m_rm->m_identifierKickOff.remove( nao );
-    const QUrl nieUrl = m_cache[NIE::url()].toUrl();
+    const QUrl nieUrl = m_cache.value(NIE::url()).toUrl();
     m_rm->m_urlKickOff.remove( nieUrl );
 
     if( !m_uri.isEmpty() ) {
@@ -376,8 +376,8 @@ bool Nepomuk2::ResourceData::load()
             m_cache[p].append( Variant::fromNode( it["o"] ) );
         }
 
-        const QString newNaoIdentifier = m_cache[NAO::identifier()].toString();
-        const QUrl newNieUrl = m_cache[NIE::url()].toUrl();
+        const QString newNaoIdentifier = m_cache.value(NAO::identifier()).toString();
+        const QUrl newNieUrl = m_cache.value(NIE::url()).toUrl();
         updateIdentifierLists( oldNaoIdentifier, newNaoIdentifier );
         updateUrlLists( oldNieUrl, newNieUrl );
 
@@ -728,9 +728,9 @@ void Nepomuk2::ResourceData::updateIdentifierLists(const QString& oldIdentifier,
 void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& uri, const Nepomuk2::Variant& variant)
 {
     if( uri == NIE::url() )
-        updateUrlLists( m_cache[NIE::url()].toUrl(), variant.toUrl() );
+        updateUrlLists( m_cache.value(NIE::url()).toUrl(), variant.toUrl() );
     else if( uri == NAO::identifier() )
-        updateIdentifierLists( m_cache[NAO::identifier()].toString(), variant.toString() );
+        updateIdentifierLists( m_cache.value(NAO::identifier()).toString(), variant.toString() );
 }
 
 void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const QVariant &value_ )
