@@ -388,6 +388,42 @@ void DuplicateStatementJob::execute()
     }
 }
 
+class InvalidFileResourcesJob : public CleaningJob {
+public:
+    explicit InvalidFileResourcesJob(QObject* parent = 0)
+    : CleaningJob(parent) {}
+
+    virtual QString jobName() {
+        return i18n("Cleaning invalid file metadata");
+    }
+private:
+    virtual void execute();
+};
+
+void InvalidFileResourcesJob::execute()
+{
+    QLatin1String query("select distinct ?r where { ?r a nfo:FileDataObject. FILTER NOT EXISTS {"
+                        " ?r nie:url ?url . }");
+
+    Soprano::Model *model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+
+    QList<QUrl> deleteList;
+    while( it.next() && !shouldQuit() ) {
+        deleteList << it[0].uri();
+
+        if( deleteList.size() > 10 ) {
+            KJob* job = Nepomuk2::removeResources( deleteList );
+            job->exec();
+            deleteList.clear();
+        }
+    }
+
+    if( !deleteList.isEmpty() ) {
+        KJob* job = Nepomuk2::removeResources( deleteList );
+        job->exec();
+    }
+}
 
 
 QList< CleaningJob* > allJobs()
@@ -401,6 +437,7 @@ QList< CleaningJob* > allJobs()
     list << new AkonadiMigrationJob();
     list << new DuplicateStatementJob();
     list << new DuplicateContactJob();
+    list << new InvalidFileResourcesJob();
     return list;
 }
 
