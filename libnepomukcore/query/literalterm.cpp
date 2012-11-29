@@ -73,7 +73,9 @@ QString Nepomuk2::Query::LiteralTermPrivate::toSparqlGraphPattern( const QString
               v1,
               containsPattern + additionalFilters,
               r2,
-              Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::label()) );
+              qbd->uniqueVarName() ); //Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::label()) );
+// FIXME: Change back to rdfs:label when virtuoso inferencing bug is fixed
+// BUG: 3591024 - https://sourceforge.net/tracker/?func=detail&aid=3591024&group_id=161622&atid=820574
 }
 
 

@@ -259,7 +259,9 @@ QString Nepomuk2::Query::ComparisonTermPrivate::toSparqlGraphPattern( const QStr
                     .arg( firstUse ? corePattern.arg(v1) : QString(),
                           v1,
                           QLatin1String("%1"), // funny way to have a resulting string which takes only one arg
-                          Soprano::Node::resourceToN3( Soprano::Vocabulary::RDFS::label() ) );
+// FIXME: Change back to rdfs:label when virtuoso inferencing bug is fixed
+// BUG: 3591024 - https://sourceforge.net/tracker/?func=detail&aid=3591024&group_id=161622&atid=820574
+                          qbd->uniqueVarName() ); // Soprano::Node::resourceToN3( Soprano::Vocabulary::RDFS::label() ) );
 
             if ( m_comparator == ComparisonTerm::Equal ) {
                 return pattern.arg( Soprano::Node::literalToN3( m_subTerm.toLiteralTerm().value() ) );
