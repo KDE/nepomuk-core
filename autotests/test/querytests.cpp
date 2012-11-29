@@ -43,8 +43,8 @@
 #include "resourcemanager.h"
 #include "result.h"
 #include "dbusoperators_p.h"
-#include "queryserviceclient.h"
 #include "storeresourcesjob.h"
+#include "resultiterator.h"
 
 #include <Soprano/LiteralValue>
 #include <Soprano/Node>
@@ -99,17 +99,10 @@ namespace {
     }
 
     QList<Result> fetchResults( const Query::Query& query ) {
-        QueryServiceClient client;
-        QEventLoop loop;
-        QObject::connect( &client, SIGNAL(finishedListing()), &loop, SLOT(quit()) );
-        QSignalSpy spy( &client, SIGNAL(newEntries(QList<Nepomuk2::Query::Result>)) );
-        client.query( query );
-        loop.exec();
-
+        Query::ResultIterator it( query );
         QList<Result> list;
-        while( spy.count() ) {
-            list += spy.takeFirst().first().value< QList<Result> >();
-        }
+        while( it.next() )
+            list << it.result();
 
         return list;
     }
