@@ -23,8 +23,8 @@
 #include <QtCore/QHash>
 #include <QtCore/QDirIterator>
 #include <QtCore/QFile>
-#include <QtCore/QQueue>
 #include <QtCore/QScopedArrayPointer>
+#include <QtCore/QLinkedList>
 
 #include <kdebug.h>
 
@@ -79,7 +79,7 @@ public:
     QHash<QByteArray, int> pathWatchHash;
 
     /// A list of all the current dirIterators
-    QQueue<QDirIterator*> dirIterators;
+    QLinkedList<QDirIterator*> dirIterators;
 
     unsigned char eventBuffer[EVENT_BUFFER_SIZE];
 
@@ -108,17 +108,11 @@ public:
         WatchFlags newFlags = flags;
 
         if( !q->filterWatch( path, newMode, newFlags ) ) {
-            return true;
+            return false;
         }
         // we always need the unmount event to maintain our path hash
         const int mask = newMode|newFlags|EventUnmount|FlagExclUnlink;
 
-        return addWatchNoCheck(path, mask);
-    }
-
-    /*This function adds a watch assuming the filtering has already been done,
-     * so it can be used in both addWatch and addWatchRecursive */
-    bool addWatchNoCheck( const QByteArray& path, const int mask ) {
         int wd = inotify_add_watch( inotify(), path.data(), mask );
         if ( wd > 0 ) {
 //            kDebug() << "Successfully added watch for" << path << pathHash.count();
@@ -145,67 +139,24 @@ public:
         inotify_rm_watch( inotify(), wd );
     }
 
-    /*Number of watches to add in one go, before deferring the rest to a future invocation*/
-    #define WATCHES_AT_ONCE 200
-
-    /*Add watches recursively. We don't use the QDir::Subfolders attribute
-     * because we want to avoid walking the directory tree in subfolders we aren't indexing:
-     * they may be large, complicated and mounted over a network.*/
-    bool addWatchesRecursively(const QString& path, int& count){
-        WatchEvents newMode = mode;
-        WatchFlags newFlags = flags;
-        //If we do not want to watch this directory, go home, reporting success.
-        if(!q->filterWatch( path, newMode, newFlags )){
-            return true;
-        }
-
-        // We always need the unmount event to maintain our path hash
-        const int mask = newMode|newFlags|EventUnmount|FlagExclUnlink;
-        //Try to install a watch on this directory.
-        if(!addWatchNoCheck( QFile::encodeName(path) , mask )){
-            return false;
-        }
-        //We installed a watch, so increment our counter.
-        count++;
-        //Next try to add subdirectories, calling self recursively.
-        QDirIterator* it = new QDirIterator( path, QDir::Dirs | QDir::NoDotAndDotDot);
-        //If we have added enough directories already,
-        //queue any subdirectories in this one for later addition
-        //and stop.
-        if(count > WATCHES_AT_ONCE+25){
-            if(it->hasNext()){
-                dirIterators.append(it);
-            }
-            return true;
-        }
-        //Note that because we check count before this, if count=99 here,
-        //we may add all top-level subdirectories to the queue.
-        while(it->hasNext()){
-            if(!addWatchesRecursively(it->next(),count)){
-                return false;
-            }
-        }
-        return true;
-    }
-
+    /**
+     * Add one watch and call oneself asynchronously
+     */
     bool _k_addWatches() {
-        /* add the next batch of paths
-         * i is incrememented inside addWatchesRecursively
-         * Note that we allow i to become a bit larger than WATCHES_AT_ONCE
-         * in addWatchesRecursively, to starting a new tree near the end of a batch.
-         */
-        for ( int i = 0; i < WATCHES_AT_ONCE && !dirIterators.isEmpty(); ) {
+        if( !dirIterators.isEmpty() ) {
             QDirIterator* it = dirIterators.front();
             if( it->hasNext() ) {
-                it->next();
-                //Try to recursively install watches on this directory.
-                if( !addWatchesRecursively(it->filePath(),i) ){
+                QString dirPath = it->next();
+                if( addWatch( QFile::encodeName(dirPath) ) ) {
+                    QDirIterator* iter= new QDirIterator( dirPath, QDir::Dirs | QDir::NoDotAndDotDot);
+                    dirIterators.push_front( iter );
+                }
+                else {
                     return false;
                 }
             }
             else {
-                delete dirIterators.dequeue();
-                break;
+                delete dirIterators.takeFirst();
             }
         }
 
@@ -213,7 +164,8 @@ public:
         if ( !dirIterators.isEmpty() ) {
             QMetaObject::invokeMethod( q, "_k_addWatches", Qt::QueuedConnection );
         }
-	return true;
+
+        return true;
     }
 
 private:
