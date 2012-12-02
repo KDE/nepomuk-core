@@ -123,10 +123,10 @@ QHash< QUrl, QVariant > Nepomuk2::ResourceMerger::additionalMetadata() const
     return m_additionalMetadata;
 }
 
-void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::ResourceHash& resHash)
+bool Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::ResourceHash& resHash)
 {
     if( resHash.isEmpty() || graph.isEmpty() )
-        return;
+        return true; /* Silently fail, nothing bad has happened */
 
     ClassAndPropertyTree *tree = ClassAndPropertyTree::self();
 
@@ -180,6 +180,10 @@ void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
         if( query.size() >= 500 ) {
             QString command = QString::fromLatin1("%1 %2 }").arg( preQuery, query );
             m_model->executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+            if( m_model->lastError() ) {
+                setError( m_model->lastError() );
+                return false;
+            }
             query.clear();
         }
     }
@@ -189,7 +193,13 @@ void Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
 
         // We use sql instead of sparql so that we can avoid any changes done by any of the other models
         m_model->executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+        if( m_model->lastError() ) {
+            setError( m_model->lastError() );
+            return false;
+        }
     }
+
+    return true;
 }
 
 
@@ -741,7 +751,8 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     //
 
     // Push the data in one go
-    push( m_graph, resHash );
+    if( !push( m_graph, resHash ) )
+        return false;
 
     // Push all the duplicateStatements
     QList<QUrl> graphs = m_duplicateStatements.uniqueKeys();
@@ -764,9 +775,14 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
                         .arg( Soprano::Node::resourceToN3( graph ), stPattern );
 
         m_model->executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+        if( m_model->lastError() ) {
+            setError( m_model->lastError() );
+            return false;
+        }
 
         // Push all these statements
-        push( m_graphHash[graph], resHash );
+        if( !push( m_graphHash[graph], resHash ) )
+            return false;
     }
     m_duplicateStatements.clear();
 
