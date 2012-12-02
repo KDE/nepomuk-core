@@ -1,5 +1,6 @@
 /* This file is part of the KDE libraries
    Copyright (C) 2007-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2012 Vishesh Handa <me@vhanda.in>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -18,6 +19,7 @@
 */
 
 #include "kinotify.h"
+#include "optimizedbytearray.h"
 
 #include <QtCore/QSocketNotifier>
 #include <QtCore/QHash>
@@ -75,8 +77,12 @@ public:
     }
 
     QHash<int, QByteArray> cookies;
-    QHash<int, QByteArray> watchPathHash;
-    QHash<QByteArray, int> pathWatchHash;
+
+    // url <-> wd mappings
+    // Read the documentation fo OptimizedByteArray to understand why have a cache
+    QHash<int, OptimizedByteArray> watchPathHash;
+    QHash<OptimizedByteArray, int> pathWatchHash;
+    QSet<QByteArray> pathCache;
 
     /// A list of all the current dirIterators
     QLinkedList<QDirIterator*> dirIterators;
@@ -116,7 +122,7 @@ public:
         int wd = inotify_add_watch( inotify(), path.data(), mask );
         if ( wd > 0 ) {
 //            kDebug() << "Successfully added watch for" << path << pathHash.count();
-            QByteArray normalized = stripTrailingSlash( path );
+            OptimizedByteArray normalized( stripTrailingSlash( path ), pathCache );
             watchPathHash.insert( wd, normalized );
             pathWatchHash.insert( normalized, wd );
             return true;
@@ -134,7 +140,7 @@ public:
     }
 
     void removeWatch( int wd ) {
-        kDebug() << wd << watchPathHash[wd];
+        kDebug() << wd << watchPathHash[wd].toByteArray();
         pathWatchHash.remove( watchPathHash.take( wd ) );
         inotify_rm_watch( inotify(), wd );
     }
@@ -231,7 +237,7 @@ bool KInotify::available() const
 bool KInotify::watchingPath( const QString& path ) const
 {
     const QByteArray p( stripTrailingSlash( QFile::encodeName( path ) ) );
-    return d->pathWatchHash.contains(p);
+    return d->pathWatchHash.contains( OptimizedByteArray(p, d->pathCache) );
 }
 
 
@@ -262,10 +268,10 @@ bool KInotify::removeWatch( const QString& path )
     }
 
     // Remove all the watches
-    QByteArray encodedPath = QFile::encodeName( path );
-    QHash<int, QByteArray>::iterator it = d->watchPathHash.begin();
+    QByteArray encodedPath( QFile::encodeName( path ) );
+    QHash<int, OptimizedByteArray>::iterator it = d->watchPathHash.begin();
     while ( it != d->watchPathHash.end() ) {
-        if ( it.value().startsWith( encodedPath ) ) {
+        if ( it.value().toByteArray().startsWith( encodedPath ) ) {
             inotify_rm_watch( d->inotify(), it.key() );
             d->pathWatchHash.remove(it.value());
             it = d->watchPathHash.erase( it );
@@ -300,12 +306,12 @@ void KInotify::slotEvent( int socket )
         // the event name only contains an interesting value if we get an event for a file/folder inside
         // a watched folder. Otherwise we should ignore it
         if ( event->mask & (EventDeleteSelf|EventMoveSelf) ) {
-            path = d->watchPathHash.value( event->wd );
+            path = d->watchPathHash.value( event->wd ).toByteArray();
         }
         else {
             // we cannot use event->len here since it contains the size of the buffer and not the length of the string
             const QByteArray eventName = QByteArray::fromRawData( event->name, qstrnlen(event->name,event->len) );
-            const QByteArray hashedPath = d->watchPathHash.value( event->wd );
+            const QByteArray hashedPath = d->watchPathHash.value( event->wd ).toByteArray();
             path = concatPath( hashedPath, eventName );
         }
 
@@ -367,13 +373,15 @@ void KInotify::slotEvent( int socket )
 
                 // update the path cache
                 if( event->mask & IN_ISDIR ) {
-                    QHash<QByteArray, int>::iterator it = d->pathWatchHash.find(oldPath);
+                    OptimizedByteArray optimOldPath( oldPath, d->pathCache );
+                    QHash<OptimizedByteArray, int>::iterator it = d->pathWatchHash.find( optimOldPath );
                     if( it != d->pathWatchHash.end() ) {
                         kDebug() << oldPath << path;
                         const int wd = it.value();
-                        d->watchPathHash[wd] = path;
+                        OptimizedByteArray optimPath( path, d->pathCache );
+                        d->watchPathHash[wd] = optimPath;
                         d->pathWatchHash.erase(it);
-                        d->pathWatchHash.insert( path, wd );
+                        d->pathWatchHash.insert( optimPath, wd );
                     }
                 }
 //                kDebug() << oldPath << "EventMoveTo" << path;
