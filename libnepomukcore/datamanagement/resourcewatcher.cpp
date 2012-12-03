@@ -129,7 +129,7 @@ bool Nepomuk2::ResourceWatcher::start()
         connect( d->m_connectionInterface, SIGNAL(resourceTypesRemoved(QString,QStringList)),
                  this, SLOT(slotResourceTypesRemoved(QString,QStringList)) );
 
-        kDebug() << "Successfully connected to watch service";
+        //kDebug() << "Successfully connected to watch service";
         return true;
     }
     else {

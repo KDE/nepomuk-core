@@ -228,7 +228,6 @@ void Nepomuk2::FileWatch::slotFilesDeleted( const QStringList& paths )
     }
 
     if( !urls.isEmpty() ) {
-        kDebug() << urls;
         m_metadataMover->removeFileMetadata( urls );
     }
 }

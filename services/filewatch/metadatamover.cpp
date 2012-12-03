@@ -123,7 +123,7 @@ void Nepomuk2::MetadataMover::slotWorkUpdateQueue()
 //        kDebug() << "========================= done with" << updateRequest.source() << updateRequest.target();
     }
     else {
-        kDebug() << "All update requests handled. Stopping timer.";
+        //kDebug() << "All update requests handled. Stopping timer.";
         m_queueTimer->stop();
     }
 }
