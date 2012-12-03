@@ -90,11 +90,12 @@ void Nepomuk2::IndexCleaner::start()
     // Query the nepomukindexer app resource in order to speed up the queries.
     //
     QUrl appRes;
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    QString appQuery = QString::fromLatin1("select ?app where { ?app nao:identifier %1 . } LIMIT 1")
+                       .arg( Soprano::Node::literalToN3(QLatin1String("nepomukindexer")) );
+
     Soprano::QueryResultIterator appIt
-            = Nepomuk2::ResourceManager::instance()->mainModel()->executeQuery(QString::fromLatin1("select ?app where { ?app %1 %2 . } LIMIT 1")
-                                                                              .arg(Soprano::Node::resourceToN3( NAO::identifier() ),
-                                                                                   Soprano::Node::literalToN3(QLatin1String("nepomukindexer"))),
-                                                                              Soprano::Query::QueryLanguageSparql);
+            = model->executeQuery( appQuery, Soprano::Query::QueryLanguageSparql);
     if(appIt.next()) {
         appRes = appIt[0].uri();
     }
@@ -104,12 +105,10 @@ void Nepomuk2::IndexCleaner::start()
     //
     if(!appRes.isEmpty()) {
         m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                                 "graph ?g { ?r %1 ?url . } . "
-                                                 "?g %2 %3 . "
-                                                 " %4 } LIMIT %5" )
-                            .arg( Soprano::Node::resourceToN3( NIE::url() ),
-                                  Soprano::Node::resourceToN3( NAO::maintainedBy() ),
-                                  Soprano::Node::resourceToN3( appRes ),
+                                                 "graph ?g { ?r nie:url ?url . } . "
+                                                 "?g nao:maintainedBy %1 . "
+                                                 " %2 } LIMIT %3" )
+                            .arg( Soprano::Node::resourceToN3( appRes ),
                                   folderFilter,
                                   QString::number( limit ) );
     }
@@ -120,12 +119,11 @@ void Nepomuk2::IndexCleaner::start()
     // This for example excludes all filex:/ URLs.
     //
     m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                             "?r %1 ?url . "
+                                             "?r nie:url ?url . "
                                              "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
                                              "FILTER(REGEX(STR(?url),'^file:/')) . "
                                              "%2 } LIMIT %3" )
-                        .arg( Soprano::Node::resourceToN3( NIE::url() ),
-                              folderFilter )
+                        .arg( folderFilter )
                         .arg(limit);
 
 
@@ -147,29 +145,24 @@ void Nepomuk2::IndexCleaner::start()
         // 3.1. Data for files which are excluded through filters
         if(!appRes.isEmpty()) {
             m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                                     "graph ?g { ?r %1 ?url . } . "
-                                                     "?r %2 ?fn . "
-                                                     "?g %3 %4 . "
+                                                     "graph ?g { ?r nie:url ?url . } . "
+                                                     "?r nfo:fileName ?fn . "
+                                                     "?g nao:maintainedBy %1 . "
                                                      "FILTER(REGEX(STR(?url),\"^file:/\")) . "
-                                                     "%5 } LIMIT %6" )
-                                .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ),
-                                      Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NFO::fileName() ),
-                                      Soprano::Node::resourceToN3( NAO::maintainedBy() ),
-                                      Soprano::Node::resourceToN3( appRes ),
+                                                     "%2 } LIMIT %3" )
+                                .arg( Soprano::Node::resourceToN3( appRes ),
                                       filters )
                                 .arg(limit);
         }
 
         // 3.2. (legacy data) Data for files which are excluded through filters
         m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                                 "?r %1 ?url . "
-                                                 "?r %2 ?fn . "
+                                                 "?r nie:url ?url . "
+                                                 "?r nfo:fileName ?fn . "
                                                  "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
                                                  "FILTER(REGEX(STR(?url),\"^file:/\")) . "
-                                                 "%3 } LIMIT %4" )
-                            .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ),
-                                  Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NFO::fileName() ),
-                                  filters )
+                                                 "%1 } LIMIT %2" )
+                            .arg( filters )
                             .arg(limit);
     }
 
@@ -177,24 +170,21 @@ void Nepomuk2::IndexCleaner::start()
     const QString excludeFiltersFolderFilter = constructExcludeFiltersFolderFilter(Nepomuk2::FileIndexerConfig::self());
     if(!excludeFiltersFolderFilter.isEmpty()) {
         m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                                 "graph ?g { ?r %1 ?url . } . "
-                                                 "?g %2 %3 . "
-                                                 "FILTER(REGEX(STR(?url),\"^file:/\") && %4) . "
-                                                 "} LIMIT %5" )
-                            .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ),
-                                  Soprano::Node::resourceToN3( NAO::maintainedBy() ),
-                                  Soprano::Node::resourceToN3( appRes ),
+                                                 "graph ?g { ?r nie:url ?url . } . "
+                                                 "?g nao:maintainedBy %1 . "
+                                                 "FILTER(REGEX(STR(?url),\"^file:/\") && %2) . "
+                                                 "} LIMIT %3" )
+                            .arg( Soprano::Node::resourceToN3( appRes ),
                                   excludeFiltersFolderFilter )
                             .arg(limit);
 
         // 3.4. (legacy data) Data for files which have paths that are excluded through exclude filters
         m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                                 "?r %1 ?url . "
+                                                 "?r nie:url ?url . "
                                                  "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
-                                                 "FILTER(REGEX(STR(?url),\"^file:/\") && %2) . "
-                                                 "} LIMIT %3" )
-                            .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ),
-                                  excludeFiltersFolderFilter)
+                                                 "FILTER(REGEX(STR(?url),\"^file:/\") && %1) . "
+                                                 "} LIMIT %2" )
+                            .arg( excludeFiltersFolderFilter)
                             .arg(limit);
     }
 
