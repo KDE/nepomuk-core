@@ -860,7 +860,8 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
         }
 
         if(!d->m_classAndPropertyTree->isKnownClass(type)) {
-            setError(QLatin1String("createResource: Encountered invalid type URI."), Soprano::Error::ErrorInvalidArgument);
+            QString error = QString::fromLatin1("createResource: Encountered invalid type URI %1").arg( Soprano::Node::resourceToN3(type) );
+            setError(error, Soprano::Error::ErrorInvalidArgument);
             return QUrl();
         }
     }
