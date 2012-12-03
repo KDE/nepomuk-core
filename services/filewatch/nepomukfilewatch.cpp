@@ -20,7 +20,6 @@
 #include "metadatamover.h"
 #include "fileindexerinterface.h"
 #include "fileexcludefilters.h"
-#include "invalidfileresourcecleaner.h"
 #include "removabledeviceindexnotification.h"
 #include "removablemediacache.h"
 #include "fileindexerconfig.h"
@@ -181,8 +180,6 @@ Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
     connect(m_removableMediaCache, SIGNAL(deviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry*)),
             this, SLOT(slotDeviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry*)));
     addWatchesForMountedRemovableMedia();
-
-    (new InvalidFileResourceCleaner(this))->start();
 
     connect( FileIndexerConfig::self(), SIGNAL( configChanged() ),
              this, SLOT( updateIndexedFoldersWatches() ) );
@@ -368,13 +365,6 @@ void Nepomuk2::FileWatch::addWatchesForMountedRemovableMedia()
 
 void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache::Entry* entry)
 {
-    //
-    // now that the device is mounted we can clean up our db - in case we have any
-    // data for file that have been deleted from the device in the meantime.
-    //
-    InvalidFileResourceCleaner* cleaner = new InvalidFileResourceCleaner(this);
-    cleaner->start(entry->mountPath());
-
     //
     // tell the file indexer to update the newly mounted device
     //

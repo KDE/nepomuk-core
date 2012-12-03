@@ -15,7 +15,6 @@ set(SRCS
   nepomukfilewatch.cpp
   metadatamover.cpp
   updaterequest.cpp
-  invalidfileresourcecleaner.cpp
   ../fileindexer/fileindexerconfig.cpp
   removabledeviceindexnotification.cpp
   activefilequeue.cpp

@@ -28,6 +28,7 @@
 #include "literal.h"
 
 #include <QtCore/QTimer>
+#include <QtCore/QFile>
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
@@ -402,6 +403,9 @@ private:
 
 void InvalidFileResourcesJob::execute()
 {
+    //
+    // Delete all the files that do not have a url
+    //
     QLatin1String query("select distinct ?r where { ?r a nfo:FileDataObject. FILTER NOT EXISTS {"
                         " ?r nie:url ?url . }");
 
@@ -422,6 +426,36 @@ void InvalidFileResourcesJob::execute()
     if( !deleteList.isEmpty() ) {
         KJob* job = Nepomuk2::removeResources( deleteList );
         job->exec();
+        deleteList.clear();
+    }
+
+    //
+    // Delete the files whose url does not exist
+    //
+
+    query = QLatin1String( "select distinct ?r ?url where { "
+                           "?r a nfo:FileDataObject ; nie:url ?url . }" );
+    it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+
+    while( it.next() && !shouldQuit() ) {
+        QUrl url( it["url"].uri() );
+        QString file = url.toLocalFile();
+
+        if( !file.isEmpty() && !QFile::exists(file) ) {
+            deleteList << it["r"].uri();
+        }
+
+        if( deleteList.size() > 10 ) {
+            KJob* job = Nepomuk2::removeResources( deleteList );
+            job->exec();
+            deleteList.clear();
+        }
+    }
+
+    if( !deleteList.isEmpty() ) {
+        KJob* job = Nepomuk2::removeResources( deleteList );
+        job->exec();
+        deleteList.clear();
     }
 }
 
