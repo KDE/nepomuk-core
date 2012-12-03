@@ -107,11 +107,11 @@ Nepomuk2::Query::Query Nepomuk2::Query::dateRangeQuery( const QDate& start, cons
         ComparisonTerm lastModifiedStart = Nepomuk2::Vocabulary::NIE::lastModified() > dateFrom;
         ComparisonTerm lastModifiedEnd = Nepomuk2::Vocabulary::NIE::lastModified() < dateTo;
         if( start.isValid() && end.isValid() )
-            query = query || ( lastModifiedStart && lastModifiedEnd );
+            query = ( lastModifiedStart && lastModifiedEnd );
         else if( start.isValid() )
-            query = query || lastModifiedStart;
+            query = lastModifiedStart;
         else if( end.isValid() )
-            query = query || lastModifiedEnd;
+            query = lastModifiedEnd;
     }
 
     if( dateFlags & ContentDate ) {
