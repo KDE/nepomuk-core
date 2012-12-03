@@ -417,6 +417,7 @@ void Nepomuk2::FileWatch::slotDeviceTeardownRequested(const Nepomuk2::RemovableM
 {
 #ifdef BUILD_KINOTIFY
     if( m_dirWatch ) {
+        kDebug() << entry->mountPath();
         m_dirWatch->removeWatch( entry->mountPath() );
     }
 #endif

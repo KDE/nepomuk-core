@@ -143,6 +143,8 @@ public:
      * Add one watch and call oneself asynchronously
      */
     bool _k_addWatches() {
+        bool addedWatchSuccessfully = false;
+
         if( !dirIterators.isEmpty() ) {
             QDirIterator* it = dirIterators.front();
             if( it->hasNext() ) {
@@ -150,9 +152,7 @@ public:
                 if( addWatch( QFile::encodeName(dirPath) ) ) {
                     QDirIterator* iter= new QDirIterator( dirPath, QDir::Dirs | QDir::NoDotAndDotDot);
                     dirIterators.push_front( iter );
-                }
-                else {
-                    return false;
+                    addedWatchSuccessfully = true;
                 }
             }
             else {
@@ -165,7 +165,7 @@ public:
             QMetaObject::invokeMethod( q, "_k_addWatches", Qt::QueuedConnection );
         }
 
-        return true;
+        return addedWatchSuccessfully;
     }
 
 private:
@@ -251,7 +251,17 @@ bool KInotify::addWatch( const QString& path, WatchEvents mode, WatchFlags flags
 
 bool KInotify::removeWatch( const QString& path )
 {
-    kDebug() << path;
+    // Stop all of the dirIterators which contain path
+    QMutableLinkedListIterator<QDirIterator*> iter( d->dirIterators );
+    while( iter.hasNext() ) {
+        QDirIterator* dirIter = iter.next();
+        if( dirIter->filePath().startsWith( path ) ) {
+            iter.remove();
+            delete dirIter;
+        }
+    }
+
+    // Remove all the watches
     QByteArray encodedPath = QFile::encodeName( path );
     QHash<int, QByteArray>::iterator it = d->watchPathHash.begin();
     while ( it != d->watchPathHash.end() ) {
