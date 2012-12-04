@@ -1,7 +1,7 @@
 /*
  * This file is part of the Nepomuk KDE project.
  * Copyright (C) 2006-2012 Sebastian Trueg <trueg@kde.org>
- * Copyright (C) 2010 Vishesh Handa <handa.vish@gmail.com>
+ * Copyright (C) 2010-2012 Vishesh Handa <handa.vish@gmail.com>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Library General Public
@@ -383,4 +383,48 @@ void Nepomuk2::ResourceManager::setOverrideMainModel( Soprano::Model* model )
         }
     }
 }
+
+void Nepomuk2::ResourceManagerPrivate::addToWatcher( const QUrl& uri )
+{
+    if( uri.isEmpty() )
+        return;
+
+    if( !m_watcher ) {
+        m_watcher = new ResourceWatcher(m_manager);
+        //
+        // The ResourceWatcher is not thread-safe. Thus, we need to ensure the safety ourselves.
+        // We do that by simply handling all RW related operations in the manager thread.
+        // This also means to invoke methods on the watcher through QMetaObject to make sure they
+        // get queued in case of calls between different threads.
+        //
+        m_watcher->moveToThread(m_manager->thread());
+        QObject::connect( m_watcher, SIGNAL(propertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
+                          m_manager, SLOT(slotPropertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
+        QObject::connect( m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
+                          m_manager, SLOT(slotPropertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
+        m_watcher->addResource( uri );
+    }
+    else {
+        QMetaObject::invokeMethod( m_watcher, "addResource", Qt::AutoConnection, Q_ARG(QUrl, uri) );
+    }
+    // (re-)start the watcher in case this resource is the only one in the list of watched
+    if( m_watcher->resourceCount() <= 1 ) {
+        QMetaObject::invokeMethod(m_watcher, "start", Qt::AutoConnection);
+    }
+}
+
+void Nepomuk2::ResourceManagerPrivate::removeFromWatcher( const QUrl& uri )
+{
+    if( uri.isEmpty() || !m_watcher )
+        return;
+
+    // stop the watcher since we do not want to watch all changes in case there is no ResourceData left
+    if(m_watcher->resourceCount() == 1) {
+        QMetaObject::invokeMethod(m_watcher, "stop", Qt::AutoConnection);
+    }
+
+    // remove this Resource from the list of watched resources
+    QMetaObject::invokeMethod(m_watcher, "removeResource", Qt::AutoConnection, Q_ARG(QUrl, uri));
+}
+
 #include "resourcemanager.moc"

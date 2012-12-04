@@ -70,8 +70,6 @@ namespace Nepomuk2 {
 
         ResourceManager* m_manager;
 
-        ResourceWatcher* m_watcher;
-
         /**
          * The Nepomuk lib is based on the fact that for each uri only one ResourceData object is
          * created at all times. This method searches for an existing data object to reuse or creates
@@ -110,8 +108,12 @@ namespace Nepomuk2 {
         void _k_storageServiceInitialized( bool );
         void _k_dbusServiceUnregistered( const QString& serviceName );
 
+        void addToWatcher(const QUrl& uri);
+        void removeFromWatcher(const QUrl& uri);
+
     private:
         ResourceData* findData( const QUrl& uri );
+        ResourceWatcher* m_watcher;
     };
 }
 
