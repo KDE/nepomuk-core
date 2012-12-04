@@ -46,7 +46,16 @@ namespace Nepomuk2 {
         void resume();
 
     signals:
+        /**
+         * The derived queues must emit this signal when their queue
+         * gets filled up
+         */
         void startedIndexing();
+
+        /**
+         * Will automatically be emitted after an iteration if empty
+         * returns true
+         */
         void finishedIndexing();
 
     protected:

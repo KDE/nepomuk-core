@@ -26,6 +26,7 @@
 #include <Soprano/QueryResultIterator>
 
 #include <KDebug>
+#include <QTimer>
 
 namespace Nepomuk2 {
 
@@ -33,7 +34,14 @@ FileIndexingQueue::FileIndexingQueue(QObject* parent): IndexingQueue(parent)
 {
     m_fileQueue.reserve( 10 );
 
+    QTimer::singleShot( 0, this, SLOT(init()) );
+}
+
+void FileIndexingQueue::init()
+{
     fillQueue();
+    emit startedIndexing();
+
     callForNextIteration();
 }
 

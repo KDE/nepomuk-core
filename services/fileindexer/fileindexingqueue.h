@@ -42,6 +42,7 @@ namespace Nepomuk2 {
         virtual void processNextIteration();
 
     private slots:
+        void init();
         void slotFinishedIndexingFile(KJob* job);
 
     private:

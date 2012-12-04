@@ -77,8 +77,12 @@ void BasicIndexingQueue::enqueue(const QString& path)
 
 void BasicIndexingQueue::enqueue(const QString& path, UpdateDirFlags flags)
 {
+    bool wasEmpty = m_paths.empty();
     m_paths.enqueue( qMakePair( path, flags ) );
     callForNextIteration();
+
+    if( wasEmpty )
+        emit startedIndexing();
 }
 
 void BasicIndexingQueue::processNextIteration()
