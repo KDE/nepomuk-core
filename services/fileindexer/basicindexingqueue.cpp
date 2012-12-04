@@ -81,9 +81,9 @@ void BasicIndexingQueue::enqueue(const QString& path, UpdateDirFlags flags)
     callForNextIteration();
 }
 
-bool BasicIndexingQueue::processNextIteration()
+void BasicIndexingQueue::processNextIteration()
 {
-    bool startedIndexing = false;
+    bool processingFile = false;
 
     // First process all the iterators and then the paths
     if( !m_iterators.isEmpty() ) {
@@ -91,7 +91,7 @@ bool BasicIndexingQueue::processNextIteration()
         QDirIterator* dirIt = pair.first;
 
         if( dirIt->hasNext() ) {
-            startedIndexing = process( dirIt->next(), pair.second );
+            processingFile = process( dirIt->next(), pair.second );
         }
         else {
             delete m_iterators.dequeue().first;
@@ -100,10 +100,11 @@ bool BasicIndexingQueue::processNextIteration()
 
     else if( !m_paths.isEmpty() ) {
         QPair< QString, UpdateDirFlags > pair = m_paths.dequeue();
-        startedIndexing = process( pair.first, pair.second );
+        processingFile = process( pair.first, pair.second );
     }
 
-    return startedIndexing;
+    if( !processingFile )
+        finishIteration();
 }
 
 
@@ -207,7 +208,7 @@ void BasicIndexingQueue::slotIndexingFinished(KJob* job)
     emit endIndexingFile( url );
 
     // Continue the queue
-    finishIndexingFile();
+    finishIteration();
 }
 
 

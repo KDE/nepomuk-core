@@ -28,7 +28,11 @@
 
 namespace Nepomuk2 {
 
-
+    /**
+     * An abstract class representing the queue. All indexing queues
+     * should be derived from this queue.
+     *
+     */
     class IndexingQueue : public QObject
     {
         Q_OBJECT
@@ -42,20 +46,28 @@ namespace Nepomuk2 {
         void resume();
 
     signals:
+        void startedIndexing();
         void finishedIndexing();
 
     protected:
         /**
-         * Returns true if a file has been sent for indexing
+         * Process the next iteration in your queue. Once you are done
+         * processing the file call finishIndexingFile so that the queue
+         * can continue processing and call this function when it is
+         * ready for the next iteration.
+         *
+         * \sa finishIndexingFile
          */
-        virtual bool processNextIteration() = 0;
+        virtual void processNextIteration() = 0;
 
     protected slots:
         /**
-         * Call this function when you have finished indexing one file, and want the indexing
-         * queue to continue
+         * Call this function when you have finished processing the
+         * iteration from processNextIteration.
+         *
+         * \sa processNextIteration
          */
-        void finishIndexingFile();
+        void finishIteration();
 
         void callForNextIteration();
 

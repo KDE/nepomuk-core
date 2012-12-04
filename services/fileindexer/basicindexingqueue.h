@@ -78,7 +78,7 @@ namespace Nepomuk2 {
         void clear();
 
     protected:
-        virtual bool processNextIteration();
+        virtual void processNextIteration();
 
     private slots:
         void slotClearIndexedDataFinished(KJob* job);
@@ -94,6 +94,14 @@ namespace Nepomuk2 {
         bool shouldIndex(const QString& file);
         bool shouldIndexContents(const QString& dir);
 
+        /**
+         * Check if the \p path needs to be indexed based on the \p flags
+         * and the path. If it needs to be indexed, then start indexing
+         * it.
+         *
+         * \return \c true the path is being indexed
+         * \return \c false the path did not meet the criteria
+         */
         bool process(const QString& path, Nepomuk2::UpdateDirFlags flags);
 
         QQueue< QPair<QString, UpdateDirFlags> > m_paths;

@@ -53,17 +53,15 @@ bool FileIndexingQueue::isEmpty()
     return m_fileQueue.isEmpty();
 }
 
-bool FileIndexingQueue::processNextIteration()
+void FileIndexingQueue::processNextIteration()
 {
     const QUrl fileUrl = m_fileQueue.dequeue();
     process( fileUrl );
 
     if( m_fileQueue.isEmpty() ) {
         fillQueue();
-        return false;
+        finishIteration();
     }
-
-    return true;
 }
 
 void FileIndexingQueue::process(const QUrl& url)
@@ -82,7 +80,7 @@ void FileIndexingQueue::slotFinishedIndexingFile(KJob* job)
     }
 
     m_currentUrl.clear();
-    finishIndexingFile();
+    finishIteration();
 }
 
 void FileIndexingQueue::clear()

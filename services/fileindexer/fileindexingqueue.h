@@ -39,7 +39,7 @@ namespace Nepomuk2 {
         QUrl currentUrl();
 
     protected:
-        virtual bool processNextIteration();
+        virtual void processNextIteration();
 
     private slots:
         void slotFinishedIndexingFile(KJob* job);

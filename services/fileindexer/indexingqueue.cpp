@@ -39,12 +39,7 @@ void IndexingQueue::processNext()
         return;
     }
 
-    bool startedIndexing = processNextIteration();
-
-    if( !startedIndexing ) {
-        m_sentEvent = false;
-        callForNextIteration();
-    }
+    processNextIteration();
 }
 
 
@@ -76,7 +71,7 @@ void IndexingQueue::callForNextIteration()
     }
 }
 
-void IndexingQueue::finishIndexingFile()
+void IndexingQueue::finishIteration()
 {
     m_sentEvent = false;
     callForNextIteration();
