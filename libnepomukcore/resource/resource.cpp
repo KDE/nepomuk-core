@@ -51,37 +51,61 @@ using namespace Soprano::Vocabulary;
 
 Nepomuk2::Resource::Resource()
 {
-    QMutexLocker lock( &ResourceManager::instance()->d->mutex );
-    m_data = ResourceManager::instance()->d->data( QUrl(), QUrl() );
-    if ( m_data )
-        m_data->ref( this );
+    ResourceManager* rm = ResourceManager::instance();
+    if( rm ) {
+        QMutexLocker lock( &rm->d->mutex );
+        m_data = rm->d->data( QUrl(), QUrl() );
+        if ( m_data )
+            m_data->ref( this );
+    }
+    else {
+        kError() << "QCoreApplication does not exist. Resource cannot be initalialized";
+    }
 }
 
 
 Nepomuk2::Resource::Resource( const Nepomuk2::Resource& res )
 {
-    QMutexLocker lock( &res.m_data->rm()->mutex );
-    m_data = res.m_data;
-    if ( m_data )
-        m_data->ref( this );
+    ResourceManager* rm = ResourceManager::instance();
+    if( rm ) {
+        QMutexLocker lock( &rm->d->mutex );
+        m_data = res.m_data;
+        if ( m_data )
+            m_data->ref( this );
+    }
+    else {
+        kError() << "QCoreApplication does not exist. Resource cannot be initalialized";
+    }
 }
 
 
 Nepomuk2::Resource::Resource( const QString& uri, const QUrl& type )
 {
-    QMutexLocker lock( &ResourceManager::instance()->d->mutex );
-    m_data = ResourceManager::instance()->d->data( uri, type );
-    if ( m_data )
-        m_data->ref( this );
+    ResourceManager* rm = ResourceManager::instance();
+    if( rm ) {
+        QMutexLocker lock( &rm->d->mutex );
+        m_data = rm->d->data( uri, type );
+        if ( m_data )
+            m_data->ref( this );
+    }
+    else {
+        kError() << "QCoreApplication does not exist. Resource cannot be initalialized";
+    }
 }
 
 
 Nepomuk2::Resource::Resource( const QUrl& uri, const QUrl& type )
 {
-    QMutexLocker lock( &ResourceManager::instance()->d->mutex );
-    m_data = ResourceManager::instance()->d->data( uri, type );
-    if ( m_data )
-        m_data->ref( this );
+    ResourceManager* rm = ResourceManager::instance();
+    if( rm ) {
+        QMutexLocker lock( &rm->d->mutex );
+        m_data = rm->d->data( uri, type );
+        if ( m_data )
+            m_data->ref( this );
+    }
+    else {
+        kError() << "QCoreApplication does not exist. Resource cannot be initalialized";
+    }
 }
 
 

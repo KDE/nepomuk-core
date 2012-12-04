@@ -249,8 +249,15 @@ Nepomuk2::ResourceManager::~ResourceManager()
 Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::instance()
 {
     if(!s_instance) {
+        //
+        // This happens when QCoreApplication::quit has been called
+        //
+        QCoreApplication* app = QCoreApplication::instance();
+        if( !app )
+            return 0;
+
         s_instance = new ResourceManager();
-        s_instance->setParent(QCoreApplication::instance());
+        s_instance->setParent( app );
     }
     return s_instance;
 }

@@ -146,7 +146,10 @@ void Nepomuk2::ResourceWatcher::stop()
         d->m_connectionInterface = 0;
     }
 
-    disconnect(ResourceManager::instance(), SIGNAL(nepomukSystemStarted()), this, SLOT(start()));
+    // This is for the case when ~ResourceManager removes its ResourceWatcher,
+    // which in turn calls stop().
+    if( ResourceManager::instance() )
+        disconnect(ResourceManager::instance(), SIGNAL(nepomukSystemStarted()), this, SLOT(start()));
 }
 
 void Nepomuk2::ResourceWatcher::addProperty(const Nepomuk2::Types::Property& property)
