@@ -228,6 +228,25 @@ Nepomuk2::ResourceManager::ResourceManager()
 
 }
 
+void Nepomuk2::ResourceManager::cleanupResources()
+{
+    //
+    // Ideally, all three caches should be empty when the ResourceManager is being destroyed
+    // But that isn't always the case. There could be a Resource in a static object which gets
+    // deleted after the ResourceManager.
+    // In order to counter that case, we mark all Resource classes as invalid.
+    // The cache should be empty when the ResourceManager is getting destroyed
+    // See bug 292996 - https://bugs.kde.org/show_bug.cgi?id=292996
+    //
+    QMutexLocker lock( &d->mutex );
+    QList<ResourceData*> rdList = d->m_identifierKickOff.values() + d->m_urlKickOff.values() +
+                                  d->m_initializedData.values();
+    foreach( const ResourceData* rd, rdList.toSet() ) {
+        foreach(Resource* res, rd->resources())
+            res->m_data = 0;
+        delete rd;
+    }
+}
 
 Nepomuk2::ResourceManager::~ResourceManager()
 {
@@ -257,6 +276,7 @@ Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::instance()
 
         s_instance = new ResourceManager();
         s_instance->setParent( app );
+        connect( app, SIGNAL(aboutToQuit()), s_instance, SLOT(cleanupResources()) );
     }
     return s_instance;
 }

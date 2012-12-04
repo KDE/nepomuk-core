@@ -33,6 +33,7 @@
 namespace Nepomuk2 {
 
     class ResourceData;
+    class ResourceManager;
     class Variant;
     class Tag;
     class File;
@@ -524,6 +525,7 @@ namespace Nepomuk2 {
         Private* d; // unused
 
         friend class ResourceData;
+        friend class ResourceManager;
     };
 
     NEPOMUK_EXPORT uint qHash( const Resource& res );

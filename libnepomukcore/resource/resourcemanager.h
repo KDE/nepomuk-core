@@ -161,6 +161,13 @@ namespace Nepomuk2 {
         void slotPropertyAdded(const Nepomuk2::Resource &res, const Nepomuk2::Types::Property &prop, const QVariant &value);
         void slotPropertyRemoved(const Nepomuk2::Resource &res, const Nepomuk2::Types::Property &prop, const QVariant &value);
 
+        /**
+         * This slot is called when the application is about to quit in order to delete all the
+         * ResourceData* and render the Resource classes useless. This help to avoid crashes
+         * by an application trying to access a Resource when the application is quiting.
+         */
+        void cleanupResources();
+
     private:
         friend class Nepomuk2::Resource;
         friend class Nepomuk2::ResourceManagerPrivate;
