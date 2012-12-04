@@ -61,7 +61,6 @@ Nepomuk2::ResourceManagerPrivate::ResourceManagerPrivate( ResourceManager* manag
     : mainModel( 0 ),
       overrideModel( 0 ),
       mutex(QMutex::Recursive),
-      dataCnt( 0 ),
       m_manager( manager ),
       m_watcher( 0 )
 {

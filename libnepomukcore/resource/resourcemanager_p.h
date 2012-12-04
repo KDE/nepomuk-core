@@ -66,8 +66,6 @@ namespace Nepomuk2 {
         /// Maps the nao:identifier -> ResourceData* (Used in tags)
         QHash<QString, ResourceData*> m_identifierKickOff;
 
-        QAtomicInt dataCnt;
-
         ResourceManager* m_manager;
 
         /**

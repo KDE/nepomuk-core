@@ -71,8 +71,6 @@ Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, c
       m_addedToWatcher(false),
       m_rm(rm)
 {
-    m_rm->dataCnt.ref();
-
     if( !uri.isEmpty() ) {
         m_cacheDirty = true;
 
@@ -102,7 +100,6 @@ Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, c
 Nepomuk2::ResourceData::~ResourceData()
 {
     resetAll(true);
-    m_rm->dataCnt.deref();
 }
 
 
