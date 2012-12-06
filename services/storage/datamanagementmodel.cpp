@@ -2238,26 +2238,20 @@ void Nepomuk2::DataManagementModel::removeTrailingGraphs(const QSet<QUrl>& graph
     gl.remove(QUrl());
 
     if(!gl.isEmpty()) {
-        // TODO: for some weird reason the filter statement in the query below does not work. Thus, we use a count instead.
         QList<Soprano::Node> allMetadataGraphs;
-//                = executeQuery(QString::fromLatin1("select ?mg where { ?mg %1 ?g . FILTER(?g in (%2)) . FILTER(!bif:exists((select (1) where { graph ?g { ?s ?p ?o . } . }))) . }")
-//                               .arg(Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor()),
-//                                    resourcesToN3(gl).join(QLatin1String(","))),
-//                               Soprano::Query::QueryLanguageSparql).iterateBindings(0).allNodes();
+        QString query = QString::fromLatin1("select ?mg where { ?mg nrl:coreGraphMetadataFor ?g . "
+                                            " FILTER(?g in (%1)) . "
+                                            " FILTER NOT EXISTS { graph ?g { ?r ?p ?o. } } }")
+                        .arg( resourcesToN3(gl).join(",") );
 
-        Soprano::QueryResultIterator it
-                = executeQuery(QString::fromLatin1("select ?mg (select count(*) where { graph ?g { ?s ?p ?o . } . }) as ?cnt where { ?mg %1 ?g . FILTER(?g in (%2)) . }")
-                               .arg(Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor()),
-                                    resourcesToN3(gl).join(QLatin1String(","))),
-                               Soprano::Query::QueryLanguageSparql);
+        Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
         while(it.next()) {
-            if(it[1].literal().toInt() == 0)
-                allMetadataGraphs << it[0];
+            allMetadataGraphs << it[0];
         }
 
         foreach(const Soprano::Node& mg, allMetadataGraphs) {
             executeQuery(QString::fromLatin1("clear graph %1").arg(mg.toN3()),
-                         Soprano::Query::QueryLanguageSparql);
+                         Soprano::Query::QueryLanguageSparqlNoInference);
         }
     }
 }
