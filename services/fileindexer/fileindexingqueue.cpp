@@ -20,7 +20,7 @@
 
 #include "fileindexingqueue.h"
 #include "resourcemanager.h"
-#include "nepomukindexer.h"
+#include "fileindexingjob.h"
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
@@ -76,7 +76,7 @@ void FileIndexingQueue::process(const QUrl& url)
 {
     m_currentUrl = url;
 
-    KJob* job = new Indexer( QFileInfo(url.toLocalFile()) );
+    KJob* job = new FileIndexingJob( QFileInfo(url.toLocalFile()) );
     job->start();
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotFinishedIndexingFile(KJob*)) );
 }

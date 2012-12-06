@@ -22,7 +22,6 @@
 
 #include "indexscheduler.h"
 #include "fileindexerconfig.h"
-#include "nepomukindexer.h"
 #include "util.h"
 #include "datamanagement.h"
 #include "fileindexingqueue.h"

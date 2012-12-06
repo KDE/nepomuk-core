@@ -15,12 +15,12 @@ set(nepomukfileindexer_SRCS
   indexingqueue.cpp
   basicindexingqueue.cpp
   fileindexingqueue.cpp
+  fileindexingjob.cpp
   indexcleaner.cpp
   fileindexerconfig.cpp
   indexer/simpleindexer.cpp
   eventmonitor.cpp
   util.cpp
-  nepomukindexer.cpp
   )
 
 soprano_add_ontology(nepomukfileindexer_SRCS ${nepomuk_ontologies_SOURCE_DIR}/kext.trig "KExt" "Nepomuk2::Vocabulary" "trig")

@@ -48,12 +48,12 @@ namespace Nepomuk2 {
      *
      * \author Sebastian Trueg <trueg@kde.org>
      */
-    class Indexer : public KJob
+    class FileIndexingJob : public KJob
     {
         Q_OBJECT
 
     public:
-        Indexer( const QFileInfo& info, QObject* parent = 0 );
+        FileIndexingJob( const QFileInfo& info, QObject* parent = 0 );
 
         KUrl url() const { return m_url; }
 

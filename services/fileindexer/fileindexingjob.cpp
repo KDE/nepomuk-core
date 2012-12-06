@@ -19,7 +19,7 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "nepomukindexer.h"
+#include "fileindexingjob.h"
 #include "util.h"
 #include "fileindexerconfig.h"
 
@@ -36,7 +36,7 @@
 #include <QtCore/QTextStream>
 
 
-Nepomuk2::Indexer::Indexer(const QFileInfo& info, QObject* parent)
+Nepomuk2::FileIndexingJob::FileIndexingJob(const QFileInfo& info, QObject* parent)
     : KJob(parent),
       m_url( info.absoluteFilePath() )
 {
@@ -47,7 +47,7 @@ Nepomuk2::Indexer::Indexer(const QFileInfo& info, QObject* parent)
             this, SLOT(slotProcessTimerTimeout()));
 }
 
-void Nepomuk2::Indexer::start()
+void Nepomuk2::FileIndexingJob::start()
 {
     // setup the external process which does the actual indexing
     const QString exe = KStandardDirs::findExe(QLatin1String("nepomukindexer"));
@@ -69,7 +69,7 @@ void Nepomuk2::Indexer::start()
 }
 
 
-void Nepomuk2::Indexer::slotIndexedFile(int exitCode)
+void Nepomuk2::FileIndexingJob::slotIndexedFile(int exitCode)
 {
     // stop the timer since there is no need to kill the process anymore
     m_processTimer->stop();
@@ -85,7 +85,7 @@ void Nepomuk2::Indexer::slotIndexedFile(int exitCode)
     emitResult();
 }
 
-void Nepomuk2::Indexer::slotProcessTimerTimeout()
+void Nepomuk2::FileIndexingJob::slotProcessTimerTimeout()
 {
     kDebug() << "Killing the indexer process which seems stuck for" << m_url;
     m_process->disconnect(this);
@@ -94,4 +94,4 @@ void Nepomuk2::Indexer::slotProcessTimerTimeout()
     emitResult();
 }
 
-#include "nepomukindexer.moc"
+#include "fileindexingjob.moc"
