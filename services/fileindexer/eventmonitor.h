@@ -78,9 +78,6 @@ namespace Nepomuk2 {
 
         // timer used to periodically check for available space
         QTimer m_availSpaceTimer;
-
-        //QDateTime m_indexingStartTime;
-        //int m_totalIndexingSeconds;
     };
 }
 

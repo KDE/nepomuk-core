@@ -64,29 +64,6 @@ Nepomuk2::EventMonitor::EventMonitor( QObject* parent )
     connect( idleTime, SIGNAL(timeoutReached(int)), this, SLOT(slotIdleTimeoutReached()) );
     connect( idleTime, SIGNAL(resumingFromIdle()), this, SLOT(slotResumeFromIdle()) );
 
-    /*
-    FIXME: Inital run? Do we really need to notify the users?
-    if ( FileIndexerConfig::self()->isInitialRun() ) {
-        // TODO: add actions to this notification
-
-        m_indexingStartTime = QDateTime::currentDateTime();
-
-        // inform the user about the initial indexing
-        sendEvent( "initialIndexingStarted",
-                   i18n( "Indexing files for fast searching. This process may take a while." ),
-                   "nepomuk" );
-
-        // connect to get the end of initial indexing
-        // (make it a queued connection since KNotification does not like multithreading
-        // (mostly because it uses dialogs)
-        connect( m_indexScheduler, SIGNAL( indexingStopped() ),
-                 this, SLOT( slotIndexingStopped() ),
-                 Qt::QueuedConnection );
-
-        connect( m_indexScheduler, SIGNAL( indexingSuspended(bool) ),
-                 this, SLOT( slotIndexingSuspended(bool) ) );
-    }*/
-
     m_isOnBattery = Solid::PowerManagement::appShouldConserveResources();
     m_isIdle = false;
     m_isDiskSpaceLow = false; /* We hope */
@@ -105,28 +82,6 @@ void Nepomuk2::EventMonitor::slotPowerManagementStatusChanged( bool conserveReso
     if( m_enabled ) {
         emit powerManagementStatusChanged( conserveResources );
     }
-
-    // This all should be done in the index scheduler or ideally some other class
-    /*
-    KConfig config("nepomukstrigirc");
-    KConfigGroup group = config.group("General");
-    bool showEvents = group.readEntry<bool>("ShowSuspendResumeEvents", false);
-
-    if ( !conserveResources && m_pauseState == PausedDueToPowerManagement ) {
-        kDebug() << "Resuming indexer due to power management";
-        resumeIndexing();
-        if( showEvents && m_wasIndexingWhenPaused )
-            sendEvent( "indexingResumed", i18n("Resuming indexing of files for fast searching."), "battery-charging" );
-    }
-    else if ( conserveResources &&
-              !FileIndexerConfig::self()->suspendOnPowerSaveDisabled() &&
-              !m_indexScheduler->isSuspended() ) {
-        kDebug() << "Pausing indexer due to power management";
-        m_wasIndexingWhenPaused = m_indexScheduler->isIndexing();
-        if( showEvents && m_wasIndexingWhenPaused )
-            sendEvent( "indexingSuspended", i18n("Suspending the indexing of files to preserve resources."), "battery-100" );
-        pauseIndexing( PausedDueToPowerManagement );
-    } */
 }
 
 
@@ -142,27 +97,19 @@ void Nepomuk2::EventMonitor::slotCheckAvailableSpace()
         if ( info.available() <= FileIndexerConfig::self()->minDiskSpace() ) {
             m_isDiskSpaceLow = true;
             emit diskSpaceStatusChanged( true );
+
+            sendEvent( "indexingSuspended",
+                        i18n("Disk space is running low (%1 left). Suspending indexing of files.",
+                            KIO::convertSize( info.available() ) ),
+                        "drive-harddisk" );
         }
         else if( m_isDiskSpaceLow ) {
             // We only emit this signal, if previously emitted with the value true
             m_isDiskSpaceLow = false;
             emit diskSpaceStatusChanged( false );
-        }
-        /*
-            // Do we emit false?
-            if ( !m_indexScheduler->isSuspended() ) {
-                pauseIndexing( PausedDueToAvailSpace );
-                sendEvent( "indexingSuspended",
-                           i18n("Disk space is running low (%1 left). Suspending indexing of files.",
-                                KIO::convertSize( info.available() ) ),
-                           "drive-harddisk" );
-            }
-        }
-        else if ( m_pauseState == PausedDueToAvailSpace ) {
-            kDebug() << "Resuming indexer due to disk space";
-            resumeIndexing();
+
             sendEvent( "indexingResumed", i18n("Resuming indexing of files for fast searching."), "drive-harddisk" );
-        }*/
+        }
     }
     else {
         // if it does not work once, it will probably never work
@@ -170,55 +117,6 @@ void Nepomuk2::EventMonitor::slotCheckAvailableSpace()
     }
 }
 
-
-/*
-void Nepomuk2::EventMonitor::slotIndexingStopped()
-{
-    // inform the user about the end of initial indexing. This will only be called once
-    if ( !m_indexScheduler->isSuspended() ) {
-        m_totalIndexingSeconds += m_indexingStartTime.secsTo( QDateTime::currentDateTime() );
-        const int elapsed = m_totalIndexingSeconds * 1000;
-
-        kDebug() << "initial indexing took" << elapsed;
-        sendEvent( "initialIndexingFinished",
-                   i18nc( "@info %1 is a duration formatted using KLocale::prettyFormatDuration",
-                          "Initial indexing of files for fast searching finished in %1",
-                          KGlobal::locale()->prettyFormatDuration( elapsed ) ),
-                   "nepomuk" );
-        m_indexScheduler->disconnect( this );
-    }
-}
-
-
-void Nepomuk2::EventMonitor::pauseIndexing(int pauseState)
-{
-    m_pauseState = pauseState;
-    m_indexScheduler->suspend();
-
-    m_totalIndexingSeconds += m_indexingStartTime.secsTo( QDateTime::currentDateTime() );
-}
-
-
-void Nepomuk2::EventMonitor::resumeIndexing()
-{
-    m_pauseState = NotPaused;
-    m_indexScheduler->resume();
-
-    m_indexingStartTime = QDateTime::currentDateTime();
-}
-
-
-void Nepomuk2::EventMonitor::slotIndexingSuspended( bool suspended )
-{
-    if( suspended ) {
-        //The indexing is already paused, this meerly sets the correct state, and adjusts the timing.
-        pauseIndexing( PausedCustom );
-    }
-    else {
-        //Again, used to set the correct state, and adjust the timing.
-        resumeIndexing();
-    }
-}*/
 
 void Nepomuk2::EventMonitor::enable()
 {
@@ -236,22 +134,6 @@ void Nepomuk2::EventMonitor::disable()
     m_availSpaceTimer.stop();
 }
 
-
-/*
-void Nepomuk2::EventMonitor::slotIndexingStateChanged(bool indexing)
-{
-    // there is no need to check the available space (and wasting IO) when we are not indexing
-    // the only exception is when we suspended due to disk space shortage since we can resume once
-    // disk space has been freed up
-    if( indexing ) {
-        kDebug() << "Starting available disk space timer.";
-        m_availSpaceTimer.start( 20*1000 ); // every 20 seconds should be enough
-    }
-    else if( m_pauseState != PausedDueToAvailSpace ) {
-        kDebug() << "Stopping available disk space timer.";
-        m_availSpaceTimer.stop();
-    }
-}*/
 
 void Nepomuk2::EventMonitor::slotIdleTimeoutReached()
 {
