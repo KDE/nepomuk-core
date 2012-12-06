@@ -40,6 +40,7 @@
 #include <KTemporaryFile>
 #include <KUrl>
 #include <KStandardDirs>
+#include <KConfigGroup>
 
 #include "resource.h"
 #include "resourcemanager.h"
@@ -86,6 +87,21 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
              this, SLOT(slotScheduleIndexing()) );
     connect( m_eventMonitor, SIGNAL(powerManagementStatusChanged(bool)),
              this, SLOT(slotScheduleIndexing()) );
+
+    // Special settings for the queues
+    KConfig config( "nepomukstrigirc" );
+    KConfigGroup cfg = config.group( "Indexing" );
+
+    int basicIQDelay = cfg.readEntry<int>( "BasicIQDelay", 0 );
+    int fileIQDelay = cfg.readEntry<int>( "FileIQDelay", 0 );
+    m_basicIQ->setDelay( basicIQDelay );
+    m_fileIQ->setDelay( fileIQDelay );
+
+    QString value = cfg.readEntry<QString>( "NormalMode_FileIndexing", "suspend" );
+    if( value == "suspend" )
+        m_shouldSuspendFileIQOnNormal = true;
+    else if( value == "resume" )
+        m_shouldSuspendFileIQOnNormal = false;
 
     slotScheduleIndexing();
 }
@@ -292,13 +308,15 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
         m_fileIQ->resume();
     }
 
-    // TODO: Make this default behaviour configurable
     else {
         kDebug() << "Normal";
         m_state = State_Normal;
 
         m_basicIQ->resume();
-        m_fileIQ->suspend();
+        if( m_shouldSuspendFileIQOnNormal )
+            m_fileIQ->suspend();
+        else
+            m_fileIQ->resume();
     }
 }
 

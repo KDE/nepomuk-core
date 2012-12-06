@@ -41,6 +41,13 @@ namespace Nepomuk2 {
 
         virtual bool isEmpty() = 0;
 
+        /**
+         * Sets a artificial delay between each call to processNextIteration.
+         * This can be used to slow down the indexing, in order to conserve
+         * resources.
+         */
+        void setDelay( int msec );
+
     public slots:
         void suspend();
         void resume();
@@ -86,6 +93,7 @@ namespace Nepomuk2 {
     private:
         bool m_suspended;
         bool m_sentEvent;
+        int m_delay;
     };
 
 }

@@ -30,6 +30,7 @@ IndexingQueue::IndexingQueue(QObject* parent): QObject(parent)
 {
     m_sentEvent = false;
     m_suspended = false;
+    m_delay = 0;
 }
 
 void IndexingQueue::processNext()
@@ -66,7 +67,7 @@ void IndexingQueue::callForNextIteration()
     }
 
     if( !m_suspended ) {
-        QTimer::singleShot( 0, this, SLOT(processNext()) );
+        QTimer::singleShot( m_delay, this, SLOT(processNext()) );
         m_sentEvent = true;
     }
 }
@@ -75,6 +76,11 @@ void IndexingQueue::finishIteration()
 {
     m_sentEvent = false;
     callForNextIteration();
+}
+
+void IndexingQueue::setDelay(int msec)
+{
+    m_delay = msec;
 }
 
 

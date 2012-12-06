@@ -164,6 +164,8 @@ namespace Nepomuk2 {
             State_Suspended
         };
         State m_state;
+
+        bool m_shouldSuspendFileIQOnNormal;
     };
 }
 
