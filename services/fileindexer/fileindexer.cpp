@@ -20,7 +20,6 @@
 #include "fileindexer.h"
 #include "fileindexeradaptor.h"
 #include "indexscheduler.h"
-#include "eventmonitor.h"
 #include "fileindexerconfig.h"
 #include "filewatchserviceinterface.h"
 #include "util.h"
@@ -44,9 +43,6 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     // ==============================================================
     m_indexScheduler = new IndexScheduler(this);
 
-    // monitor all kinds of events
-    ( void )new EventMonitor( m_indexScheduler, this );
-
     // update the watches if the config changes
     connect( FileIndexerConfig::self(), SIGNAL( configChanged() ),
              this, SLOT( updateWatches() ) );
@@ -59,7 +55,7 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
              this, SIGNAL( statusStringChanged() ) );
     connect( m_indexScheduler, SIGNAL( indexingStopped() ),
              this, SIGNAL( statusStringChanged() ) );
-    connect( m_indexScheduler, SIGNAL( indexingDone() ),
+    connect( m_indexScheduler, SIGNAL(indexingStopped()), //FIXME: Cross check
              this, SLOT( slotIndexingDone() ) );
     connect( m_indexScheduler, SIGNAL( indexingFolder(QString) ),
              this, SIGNAL( statusStringChanged() ) );

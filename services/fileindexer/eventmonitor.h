@@ -1,5 +1,6 @@
 /* This file is part of the KDE Project
    Copyright (c) 2008 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2012 Vishesh Handa <me@vhanda.in>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -28,43 +29,58 @@ class KDiskFreeSpace;
 
 namespace Nepomuk2 {
 
-    class IndexScheduler;
-
     class EventMonitor : public QObject
     {
         Q_OBJECT
 
     public:
-        EventMonitor( IndexScheduler* scheduler, QObject* parent );
+        EventMonitor( QObject* parent = 0 );
         ~EventMonitor();
 
+        bool isIdle()         const { return m_isIdle; }
+        bool isDiskSpaceLow() const { return m_isDiskSpaceLow; }
+        bool isOnBattery()    const { return m_isOnBattery; }
+
+    signals:
+        /**
+         * Emitted when the power management status changes.
+         *
+         * \param conserveResources true if you should conserve resources
+         */
+        void powerManagementStatusChanged( bool conserveResources );
+
+        /**
+         * Emitted when the disk space is low. In this case you
+         * should stop indexing immediately.
+         */
+        void diskSpaceStatusChanged( bool isLow );
+
+        /**
+         * Emitted when the system becomes idle
+         */
+        void idleStatusChanged( bool isIdle );
+
+    public slots:
+        void enable();
+        void disable();
+
     private Q_SLOTS:
+        void slotIdleTimeoutReached();
+        void slotResumeFromIdle();
         void slotPowerManagementStatusChanged( bool conserveResources );
         void slotCheckAvailableSpace();
-        void slotIndexingStopped();
-        void pauseIndexing(int pauseState);
-        void resumeIndexing();
-        void slotIndexingSuspended( bool suspended );
-        void slotIndexingStateChanged( bool indexing );
 
     private:
-        enum {
-            NotPaused,
-            PausedDueToPowerManagement,
-            PausedDueToAvailSpace,
-            PausedCustom
-        };
-
-        IndexScheduler* m_indexScheduler;
-        int m_pauseState;
-
-        bool m_wasIndexingWhenPaused;
+        bool m_enabled;
+        bool m_isIdle;
+        bool m_isDiskSpaceLow;
+        bool m_isOnBattery;
 
         // timer used to periodically check for available space
         QTimer m_availSpaceTimer;
 
-        QDateTime m_indexingStartTime;
-        int m_totalIndexingSeconds;
+        //QDateTime m_indexingStartTime;
+        //int m_totalIndexingSeconds;
     };
 }
 

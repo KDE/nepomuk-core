@@ -1,6 +1,6 @@
 /* This file is part of the KDE Project
    Copyright (c) 2008-2010 Sebastian Trueg <trueg@kde.org>
-   Copyright (c) 2010-11 Vishesh Handa <handa.vish@gmail.com>
+   Copyright (c) 2010-12 Vishesh Handa <handa.vish@gmail.com>
 
    Parts of this file are based on code from Strigi
    Copyright (C) 2006-2007 Jos van den Oever <jos@vandenoever.info>
@@ -27,6 +27,7 @@
 #include "datamanagement.h"
 #include "fileindexingqueue.h"
 #include "basicindexingqueue.h"
+#include "eventmonitor.h"
 
 #include <QtCore/QList>
 #include <QtCore/QFile>
@@ -40,7 +41,6 @@
 #include <KTemporaryFile>
 #include <KUrl>
 #include <KStandardDirs>
-#include <KIdleTime>
 
 #include "resource.h"
 #include "resourcemanager.h"
@@ -73,18 +73,22 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     m_basicIQ = new BasicIndexingQueue( this );
     m_fileIQ = new FileIndexingQueue( this );
 
-    connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(slotIndexingFinished()) );
+    connect( m_basicIQ, SIGNAL(startedIndexing()), this, SLOT(slotStartedIndexing()) );
+    connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
+    connect( m_fileIQ, SIGNAL(startedIndexing()), this, SLOT(slotStartedIndexing()) );
+    connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
+
     connect( m_basicIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(slotBeginIndexingFile(QUrl)) );
-    connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SLOT(slotIndexingFinished()) );
 
-    m_fileIQ->suspend();
+    m_eventMonitor = new EventMonitor( this );
+    connect( m_eventMonitor, SIGNAL(diskSpaceStatusChanged(bool)),
+             this, SLOT(slotScheduleIndexing()) );
+    connect( m_eventMonitor, SIGNAL(idleStatusChanged(bool)),
+             this, SLOT(slotScheduleIndexing()) );
+    connect( m_eventMonitor, SIGNAL(powerManagementStatusChanged(bool)),
+             this, SLOT(slotScheduleIndexing()) );
 
-    // stop the slow queue on user activity
-    KIdleTime* idleTime = KIdleTime::instance();
-    idleTime->addIdleTimeout( 1000 * 60 * 2 ); // 2 min
-
-    connect( idleTime, SIGNAL(timeoutReached(int)), this, SLOT(slotIdleTimeoutReached()) );
-    connect( idleTime, SIGNAL(resumingFromIdle()), m_fileIQ, SLOT(suspend()) );
+    slotScheduleIndexing();
 }
 
 
@@ -92,23 +96,18 @@ Nepomuk2::IndexScheduler::~IndexScheduler()
 {
 }
 
-void Nepomuk2::IndexScheduler::slotIdleTimeoutReached()
-{
-    kDebug() << "Resuming File indexing queue";
-    m_fileIQ->resume();
-    KIdleTime::instance()->catchNextResumeEvent();
-}
-
 
 void Nepomuk2::IndexScheduler::suspend()
 {
-    if ( !m_suspended ) {
-        m_suspended = true;
+    if ( m_state != State_Suspended ) {
+        m_state = State_Suspended;
+        slotScheduleIndexing();
+
         if( m_cleaner ) {
             m_cleaner->suspend();
         }
+        m_eventMonitor->disable();
 
-        m_basicIQ->suspend();
         emit indexingSuspended( true );
     }
 }
@@ -116,14 +115,16 @@ void Nepomuk2::IndexScheduler::suspend()
 
 void Nepomuk2::IndexScheduler::resume()
 {
-    if ( m_suspended ) {
-        m_suspended = false;
+    if( m_state == State_Suspended ) {
+        m_state = State_Normal;
+        slotScheduleIndexing();
 
         if( m_cleaner ) {
             m_cleaner->resume();
         }
+        if( !m_basicIQ->isEmpty() || !m_fileIQ->isEmpty() )
+            m_eventMonitor->enable();
 
-        m_basicIQ->resume();
         emit indexingSuspended( false );
     }
 }
@@ -139,7 +140,7 @@ void Nepomuk2::IndexScheduler::setSuspended( bool suspended )
 
 bool Nepomuk2::IndexScheduler::isSuspended() const
 {
-    return m_suspended;
+    return m_state == State_Suspended;
 }
 
 
@@ -166,16 +167,31 @@ Nepomuk2::UpdateDirFlags Nepomuk2::IndexScheduler::currentFlags() const
     return m_basicIQ->currentFlags();
 }
 
+void Nepomuk2::IndexScheduler::slotStartedIndexing()
+{
+    setIndexingStarted( true );
+}
+
+void Nepomuk2::IndexScheduler::slotFinishedIndexing()
+{
+    bool haveItems = !m_basicIQ->isEmpty() || !m_fileIQ->isEmpty();
+    setIndexingStarted( haveItems );
+    //TODO: Emit indexingDone
+}
 
 void Nepomuk2::IndexScheduler::setIndexingStarted( bool started )
 {
     if ( started != m_indexing ) {
         m_indexing = started;
         emit indexingStateChanged( m_indexing );
-        if ( m_indexing )
+        if ( m_indexing ) {
             emit indexingStarted();
-        else
+            m_eventMonitor->enable();
+        }
+        else {
             emit indexingStopped();
+            m_eventMonitor->disable();
+        }
     }
 }
 
@@ -235,12 +251,6 @@ void Nepomuk2::IndexScheduler::analyzeFile( const QString& path )
     m_basicIQ->enqueue( path );
 }
 
-void Nepomuk2::IndexScheduler::slotIndexingFinished()
-{
-    setIndexingStarted( false );
-    if( m_basicIQ->isEmpty() && m_fileIQ->isEmpty() )
-        emit indexingDone();
-}
 
 void Nepomuk2::IndexScheduler::slotBeginIndexingFile(const QUrl& url)
 {
@@ -252,6 +262,48 @@ void Nepomuk2::IndexScheduler::slotBeginIndexingFile(const QUrl& url)
     else
         emit indexingFile( path );
 }
+
+
+void Nepomuk2::IndexScheduler::slotScheduleIndexing()
+{
+    if( m_state == State_Suspended )
+        return;
+
+    if( m_eventMonitor->isDiskSpaceLow() ) {
+        kDebug() << "Disk Space";
+        m_state = State_LowDiskSpace;
+
+        m_basicIQ->suspend();
+        m_fileIQ->suspend();
+    }
+
+    else if( m_eventMonitor->isOnBattery() ) {
+        kDebug() << "Battery";
+        m_state = State_OnBattery;
+
+        m_basicIQ->resume();
+        m_fileIQ->suspend();
+    }
+
+    else if( m_eventMonitor->isIdle() ) {
+        kDebug() << "Idle";
+        m_state = State_UserIdle;
+
+        m_basicIQ->resume();
+        m_fileIQ->resume();
+    }
+
+    // TODO: Make this default behaviour configurable
+    else {
+        kDebug() << "Normal";
+        m_state = State_Normal;
+
+        m_basicIQ->resume();
+        m_fileIQ->suspend();
+    }
+}
+
+
 
 
 #include "indexscheduler.moc"

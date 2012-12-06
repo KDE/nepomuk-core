@@ -1,5 +1,6 @@
 /* This file is part of the KDE Project
    Copyright (c) 2008-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2012 Vishesh Handa <me@vhanda.in>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -35,6 +36,7 @@ namespace Nepomuk2 {
 
     class IndexCleaner;
     class FileIndexingQueue;
+    class EventMonitor;
 
     /**
      * The IndexScheduler performs the normal indexing,
@@ -104,25 +106,30 @@ namespace Nepomuk2 {
         void analyzeFile( const QString& path );
 
     Q_SIGNALS:
+        // Indexing State
         void indexingStarted();
         void indexingStopped();
-
-        /// a combination of the two signals above
         void indexingStateChanged( bool indexing );
+
+        // Finer Index state
         void indexingFolder( const QString& );
         void indexingFile( const QString & );
-        void indexingSuspended( bool suspended );
 
-        /// emitted once the indexing is done and the queue is empty
-        void indexingDone();
+        // Emitted on calling suspend/resume
+        void indexingSuspended( bool suspended );
 
     private Q_SLOTS:
         void slotConfigChanged();
         void slotCleaningDone();
-        void slotIdleTimeoutReached();
-        void slotIndexingFinished();
 
         void slotBeginIndexingFile(const QUrl& url);
+
+        void slotStartedIndexing();
+        void slotFinishedIndexing();
+
+        // Event Monitor integration
+        void slotScheduleIndexing();
+
     private:
         /**
          * It first indexes \p dir. Then it checks all the files in \p dir
@@ -146,6 +153,17 @@ namespace Nepomuk2 {
         // Queues
         BasicIndexingQueue* m_basicIQ;
         FileIndexingQueue* m_fileIQ;
+
+        EventMonitor* m_eventMonitor;
+
+        enum State {
+            State_Normal,
+            State_OnBattery,
+            State_UserIdle,
+            State_LowDiskSpace,
+            State_Suspended
+        };
+        State m_state;
     };
 }
 
