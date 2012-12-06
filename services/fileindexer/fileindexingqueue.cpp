@@ -78,6 +78,7 @@ void FileIndexingQueue::process(const QUrl& url)
 
     KJob* job = new FileIndexingJob( QFileInfo(url.toLocalFile()) );
     job->start();
+    emit beginIndexingFile( url );
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotFinishedIndexingFile(KJob*)) );
 }
 
@@ -87,6 +88,7 @@ void FileIndexingQueue::slotFinishedIndexingFile(KJob* job)
         kDebug() << job->errorString();
     }
 
+    emit endIndexingFile( m_currentUrl );
     m_currentUrl.clear();
     finishIteration();
 }

@@ -20,17 +20,7 @@
 #ifndef _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
 #define _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
 
-#include "basicindexingqueue.h"
-
-#include <QtCore/QQueue>
-#include <QtCore/QDateTime>
-#include <QtCore/QTimer>
-
-#include <KUrl>
-
-class KJob;
-class QFileInfo;
-class QByteArray;
+#include "basicindexingqueue.h" // Required for UpdateDirFlags
 
 namespace Nepomuk2 {
 
@@ -39,11 +29,10 @@ namespace Nepomuk2 {
     class EventMonitor;
 
     /**
-     * The IndexScheduler performs the normal indexing,
-     * ie. the initial indexing and the timed updates
-     * of all files.
-     *
-     * Events are not handled.
+     * The IndexScheduler is responsible for controlling the indexing
+     * queues and reacting to events. It contains an EventMonitor
+     * and listens for events such as power management, battery and
+     * disk space.
      */
     class IndexScheduler : public QObject
     {
@@ -113,6 +102,8 @@ namespace Nepomuk2 {
         void indexingStopped();
         void indexingStateChanged( bool indexing );
 
+        void basicIndexingDone();
+
         // Finer Index state
         void indexingFolder( const QString& );
         void indexingFile( const QString & );
@@ -125,6 +116,7 @@ namespace Nepomuk2 {
         void slotCleaningDone();
 
         void slotBeginIndexingFile(const QUrl& url);
+        void slotEndIndexingFile(const QUrl& url);
 
         void slotStartedIndexing();
         void slotFinishedIndexing();
@@ -139,7 +131,6 @@ namespace Nepomuk2 {
         // no signal is emitted twice
         void setIndexingStarted( bool started );
 
-        bool m_suspended;
         bool m_indexing;
 
         IndexCleaner* m_cleaner;

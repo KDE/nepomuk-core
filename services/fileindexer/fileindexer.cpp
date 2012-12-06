@@ -55,7 +55,7 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
              this, SIGNAL( statusStringChanged() ) );
     connect( m_indexScheduler, SIGNAL( indexingStopped() ),
              this, SIGNAL( statusStringChanged() ) );
-    connect( m_indexScheduler, SIGNAL(indexingStopped()), //FIXME: Cross check
+    connect( m_indexScheduler, SIGNAL(basicIndexingDone()),
              this, SLOT( slotIndexingDone() ) );
     connect( m_indexScheduler, SIGNAL( indexingFolder(QString) ),
              this, SIGNAL( statusStringChanged() ) );

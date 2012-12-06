@@ -36,7 +36,7 @@
 #include <QtDBus/QDBusInterface>
 
 // TODO: Make idle timeout configurable?
-static int s_idleTimeout = 1000;// * 60 * 2; // 2 min
+static int s_idleTimeout = 1000 * 60 * 2; // 2 min
 static int s_availSpaceTimeout = 1000 * 30; // 30 seconds
 
 namespace {

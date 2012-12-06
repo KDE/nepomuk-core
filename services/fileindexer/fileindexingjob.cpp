@@ -23,8 +23,6 @@
 #include "util.h"
 #include "fileindexerconfig.h"
 
-#include "resource.h"
-
 #include <KUrl>
 #include <KDebug>
 #include <KProcess>
@@ -32,8 +30,6 @@
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QTimer>
-#include <QtCore/QFile>
-#include <QtCore/QTextStream>
 
 
 Nepomuk2::FileIndexingJob::FileIndexingJob(const QFileInfo& info, QObject* parent)

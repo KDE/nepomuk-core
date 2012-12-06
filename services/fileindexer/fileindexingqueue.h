@@ -38,6 +38,10 @@ namespace Nepomuk2 {
         void clear();
         QUrl currentUrl();
 
+    signals:
+        void beginIndexingFile(const QUrl& url);
+        void endIndexingFile(const QUrl& url);
+
     protected:
         virtual void processNextIteration();
 

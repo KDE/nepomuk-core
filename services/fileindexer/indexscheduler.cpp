@@ -22,11 +22,10 @@
 
 #include "indexscheduler.h"
 #include "fileindexerconfig.h"
-#include "util.h"
-#include "datamanagement.h"
 #include "fileindexingqueue.h"
 #include "basicindexingqueue.h"
 #include "eventmonitor.h"
+#include "indexcleaner.h"
 
 #include <QtCore/QList>
 #include <QtCore/QFile>
@@ -37,25 +36,13 @@
 #include <QtCore/QUrl>
 
 #include <KDebug>
-#include <KTemporaryFile>
 #include <KUrl>
 #include <KStandardDirs>
 #include <KConfigGroup>
 
-#include "resource.h"
-#include "resourcemanager.h"
-#include "variant.h"
-
-#include <Soprano/Model>
-#include <Soprano/QueryResultIterator>
-#include <Soprano/NodeIterator>
-#include <Soprano/Node>
-
-#include "indexcleaner.h"
 
 Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     : QObject( parent ),
-      m_suspended( false ),
       m_indexing( false )
 {
     // remove old indexing error log
@@ -73,12 +60,17 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     m_basicIQ = new BasicIndexingQueue( this );
     m_fileIQ = new FileIndexingQueue( this );
 
+    connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SIGNAL(basicIndexingDone()) );
+
+    connect( m_basicIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(slotBeginIndexingFile(QUrl)) );
+    connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(slotEndIndexingFile(QUrl)) );
+    connect( m_fileIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(slotBeginIndexingFile(QUrl)) );
+    connect( m_fileIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(slotEndIndexingFile(QUrl)) );
+
     connect( m_basicIQ, SIGNAL(startedIndexing()), this, SLOT(slotStartedIndexing()) );
     connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
     connect( m_fileIQ, SIGNAL(startedIndexing()), this, SLOT(slotStartedIndexing()) );
     connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
-
-    connect( m_basicIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(slotBeginIndexingFile(QUrl)) );
 
     m_eventMonitor = new EventMonitor( this );
     connect( m_eventMonitor, SIGNAL(diskSpaceStatusChanged(bool)),
@@ -158,7 +150,6 @@ bool Nepomuk2::IndexScheduler::isSuspended() const
     return m_state == State_Suspended;
 }
 
-
 bool Nepomuk2::IndexScheduler::isIndexing() const
 {
     return m_indexing;
@@ -182,40 +173,34 @@ QUrl Nepomuk2::IndexScheduler::currentUrl() const
         return m_basicIQ->currentUrl();
 }
 
-
 Nepomuk2::UpdateDirFlags Nepomuk2::IndexScheduler::currentFlags() const
 {
     return m_basicIQ->currentFlags();
 }
 
-void Nepomuk2::IndexScheduler::slotStartedIndexing()
-{
-    setIndexingStarted( true );
-}
-
-void Nepomuk2::IndexScheduler::slotFinishedIndexing()
-{
-    bool haveItems = !m_basicIQ->isEmpty() || !m_fileIQ->isEmpty();
-    setIndexingStarted( haveItems );
-    //TODO: Emit indexingDone
-}
 
 void Nepomuk2::IndexScheduler::setIndexingStarted( bool started )
 {
     if ( started != m_indexing ) {
         m_indexing = started;
         emit indexingStateChanged( m_indexing );
-        if ( m_indexing ) {
+        if ( m_indexing )
             emit indexingStarted();
-            m_eventMonitor->enable();
-        }
-        else {
+        else
             emit indexingStopped();
-            m_eventMonitor->disable();
-        }
     }
 }
 
+void Nepomuk2::IndexScheduler::slotStartedIndexing()
+{
+    m_eventMonitor->enable();
+}
+
+void Nepomuk2::IndexScheduler::slotFinishedIndexing()
+{
+    if( m_basicIQ->isEmpty() && m_fileIQ->isEmpty() )
+        m_eventMonitor->disable();
+}
 
 void Nepomuk2::IndexScheduler::slotCleaningDone()
 {
@@ -268,7 +253,6 @@ void Nepomuk2::IndexScheduler::slotConfigChanged()
 
 void Nepomuk2::IndexScheduler::analyzeFile( const QString& path )
 {
-    kDebug() << path;
     m_basicIQ->enqueue( path );
 }
 
@@ -282,6 +266,16 @@ void Nepomuk2::IndexScheduler::slotBeginIndexingFile(const QUrl& url)
         emit indexingFolder( path );
     else
         emit indexingFile( path );
+}
+
+void Nepomuk2::IndexScheduler::slotEndIndexingFile(const QUrl&)
+{
+    const QUrl basicUrl = m_basicIQ->currentUrl();
+    const QUrl fileUrl = m_fileIQ->currentUrl();
+
+    if( basicUrl.isEmpty() && fileUrl.isEmpty() ) {
+        setIndexingStarted( false );
+    }
 }
 
 
