@@ -70,6 +70,8 @@ namespace Nepomuk2 {
          */
         QString currentFile() const;
 
+        QUrl currentUrl() const;
+
         /**
          * The UpdateDirFlags of the the current url that is being
          * indexed.
@@ -131,14 +133,6 @@ namespace Nepomuk2 {
         void slotScheduleIndexing();
 
     private:
-        /**
-         * It first indexes \p dir. Then it checks all the files in \p dir
-         * against the configuration and the data in Nepomuk to fill
-         * m_filesToUpdate. No actual indexing is done besides \p dir
-         * itself.
-         */
-        void analyzeDir( const QString& dir, UpdateDirFlags flags );
-
         void queueAllFoldersForUpdate( bool forceUpdate = false );
 
         // emits indexingStarted or indexingStopped based on parameter. Makes sure

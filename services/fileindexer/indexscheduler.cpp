@@ -164,18 +164,24 @@ bool Nepomuk2::IndexScheduler::isIndexing() const
     return m_indexing;
 }
 
-// WARNING: We are only returning files from the basic indexing queue over here
-//          Maybe we should also take the file indexing queue into consideration? Then again
-//          it only works when idle, so the user should never typically see it.
 QString Nepomuk2::IndexScheduler::currentFolder() const
 {
-    return KUrl(m_basicIQ->currentUrl()).directory();
+    return KUrl(currentUrl()).directory();
 }
 
 QString Nepomuk2::IndexScheduler::currentFile() const
 {
-    return m_basicIQ->currentUrl().toLocalFile();
+    return currentUrl().toLocalFile();
 }
+
+QUrl Nepomuk2::IndexScheduler::currentUrl() const
+{
+    if( !m_fileIQ->currentUrl().isEmpty() )
+        return m_fileIQ->currentUrl();
+    else
+        return m_basicIQ->currentUrl();
+}
+
 
 Nepomuk2::UpdateDirFlags Nepomuk2::IndexScheduler::currentFlags() const
 {
