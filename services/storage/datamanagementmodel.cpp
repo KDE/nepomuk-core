@@ -218,6 +218,13 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
         const QUrl graph = createGraph();
         addStatement( QUrl("nepomuk:/me"), RDF::type(), PIMO::Person(), graph );
     }
+
+    // Enable auto-commit after each statement change
+    // This is required because multiple parallel calls to storeResources and removeResources
+    // can often cause transaction failures due to deadlocks in virtuoso
+    // function documentation - http://docs.openlinksw.com/virtuoso/fn_log_enable.html
+    QLatin1String command("log_enable( 3 )");
+    executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 }
 
 void Nepomuk2::DataManagementModel::clearCache()
