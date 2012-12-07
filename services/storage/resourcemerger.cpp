@@ -771,7 +771,8 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
                                 st.object().toN3() );
         }
 
-        QString query = QString::fromLatin1("sparql delete from %1 { %2 } where { %2 }")
+
+        QString query = QString::fromLatin1("sparql delete { graph %1 { %2 } }")
                         .arg( Soprano::Node::resourceToN3( graph ), stPattern );
 
         m_model->executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
