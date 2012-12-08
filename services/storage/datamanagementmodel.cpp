@@ -2675,9 +2675,8 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk2::DataManagementModel::addProperty(co
         }
 
         // update modification date
-        Q_FOREACH(const QUrl& res, finalValuesPerResource.keys()) {
-            updateModificationDate(res, graph, QDateTime::currentDateTime(), true);
-        }
+        QSet<QUrl> finalResources = finalValuesPerResource.keys().toSet();
+        updateModificationDate( finalResources, graph, QDateTime::currentDateTime(), true );
 
         return finalValuesPerResource;
     }
