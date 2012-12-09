@@ -460,6 +460,45 @@ void InvalidFileResourcesJob::execute()
 }
 
 
+class InvalidResourcesJob : public CleaningJob {
+public:
+    explicit InvalidResourcesJob(QObject* parent = 0)
+    : CleaningJob(parent) {}
+
+    virtual QString jobName() {
+        return i18n("Cleaning invalid resources");
+    }
+private:
+    virtual void execute();
+};
+
+void InvalidResourcesJob::execute()
+{
+    // Clear all the resources which do not have any rdf:type
+    QLatin1String query("select distinct ?r where { ?r ?p ?o . FILTER NOT EXISTS { ?r a ?t . }");
+
+    Soprano::Model *model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+
+    QList<QUrl> deleteList;
+    while( it.next() && !shouldQuit() ) {
+        deleteList << it[0].uri();
+
+        if( deleteList.size() > 10 ) {
+            KJob* job = Nepomuk2::removeResources( deleteList );
+            job->exec();
+            deleteList.clear();
+        }
+    }
+
+    if( !deleteList.isEmpty() ) {
+        KJob* job = Nepomuk2::removeResources( deleteList );
+        job->exec();
+        deleteList.clear();
+    }
+}
+
+
 QList< CleaningJob* > allJobs()
 {
     QList<CleaningJob*> list;
@@ -472,6 +511,7 @@ QList< CleaningJob* > allJobs()
     list << new DuplicateStatementJob();
     list << new DuplicateContactJob();
     list << new InvalidFileResourcesJob();
+    list << new InvalidResourcesJob();
     return list;
 }
 
