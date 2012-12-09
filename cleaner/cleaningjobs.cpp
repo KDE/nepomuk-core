@@ -498,6 +498,52 @@ void InvalidResourcesJob::execute()
     }
 }
 
+class InvalidStatementsJob : public CleaningJob {
+public:
+    explicit InvalidStatementsJob(QObject* parent = 0)
+    : CleaningJob(parent) {}
+
+    virtual QString jobName() {
+        return i18n("Cleaning invalid statements");
+    }
+private:
+    virtual void execute();
+};
+
+void InvalidStatementsJob::execute()
+{
+    // Clear all the statements which are violating the nrl:maxCardinality
+    QString query = QString::fromLatin1("select distinct ?r ?p  where { ?p nrl:maxCardinality %1 ."
+                                        " ?r ?p ?o1 , ?o2 . FILTER( ?o1 != ?o2 ) . }")
+                    .arg( Soprano::Node::literalToN3( Soprano::LiteralValue(1) ) );
+
+    Soprano::Model *model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+
+    while( it.next() && !shouldQuit() ) {
+        Soprano::Statement st( it[0], it[1], Soprano::Node() );
+        kDebug() << st;
+
+        // Keep the oldest statement
+        QString query = QString::fromLatin1("select ?o ?g where { graph ?g { %1 %2 ?o . } "
+                                            "?g nao:created ?c . } ORDER BY ASC(?c) LIMIT 1")
+                        .arg( st.subject().toN3(), st.predicate().toN3() );
+        Soprano::QueryResultIterator iter = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+        if( iter.next() ) {
+            st.setObject( iter[0] );
+            st.setContext( iter[1] );
+        }
+
+        // FIXME: What about the trailing graphs?
+        kDebug() << st;
+        model->removeAllStatements( st.subject(), st.predicate(), Soprano::Node() );
+        model->addStatement( st );
+    }
+
+    // TODO: Figure out how to clear the statements which do not follow the domain and range
+    //       restrictions
+}
+
 
 QList< CleaningJob* > allJobs()
 {
@@ -512,6 +558,7 @@ QList< CleaningJob* > allJobs()
     list << new DuplicateContactJob();
     list << new InvalidFileResourcesJob();
     list << new InvalidResourcesJob();
+    list << new InvalidStatementsJob();
     return list;
 }
 
