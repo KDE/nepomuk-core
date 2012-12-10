@@ -338,18 +338,20 @@ QUrl Nepomuk2::ResourceManager::generateUniqueUri( const QString& name )
     while( 1 ) {
         QString uuid = QUuid::createUuid().toString();
         uuid = uuid.mid(1, uuid.length()-2);
-        QUrl uri = QUrl( QLatin1String("nepomuk:/") + type + QLatin1String("/") + uuid );
-        if ( !model->executeQuery( QString::fromLatin1("ask where { "
-                                                       "{ <%1> ?p1 ?o1 . } "
-                                                       "UNION "
-                                                       "{ ?s2 <%1> ?o2 . } "
-                                                       "UNION "
-                                                       "{ ?s3 ?p3 <%1> . } "
-                                                       "UNION "
-                                                       "{ graph <%1> { ?s4 ?4 ?o4 . } . } "
-                                                       "}")
-                                   .arg( QString::fromAscii( uri.toEncoded() ) ), Soprano::Query::QueryLanguageSparql ).boolValue() ) {
-            return uri;
+        QString uriString = QLatin1String("nepomuk:/") + type + QLatin1String("/") + uuid;
+        QString query = QString::fromLatin1("select iri_to_id( '%1', 0 )").arg( uriString );
+
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageUser,
+                                                               QLatin1String("sql") );
+
+        // don't loop forever if there was an error executing the query
+        if( model->lastError() ) {
+            return QUrl();
+        }
+        if( it.next() ) {
+            if( it[0].literal().toString().isEmpty() ) {
+                return QUrl( uriString );
+            }
         }
     }
 }
