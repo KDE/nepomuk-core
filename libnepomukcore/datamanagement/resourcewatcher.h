@@ -65,7 +65,7 @@ namespace Nepomuk2 {
      * \code
      * Nepomuk2::ResourceWatcher* watcher = new Nepomuk2::ResourceWatcher(this);
      * watcher->addResource(res);
-     * watcher->addProperty(NMM:performer());
+     * watcher->addProperty(NMM::performer());
      * connect(watcher, SIGNAL(propertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
      *         this, SLOT(slotPropertyChanged()));
      * connect(watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
