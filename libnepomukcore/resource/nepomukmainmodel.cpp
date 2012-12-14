@@ -47,19 +47,17 @@
 
 using namespace Soprano;
 
-
-namespace {
-class GlobalModelContainer
+class Nepomuk2::MainModel::Private
 {
 public:
-    GlobalModelContainer()
+    Private()
         : localSocketModel( 0 ),
           dummyModel( 0 ),
           m_socketConnectFailed( false ),
           m_initMutex( QMutex::Recursive ) {
     }
 
-    ~GlobalModelContainer() {
+    ~Private() {
         delete localSocketModel;
         delete dummyModel;
     }
@@ -118,14 +116,11 @@ private:
     bool m_socketConnectFailed;
     QMutex m_initMutex;
 };
-}
-
-K_GLOBAL_STATIC( GlobalModelContainer, s_modelContainer )
 
 
 Nepomuk2::MainModel::MainModel( QObject* parent )
     : Soprano::Model(),
-      d( 0 )
+      d( new Private() )
 {
     setParent( parent );
 }
@@ -133,39 +128,40 @@ Nepomuk2::MainModel::MainModel( QObject* parent )
 
 Nepomuk2::MainModel::~MainModel()
 {
+    delete d;
 }
 
 
 bool Nepomuk2::MainModel::isValid() const
 {
-    return s_modelContainer->localSocketClient.isConnected();
+    return d->localSocketClient.isConnected();
 }
 
 
 bool Nepomuk2::MainModel::init()
 {
-    s_modelContainer->init( true );
+    d->init( true );
     return isValid();
 }
 
 void Nepomuk2::MainModel::disconnect()
 {
-    s_modelContainer->localSocketClient.disconnect();
+    d->localSocketClient.disconnect();
 }
 
 
 Soprano::StatementIterator Nepomuk2::MainModel::listStatements( const Statement& partial ) const
 {
-    Soprano::StatementIterator it = s_modelContainer->model()->listStatements( partial );
-    setError( s_modelContainer->model()->lastError() );
+    Soprano::StatementIterator it = d->model()->listStatements( partial );
+    setError( d->model()->lastError() );
     return it;
 }
 
 
 Soprano::NodeIterator Nepomuk2::MainModel::listContexts() const
 {
-    Soprano::NodeIterator it = s_modelContainer->model()->listContexts();
-    setError( s_modelContainer->model()->lastError() );
+    Soprano::NodeIterator it = d->model()->listContexts();
+    setError( d->model()->lastError() );
     return it;
 }
 
@@ -174,72 +170,72 @@ Soprano::QueryResultIterator Nepomuk2::MainModel::executeQuery( const QString& q
                                                                Soprano::Query::QueryLanguage language,
                                                                const QString& userQueryLanguage ) const
 {
-    Soprano::QueryResultIterator it = s_modelContainer->model()->executeQuery( query, language, userQueryLanguage );
-    setError( s_modelContainer->model()->lastError() );
+    Soprano::QueryResultIterator it = d->model()->executeQuery( query, language, userQueryLanguage );
+    setError( d->model()->lastError() );
     return it;
 }
 
 
 bool Nepomuk2::MainModel::containsStatement( const Statement& statement ) const
 {
-    bool b = s_modelContainer->model()->containsStatement( statement );
-    setError( s_modelContainer->model()->lastError() );
+    bool b = d->model()->containsStatement( statement );
+    setError( d->model()->lastError() );
     return b;
 }
 
 
 bool Nepomuk2::MainModel::containsAnyStatement( const Statement &statement ) const
 {
-    bool b = s_modelContainer->model()->containsAnyStatement( statement );
-    setError( s_modelContainer->model()->lastError() );
+    bool b = d->model()->containsAnyStatement( statement );
+    setError( d->model()->lastError() );
     return b;
 }
 
 
 bool Nepomuk2::MainModel::isEmpty() const
 {
-    bool b = s_modelContainer->model()->isEmpty();
-    setError( s_modelContainer->model()->lastError() );
+    bool b = d->model()->isEmpty();
+    setError( d->model()->lastError() );
     return b;
 }
 
 
 int Nepomuk2::MainModel::statementCount() const
 {
-    int c = s_modelContainer->model()->statementCount();
-    setError( s_modelContainer->model()->lastError() );
+    int c = d->model()->statementCount();
+    setError( d->model()->lastError() );
     return c;
 }
 
 
 Soprano::Error::ErrorCode Nepomuk2::MainModel::addStatement( const Statement& statement )
 {
-    Soprano::Error::ErrorCode c = s_modelContainer->model()->addStatement( statement );
-    setError( s_modelContainer->model()->lastError() );
+    Soprano::Error::ErrorCode c = d->model()->addStatement( statement );
+    setError( d->model()->lastError() );
     return c;
 }
 
 
 Soprano::Error::ErrorCode Nepomuk2::MainModel::removeStatement( const Statement& statement )
 {
-    Soprano::Error::ErrorCode c = s_modelContainer->model()->removeStatement( statement );
-    setError( s_modelContainer->model()->lastError() );
+    Soprano::Error::ErrorCode c = d->model()->removeStatement( statement );
+    setError( d->model()->lastError() );
     return c;
 }
 
 
 Soprano::Error::ErrorCode Nepomuk2::MainModel::removeAllStatements( const Statement& statement )
 {
-    Soprano::Error::ErrorCode c = s_modelContainer->model()->removeAllStatements( statement );
-    setError( s_modelContainer->model()->lastError() );
+    Soprano::Error::ErrorCode c = d->model()->removeAllStatements( statement );
+    setError( d->model()->lastError() );
     return c;
 }
 
 
 Soprano::Node Nepomuk2::MainModel::createBlankNode()
 {
-    Soprano::Node n = s_modelContainer->model()->createBlankNode();
-    setError( s_modelContainer->model()->lastError() );
+    Soprano::Node n = d->model()->createBlankNode();
+    setError( d->model()->lastError() );
     return n;
 }
 
