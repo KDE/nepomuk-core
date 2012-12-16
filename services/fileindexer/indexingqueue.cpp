@@ -74,8 +74,10 @@ void IndexingQueue::callForNextIteration()
 
 void IndexingQueue::finishIteration()
 {
-    m_sentEvent = false;
-    callForNextIteration();
+    if (m_sentEvent) {
+        m_sentEvent = false;
+        callForNextIteration();
+    }
 }
 
 void IndexingQueue::setDelay(int msec)

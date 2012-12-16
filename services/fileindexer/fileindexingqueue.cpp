@@ -65,11 +65,6 @@ void FileIndexingQueue::processNextIteration()
 {
     const QUrl fileUrl = m_fileQueue.dequeue();
     process( fileUrl );
-
-    if( m_fileQueue.isEmpty() ) {
-        fillQueue();
-        finishIteration();
-    }
 }
 
 void FileIndexingQueue::process(const QUrl& url)
@@ -90,6 +85,9 @@ void FileIndexingQueue::slotFinishedIndexingFile(KJob* job)
 
     emit endIndexingFile( m_currentUrl );
     m_currentUrl.clear();
+    if( m_fileQueue.isEmpty() ) {
+        fillQueue();
+    }
     finishIteration();
 }
 
