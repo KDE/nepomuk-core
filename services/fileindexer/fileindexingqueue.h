@@ -34,6 +34,7 @@ namespace Nepomuk2 {
     public:
         explicit FileIndexingQueue(QObject* parent = 0);
         virtual bool isEmpty();
+        virtual void fillQueue();
 
         void clear();
         QUrl currentUrl();
@@ -51,7 +52,6 @@ namespace Nepomuk2 {
 
     private:
         void process(const QUrl& url);
-        void fillQueue();
 
         QQueue<QUrl> m_fileQueue;
         QUrl m_currentUrl;

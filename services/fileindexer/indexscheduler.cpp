@@ -129,8 +129,7 @@ void Nepomuk2::IndexScheduler::resume()
         if( m_cleaner ) {
             m_cleaner->resume();
         }
-        if( !m_basicIQ->isEmpty() || !m_fileIQ->isEmpty() )
-            m_eventMonitor->enable();
+        m_eventMonitor->enable();
 
         emit indexingSuspended( false );
     }
@@ -198,8 +197,7 @@ void Nepomuk2::IndexScheduler::slotStartedIndexing()
 
 void Nepomuk2::IndexScheduler::slotFinishedIndexing()
 {
-    if( m_basicIQ->isEmpty() && m_fileIQ->isEmpty() )
-        m_eventMonitor->disable();
+    m_eventMonitor->suspendDiskSpaceMonitor();
 }
 
 void Nepomuk2::IndexScheduler::slotCleaningDone()

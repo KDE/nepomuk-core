@@ -33,6 +33,10 @@ IndexingQueue::IndexingQueue(QObject* parent): QObject(parent)
     m_delay = 0;
 }
 
+void IndexingQueue::fillQueue()
+{
+}
+
 void IndexingQueue::processNext()
 {
     if( m_suspended || isEmpty() ) {
@@ -47,6 +51,8 @@ void IndexingQueue::processNext()
 void IndexingQueue::resume()
 {
     m_suspended = false;
+    if( isEmpty() )
+        fillQueue();
     callForNextIteration();
 }
 

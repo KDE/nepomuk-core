@@ -63,6 +63,8 @@ namespace Nepomuk2 {
     public slots:
         void enable();
         void disable();
+        void suspendDiskSpaceMonitor();
+        void resumeDiskSpaceMonitor();
 
     private Q_SLOTS:
         void slotIdleTimeoutReached();

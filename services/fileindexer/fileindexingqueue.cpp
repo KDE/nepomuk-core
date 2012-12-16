@@ -47,6 +47,10 @@ void FileIndexingQueue::init()
 
 void FileIndexingQueue::fillQueue()
 {
+    /* prevent abuse this API */
+    if (m_fileQueue.size() > 0)
+        return;
+
     QString query = QString::fromLatin1("select ?url where { ?r nie:url ?url ; kext:indexingLevel ?l "
                                         " FILTER(?l < 2 ). } LIMIT 10");
 

@@ -42,6 +42,14 @@ namespace Nepomuk2 {
         virtual bool isEmpty() = 0;
 
         /**
+         * fill the queue if there is available data, return true if something
+         * is enqueued. Should be used in combinition with isEmpty()
+         *
+         * Default implementation will do nothing.
+         */
+        virtual void fillQueue();
+
+        /**
          * Sets a artificial delay between each call to processNextIteration.
          * This can be used to slow down the indexing, in order to conserve
          * resources.

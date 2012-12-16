@@ -59,8 +59,6 @@ Nepomuk2::EventMonitor::EventMonitor( QObject* parent )
 
     // setup idle time
     KIdleTime* idleTime = KIdleTime::instance();
-    idleTime->addIdleTimeout( s_idleTimeout );
-
     connect( idleTime, SIGNAL(timeoutReached(int)), this, SLOT(slotIdleTimeoutReached()) );
     connect( idleTime, SIGNAL(resumingFromIdle()), this, SLOT(slotResumeFromIdle()) );
 
@@ -120,20 +118,36 @@ void Nepomuk2::EventMonitor::slotCheckAvailableSpace()
 
 void Nepomuk2::EventMonitor::enable()
 {
-    m_enabled = true;
+    /* avoid add multiple idle timeout */
+    if (!m_enabled) {
+        m_enabled = true;
+        KIdleTime::instance()->addIdleTimeout( s_idleTimeout );
+    }
 
-    KIdleTime::instance()->addIdleTimeout( s_idleTimeout );
-    m_availSpaceTimer.start( s_availSpaceTimeout );
+    if (!m_availSpaceTimer.isActive())
+        m_availSpaceTimer.start( s_availSpaceTimeout );
 }
 
 void Nepomuk2::EventMonitor::disable()
 {
-    m_enabled = false;
+    if (m_enabled) {
+        m_enabled = false;
+        KIdleTime::instance()->removeAllIdleTimeouts();
+    }
 
-    KIdleTime::instance()->removeAllIdleTimeouts();
     m_availSpaceTimer.stop();
 }
 
+void Nepomuk2::EventMonitor::suspendDiskSpaceMonitor()
+{
+    m_availSpaceTimer.stop();
+}
+
+void Nepomuk2::EventMonitor::resumeDiskSpaceMonitor()
+{
+    if (m_enabled && !m_availSpaceTimer.isActive())
+        m_availSpaceTimer.start( s_availSpaceTimeout );
+}
 
 void Nepomuk2::EventMonitor::slotIdleTimeoutReached()
 {
