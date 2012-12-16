@@ -87,8 +87,9 @@ void FileIndexingQueue::slotFinishedIndexingFile(KJob* job)
         kDebug() << job->errorString();
     }
 
-    emit endIndexingFile( m_currentUrl );
+    QUrl url = m_currentUrl;
     m_currentUrl.clear();
+    emit endIndexingFile( url );
     if( m_fileQueue.isEmpty() ) {
         fillQueue();
     }
