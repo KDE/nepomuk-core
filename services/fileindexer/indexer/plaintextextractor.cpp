@@ -50,6 +50,12 @@ SimpleResourceGraph PlainTextExtractor::extract(const QUrl& resUri, const QUrl& 
     Q_UNUSED( mimeType );
 
     QFile file( fileUrl.toLocalFile() );
+
+    // FIXME: make a size filter or something configurable
+    if ( file.size() > 5*1024*1024 ) {
+        return SimpleResourceGraph();
+    }
+
     if( !file.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
         return SimpleResourceGraph();
     }
