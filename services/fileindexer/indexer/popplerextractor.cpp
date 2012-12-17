@@ -53,6 +53,12 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
     SimpleResource fileRes( resUri );
 
     Poppler::Document* pdfDoc = Poppler::Document::load( fileUrl.toLocalFile(), 0, 0 );
+
+    if ( !pdfDoc || pdfDoc->isLocked() ){
+        delete pdfDoc;
+        return graph;
+    }
+
     QString title = pdfDoc->info(QLatin1String("Title"));
     if( !title.isEmpty() ) {
         fileRes.addProperty( NIE::title(), title );
