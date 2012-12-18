@@ -79,16 +79,18 @@ public:
         // we may get disconnected from the server but we don't want to try
         // to connect every time the model is requested
         if ( forced || (!m_socketConnectFailed && !localSocketClient.isConnected()) ) {
+            // ###### FIXME
+            // Cannot delete the model, other threads might still be using it.
+            // With the API that returns iterators, the only way to do this right would be to
+            // use shared pointers, for refcounting the use of the model.
+            // Meanwhile, better leak (on rare occasions) than crash.
+            //delete localSocketModel;
+            localSocketModel = 0;
             localSocketClient.disconnect();
             QString socketName = KGlobal::dirs()->locateLocal( "socket", "nepomuk-socket" );
-
             kDebug() << "Connecting to local socket" << socketName;
             if ( localSocketClient.connect( socketName ) ) {
-                m_socketConnectFailed = false;
-                kDebug() << "Connected :)";
-
-                if( !localSocketModel )
-                    localSocketModel = localSocketClient.createModel( "main" );
+                localSocketModel = localSocketClient.createModel( "main" );
             }
             else {
                 m_socketConnectFailed = true;
@@ -123,9 +125,21 @@ private:
 K_GLOBAL_STATIC( GlobalModelContainer, s_modelContainer )
 
 
+class Nepomuk2::MainModel::Private
+{
+public:
+    Private( MainModel* p )
+        : q(p) {
+    }
+
+private:
+    MainModel* q;
+};
+
+
 Nepomuk2::MainModel::MainModel( QObject* parent )
     : Soprano::Model(),
-      d( 0 )
+      d( new Private(this) )
 {
     setParent( parent );
 }
@@ -133,6 +147,7 @@ Nepomuk2::MainModel::MainModel( QObject* parent )
 
 Nepomuk2::MainModel::~MainModel()
 {
+    delete d;
 }
 
 
