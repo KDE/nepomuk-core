@@ -108,7 +108,7 @@ void JobModel::startNextJob()
     if( m_status == Paused )
         return;
 
-    if( m_allJobs.isEmpty() ) {
+    if( m_allJobs.isEmpty() || !Nepomuk2::ResourceManager::instance()->initialized() ) {
         m_status = Finished;
         m_curJob = 0;
         emit finished();
