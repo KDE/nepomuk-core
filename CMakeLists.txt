@@ -23,7 +23,7 @@ include(KDE4Defaults)
 
 set(SDO_MIN_VERSION "0.10")
 find_package(SharedDesktopOntologies)
-set(SOPRANO_MIN_VERSION "2.8.90")
+set(SOPRANO_MIN_VERSION "2.7.56")
 find_package(Soprano)
 
 macro_log_feature(SOPRANO_FOUND "Soprano" "Soprano is the Qt-based RDF storage and parsing solution" "http://soprano.sourceforge.net" TRUE ${SOPRANO_MIN_VERSION} "Required for everything (storage and general data management)")
