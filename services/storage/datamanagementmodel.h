@@ -342,6 +342,9 @@ private:
     };
     QUrl createUri(UriType type);
 
+    /// Creates a new resource, and sets its nie:url. It does not set nao:lastModified or nao:created
+    QUrl createResource(const QUrl& nieUrl, const QUrl& graph);
+
     /**
      * Checks if any of the provided resources has a protected type (class, property, graph), ie. one
      * of the resources should not be changed through the standard API.

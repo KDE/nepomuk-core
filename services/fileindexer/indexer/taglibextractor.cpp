@@ -123,7 +123,10 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
         }
 
         if( tags->year() ) {
-            QDateTime dt = QDateTime::fromString( QString::number(tags->year()), QLatin1String("yyyy") );
+            QDateTime dt = QDateTime::currentDateTime();
+            QDate date = dt.date();
+            date.setDate( tags->year(), date.month(), date.day() );
+            dt.setDate( date );
             fileRes.setProperty( NIE::contentCreated(), dt );
         }
     }

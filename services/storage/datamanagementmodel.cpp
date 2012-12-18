@@ -218,6 +218,13 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
         const QUrl graph = createGraph();
         addStatement( QUrl("nepomuk:/me"), RDF::type(), PIMO::Person(), graph );
     }
+
+    // Enable auto-commit after each statement change
+    // This is required because multiple parallel calls to storeResources and removeResources
+    // can often cause transaction failures due to deadlocks in virtuoso
+    // function documentation - http://docs.openlinksw.com/virtuoso/fn_log_enable.html
+    QLatin1String command("log_enable( 3 )");
+    executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 }
 
 void Nepomuk2::DataManagementModel::clearCache()
@@ -2487,6 +2494,24 @@ QUrl Nepomuk2::DataManagementModel::createUri(Nepomuk2::DataManagementModel::Uri
     }
 }
 
+QUrl DataManagementModel::createResource(const QUrl& nieUrl, const QUrl& graph)
+{
+    // TODO: Optimize? Create all these statements in one go?
+    const QUrl uri = createUri(ResourceUri);
+    addStatement(uri, NIE::url(), nieUrl, graph);
+    if( nieUrl.isLocalFile() ) {
+        addStatement(uri, RDF::type(), NFO::FileDataObject(), graph);
+        if( QFileInfo(nieUrl.toLocalFile()).isDir() )
+            addStatement(uri, RDF::type(), NFO::Folder(), graph);
+    }
+    else {
+        // FIXME: What now? We should still add some types
+    }
+
+    return uri;
+}
+
+
 
 // TODO: emit resource watcher resource creation signals
 QHash<QUrl, QList<Soprano::Node> > Nepomuk2::DataManagementModel::addProperty(const QHash<QUrl, QUrl> &resources, const QUrl &property, const QHash<Soprano::Node, Soprano::Node> &nodes, const QString &app, bool signalPropertyChanged)
@@ -2516,6 +2541,7 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk2::DataManagementModel::addProperty(co
     //
     QUrl graph;
     QSet<Soprano::Node> resolvedNodes;
+    resolvedNodes.reserve( nodes.size() );
     QHash<Soprano::Node, Soprano::Node>::const_iterator end = nodes.constEnd();
     for(QHash<Soprano::Node, Soprano::Node>::const_iterator it = nodes.constBegin();
         it != end; ++it) {
@@ -2527,11 +2553,7 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk2::DataManagementModel::addProperty(co
                     return QHash<QUrl, QList<Soprano::Node> >();
                 }
             }
-            const QUrl uri = createUri(ResourceUri);
-            addStatement(uri, Vocabulary::NIE::url(), it.key(), graph);
-            if(it.key().uri().scheme() == QLatin1String("file")) {
-                addStatement(uri, RDF::type(), NFO::FileDataObject(), graph);
-            }
+            const QUrl uri = createResource( it.key().uri(), graph );
             resolvedNodes.insert(uri);
         }
         else {
@@ -2552,11 +2574,7 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk2::DataManagementModel::addProperty(co
                     return QHash<QUrl, QList<Soprano::Node> >();
                 }
             }
-            uri = createUri(ResourceUri);
-            addStatement(uri, Vocabulary::NIE::url(), it.key(), graph);
-            if(it.key().scheme() == QLatin1String("file")) {
-                addStatement(uri, RDF::type(), NFO::FileDataObject(), graph);
-            }
+            uri = createResource( it.key(), graph );
         }
         else {
             knownResources << uri;
@@ -2657,9 +2675,8 @@ QHash<QUrl, QList<Soprano::Node> > Nepomuk2::DataManagementModel::addProperty(co
         }
 
         // update modification date
-        Q_FOREACH(const QUrl& res, finalValuesPerResource.keys()) {
-            updateModificationDate(res, graph, QDateTime::currentDateTime(), true);
-        }
+        QSet<QUrl> finalResources = finalValuesPerResource.keys().toSet();
+        updateModificationDate( finalResources, graph, QDateTime::currentDateTime(), true );
 
         return finalValuesPerResource;
     }
