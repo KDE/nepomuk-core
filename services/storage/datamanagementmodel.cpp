@@ -1040,7 +1040,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
                                         Soprano::Node::resourceToN3(NAO::maintainedBy()),
                                         Soprano::Node::resourceToN3(appRes),
                                         createResourceMetadataPropertyFilter(QLatin1String("?p2"))),
-                                   Soprano::Query::QueryLanguageSparql);
+                                   Soprano::Query::QueryLanguageSparqlNoInference);
             currentResources.clear();
             while(it.next()) {
                 currentResources << it[0].uri();
@@ -1066,7 +1066,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
                                                        "FILTER(%2) . }" )
                                    .arg(createResourceFilter(subResources, QLatin1String("?r"), false),
                                         createResourceFilter(excludedSubResources, QLatin1String("?r2"), firstIteration)),
-                                   Soprano::Query::QueryLanguageSparql);
+                                   Soprano::Query::QueryLanguageSparqlNoInference);
             excludedSubResources.clear();
             while(it.next()) {
                 excludedSubResources << it[0].uri();
@@ -1100,7 +1100,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
                                                .arg(Soprano::Node::resourceToN3(NAO::maintainedBy()),
                                                     Soprano::Node::resourceToN3(appRes),
                                                     resourcesToN3(resolvedResources).join(QLatin1String(","))),
-                                               Soprano::Query::QueryLanguageSparql).allElements();
+                                               Soprano::Query::QueryLanguageSparqlNoInference).allElements();
         graphRemovalCandidates += executeQuery(QString::fromLatin1("select distinct "
                                                                    "?g "
                                                                    "(select count(distinct ?app) where { ?g %1 ?app . }) as ?c "
@@ -1110,7 +1110,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
                                                .arg(Soprano::Node::resourceToN3(NAO::maintainedBy()),
                                                     Soprano::Node::resourceToN3(appRes),
                                                     resourcesToN3(resolvedResources).join(QLatin1String(","))),
-                                               Soprano::Query::QueryLanguageSparql).allElements();
+                                               Soprano::Query::QueryLanguageSparqlNoInference).allElements();
     }
 
 
@@ -1122,7 +1122,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
                                                                    "?g <"STRIGI_INDEX_GRAPH_FOR"> ?r . "
                                                                    "FILTER(?r in (%1)) . }")
                                                .arg(Nepomuk2::resourcesToN3(resolvedResources).join(QLatin1String(","))),
-                                               Soprano::Query::QueryLanguageSparql).allElements();
+                                               Soprano::Query::QueryLanguageSparqlNoInference).allElements();
     }
 
     //
@@ -1159,7 +1159,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
                                                                  .arg(Soprano::Node::resourceToN3(NAO::maintainedBy()),
                                                                       Soprano::Node::resourceToN3(appRes),
                                                                       resourcesToN3(resolvedResources).join(QLatin1String(","))),
-                                                                 Soprano::Query::QueryLanguageSparql);
+                                                                 Soprano::Query::QueryLanguageSparqlNoInference);
         while(relatedResIt.next()) {
             modifiedResources.insert(relatedResIt[0].uri());
         }
@@ -1185,7 +1185,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
                                .arg(resourcesToN3(resolvedResources).join(QLatin1String(",")),
                                     createResourceMetadataPropertyFilter(QLatin1String("?p"), false),
                                     Soprano::Node::resourceToN3(g)),
-                               Soprano::Query::QueryLanguageSparql);
+                               Soprano::Query::QueryLanguageSparqlNoInference);
 
         while(mdIt.next()) {
             metadata.addStatement(mdIt["r"], mdIt["p"], mdIt["o"]);
@@ -1202,7 +1202,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
                                             .arg(resourcesToN3(resolvedResources).join(QLatin1String(",")),
                                                 createResourceMetadataPropertyFilter(QLatin1String("?p"), true),
                                                 resourcesToN3(graphsToRemove).join(QLatin1String(","))),
-                                            Soprano::Query::QueryLanguageSparql);
+                                            Soprano::Query::QueryLanguageSparqlNoInference);
         while(mResIt.next()) {
             modifiedResources.insert(mResIt[0].uri());
         }
@@ -1229,7 +1229,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
                                                               "} . }")
                                           .arg(Soprano::Node::resourceToN3(g),
                                                resourcesToN3(resolvedResources).join(QLatin1String(","))),
-                                          Soprano::Query::QueryLanguageSparql).iterateBindings(0).allElements().first().literal().toInt();
+                                          Soprano::Query::QueryLanguageSparqlNoInference).iterateBindings(0).allElements().first().literal().toInt();
         if(otherCnt > 0) {
             //
             // if the graph contains anything else besides the data we want to delete
@@ -1248,11 +1248,11 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
                          .arg(Soprano::Node::resourceToN3(newGraph),
                               Soprano::Node::resourceToN3(g),
                               resourcesToN3(resolvedResources).join(QLatin1String(","))),
-                         Soprano::Query::QueryLanguageSparql);
+                         Soprano::Query::QueryLanguageSparqlNoInference);
             executeQuery(QString::fromLatin1("delete from %1 { ?r ?p ?o . } where { ?r ?p ?o . FILTER(?r in (%2) || ?o in (%2)) . }")
                          .arg(Soprano::Node::resourceToN3(g),
                               resourcesToN3(resolvedResources).join(QLatin1String(","))),
-                         Soprano::Query::QueryLanguageSparql);
+                         Soprano::Query::QueryLanguageSparqlNoInference);
 
             // and finally remove the app as maintainer of the new graph
             removeAllStatements(newGraph, NAO::maintainedBy(), appRes);
@@ -1278,13 +1278,13 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
             = executeQuery(QString::fromLatin1("select ?r where { ?r ?p ?o . FILTER(?r in (%1)) . FILTER(%2) . }")
                            .arg(resourcesToN3(resolvedResources).join(QLatin1String(",")),
                                 createResourceMetadataPropertyFilter(QLatin1String("?p"))),
-                           Soprano::Query::QueryLanguageSparql);
+                           Soprano::Query::QueryLanguageSparqlNoInference);
     while(resComplIt.next()) {
         resourcesToRemoveCompletely.remove(resComplIt[0].uri());
     }
     resComplIt = executeQuery(QString::fromLatin1("select ?r where { ?o ?p ?r . FILTER(?r in (%1)) . FILTER(?p != <"STRIGI_INDEX_GRAPH_FOR">) . }")
                               .arg(resourcesToN3(resolvedResources).join(QLatin1String(","))),
-                              Soprano::Query::QueryLanguageSparql);
+                              Soprano::Query::QueryLanguageSparqlNoInference);
     while(resComplIt.next()) {
         const QUrl r = resComplIt[0].uri();
         if(metadata.containsAnyStatement(r, NIE::url(), Soprano::Node())) {
@@ -1384,7 +1384,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(RemovalFlags flags, 
                            .arg(Soprano::Node::resourceToN3(NAO::maintainedBy()),
                                 Soprano::Node::resourceToN3(appRes),
                                 createResourceMetadataPropertyFilter(QLatin1String("?mp"), false)),
-                           Soprano::Query::QueryLanguageSparql);
+                           Soprano::Query::QueryLanguageSparqlNoInference);
     while(it.next()) {
         GraphRemovalCandidate& g = graphRemovalCandidates[it["g"].uri()];
         g.appCnt = it["c"].literal().toInt();
@@ -1426,7 +1426,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(RemovalFlags flags, 
                                                      .arg(Soprano::Node::resourceToN3(g),
                                                           Soprano::Node::resourceToN3(res),
                                                           createResourceMetadataPropertyFilter(QLatin1String("?p"), false)),
-                                                     Soprano::Query::QueryLanguageSparql).allBindings();
+                                                     Soprano::Query::QueryLanguageSparqlNoInference).allBindings();
                     }
 
                     removeAllStatements(res, Soprano::Node(), Soprano::Node(), g);
@@ -2036,7 +2036,7 @@ Nepomuk2::SimpleResourceGraph Nepomuk2::DataManagementModel::describeResources(c
                                        .arg(/*resourcesToN3(subResources).join(QLatin1String(","))*/Soprano::Node::resourceToN3(res),
                                             Soprano::Node::resourceToN3(NAO::hasSubResource()),
                                             discardableDataExcludeFilter),
-                                       Soprano::Query::QueryLanguageSparql);
+                                       Soprano::Query::QueryLanguageSparqlNoInference);
                 subResources.clear();
                 while(it.next()) {
                     subResources << it[0].uri();

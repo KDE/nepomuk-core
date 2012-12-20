@@ -34,6 +34,7 @@
 #include <QtCore/QDir>
 #include <QtCore/QTextStream>
 
+#include <iostream>
 #include <KDebug>
 #include <KUrl>
 #include <KJob>
@@ -58,6 +59,7 @@ int main(int argc, char *argv[])
     options.add("+[url]", ki18n("The URL of the file to be indexed"));
     options.add("clear", ki18n("Remove all indexed data of the URL provided"));
     options.add("debug", ki18n("First clears the existing index, and then runs both the basic and file indexing"));
+    options.add("data", ki18n("Streams the indexed data to stdout"));
 
     KCmdLineArgs::addCmdLineOptions(options);
     const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
@@ -93,6 +95,17 @@ int main(int argc, char *argv[])
 
             return 1;
         }
+        return 0;
+    }
+
+    if( args->isSet("data") ) {
+        Nepomuk2::SimpleResourceGraph graph = indexer.indexFileGraph( args->url(0) );
+        QByteArray byteArray;
+        QDataStream s(&byteArray, QIODevice::WriteOnly);
+        s << graph;
+
+        std::cout << byteArray.toBase64().constData();
+
         return 0;
     }
 

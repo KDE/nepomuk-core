@@ -58,8 +58,8 @@ MainWindow::MainWindow(QWidget* parent, Qt::WindowFlags flags): QMainWindow(pare
 void MainWindow::slotButtonClicked()
 {
     if( m_model->status() == JobModel::NotStarted ) {
-        m_model->start();
         m_button->setText( i18n("Pause") );
+        m_model->start();
     }
     else if( m_model->status() == JobModel::Running ) {
         m_model->pause();

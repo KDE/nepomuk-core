@@ -714,7 +714,7 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
                                             " %1 nao:lastModified ?o . } }")
                         .arg( Soprano::Node::resourceToN3( resUri ) );
 
-        Soprano::QueryResultIterator qit = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        Soprano::QueryResultIterator qit = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
         while(qit.next()) {
             const Soprano::Node g = qit[0];
             m_model->removeAllStatements( resUri, NAO::lastModified(), Soprano::Node(), g );
@@ -735,7 +735,7 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
                     .arg( Soprano::Node::resourceToN3( resUri ) );
 
             // in this case the value of nao:created is not changed
-            bool naoCreatedInRepo = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+            bool naoCreatedInRepo = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference ).boolValue();
             if( !naoCreatedInRepo )
                 res.insert( NAO::created(), fit.value() );
         }
