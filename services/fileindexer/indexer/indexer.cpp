@@ -25,6 +25,7 @@
 #include "simpleindexer.h"
 #include "../util.h"
 #include "kext.h"
+#include "nie.h"
 
 #include "storeresourcesjob.h"
 #include "resourcemanager.h"
@@ -36,6 +37,7 @@
 #include <KJob>
 
 #include <KService>
+#include <KMimeType>
 #include <KServiceTypeTrader>
 
 #include <QtCore/QDataStream>
@@ -200,6 +202,27 @@ bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
     return status;
 }
 
+Nepomuk2::SimpleResourceGraph Nepomuk2::Indexer::indexFileGraph(const QUrl& url)
+{
+    SimpleResource res;
+
+    QString mimeType = KMimeType::findByUrl( url )->name();
+    res.addProperty(NIE::mimeType(), mimeType);
+    res.addProperty(NIE::url(), url);
+
+    SimpleResourceGraph graph;
+    graph << res;
+
+    QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
+    foreach( ExtractorPlugin* ex, extractors ) {
+        graph += ex->extract( res.uri(), url, mimeType );
+    }
+
+    kDebug() << graph;
+    return graph;
+}
+
+
 QString Nepomuk2::Indexer::lastError() const
 {
     return m_lastError;
@@ -243,7 +266,6 @@ void Nepomuk2::Indexer::updateIndexingLevel(const QUrl& uri, int level)
         job->exec();
     }
 }
-
 
 
 #include "indexer.moc"

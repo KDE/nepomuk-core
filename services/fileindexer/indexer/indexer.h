@@ -70,6 +70,13 @@ namespace Nepomuk2 {
          */
         bool indexFile( const KUrl& url );
 
+        /**
+         * Extracts the SimpleResourceGraph of the local file or folder and returns it.
+         * This is used in the rare cases when one does not wish to index the file, one
+         * just wants to see the indexed information
+         */
+        Nepomuk2::SimpleResourceGraph indexFileGraph( const QUrl& url );
+
         QString lastError() const;
 
     private:
