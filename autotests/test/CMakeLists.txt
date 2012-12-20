@@ -18,7 +18,7 @@ target_link_libraries(resourcetest
   ${QT_QTTEST_LIBRARY}
   ${QT_QTGUI_LIBRARY}
   ${SOPRANO_LIBRARIES}
-  kdecore
+  ${KDE4_KDECORE_LIBS}
   nepomukcore
   nepomuktestlib
 )
@@ -39,7 +39,7 @@ target_link_libraries(querytests
   ${QT_QTTEST_LIBRARY}
   ${QT_QTGUI_LIBRARY}
   ${SOPRANO_LIBRARIES}
-  kdecore
+  ${KDE4_KDECORE_LIBS}
   nepomukcore
   nepomuktestlib
 )
@@ -61,7 +61,7 @@ target_link_libraries(queryservicetest
   ${QT_QTTEST_LIBRARY}
   ${QT_QTGUI_LIBRARY}
   ${SOPRANO_LIBRARIES}
-  kdecore
+  ${KDE4_KDECORE_LIBS}
   nepomuktestlib
   nepomukcore
 )
@@ -93,7 +93,7 @@ target_link_libraries(backuptests
   ${QT_QTTEST_LIBRARY}
   ${QT_QTGUI_LIBRARY}
   ${SOPRANO_LIBRARIES}
-  kdecore
+  ${KDE4_KDECORE_LIBS}
   nepomuktestlib
   nepomukcore
 )
@@ -156,7 +156,7 @@ target_link_libraries(storeresourcesbenchmark
   ${QT_QTTEST_LIBRARY}
   ${QT_QTGUI_LIBRARY}
   ${SOPRANO_LIBRARIES}
-  kdecore
+  ${KDE4_KDECORE_LIBS}
   nepomukcore
   nepomuktestlib
 )
