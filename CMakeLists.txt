@@ -79,8 +79,10 @@ add_subdirectory(cleaner)
 add_subdirectory(interfaces)
 add_subdirectory(removed-services)
 add_subdirectory(includes)
-add_subdirectory(tests)
-add_subdirectory(autotests)
+if(KDE4_BUILD_TESTS)
+  add_subdirectory(tests)
+  add_subdirectory(autotests)
+endif()
 
 macro_display_feature_log()
 
