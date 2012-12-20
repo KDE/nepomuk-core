@@ -31,6 +31,7 @@
 #include "resourceterm.h"
 #include "resourcetypeterm.h"
 #include "optionalterm.h"
+#include "literal.h"
 
 #include "nie.h"
 #include "nfo.h"
@@ -113,23 +114,9 @@ QString Nepomuk2::Utils::formatPropertyValue( const Nepomuk2::Types::Property& p
     }
 
     // do not use else here since the above code might fall through
-
     QString valueString;
-    if (value.isDateTime()) {
-        valueString = KGlobal::locale()->formatDateTime(value.toDateTime(), KLocale::FancyLongDate);
-    }
 
-    else if(value.isDouble()) {
-        valueString = KGlobal::locale()->formatNumber(value.toDouble());
-    }
-
-    else if(value.isInt() && property == Vocabulary::NFO::duration() ) {
-        QTime time = QTime().addSecs( value.toInt() );
-        valueString = KGlobal::locale()->formatTime( time, true, true );
-    }
-
-    else if(value.isResource() &&
-            value.toResource().exists()) {
+    if(value.isResource() && value.toResource().exists()) {
         valueString = value.toResource().genericLabel();
     }
 
@@ -142,8 +129,28 @@ QString Nepomuk2::Utils::formatPropertyValue( const Nepomuk2::Types::Property& p
         valueString = (mimeType ? mimeType->comment() : value.toString());
     }
 
-    else {
-        valueString = value.toString();
+    else if(property == Vocabulary::NFO::duration() ) {
+        QTime time = QTime().addSecs( value.toInt() );
+        valueString = KGlobal::locale()->formatTime( time, true, true );
+    }
+
+    if( valueString.isEmpty() ) {
+        Types::Literal literalRange = property.literalRangeType();
+        switch( literalRange.dataType() ) {
+            case QVariant::DateTime:
+                valueString = KGlobal::locale()->formatDateTime(value.toDateTime(), KLocale::FancyLongDate);
+                break;
+            case QVariant::Date:
+                valueString = KGlobal::locale()->formatDate(value.toDate(), KLocale::FancyLongDate);
+                break;
+            case QVariant::Int:
+            case QVariant::Double:
+                valueString = KGlobal::locale()->formatNumber(value.toDouble());
+                break;
+            default:
+                valueString = value.toString();
+                break;
+        }
     }
 
     if( flags & WithKioLinks ) {
