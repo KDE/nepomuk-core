@@ -31,7 +31,9 @@ set(NEPOMUK_CORE_ONTOLOGY_DIR "@CMAKE_INSTALL_PREFIX@/share/ontology")
 set(NEPOMUK_CORE_DBUS_INTERFACES_DIR "@DBUS_INTERFACES_INSTALL_DIR@")
 
 # Import the exported targets
-include(${_currentDir}/NepomukCoreTargetsWithPrefix.cmake)
+if(NOT TARGET nepomukcore)
+  include(${_currentDir}/NepomukCoreTargetsWithPrefix.cmake)
+endif()
 
 # Set the libraries names
 set(NEPOMUK_CORE_LIBRARY nepomukcore)
