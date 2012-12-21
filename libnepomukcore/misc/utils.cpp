@@ -136,7 +136,11 @@ QString Nepomuk2::Utils::formatPropertyValue( const Nepomuk2::Types::Property& p
 
     if( valueString.isEmpty() ) {
         Types::Literal literalRange = property.literalRangeType();
-        switch( literalRange.dataType() ) {
+        QVariant::Type dataType = literalRange.dataType();
+        if( !literalRange.isValid() )
+            dataType = value.variant().type();
+
+        switch( dataType ) {
             case QVariant::DateTime:
                 valueString = KGlobal::locale()->formatDateTime(value.toDateTime(), KLocale::FancyLongDate);
                 break;
@@ -144,6 +148,8 @@ QString Nepomuk2::Utils::formatPropertyValue( const Nepomuk2::Types::Property& p
                 valueString = KGlobal::locale()->formatDate(value.toDate(), KLocale::FancyLongDate);
                 break;
             case QVariant::Int:
+                valueString = KGlobal::locale()->formatLong(value.toInt());
+                break;
             case QVariant::Double:
                 valueString = KGlobal::locale()->formatNumber(value.toDouble());
                 break;
