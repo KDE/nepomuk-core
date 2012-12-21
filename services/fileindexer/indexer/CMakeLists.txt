@@ -11,6 +11,7 @@ set(indexer_SRCS
   indexer.cpp
   simpleindexer.cpp
   extractorplugin.cpp
+  extractorpluginmanager.cpp
   plaintextextractor.cpp
   ../util.cpp
   ../../../servicestub/priority.cpp

@@ -22,6 +22,7 @@
 
 #include "indexer.h"
 #include "extractorplugin.h"
+#include "extractorpluginmanager.h"
 #include "simpleindexer.h"
 #include "../util.h"
 #include "kext.h"
@@ -55,24 +56,7 @@ using namespace Nepomuk2::Vocabulary;
 Nepomuk2::Indexer::Indexer( QObject* parent )
     : QObject( parent )
 {
-    // Get all the plugins
-    KService::List plugins = KServiceTypeTrader::self()->query( "NepomukFileExtractor" );
-
-    KService::List::const_iterator it;
-    for( it = plugins.constBegin(); it != plugins.constEnd(); it++ ) {
-        KService::Ptr service = *it;
-
-        QString error;
-        Nepomuk2::ExtractorPlugin* ex = service->createInstance<Nepomuk2::ExtractorPlugin>( this, QVariantList(), &error );
-        if( !ex ) {
-            kError() << "Could not create Extractor: " << service->library();
-            kError() << error;
-            continue;
-        }
-
-        foreach(const QString& mime, ex->mimetypes())
-            m_extractors.insertMulti( mime, ex );
-    }
+    m_extractorManager = new ExtractorPluginManager( this );
 }
 
 Nepomuk2::Indexer::~Indexer()
@@ -110,7 +94,7 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
     kDebug() << uri << mimeType;
     SimpleResourceGraph graph;
 
-    QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
+    QList<ExtractorPlugin*> extractors = m_extractorManager->fetchExtractors( url, mimeType );
     foreach( ExtractorPlugin* ex, extractors ) {
         graph += ex->extract( uri, url, mimeType );
     }
@@ -171,7 +155,7 @@ bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
 
         SimpleResourceGraph graph;
 
-        QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
+        QList<ExtractorPlugin*> extractors = m_extractorManager->fetchExtractors( url, mimeType );
         foreach( ExtractorPlugin* ex, extractors ) {
             graph += ex->extract( uri, url, mimeType );
         }
@@ -213,7 +197,7 @@ Nepomuk2::SimpleResourceGraph Nepomuk2::Indexer::indexFileGraph(const QUrl& url)
     SimpleResourceGraph graph;
     graph << res;
 
-    QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
+    QList<ExtractorPlugin*> extractors = m_extractorManager->fetchExtractors( url, mimeType );
     foreach( ExtractorPlugin* ex, extractors ) {
         graph += ex->extract( res.uri(), url, mimeType );
     }

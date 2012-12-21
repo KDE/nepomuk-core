@@ -25,6 +25,7 @@
 #include "../../../servicestub/priority.h"
 #include "nepomukversion.h"
 #include "nie.h"
+#include "simpleresourcegraph.h"
 
 #include <KAboutData>
 #include <KCmdLineArgs>

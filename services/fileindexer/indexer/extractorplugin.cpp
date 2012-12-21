@@ -36,6 +36,26 @@ ExtractorPlugin::~ExtractorPlugin()
 {
 }
 
+ExtractorPlugin::ExtractingCritera ExtractorPlugin::criteria()
+{
+    return BasicMimeType;
+}
+
+QStringList ExtractorPlugin::mimetypes()
+{
+    return QStringList();
+}
+
+bool ExtractorPlugin::shouldExtract(const QUrl& url, const QString& type)
+{
+    Q_UNUSED( url );
+    return mimetypes().contains( type );
+}
+
+//
+// Helper functions
+//
+
 QDateTime ExtractorPlugin::dateTimeFromString(const QString& dateString)
 {
     QDateTime dateTime;

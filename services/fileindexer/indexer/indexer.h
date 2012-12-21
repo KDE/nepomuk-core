@@ -23,19 +23,15 @@
 #ifndef _NEPOMUK_STRIG_INDEXER_H_
 #define _NEPOMUK_STRIG_INDEXER_H_
 
-#include "extractorplugin.h"
-
 #include <QtCore/QObject>
-#include <QStringList>
+#include <QtCore/QStringList>
 #include <KUrl>
-
-class QDateTime;
-class QDataStream;
-class QFileInfo;
 
 namespace Nepomuk2 {
 
     class Resource;
+    class ExtractorPluginManager;
+    class SimpleResourceGraph;
 
     class Indexer : public QObject
     {
@@ -81,7 +77,7 @@ namespace Nepomuk2 {
 
     private:
         QString m_lastError;
-        QHash<QString, ExtractorPlugin*> m_extractors;
+        ExtractorPluginManager* m_extractorManager;
 
         void updateIndexingLevel( const QUrl& uri, int level );
     };
