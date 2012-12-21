@@ -57,9 +57,6 @@ QStringList TagLibExtractor::mimetypes()
     // WAV
     types << QLatin1String("audio/wav");
 
-    // MP4
-    types << QLatin1String("video/mp4");
-
     // AIFF
     types << QLatin1String("audio/x-aiff");
 
