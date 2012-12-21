@@ -31,6 +31,15 @@
 
 namespace Nepomuk2 {
 
+    /**
+     * \class ExtractorPlugin extractorplugin.h
+     *
+     * \brief The ExtractorPlugin is the base class for all file metadata
+     * extractors. It is responsible for extracting the metadata and providing
+     * it to Nepomuk.
+     *
+     * \author Vishesh Handa <me@vhanda.in>
+     */
     class NEPOMUK_EXPORT ExtractorPlugin : public QObject
     {
         Q_OBJECT
@@ -38,7 +47,26 @@ namespace Nepomuk2 {
         ExtractorPlugin(QObject* parent);
         virtual ~ExtractorPlugin();
 
+        /**
+         * Provide a list of mimetypes which are supported by this plugin.
+         * Only files with those mimetypes will be provided to the plugin via
+         * the extract function.
+         *
+         * \return A StringList containing the mimetypes.
+         * \sa extract
+         */
         virtual QStringList mimetypes() = 0;
+
+        /**
+         * The main function of the plugin that is responsible for extracting the data
+         * from the file url and returning a SimpleResourceGraph.
+         *
+         * It does so on the basis of the mimetype provided.
+         *
+         * \param resUri The resource uri of the fileUrl which should be used in the SimpleResource
+         * \param fileUrl The url of the file being indexed
+         * \param mimeType the mimetype of the file url
+         */
         virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType) = 0;
     };
 }
