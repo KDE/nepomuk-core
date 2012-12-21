@@ -94,15 +94,11 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
             fileRes.addProperty( NMM::genre(), genre );
         }
 
-        // TODO: Split artists
-        QString artists = QString::fromUtf8( tags->artist().toCString( true ) );
-        if( !artists.isEmpty() ) {
-            SimpleResource artist;
-            artist.addType( NCO::Contact() );
-            artist.setProperty( NCO::fullname(), artists );
-
-            fileRes.setProperty( NMM::performer(), artist );
-            graph << artist;
+        QString artistString = QString::fromUtf8( tags->artist().toCString( true ) );
+        QList< SimpleResource > artists = contactsFromString( artistString );
+        foreach( const SimpleResource& res, artists ) {
+            fileRes.addProperty( NMM::performer(), res );
+            graph << res;
         }
 
         QString album = QString::fromUtf8( tags->album().toCString( true ) );

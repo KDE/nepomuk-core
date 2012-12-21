@@ -22,6 +22,7 @@
 #define EXTRACTOR_H
 
 #include <QtCore/QStringList>
+#include <QtCore/QDateTime>
 
 #include "simpleresourcegraph.h"
 #include "simpleresource.h"
@@ -68,6 +69,21 @@ namespace Nepomuk2 {
          * \param mimeType the mimetype of the file url
          */
         virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType) = 0;
+
+        //
+        // Helper functions
+        //
+
+        /**
+         * Tries to extract a valid date time from the string provided.
+         */
+        static QDateTime dateTimeFromString(const QString& dateString);
+
+        /**
+         * Creates a list of nco:Contacts from a list of strings which are separated
+         * by a number of different separators. It sets the contact's nco:fullname.
+         */
+        static QList<SimpleResource> contactsFromString(const QString& string);
     };
 }
 
