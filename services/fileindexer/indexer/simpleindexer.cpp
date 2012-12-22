@@ -47,6 +47,13 @@ Nepomuk2::SimpleIndexingJob::SimpleIndexingJob(const QUrl& fileUrl, QObject* par
 {
 }
 
+Nepomuk2::SimpleIndexingJob::SimpleIndexingJob(const QUrl& fileUrl, const QString& mimeType, QObject* parent)
+    : KJob(parent)
+    , m_nieUrl( fileUrl )
+    , m_mimeType( mimeType )
+{
+}
+
 void Nepomuk2::SimpleIndexingJob::start()
 {
     SimpleResource m_res;
@@ -69,7 +76,9 @@ void Nepomuk2::SimpleIndexingJob::start()
     //
     // Types by mime type
     //
-    m_mimeType = KMimeType::findByUrl( m_nieUrl )->name();
+    if( m_mimeType.isEmpty() ) {
+        m_mimeType = KMimeType::findByUrl( m_nieUrl )->name();
+    }
     QList<QUrl> types = typesForMimeType( m_mimeType );
     foreach(const QUrl& type, types)
         m_res.addType( type );

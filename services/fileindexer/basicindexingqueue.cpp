@@ -29,6 +29,7 @@
 #include <Soprano/QueryResultIterator>
 
 #include <KDebug>
+#include <KMimeType>
 #include <QtCore/QDateTime>
 
 namespace Nepomuk2 {
@@ -116,15 +117,19 @@ bool BasicIndexingQueue::process(const QString& path, UpdateDirFlags flags)
 {
     bool startedIndexing = false;
 
+    QUrl url = QUrl::fromLocalFile( path );
+    QString mimetype = KMimeType::findByUrl( url )->name();
+
     bool forced = flags & ForceUpdate;
     bool recursive = flags & UpdateRecursive;
-    bool indexingRequired = shouldIndex( path );
+    bool indexingRequired = shouldIndex( path, mimetype );
 
     QFileInfo info( path );
     if( info.isDir() ) {
         if( forced || indexingRequired ) {
-            m_currentUrl = QUrl::fromLocalFile( path );
+            m_currentUrl = url;
             m_currentFlags = flags;
+            m_currentMimeType = mimetype;
 
             startedIndexing = true;
             index( path );
@@ -148,10 +153,14 @@ bool BasicIndexingQueue::process(const QString& path, UpdateDirFlags flags)
     return startedIndexing;
 }
 
-bool BasicIndexingQueue::shouldIndex(const QString& path)
+bool BasicIndexingQueue::shouldIndex(const QString& path, const QString& mimetype)
 {
     bool shouldIndexFile = FileIndexerConfig::self()->shouldFileBeIndexed( path );
     if( !shouldIndexFile )
+        return false;
+
+    bool shouldIndexType = FileIndexerConfig::self()->shouldMimeTypeBeIndexed( mimetype );
+    if( !shouldIndexType )
         return false;
 
     QFileInfo fileInfo( path );
@@ -193,7 +202,7 @@ void BasicIndexingQueue::slotClearIndexedDataFinished(KJob* job)
         kDebug() << job->errorString();
     }
 
-    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( currentUrl() );
+    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( m_currentUrl, m_currentMimeType );
     indexingJob->start();
 
     connect( indexingJob, SIGNAL(finished(KJob*)), this, SLOT(slotIndexingFinished(KJob*)) );
@@ -207,6 +216,7 @@ void BasicIndexingQueue::slotIndexingFinished(KJob* job)
 
     QUrl url = m_currentUrl;
     m_currentUrl.clear();
+    m_currentMimeType.clear();
     m_currentFlags = NoUpdateFlags;
 
     emit endIndexingFile( url );

@@ -37,6 +37,7 @@ namespace Nepomuk2 {
         Q_OBJECT
     public:
         SimpleIndexingJob(const QUrl& fileUrl, QObject* parent = 0);
+        SimpleIndexingJob(const QUrl& fileUrl, const QString& mimeType, QObject* parent = 0);
 
         virtual void start();
 
