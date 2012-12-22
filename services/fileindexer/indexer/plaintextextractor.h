@@ -30,8 +30,10 @@ class PlainTextExtractor : public ExtractorPlugin
 public:
     PlainTextExtractor(QObject* parent, const QVariantList&);
 
+    virtual ExtractingCritera criteria() { return Custom; }
+    virtual bool shouldExtract(const QUrl& url, const QString& mimeType);
+
     virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType);
-    virtual QStringList mimetypes();
 };
 
 }
