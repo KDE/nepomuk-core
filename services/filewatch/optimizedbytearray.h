@@ -46,7 +46,13 @@ public:
     OptimizedByteArray() {}
 
     OptimizedByteArray(const QByteArray& array, QSet<QByteArray>& cache) {
-        QVector<QByteArray> vec = array.split( '/' ).toVector();
+        QList<QByteArray> list = array.split( '/' );
+        QVector<QByteArray> vec;
+        vec.reserve( list.size() );
+        foreach( const QByteArray& ba, list ) {
+            if( !ba.isEmpty() )
+                vec << ba;
+        }
 
         m_data.reserve( vec.size() );
         foreach(const QByteArray& arr, vec) {
