@@ -53,7 +53,7 @@ void FileIndexingQueue::fillQueue()
     if (m_fileQueue.size() > 0)
         return;
 
-    QString query = QString::fromLatin1("select ?url where { ?r nie:url ?url ; kext:indexingLevel ?l "
+    QString query = QString::fromLatin1("select distinct ?url where { ?r nie:url ?url ; kext:indexingLevel ?l "
                                         " FILTER(?l < 2 ). } LIMIT 10");
 
     Soprano::Model* model = ResourceManager::instance()->mainModel();
