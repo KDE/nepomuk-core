@@ -70,6 +70,7 @@ namespace {
 
 Nepomuk2::IndexCleaner::IndexCleaner(QObject* parent)
     : KJob(parent),
+      m_suspended(false),
       m_delay(0)
 {
     setCapabilities( Suspendable );
@@ -254,7 +255,7 @@ void Nepomuk2::IndexCleaner::clearNextBatch()
 
     else if( !m_removalQueries.isEmpty() ) {
         m_query = m_removalQueries.dequeue();
-        clearNextBatch();
+        QTimer::singleShot(m_delay, this, SLOT(clearNextBatch()));
     }
 
     else {
