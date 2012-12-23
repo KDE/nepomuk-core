@@ -49,6 +49,7 @@ namespace Nepomuk2 {
     private slots:
         void init();
         void slotFinishedIndexingFile(KJob* job);
+        void slotConfigChanged();
 
     private:
         void process(const QUrl& url);

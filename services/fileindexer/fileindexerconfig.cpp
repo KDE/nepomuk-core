@@ -331,6 +331,7 @@ void Nepomuk2::FileIndexerConfig::forceConfigUpdate()
     m_config.reparseConfiguration();
     buildFolderCache();
     buildExcludeFilterRegExpCache();
+    buildMimeTypeCache();
 }
 
 void Nepomuk2::FileIndexerConfig::setInitialRun(bool isInitialRun)
