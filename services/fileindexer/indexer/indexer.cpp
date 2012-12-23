@@ -72,7 +72,8 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
         return false;
     }
 
-    QString query = QString::fromLatin1("select ?r ?mtype where { ?r nie:url %1; nie:mimeType ?mtype . }")
+    QString query = QString::fromLatin1("select ?r ?mtype ?l where { ?r nie:url %1; nie:mimeType ?mtype ;"
+                                        " kext:indexingLevel ?l . }")
                     .arg( Soprano::Node::resourceToN3( url ) );
     Soprano::Model* model = ResourceManager::instance()->mainModel();
 
@@ -83,6 +84,12 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
     if( it.next() ) {
         uri = it[0].uri();
         mimeType = it[1].literal().toString();
+        int level = it[2].literal().toInt();
+
+        if( level > 1 ) {
+            clearIndexingData( url );
+            simpleIndex( url, &uri, &mimeType );
+        }
     }
     else {
         simpleIndex( url, &uri, &mimeType );
@@ -92,24 +99,6 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
     return fileIndex( uri, url, mimeType );
 }
 
-bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
-{
-    QFileInfo info( url.toLocalFile() );
-    if( !info.exists() ) {
-        m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
-        return false;
-    }
-
-    if( !clearIndexingData( url ) )
-        return false;
-
-    QUrl uri;
-    QString mimeType;
-    if( !simpleIndex(url, &uri, &mimeType) )
-        return false;
-
-    return fileIndex( uri, url, mimeType );
-}
 
 bool Nepomuk2::Indexer::clearIndexingData(const QUrl& url)
 {

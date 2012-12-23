@@ -62,7 +62,6 @@ int main(int argc, char *argv[])
     KCmdLineOptions options;
     options.add("+[url]", ki18n("The URL of the file to be indexed"));
     options.add("clear", ki18n("Remove all indexed data of the URL provided"));
-    options.add("debug", ki18n("First clears the existing index, and then runs both the basic and file indexing"));
     options.add("data", ki18n("Streams the indexed data to stdout"));
 
     KCmdLineArgs::addCmdLineOptions(options);
@@ -91,16 +90,6 @@ int main(int argc, char *argv[])
     }
 
     Nepomuk2::Indexer indexer;
-    // Debugging
-    if( args->isSet("debug") ) {
-        if( !indexer.indexFileDebug( args->url(0) ) ) {
-            QTextStream s(stdout);
-            s << indexer.lastError();
-
-            return 1;
-        }
-        return 0;
-    }
 
     if( args->isSet("data") ) {
         Nepomuk2::SimpleResourceGraph graph = indexer.indexFileGraph( args->url(0) );
