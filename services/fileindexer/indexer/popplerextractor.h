@@ -23,6 +23,10 @@
 
 #include "extractorplugin.h"
 
+namespace Poppler {
+    class Document;
+}
+
 namespace Nepomuk2 {
 
     class PopplerExtractor : public ExtractorPlugin
@@ -34,6 +38,7 @@ namespace Nepomuk2 {
         virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType);
 
     private:
+        QString parseFirstPage(Poppler::Document* pdfDoc);
     };
 }
 
