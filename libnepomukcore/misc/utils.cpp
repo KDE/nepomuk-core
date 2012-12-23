@@ -115,9 +115,11 @@ QString Nepomuk2::Utils::formatPropertyValue( const Nepomuk2::Types::Property& p
 
     // do not use else here since the above code might fall through
     QString valueString;
+    KUrl additionalResourceUri;
 
     if(value.isResource() && value.toResource().exists()) {
         valueString = value.toResource().genericLabel();
+        additionalResourceUri = value.toUrl();
     }
 
     else if(property == Vocabulary::NIE::contentSize()) {
@@ -162,9 +164,12 @@ QString Nepomuk2::Utils::formatPropertyValue( const Nepomuk2::Types::Property& p
     if( flags & WithKioLinks ) {
         // for all property/value pairs we create a default query
         Nepomuk2::Query::FileQuery query( Nepomuk2::Query::Term::fromProperty(property, value) );
-        return QString::fromLatin1("<a href=\"%1\">%2</a>")
-            .arg(query.toSearchUrl(property.label() + QLatin1String(": '") + valueString + '\'').url(),
-                 valueString);
+        KUrl searchUrl = query.toSearchUrl(property.label() + QLatin1String(": '") + valueString + '\'');
+        if( !additionalResourceUri.isEmpty() ) {
+            searchUrl.addQueryItem( QLatin1String("resource"), additionalResourceUri.url() );
+        }
+
+        return QString::fromLatin1("<a href=\"%1\">%2</a>").arg( searchUrl.url(), valueString);
     }
     else {
         return valueString;
