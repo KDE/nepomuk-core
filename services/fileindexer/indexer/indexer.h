@@ -80,6 +80,10 @@ namespace Nepomuk2 {
         ExtractorPluginManager* m_extractorManager;
 
         void updateIndexingLevel( const QUrl& uri, int level );
+
+        bool clearIndexingData( const QUrl& url );
+        bool simpleIndex( const QUrl& url, QUrl* uri, QString* mimetype );
+        bool fileIndex( const QUrl& uri, const QUrl& url, const QString& mimeType );
     };
 }
 

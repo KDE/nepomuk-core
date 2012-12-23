@@ -85,13 +85,69 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
         mimeType = it[1].literal().toString();
     }
     else {
-        SimpleIndexingJob* indexingJob = new SimpleIndexingJob( url );
-        indexingJob->exec();
-        uri = indexingJob->uri();
-        mimeType = indexingJob->mimeType();
+        simpleIndex( url, &uri, &mimeType );
     }
 
     kDebug() << uri << mimeType;
+    return fileIndex( uri, url, mimeType );
+}
+
+bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
+{
+    QFileInfo info( url.toLocalFile() );
+    if( !info.exists() ) {
+        m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
+        return false;
+    }
+
+    if( !clearIndexingData( url ) )
+        return false;
+
+    QUrl uri;
+    QString mimeType;
+    if( !simpleIndex(url, &uri, &mimeType) )
+        return false;
+
+    return fileIndex( uri, url, mimeType );
+}
+
+bool Nepomuk2::Indexer::clearIndexingData(const QUrl& url)
+{
+    kDebug() << "Starting to clear";
+    KJob* job = Nepomuk2::clearIndexedData( url );
+    kDebug() << "Done";
+
+    job->exec();
+    if( job->error() ) {
+        m_lastError = job->errorString();
+        kError() << m_lastError;
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Nepomuk2::Indexer::simpleIndex(const QUrl& url, QUrl* uri, QString* mimetype)
+{
+    QScopedPointer<SimpleIndexingJob> job( new SimpleIndexingJob( url ) );
+    job->setAutoDelete(false);
+    job->exec();
+
+    if( job->error() ) {
+        m_lastError = job->errorString();
+        kError() << m_lastError;
+
+        return false;
+    }
+
+    *uri = job->uri();
+    *mimetype = job->mimeType();
+    return true;
+}
+
+bool Nepomuk2::Indexer::fileIndex(const QUrl& uri, const QUrl& url, const QString& mimeType)
+{
     SimpleResourceGraph graph;
 
     QList<ExtractorPlugin*> extractors = m_extractorManager->fetchExtractors( url, mimeType );
@@ -110,7 +166,7 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
         job->exec();
         if( job->error() ) {
             m_lastError = job->errorString();
-            kError() << "SimpleIndexerError: " << job->errorString();
+            kError() << "SimpleIndexerError: " << m_lastError;
             return false;
         }
     }
@@ -122,69 +178,7 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
     return true;
 }
 
-bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
-{
-    QFileInfo info( url.toLocalFile() );
-    if( !info.exists() ) {
-        m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
-        return false;
-    }
 
-    kDebug() << "Starting to clear";
-    KJob* job = Nepomuk2::clearIndexedData( url );
-    kDebug() << "Done";
-
-    job->exec();
-    if( job->error() ) {
-        kError() << job->errorString();
-        m_lastError = job->errorString();
-
-        return false;
-    }
-
-    kDebug() << "Starting SimpleIndexer";
-    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( url );
-    indexingJob->exec();
-
-    bool status = indexingJob->error();
-    kDebug() << "Saving data " << indexingJob->errorString();
-
-    if( !status ) {
-        QString mimeType = indexingJob->mimeType();
-        QUrl uri = indexingJob->uri();
-
-        SimpleResourceGraph graph;
-
-        QList<ExtractorPlugin*> extractors = m_extractorManager->fetchExtractors( url, mimeType );
-        foreach( ExtractorPlugin* ex, extractors ) {
-            graph += ex->extract( uri, url, mimeType );
-        }
-
-        if( !graph.isEmpty() ) {
-            QHash<QUrl, QVariant> additionalMetadata;
-            additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
-
-            // we do not have an event loop - thus, we need to delete the job ourselves
-            kDebug() << "Saving proper";
-            // HACK: Use OverwriteProperties for the setting the indexingLevel
-            QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNew,
-                                                        NoStoreResourcesFlags, additionalMetadata ) );
-            job->setAutoDelete(false);
-            job->exec();
-            if( job->error() ) {
-                m_lastError = job->errorString();
-                kError() << "SimpleIndexerError: " << job->errorString();
-                return false;
-            }
-        }
-
-        kDebug() << "Updating the indexing level";
-        updateIndexingLevel( uri, 2 );
-        kDebug() << "Done";
-    }
-
-    return status;
-}
 
 Nepomuk2::SimpleResourceGraph Nepomuk2::Indexer::indexFileGraph(const QUrl& url)
 {
