@@ -39,6 +39,12 @@ namespace Nepomuk2 {
         void clear();
         QUrl currentUrl();
 
+    public slots:
+        /**
+         * Fills up the queue and starts the indexing
+         */
+        void start();
+
     signals:
         void beginIndexingFile(const QUrl& url);
         void endIndexingFile(const QUrl& url);
@@ -47,7 +53,6 @@ namespace Nepomuk2 {
         virtual void processNextIteration();
 
     private slots:
-        void init();
         void slotFinishedIndexingFile(KJob* job);
         void slotConfigChanged();
 

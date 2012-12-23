@@ -203,6 +203,13 @@ void Nepomuk2::IndexScheduler::slotFinishedIndexing()
 void Nepomuk2::IndexScheduler::slotCleaningDone()
 {
     m_cleaner = 0;
+
+    for( int i=0; i<m_foldersToQueue.size(); i++ ) {
+        QPair< QString, UpdateDirFlags > pair = m_foldersToQueue[i];
+        m_basicIQ->enqueue( pair.first, pair.second );
+    }
+
+    m_fileIQ->start();
 }
 
 void Nepomuk2::IndexScheduler::updateDir( const QString& path, UpdateDirFlags flags )
@@ -226,17 +233,19 @@ void Nepomuk2::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
         flags |= ForceUpdate;
 
     // update everything again in case the folders changed
+    // If the cleaner is running, then we do not add the folders, instead they will be added
+    // in slotCleaningDone
     foreach( const QString& f, FileIndexerConfig::self()->includeFolders() ) {
-        m_basicIQ->enqueue( f, flags );
+        if( m_cleaner )
+            m_foldersToQueue.append( qMakePair( f, flags ) );
+        else
+            m_basicIQ->enqueue( f, flags );
     }
 }
 
 
 void Nepomuk2::IndexScheduler::slotConfigChanged()
 {
-    // TODO: only update folders that were added in the config
-    updateAll();
-
     if( m_cleaner ) {
         m_cleaner->kill();
         delete m_cleaner;
@@ -246,6 +255,14 @@ void Nepomuk2::IndexScheduler::slotConfigChanged()
     m_cleaner = new IndexCleaner( this );
     connect( m_cleaner, SIGNAL(finished(KJob*)), this, SLOT(slotCleaningDone()) );
     m_cleaner->start();
+
+    m_basicIQ->clear();
+    m_fileIQ->clear();
+
+    // Make sure this is called after the cleaner has been created, otherwise
+    // both the tasks will happen in parallel
+    // TODO: only update folders that were added in the config
+    updateAll();
 }
 
 

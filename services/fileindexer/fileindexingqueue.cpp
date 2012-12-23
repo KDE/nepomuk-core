@@ -35,13 +35,11 @@ FileIndexingQueue::FileIndexingQueue(QObject* parent): IndexingQueue(parent)
 {
     m_fileQueue.reserve( 10 );
 
-    QTimer::singleShot( 0, this, SLOT(init()) );
-
     FileIndexerConfig* config = FileIndexerConfig::self();
     connect( config, SIGNAL(configChanged()), this, SLOT(slotConfigChanged()) );
 }
 
-void FileIndexingQueue::init()
+void FileIndexingQueue::start()
 {
     fillQueue();
     emit startedIndexing();
