@@ -733,6 +733,18 @@ void Nepomuk2::ResourceData::propertyAdded( const Types::Property &prop, const Q
 {
     QMutexLocker lock(&m_modificationMutex);
     const Variant var(value);
-    updateKickOffLists(prop.uri(), var);
-    m_cache[prop.uri()].append(var);
+    QHash<QUrl, Variant>::iterator cacheIt = m_cache.find(prop.uri());
+    if( cacheIt != m_cache.end() ) {
+        Variant v = *cacheIt;
+        QList<Variant> vl = v.toVariantList();
+        if( !vl.contains( var ) ) {
+            vl.append( var );
+            updateKickOffLists(prop.uri(), var);
+            cacheIt.value() = vl;
+        }
+    }
+    else {
+        updateKickOffLists(prop.uri(), var);
+        m_cache[prop.uri()].append(var);
+    }
 }
