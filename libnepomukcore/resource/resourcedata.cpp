@@ -713,7 +713,16 @@ void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const
         const Variant value(value_);
         QList<Variant> vl = v.toVariantList();
         if(vl.contains(value)) {
-            vl.removeAll(value);
+            //
+            // Remove that element and and also remove all empty elements
+            // This is required because the value maybe have been a resource
+            // which has now been deleted, and no longer has a value
+            QMutableListIterator<Variant> it(vl);
+            while( it.hasNext() ) {
+                Variant var = it.next();
+                if( (var.isResource() && var.toUrl().isEmpty()) || var == value )
+                    it.remove();
+            }
             if(vl.isEmpty()) {
                 updateKickOffLists(prop.uri(), Variant());
                 m_cache.erase(cacheIt);
