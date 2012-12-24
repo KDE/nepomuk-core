@@ -153,6 +153,8 @@ QList<QUrl> Nepomuk2::SimpleIndexingJob::typesForMimeType(const QString& mimeTyp
         types << NFO::PlainTextDocument();
     if( mimeType.contains(QLatin1String("document")) )
         types << NFO::Document();
+    if( mimeType.contains(QLatin1String("font")) )
+        types << NFO::Font();
 
     // Presentation
     if( mimeType.contains(QLatin1String("powerpoint") ) )
@@ -214,6 +216,10 @@ QList<QUrl> Nepomuk2::SimpleIndexingJob::typesForMimeType(const QString& mimeTyp
         // Special images
         typeMapper.insert( QLatin1String("image/vnd.microsoft.icon"), NFO::Icon() );
         typeMapper.insert( QLatin1String("image/svg+xml"), NFO::VectorImage() );
+
+        // Fonts
+        typeMapper.insert( QLatin1String("application/vnd.ms-fontobject"), NFO::Font() );
+        typeMapper.insert( QLatin1String("application/vnd.ms-opentype"), NFO::Font() );
     }
 
     types << typeMapper.value( mimeType );
