@@ -248,4 +248,9 @@ QString Nepomuk2::DataManagementAdaptor::exportResources(const QStringList &reso
     return QString();
 }
 
+void Nepomuk2::DataManagementAdaptor::clearCache()
+{
+    m_model->clearCache();
+}
+
 #include "datamanagementadaptor.moc"

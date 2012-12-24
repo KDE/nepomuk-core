@@ -136,5 +136,7 @@
       <arg name="flags" type="i" direction="in"/>
       <arg name="app" type="s" direction="in"/>
     </method>
+    <method name="clearCache">
+    </method>
   </interface>
 </node>

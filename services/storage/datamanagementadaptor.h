@@ -93,6 +93,7 @@ public Q_SLOTS:
     Q_SCRIPTABLE QString createResource(const QString &type, const QString &label, const QString &description, const QString &app);
     Q_SCRIPTABLE void removeResources(const QString &resource, int flags, const QString &app);
     Q_SCRIPTABLE void importResources(const QString& url, const QString& serialization, int identificationMode, int flags, const QString& app);
+    Q_SCRIPTABLE void clearCache();
 
 private:
     void enqueueCommand(Nepomuk2::DataManagementCommand* cmd);
