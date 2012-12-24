@@ -112,12 +112,23 @@ SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& file
     QByteArray arr = fileUrl.toLocalFile().toUtf8();
     std::string fileString( arr.data(), arr.length() );
 
-    Exiv2::Image::AutoPtr image = Exiv2::ImageFactory::open( fileString );
+    Exiv2::Image::AutoPtr image;
+    try {
+        image = Exiv2::ImageFactory::open( fileString );
+    }
+    catch (const std::exception&) {
+        return SimpleResourceGraph();
+    }
     if( !image.get() ) {
         return SimpleResourceGraph();
     }
 
-    image->readMetadata();
+    try {
+        image->readMetadata();
+    }
+    catch (const std::exception&) {
+        return SimpleResourceGraph();
+    }
     const Exiv2::ExifData &data = image->exifData();
 
     SimpleResourceGraph graph;
