@@ -36,13 +36,10 @@ PlainTextExtractor::PlainTextExtractor(QObject* parent, const QVariantList&)
 
 }
 
-QStringList PlainTextExtractor::mimetypes()
+bool PlainTextExtractor::shouldExtract(const QUrl& url, const QString& mimeType)
 {
-    QStringList list;
-
-    list << QLatin1String("text/plain");
-
-    return list;
+    Q_UNUSED( url );
+    return mimeType.startsWith( QLatin1String("text/") );
 }
 
 SimpleResourceGraph PlainTextExtractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)

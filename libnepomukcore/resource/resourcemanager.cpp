@@ -439,13 +439,12 @@ void Nepomuk2::ResourceManagerPrivate::removeFromWatcher( const QUrl& uri )
     if( uri.isEmpty() || !m_watcher )
         return;
 
+    m_watcher->removeResource( uri );
+
     // stop the watcher since we do not want to watch all changes in case there is no ResourceData left
-    if(m_watcher->resourceCount() == 1) {
+    if( !m_watcher->resourceCount() ) {
         QMetaObject::invokeMethod(m_watcher, "stop", Qt::AutoConnection);
     }
-
-    // remove this Resource from the list of watched resources
-    QMetaObject::invokeMethod(m_watcher, "removeResource", Qt::AutoConnection, Q_ARG(QUrl, uri));
 }
 
 #include "resourcemanager.moc"

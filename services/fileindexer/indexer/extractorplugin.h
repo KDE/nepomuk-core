@@ -22,6 +22,7 @@
 #define EXTRACTOR_H
 
 #include <QtCore/QStringList>
+#include <QtCore/QDateTime>
 
 #include "simpleresourcegraph.h"
 #include "simpleresource.h"
@@ -31,6 +32,18 @@
 
 namespace Nepomuk2 {
 
+    /**
+     * \class ExtractorPlugin extractorplugin.h
+     *
+     * \brief The ExtractorPlugin is the base class for all file metadata
+     * extractors. It is responsible for extracting the metadata and providing
+     * it to Nepomuk.
+     *
+     * Make sure to implement either mimetypes or the shouldExtract function
+     * and update the indexingCriteria accordingly
+     *
+     * \author Vishesh Handa <me@vhanda.in>
+     */
     class NEPOMUK_EXPORT ExtractorPlugin : public QObject
     {
         Q_OBJECT
@@ -38,8 +51,80 @@ namespace Nepomuk2 {
         ExtractorPlugin(QObject* parent);
         virtual ~ExtractorPlugin();
 
-        virtual QStringList mimetypes() = 0;
+        /**
+        * Each Plugin provides an extracting critera which determines when the
+        * plugin should be called.
+        */
+        enum ExtractingCritera {
+            /**
+            * This is a simple plugin that just has a list of mimetypes
+            * that it supports.
+            */
+            BasicMimeType = 1,
+
+            /**
+            * The plugin implements the determineMimeType function and uses
+            * that to determine if the url and mimetype are supported
+            */
+            Custom = 2
+        };
+
+        /**
+         * Returns the critera that is being used for determining if this plugin
+         * can index the files provided to it.
+         *
+         * By default this returns BasicMimeType
+         *
+         * \sa mimetypes
+         * \sa shouldExtract
+         */
+        virtual ExtractingCritera criteria();
+
+        /**
+         * By default this returns true if \p mimetype is in the list of
+         * mimetypes provided by the plugin.
+         *
+         * If this function has been reimplemented then the ExtractingCritera should
+         * be changed.
+         */
+        virtual bool shouldExtract(const QUrl& url, const QString& mimeType);
+
+        /**
+         * Provide a list of mimetypes which are supported by this plugin.
+         * Only files with those mimetypes will be provided to the plugin via
+         * the extract function.
+         *
+         * \return A StringList containing the mimetypes.
+         * \sa extract
+         */
+        virtual QStringList mimetypes();
+
+        /**
+         * The main function of the plugin that is responsible for extracting the data
+         * from the file url and returning a SimpleResourceGraph.
+         *
+         * It does so on the basis of the mimetype provided.
+         *
+         * \param resUri The resource uri of the fileUrl which should be used in the SimpleResource
+         * \param fileUrl The url of the file being indexed
+         * \param mimeType the mimetype of the file url
+         */
         virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType) = 0;
+
+        //
+        // Helper functions
+        //
+
+        /**
+         * Tries to extract a valid date time from the string provided.
+         */
+        static QDateTime dateTimeFromString(const QString& dateString);
+
+        /**
+         * Creates a list of nco:Contacts from a list of strings which are separated
+         * by a number of different separators. It sets the contact's nco:fullname.
+         */
+        static QList<SimpleResource> contactsFromString(const QString& string);
     };
 }
 

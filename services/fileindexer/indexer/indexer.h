@@ -23,19 +23,15 @@
 #ifndef _NEPOMUK_STRIG_INDEXER_H_
 #define _NEPOMUK_STRIG_INDEXER_H_
 
-#include "extractorplugin.h"
-
 #include <QtCore/QObject>
-#include <QStringList>
+#include <QtCore/QStringList>
 #include <KUrl>
-
-class QDateTime;
-class QDataStream;
-class QFileInfo;
 
 namespace Nepomuk2 {
 
     class Resource;
+    class ExtractorPluginManager;
+    class SimpleResourceGraph;
 
     class Indexer : public QObject
     {
@@ -51,15 +47,6 @@ namespace Nepomuk2 {
          * Destructor
          */
         ~Indexer();
-
-        /**
-         * Clears the previous index of the file, runs the basic indexing
-         * and then runs the file indexing on the url.
-         *
-         * These 3 steps are generally split among different parts, but they are combined
-         * over here for debugging purposes.
-         */
-        bool indexFileDebug( const KUrl& url );
 
         /**
          * Index a single local file or folder (files in a folder will
@@ -81,9 +68,19 @@ namespace Nepomuk2 {
 
     private:
         QString m_lastError;
-        QHash<QString, ExtractorPlugin*> m_extractors;
+        ExtractorPluginManager* m_extractorManager;
 
         void updateIndexingLevel( const QUrl& uri, int level );
+
+        /**
+         * Sets the nie:plainTextContent as \p plainText. The parameter \p plainText
+         * might be modified in the process, if it is too large.
+         */
+        void setNiePlainTextContent( const QUrl& uri, QString& plainText );
+
+        bool clearIndexingData( const QUrl& url );
+        bool simpleIndex( const QUrl& url, QUrl* uri, QString* mimetype );
+        bool fileIndex( const QUrl& uri, const QUrl& url, const QString& mimeType );
     };
 }
 

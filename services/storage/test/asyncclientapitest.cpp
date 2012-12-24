@@ -105,6 +105,11 @@ void AsyncClientApiTest::resetModel()
     
     // rebuild the internals of the data management model
     QDBusInterface(QLatin1String("org.kde.nepomuk.FakeDataManagement"),
+                   QLatin1String("/datamanagement"),
+                   QLatin1String("org.kde.nepomuk.DataManagement"),
+                   QDBusConnection::sessionBus()).call(QLatin1String("clearCache"));
+
+    QDBusInterface(QLatin1String("org.kde.nepomuk.FakeDataManagement"),
                    QLatin1String("/fakedms"),
                    QLatin1String("org.kde.nepomuk.FakeDataManagement"),
                    QDBusConnection::sessionBus()).call(QLatin1String("updateClassAndPropertyTree"));

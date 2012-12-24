@@ -43,7 +43,6 @@ namespace Nepomuk2 {
         ResourceWatcherManager( DataManagementModel* parent = 0 );
         ~ResourceWatcherManager();
 
-        void addStatement(const Soprano::Statement &st);
         // IDEA: would it be more efficient to have three lists/sets: keptValues, newValues, removedValues?
         void changeProperty(const QUrl& res,
                             const QUrl& property,

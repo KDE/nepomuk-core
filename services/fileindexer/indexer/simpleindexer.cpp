@@ -47,6 +47,13 @@ Nepomuk2::SimpleIndexingJob::SimpleIndexingJob(const QUrl& fileUrl, QObject* par
 {
 }
 
+Nepomuk2::SimpleIndexingJob::SimpleIndexingJob(const QUrl& fileUrl, const QString& mimeType, QObject* parent)
+    : KJob(parent)
+    , m_nieUrl( fileUrl )
+    , m_mimeType( mimeType )
+{
+}
+
 void Nepomuk2::SimpleIndexingJob::start()
 {
     SimpleResource m_res;
@@ -69,7 +76,9 @@ void Nepomuk2::SimpleIndexingJob::start()
     //
     // Types by mime type
     //
-    m_mimeType = KMimeType::findByUrl( m_nieUrl )->name();
+    if( m_mimeType.isEmpty() ) {
+        m_mimeType = KMimeType::findByUrl( m_nieUrl )->name();
+    }
     QList<QUrl> types = typesForMimeType( m_mimeType );
     foreach(const QUrl& type, types)
         m_res.addType( type );
@@ -131,7 +140,7 @@ void Nepomuk2::SimpleIndexingJob::slotJobFinished(KJob* job_)
 
 QList<QUrl> Nepomuk2::SimpleIndexingJob::typesForMimeType(const QString& mimeType)
 {
-    QList<QUrl> types;
+    QSet<QUrl> types;
 
     // Basic types
     if( mimeType.contains(QLatin1String("audio")) )
@@ -142,36 +151,81 @@ QList<QUrl> Nepomuk2::SimpleIndexingJob::typesForMimeType(const QString& mimeTyp
         types << NFO::Image();
     if( mimeType.contains(QLatin1String("text")) )
         types << NFO::PlainTextDocument();
-
-    // Documents
-    if( mimeType.contains(QLatin1String("application/msword")) )
+    if( mimeType.contains(QLatin1String("document")) )
         types << NFO::Document();
-    if( mimeType.contains(QLatin1String("application/vnd.oasis.opendocument.text")) )
-        types << NFO::Document();
-    if( mimeType.contains(QLatin1String("application/epub")) )
-        types << NFO::Document();
-    if( mimeType.contains(QLatin1String("application/pdf")) )
-        types << NFO::Document();
+    if( mimeType.contains(QLatin1String("font")) )
+        types << NFO::Font();
 
     // Presentation
-    if( mimeType.contains(QLatin1String("application/vnd.oasis.opendocument.presentation")) )
-        types << NFO::Presentation();
     if( mimeType.contains(QLatin1String("powerpoint") ) )
         types << NFO::Presentation();
-
     // Spreadsheet
     if( mimeType.contains(QLatin1String("excel")) )
         types << NFO::Spreadsheet();
-    if( mimeType.contains(QLatin1String("application/vnd.oasis.opendocument.spreadsheet") ) )
-        types << NFO::Spreadsheet();
-
     // Html
     if( mimeType.contains(QLatin1String("text/html") ) )
         types << NFO::HtmlDocument();
 
+    static QHash<QString, QUrl> typeMapper;
+    if( typeMapper.isEmpty() ) {
+        // Microsoft
+        typeMapper.insert( QLatin1String("application/msword"), NFO::PaginatedTextDocument() );
+        typeMapper.insert( QLatin1String("application/vnd.ms-powerpoint"), NFO::Presentation() );
+        typeMapper.insert( QLatin1String("application/vnd.ms-excel"), NFO::Spreadsheet() );
+
+        // Open document formats - http://en.wikipedia.org/wiki/OpenDocument_technical_specification
+        typeMapper.insert( QLatin1String("application/vnd.oasis.opendocument.text"), NFO::PaginatedTextDocument() );
+        typeMapper.insert( QLatin1String("application/vnd.oasis.opendocument.presentation"), NFO::Presentation() );
+        typeMapper.insert( QLatin1String("application/vnd.oasis.opendocument.spreadsheet"), NFO::Spreadsheet() );
+
+        // Others
+        typeMapper.insert( QLatin1String("application/pdf"), NFO::PaginatedTextDocument() );
+        typeMapper.insert( QLatin1String("application/postscript"), NFO::PaginatedTextDocument() );
+        typeMapper.insert( QLatin1String("application/x-dvi"), NFO::PaginatedTextDocument() );
+        typeMapper.insert( QLatin1String("application/rtf"), NFO::PaginatedTextDocument() );
+
+        // Ebooks
+        typeMapper.insert( QLatin1String("application/epub+zip"), NFO::PaginatedTextDocument() );
+        typeMapper.insert( QLatin1String("application/x-mobipocket-ebook"), NFO::PaginatedTextDocument() );
+
+        // Archives - http://en.wikipedia.org/wiki/List_of_archive_formats
+        typeMapper.insert( QLatin1String("application/x-tar"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-bzip2"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-gzip"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-lzip"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-lzma"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-lzop"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-compress"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-7z-compressed"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-ace-compressed"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-astrotite-afa"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-alz-compressed"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/vnd.android.package-archive"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-arj"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/vnd.ms-cab-compressed"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-cfs-compressed"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-dar"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-lzh"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-lzx"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-rar-compressed"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-stuffit"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-stuffitx"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/x-gtar"), NFO::Archive() );
+        typeMapper.insert( QLatin1String("application/zip"), NFO::Archive() );
+
+        // Special images
+        typeMapper.insert( QLatin1String("image/vnd.microsoft.icon"), NFO::Icon() );
+        typeMapper.insert( QLatin1String("image/svg+xml"), NFO::VectorImage() );
+
+        // Fonts
+        typeMapper.insert( QLatin1String("application/vnd.ms-fontobject"), NFO::Font() );
+        typeMapper.insert( QLatin1String("application/vnd.ms-opentype"), NFO::Font() );
+    }
+
+    types << typeMapper.value( mimeType );
     // TODO: Add some basic NMM types?
 
-    return types;
+    return types.toList();
 }
 
 QString Nepomuk2::SimpleIndexingJob::mimeType()

@@ -22,6 +22,7 @@
 
 #include "indexer.h"
 #include "extractorplugin.h"
+#include "extractorpluginmanager.h"
 #include "simpleindexer.h"
 #include "../util.h"
 #include "kext.h"
@@ -55,24 +56,7 @@ using namespace Nepomuk2::Vocabulary;
 Nepomuk2::Indexer::Indexer( QObject* parent )
     : QObject( parent )
 {
-    // Get all the plugins
-    KService::List plugins = KServiceTypeTrader::self()->query( "NepomukFileExtractor" );
-
-    KService::List::const_iterator it;
-    for( it = plugins.constBegin(); it != plugins.constEnd(); it++ ) {
-        KService::Ptr service = *it;
-
-        QString error;
-        Nepomuk2::ExtractorPlugin* ex = service->createInstance<Nepomuk2::ExtractorPlugin>( this, QVariantList(), &error );
-        if( !ex ) {
-            kError() << "Could not create Extractor: " << service->library();
-            kError() << error;
-            continue;
-        }
-
-        foreach(const QString& mime, ex->mimetypes())
-            m_extractors.insertMulti( mime, ex );
-    }
+    m_extractorManager = new ExtractorPluginManager( this );
 }
 
 Nepomuk2::Indexer::~Indexer()
@@ -88,7 +72,8 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
         return false;
     }
 
-    QString query = QString::fromLatin1("select ?r ?mtype where { ?r nie:url %1; nie:mimeType ?mtype . }")
+    QString query = QString::fromLatin1("select ?r ?mtype ?l where { ?r nie:url %1; nie:mimeType ?mtype ;"
+                                        " kext:indexingLevel ?l . }")
                     .arg( Soprano::Node::resourceToN3( url ) );
     Soprano::Model* model = ResourceManager::instance()->mainModel();
 
@@ -99,23 +84,76 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
     if( it.next() ) {
         uri = it[0].uri();
         mimeType = it[1].literal().toString();
+        int level = it[2].literal().toInt();
+
+        if( level > 1 ) {
+            clearIndexingData( url );
+            simpleIndex( url, &uri, &mimeType );
+        }
     }
     else {
-        SimpleIndexingJob* indexingJob = new SimpleIndexingJob( url );
-        indexingJob->exec();
-        uri = indexingJob->uri();
-        mimeType = indexingJob->mimeType();
+        simpleIndex( url, &uri, &mimeType );
     }
 
     kDebug() << uri << mimeType;
+    return fileIndex( uri, url, mimeType );
+}
+
+
+bool Nepomuk2::Indexer::clearIndexingData(const QUrl& url)
+{
+    kDebug() << "Starting to clear";
+    KJob* job = Nepomuk2::clearIndexedData( url );
+    kDebug() << "Done";
+
+    job->exec();
+    if( job->error() ) {
+        m_lastError = job->errorString();
+        kError() << m_lastError;
+
+        return false;
+    }
+
+    return true;
+}
+
+bool Nepomuk2::Indexer::simpleIndex(const QUrl& url, QUrl* uri, QString* mimetype)
+{
+    QScopedPointer<SimpleIndexingJob> job( new SimpleIndexingJob( url ) );
+    job->setAutoDelete(false);
+    job->exec();
+
+    if( job->error() ) {
+        m_lastError = job->errorString();
+        kError() << m_lastError;
+
+        return false;
+    }
+
+    *uri = job->uri();
+    *mimetype = job->mimeType();
+    return true;
+}
+
+bool Nepomuk2::Indexer::fileIndex(const QUrl& uri, const QUrl& url, const QString& mimeType)
+{
     SimpleResourceGraph graph;
 
-    QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
+    QList<ExtractorPlugin*> extractors = m_extractorManager->fetchExtractors( url, mimeType );
     foreach( ExtractorPlugin* ex, extractors ) {
         graph += ex->extract( uri, url, mimeType );
     }
 
     if( !graph.isEmpty() ) {
+        // Do not send the full plain text content with all the other properties.
+        // It is too large
+        QString plainText;
+        QVariantList vl = graph[uri].property( NIE::plainTextContent() );
+        if( vl.size() == 1 ) {
+            plainText = vl.first().toString();
+            graph[uri].remove( NIE::plainTextContent() );
+        }
+
         QHash<QUrl, QVariant> additionalMetadata;
         additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
 
@@ -126,9 +164,12 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
         job->exec();
         if( job->error() ) {
             m_lastError = job->errorString();
-            kError() << "SimpleIndexerError: " << job->errorString();
+            kError() << "SimpleIndexerError: " << m_lastError;
             return false;
         }
+
+        kDebug() << "Saving plain text content";
+        setNiePlainTextContent( uri, plainText );
     }
 
     // Update the indexing level even if no data has changed
@@ -138,69 +179,7 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
     return true;
 }
 
-bool Nepomuk2::Indexer::indexFileDebug(const KUrl& url)
-{
-    QFileInfo info( url.toLocalFile() );
-    if( !info.exists() ) {
-        m_lastError = QString::fromLatin1("'%1' does not exist.").arg(info.filePath());
-        return false;
-    }
 
-    kDebug() << "Starting to clear";
-    KJob* job = Nepomuk2::clearIndexedData( url );
-    kDebug() << "Done";
-
-    job->exec();
-    if( job->error() ) {
-        kError() << job->errorString();
-        m_lastError = job->errorString();
-
-        return false;
-    }
-
-    kDebug() << "Starting SimpleIndexer";
-    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( url );
-    indexingJob->exec();
-
-    bool status = indexingJob->error();
-    kDebug() << "Saving data " << indexingJob->errorString();
-
-    if( !status ) {
-        QString mimeType = indexingJob->mimeType();
-        QUrl uri = indexingJob->uri();
-
-        SimpleResourceGraph graph;
-
-        QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
-        foreach( ExtractorPlugin* ex, extractors ) {
-            graph += ex->extract( uri, url, mimeType );
-        }
-
-        if( !graph.isEmpty() ) {
-            QHash<QUrl, QVariant> additionalMetadata;
-            additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
-
-            // we do not have an event loop - thus, we need to delete the job ourselves
-            kDebug() << "Saving proper";
-            // HACK: Use OverwriteProperties for the setting the indexingLevel
-            QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNew,
-                                                        NoStoreResourcesFlags, additionalMetadata ) );
-            job->setAutoDelete(false);
-            job->exec();
-            if( job->error() ) {
-                m_lastError = job->errorString();
-                kError() << "SimpleIndexerError: " << job->errorString();
-                return false;
-            }
-        }
-
-        kDebug() << "Updating the indexing level";
-        updateIndexingLevel( uri, 2 );
-        kDebug() << "Done";
-    }
-
-    return status;
-}
 
 Nepomuk2::SimpleResourceGraph Nepomuk2::Indexer::indexFileGraph(const QUrl& url)
 {
@@ -213,7 +192,7 @@ Nepomuk2::SimpleResourceGraph Nepomuk2::Indexer::indexFileGraph(const QUrl& url)
     SimpleResourceGraph graph;
     graph << res;
 
-    QList<ExtractorPlugin*> extractors = m_extractors.values( mimeType );
+    QList<ExtractorPlugin*> extractors = m_extractorManager->fetchExtractors( url, mimeType );
     foreach( ExtractorPlugin* ex, extractors ) {
         graph += ex->extract( res.uri(), url, mimeType );
     }
@@ -264,6 +243,38 @@ void Nepomuk2::Indexer::updateIndexingLevel(const QUrl& uri, int level)
                                                                 QVariantList() << QVariant(level) ) );
         job->setAutoDelete(false);
         job->exec();
+    }
+}
+
+void Nepomuk2::Indexer::setNiePlainTextContent(const QUrl& uri, QString& plainText)
+{
+    // This number has been experimentally chosen. Virtuoso cannot handle more than this
+    static const int maxSize = 3 * 1024 * 1024;
+    if( plainText.size() > maxSize )  {
+        kWarning() << "Trimming plain text content from " << plainText.size() << " to " << maxSize;
+        plainText = plainText.mid( 0, maxSize );
+    }
+
+    QString uriN3 = Soprano::Node::resourceToN3( uri );
+
+    // FIXME: Do not use the kext:indexingLevel graph.
+    QString query = QString::fromLatin1("select ?g where { graph ?g { %1 kext:indexingLevel ?l . } }")
+                    .arg ( uriN3 );
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+
+    QUrl graph;
+    if( it.next() ) {
+        graph = it[0].uri();
+        it.close();
+    }
+
+    if( !graph.isEmpty() ) {
+        QString graphN3 = Soprano::Node::resourceToN3( graph );
+        QString insertCommand = QString::fromLatin1("sparql insert { graph %1 { %2 nie:plainTextContent %3 . } }")
+                                .arg( graphN3, uriN3, Soprano::Node::literalToN3(plainText) );
+
+        model->executeQuery( insertCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
     }
 }
 

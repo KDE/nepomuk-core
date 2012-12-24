@@ -21,8 +21,9 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QList>
+#include <QtCore/QSet>
 #include <QtCore/QRegExp>
-#include <QReadWriteLock>
+#include <QtCore/QReadWriteLock>
 
 #include <kconfig.h>
 #include <kio/global.h>
@@ -140,6 +141,14 @@ namespace Nepomuk2 {
         bool shouldFileBeIndexed( const QString& fileName ) const;
 
         /**
+         * Checks if \p mimeType should be indexed
+         *
+         * \return \p true if the mimetype should be indexed according
+         * to the configuration
+         */
+        bool shouldMimeTypeBeIndexed( const QString& mimeType ) const;
+
+        /**
          * Check whether \p path should be watched. Most folders need
          * watches installed on them, even if they are not indexed,
          * otherwise moving files into a non-indexed directory would
@@ -188,6 +197,7 @@ namespace Nepomuk2 {
         bool folderInFolderList( const QString& path, QString& folder ) const;
         void buildFolderCache();
         void buildExcludeFilterRegExpCache();
+        void buildMimeTypeCache();
 
         mutable KConfig m_config;
 
@@ -198,7 +208,11 @@ namespace Nepomuk2 {
         /// to prevent regexp parsing over and over
         RegExpCache m_excludeFilterRegExpCache;
 
+        /// A set of mimetypes which should never be indexed
+        QSet<QString> m_excludeMimetypes;
+
         mutable QReadWriteLock m_folderCacheMutex;
+        mutable QReadWriteLock m_mimetypeMutex;
 
         static FileIndexerConfig* s_self;
     };

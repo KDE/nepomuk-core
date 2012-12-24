@@ -170,8 +170,10 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
 
     if( !m_uri.isEmpty() ) {
         m_rm->m_initializedData.remove( m_uri );
-        m_rm->removeFromWatcher( m_uri );
-        m_addedToWatcher = false;
+        if( m_addedToWatcher ) {
+            m_rm->removeFromWatcher( m_uri );
+            m_addedToWatcher = false;
+        }
     }
     m_rm->mutex.unlock();
 
@@ -711,7 +713,16 @@ void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const
         const Variant value(value_);
         QList<Variant> vl = v.toVariantList();
         if(vl.contains(value)) {
-            vl.removeAll(value);
+            //
+            // Remove that element and and also remove all empty elements
+            // This is required because the value maybe have been a resource
+            // which has now been deleted, and no longer has a value
+            QMutableListIterator<Variant> it(vl);
+            while( it.hasNext() ) {
+                Variant var = it.next();
+                if( (var.isResource() && var.toUrl().isEmpty()) || var == value )
+                    it.remove();
+            }
             if(vl.isEmpty()) {
                 updateKickOffLists(prop.uri(), Variant());
                 m_cache.erase(cacheIt);
@@ -731,6 +742,18 @@ void Nepomuk2::ResourceData::propertyAdded( const Types::Property &prop, const Q
 {
     QMutexLocker lock(&m_modificationMutex);
     const Variant var(value);
-    updateKickOffLists(prop.uri(), var);
-    m_cache[prop.uri()].append(var);
+    QHash<QUrl, Variant>::iterator cacheIt = m_cache.find(prop.uri());
+    if( cacheIt != m_cache.end() ) {
+        Variant v = *cacheIt;
+        QList<Variant> vl = v.toVariantList();
+        if( !vl.contains( var ) ) {
+            vl.append( var );
+            updateKickOffLists(prop.uri(), var);
+            cacheIt.value() = vl;
+        }
+    }
+    else {
+        updateKickOffLists(prop.uri(), var);
+        m_cache[prop.uri()].append(var);
+    }
 }

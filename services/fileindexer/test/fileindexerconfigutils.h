@@ -44,6 +44,13 @@ namespace Nepomuk2 {
 
         KTempDir* createTmpFolders(const QStringList& folders) {
             KTempDir* tmpDir = new KTempDir();
+            // If the temporary directory is in a hidden folder, then the tests will fail,
+            // so we use /tmp/ instead.
+            // TODO: Find a better solution
+            if( tmpDir->name().contains("/.") ) {
+                delete tmpDir;
+                tmpDir = new KTempDir( QLatin1String("/tmp/") );
+            }
             foreach(const QString& f, folders) {
                 QDir dir(tmpDir->name());
                 foreach(const QString& sf, f.split('/', QString::SkipEmptyParts)) {

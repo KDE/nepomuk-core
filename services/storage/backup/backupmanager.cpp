@@ -113,14 +113,14 @@ void Nepomuk2::BackupManager::automatedBackup()
 
 void Nepomuk2::BackupManager::slotConfigDirty()
 {
-    kDebug();
+    //kDebug();
     m_config.reparseConfiguration();
 
     QString freq = m_config.group("Backup").readEntry( "backup frequency", QString("disabled") );
-    kDebug() << "Frequency : " << freq;
+    //kDebug() << "Frequency : " << freq;
 
     if( freq == QLatin1String("disabled") ) {
-        kDebug() << "Auto Backups Disabled";
+        //kDebug() << "Auto Backups Disabled";
         m_timer.stop();
         return;
     }
@@ -139,8 +139,8 @@ void Nepomuk2::BackupManager::slotConfigDirty()
         int backupDay = m_config.group("Backup").readEntry( "backup day", 0 );
         int dayOfWeek = cal->dayOfWeek( QDate::currentDate() );
 
-        kDebug() << "DayOfWeek: " << dayOfWeek;
-        kDebug() << "BackupDay: " << backupDay;
+        //kDebug() << "DayOfWeek: " << dayOfWeek;
+        //kDebug() << "BackupDay: " << backupDay;
         if( dayOfWeek < backupDay ) {
             m_daysBetweenBackups = backupDay - dayOfWeek;
         }

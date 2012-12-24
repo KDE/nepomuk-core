@@ -64,8 +64,7 @@ Nepomuk2::FileIndexerConfig::FileIndexerConfig(QObject* parent)
              this, SLOT( slotConfigDirty() ) );
     dirWatch->addFile( KStandardDirs::locateLocal( "config", m_config.name() ) );
 
-    buildFolderCache();
-    buildExcludeFilterRegExpCache();
+    forceConfigUpdate();
 }
 
 
@@ -218,6 +217,12 @@ bool Nepomuk2::FileIndexerConfig::shouldFileBeIndexed( const QString& fileName )
     return !m_excludeFilterRegExpCache.exactMatch( fileName );
 }
 
+bool Nepomuk2::FileIndexerConfig::shouldMimeTypeBeIndexed(const QString& mimeType) const
+{
+    QReadLocker lock( &m_mimetypeMutex );
+    return !m_excludeMimetypes.contains( mimeType );
+}
+
 
 bool Nepomuk2::FileIndexerConfig::folderInFolderList( const QString& path, QString& folder ) const
 {
@@ -313,12 +318,20 @@ void Nepomuk2::FileIndexerConfig::buildExcludeFilterRegExpCache()
     m_excludeFilterRegExpCache.rebuildCacheFromFilterList( excludeFilters() );
 }
 
+void Nepomuk2::FileIndexerConfig::buildMimeTypeCache()
+{
+    QWriteLocker lock( &m_mimetypeMutex );
+    QStringList excludeTypes = m_config.group( "General" ).readPathEntry( "exclude mimetypes", QStringList() );
+    m_excludeMimetypes = excludeTypes.toSet();
+}
+
 
 void Nepomuk2::FileIndexerConfig::forceConfigUpdate()
 {
     m_config.reparseConfiguration();
     buildFolderCache();
     buildExcludeFilterRegExpCache();
+    buildMimeTypeCache();
 }
 
 void Nepomuk2::FileIndexerConfig::setInitialRun(bool isInitialRun)

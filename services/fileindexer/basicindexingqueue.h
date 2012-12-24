@@ -91,7 +91,7 @@ namespace Nepomuk2 {
          */
         void index(const QString& path);
 
-        bool shouldIndex(const QString& file);
+        bool shouldIndex(const QString& path, const QString& mimetype);
         bool shouldIndexContents(const QString& dir);
 
         /**
@@ -108,6 +108,7 @@ namespace Nepomuk2 {
         QQueue< QPair<QDirIterator*, UpdateDirFlags> > m_iterators;
 
         QUrl m_currentUrl;
+        QString m_currentMimeType;
         UpdateDirFlags m_currentFlags;
     };
 

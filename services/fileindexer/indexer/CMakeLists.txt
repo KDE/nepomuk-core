@@ -11,6 +11,7 @@ set(indexer_SRCS
   indexer.cpp
   simpleindexer.cpp
   extractorplugin.cpp
+  extractorpluginmanager.cpp
   plaintextextractor.cpp
   ../util.cpp
   ../../../servicestub/priority.cpp
@@ -83,6 +84,10 @@ endif(TAGLIB_FOUND)
 
 if(EXIV2_FOUND)
     include_directories( ${EXIV2_INCLUDE_DIR} )
+
+    set_source_files_properties( exiv2extractor.cpp PROPERTIES
+        COMPILE_FLAGS "${KDE4_ENABLE_EXCEPTIONS}"
+        )
 
     kde4_add_plugin( nepomukexiv2extractor exiv2extractor.cpp extractorplugin.cpp )
 

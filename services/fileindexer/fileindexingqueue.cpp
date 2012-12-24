@@ -21,6 +21,7 @@
 #include "fileindexingqueue.h"
 #include "resourcemanager.h"
 #include "fileindexingjob.h"
+#include "fileindexerconfig.h"
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
@@ -34,10 +35,11 @@ FileIndexingQueue::FileIndexingQueue(QObject* parent): IndexingQueue(parent)
 {
     m_fileQueue.reserve( 10 );
 
-    QTimer::singleShot( 0, this, SLOT(init()) );
+    FileIndexerConfig* config = FileIndexerConfig::self();
+    connect( config, SIGNAL(configChanged()), this, SLOT(slotConfigChanged()) );
 }
 
-void FileIndexingQueue::init()
+void FileIndexingQueue::start()
 {
     fillQueue();
     emit startedIndexing();
@@ -51,7 +53,7 @@ void FileIndexingQueue::fillQueue()
     if (m_fileQueue.size() > 0)
         return;
 
-    QString query = QString::fromLatin1("select ?url where { ?r nie:url ?url ; kext:indexingLevel ?l "
+    QString query = QString::fromLatin1("select distinct ?url where { ?r nie:url ?url ; kext:indexingLevel ?l "
                                         " FILTER(?l < 2 ). } LIMIT 10");
 
     Soprano::Model* model = ResourceManager::instance()->mainModel();
@@ -105,6 +107,12 @@ void FileIndexingQueue::clear()
 QUrl FileIndexingQueue::currentUrl()
 {
     return m_currentUrl;
+}
+
+void FileIndexingQueue::slotConfigChanged()
+{
+    m_fileQueue.clear();
+    fillQueue();
 }
 
 

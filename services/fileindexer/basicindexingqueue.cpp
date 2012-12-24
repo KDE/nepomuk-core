@@ -29,6 +29,7 @@
 #include <Soprano/QueryResultIterator>
 
 #include <KDebug>
+#include <KMimeType>
 #include <QtCore/QDateTime>
 
 namespace Nepomuk2 {
@@ -116,15 +117,19 @@ bool BasicIndexingQueue::process(const QString& path, UpdateDirFlags flags)
 {
     bool startedIndexing = false;
 
+    QUrl url = QUrl::fromLocalFile( path );
+    QString mimetype = KMimeType::findByUrl( url )->name();
+
     bool forced = flags & ForceUpdate;
     bool recursive = flags & UpdateRecursive;
-    bool indexingRequired = shouldIndex( path );
+    bool indexingRequired = shouldIndex( path, mimetype );
 
     QFileInfo info( path );
     if( info.isDir() ) {
         if( forced || indexingRequired ) {
-            m_currentUrl = QUrl::fromLocalFile( path );
+            m_currentUrl = url;
             m_currentFlags = flags;
+            m_currentMimeType = mimetype;
 
             startedIndexing = true;
             index( path );
@@ -138,8 +143,9 @@ bool BasicIndexingQueue::process(const QString& path, UpdateDirFlags flags)
         }
     }
     else if( info.isFile() && (forced || indexingRequired) ) {
-        m_currentUrl = QUrl::fromLocalFile( path );
+        m_currentUrl = url;
         m_currentFlags = flags;
+        m_currentMimeType = mimetype;
 
         startedIndexing = true;
         index( path );
@@ -148,21 +154,37 @@ bool BasicIndexingQueue::process(const QString& path, UpdateDirFlags flags)
     return startedIndexing;
 }
 
-bool BasicIndexingQueue::shouldIndex(const QString& path)
+bool BasicIndexingQueue::shouldIndex(const QString& path, const QString& mimetype)
 {
     bool shouldIndexFile = FileIndexerConfig::self()->shouldFileBeIndexed( path );
     if( !shouldIndexFile )
         return false;
 
+    bool shouldIndexType = FileIndexerConfig::self()->shouldMimeTypeBeIndexed( mimetype );
+    if( !shouldIndexType )
+        return false;
+
     QFileInfo fileInfo( path );
+    bool needToIndex = false;
 
-    // check if this file is new by looking it up in the store
     Soprano::Model* model = ResourceManager::instance()->mainModel();
-    QString query = QString::fromLatin1("ask where { ?r nie:url %1 ; nie:lastModified ?dt . FILTER(?dt=%2) .}")
-                    .arg( Soprano::Node::resourceToN3( QUrl::fromLocalFile(path) ),
-                          Soprano::Node::literalToN3( Soprano::LiteralValue(fileInfo.lastModified()) ) );
 
-    bool needToIndex = !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+    // Optimization: We don't care about the mtime of directories. If it has been indexed once
+    // then it doesn't need to indexed again - ever
+    if( fileInfo.isDir() ) {
+        QString query = QString::fromLatin1("ask where { ?r nie:url %1 . }")
+                        .arg( Soprano::Node::resourceToN3( QUrl::fromLocalFile(path) ) );
+
+        needToIndex = !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+    }
+    else {
+        // check if this file is new by checking its mtime
+        QString query = QString::fromLatin1("ask where { ?r nie:url %1 ; nie:lastModified ?dt . FILTER(?dt=%2) .}")
+                        .arg( Soprano::Node::resourceToN3( QUrl::fromLocalFile(path) ),
+                            Soprano::Node::literalToN3( Soprano::LiteralValue(fileInfo.lastModified()) ) );
+
+        needToIndex = !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+    }
 
     if( needToIndex ) {
         kDebug() << path;
@@ -193,7 +215,7 @@ void BasicIndexingQueue::slotClearIndexedDataFinished(KJob* job)
         kDebug() << job->errorString();
     }
 
-    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( currentUrl() );
+    SimpleIndexingJob* indexingJob = new SimpleIndexingJob( m_currentUrl, m_currentMimeType );
     indexingJob->start();
 
     connect( indexingJob, SIGNAL(finished(KJob*)), this, SLOT(slotIndexingFinished(KJob*)) );
@@ -207,6 +229,7 @@ void BasicIndexingQueue::slotIndexingFinished(KJob* job)
 
     QUrl url = m_currentUrl;
     m_currentUrl.clear();
+    m_currentMimeType.clear();
     m_currentFlags = NoUpdateFlags;
 
     emit endIndexingFile( url );
