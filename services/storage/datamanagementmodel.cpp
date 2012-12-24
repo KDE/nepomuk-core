@@ -2234,7 +2234,7 @@ QString Nepomuk2::DataManagementModel::exportResources(const QList<QUrl> &resour
 
 void Nepomuk2::DataManagementModel::removeTrailingGraphs(const QSet<QUrl>& graphs)
 {
-    kDebug() << graphs;
+    //kDebug() << graphs;
 
 #ifndef NDEBUG
     if(graphs.contains(QUrl()))

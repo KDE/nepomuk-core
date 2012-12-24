@@ -118,13 +118,6 @@ Nepomuk2::ResourceWatcherManager::~ResourceWatcherManager()
 }
 
 
-void Nepomuk2::ResourceWatcherManager::addStatement(const Soprano::Statement& st)
-{
-    // FIXME!
-    //addProperty( st.subject(), st.predicate().uri(), QList<Soprano::Node>() << st.object() );
-}
-
-
 void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &addedValues, const QList<Soprano::Node> &removedValues)
 {
 //    kDebug() << res << property << addedValues << removedValues;
