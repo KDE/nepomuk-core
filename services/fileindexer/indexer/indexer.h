@@ -72,6 +72,12 @@ namespace Nepomuk2 {
 
         void updateIndexingLevel( const QUrl& uri, int level );
 
+        /**
+         * Sets the nie:plainTextContent as \p plainText. The parameter \p plainText
+         * might be modified in the process, if it is too large.
+         */
+        void setNiePlainTextContent( const QUrl& uri, QString& plainText );
+
         bool clearIndexingData( const QUrl& url );
         bool simpleIndex( const QUrl& url, QUrl* uri, QString* mimetype );
         bool fileIndex( const QUrl& uri, const QUrl& url, const QString& mimeType );

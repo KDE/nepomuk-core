@@ -145,6 +145,15 @@ bool Nepomuk2::Indexer::fileIndex(const QUrl& uri, const QUrl& url, const QStrin
     }
 
     if( !graph.isEmpty() ) {
+        // Do not send the full plain text content with all the other properties.
+        // It is too large
+        QString plainText;
+        QVariantList vl = graph[uri].property( NIE::plainTextContent() );
+        if( vl.size() == 1 ) {
+            plainText = vl.first().toString();
+            graph[uri].remove( NIE::plainTextContent() );
+        }
+
         QHash<QUrl, QVariant> additionalMetadata;
         additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
 
@@ -158,6 +167,9 @@ bool Nepomuk2::Indexer::fileIndex(const QUrl& uri, const QUrl& url, const QStrin
             kError() << "SimpleIndexerError: " << m_lastError;
             return false;
         }
+
+        kDebug() << "Saving plain text content";
+        setNiePlainTextContent( uri, plainText );
     }
 
     // Update the indexing level even if no data has changed
@@ -231,6 +243,38 @@ void Nepomuk2::Indexer::updateIndexingLevel(const QUrl& uri, int level)
                                                                 QVariantList() << QVariant(level) ) );
         job->setAutoDelete(false);
         job->exec();
+    }
+}
+
+void Nepomuk2::Indexer::setNiePlainTextContent(const QUrl& uri, QString& plainText)
+{
+    // This number has been experimentally chosen. Virtuoso cannot handle more than this
+    static const int maxSize = 3 * 1024 * 1024;
+    if( plainText.size() > maxSize )  {
+        kWarning() << "Trimming plain text content from " << plainText.size() << " to " << maxSize;
+        plainText = plainText.mid( 0, maxSize );
+    }
+
+    QString uriN3 = Soprano::Node::resourceToN3( uri );
+
+    // FIXME: Do not use the kext:indexingLevel graph.
+    QString query = QString::fromLatin1("select ?g where { graph ?g { %1 kext:indexingLevel ?l . } }")
+                    .arg ( uriN3 );
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+
+    QUrl graph;
+    if( it.next() ) {
+        graph = it[0].uri();
+        it.close();
+    }
+
+    if( !graph.isEmpty() ) {
+        QString graphN3 = Soprano::Node::resourceToN3( graph );
+        QString insertCommand = QString::fromLatin1("sparql insert { graph %1 { %2 nie:plainTextContent %3 . } }")
+                                .arg( graphN3, uriN3, Soprano::Node::literalToN3(plainText) );
+
+        model->executeQuery( insertCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
     }
 }
 
