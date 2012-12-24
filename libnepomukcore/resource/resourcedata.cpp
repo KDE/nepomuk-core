@@ -170,8 +170,10 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
 
     if( !m_uri.isEmpty() ) {
         m_rm->m_initializedData.remove( m_uri );
-        m_rm->removeFromWatcher( m_uri );
-        m_addedToWatcher = false;
+        if( m_addedToWatcher ) {
+            m_rm->removeFromWatcher( m_uri );
+            m_addedToWatcher = false;
+        }
     }
     m_rm->mutex.unlock();
 
