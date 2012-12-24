@@ -133,6 +133,7 @@ SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& file
 
     SimpleResourceGraph graph;
     SimpleResource fileRes( resUri );
+    fileRes.addType( NFO::RasterImage() );
 
     if( image->pixelHeight() ) {
         fileRes.setProperty( NFO::height(), image->pixelHeight() );
