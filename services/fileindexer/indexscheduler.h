@@ -26,6 +26,7 @@ namespace Nepomuk2 {
 
     class IndexCleaner;
     class FileIndexingQueue;
+    class WebMinerIndexingQueue;
     class EventMonitor;
 
     /**
@@ -138,6 +139,7 @@ namespace Nepomuk2 {
         // Queues
         BasicIndexingQueue* m_basicIQ;
         FileIndexingQueue* m_fileIQ;
+        WebMinerIndexingQueue *m_webIQ;
 
         EventMonitor* m_eventMonitor;
 
