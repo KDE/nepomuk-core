@@ -24,6 +24,7 @@
 #include "fileindexerconfig.h"
 #include "fileindexingqueue.h"
 #include "basicindexingqueue.h"
+#include "webminerindexingqueue.h"
 #include "eventmonitor.h"
 #include "indexcleaner.h"
 
@@ -59,6 +60,7 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
 
     m_basicIQ = new BasicIndexingQueue( this );
     m_fileIQ = new FileIndexingQueue( this );
+    m_webIQ = new WebMinerIndexingQueue( this );
 
     connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SIGNAL(basicIndexingDone()) );
 
@@ -66,11 +68,15 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(slotEndIndexingFile(QUrl)) );
     connect( m_fileIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(slotBeginIndexingFile(QUrl)) );
     connect( m_fileIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(slotEndIndexingFile(QUrl)) );
+    connect( m_webIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(slotBeginIndexingFile(QUrl)) );
+    connect( m_webIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(slotEndIndexingFile(QUrl)) );
 
     connect( m_basicIQ, SIGNAL(startedIndexing()), this, SLOT(slotStartedIndexing()) );
     connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
     connect( m_fileIQ, SIGNAL(startedIndexing()), this, SLOT(slotStartedIndexing()) );
     connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
+    connect( m_webIQ, SIGNAL(startedIndexing()), this, SLOT(slotStartedIndexing()) );
+    connect( m_webIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
 
     m_eventMonitor = new EventMonitor( this );
     connect( m_eventMonitor, SIGNAL(diskSpaceStatusChanged(bool)),
@@ -282,6 +288,7 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
     if( m_state == State_Suspended )
         return;
 
+    //FIXME: add check for working internet connection for the webminer
     if( m_eventMonitor->isDiskSpaceLow() ) {
         kDebug() << "Disk Space";
         m_state = State_LowDiskSpace;

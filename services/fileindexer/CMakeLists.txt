@@ -21,6 +21,8 @@ set(nepomukfileindexer_SRCS
   indexer/simpleindexer.cpp
   eventmonitor.cpp
   util.cpp
+  webminerindexingqueue.cpp
+  webminerindexingjob.cpp
   )
 
 soprano_add_ontology(nepomukfileindexer_SRCS ${nepomuk_ontologies_SOURCE_DIR}/kext.trig "KExt" "Nepomuk2::Vocabulary" "trig")
