@@ -35,33 +35,89 @@ using namespace Nepomuk2::Vocabulary;
 
 namespace Nepomuk2 {
 
-okularExtractor::okularExtractor(QObject* parent, const QVariantList&)
+OkularExtractor::OkularExtractor(QObject* parent, const QVariantList&)
                                  : ExtractorPlugin(parent)
 {
 }
 
-QStringList okularExtractor::mimetypes()
+QStringList OkularExtractor::mimetypes()
 {
+/* Add support for all of the following
+ *
+ * application/postscriptimage/x-eps
+ * application/x-gzpostscript
+ * application/x-bzpostscript
+ * image/x-gzeps
+ * image/x-bzeps
+ * image/vnd.djvu
+ * application/x-fictionbook+xml
+ * application/x-mobipocket-ebook
+ * KParts/ReadWritePart
+ * application/vnd.kde.okular-archive
+ * application/x-dvi
+ * application/x-gzdvi
+ * application/x-bzdvi
+ * image/fax-g3
+ * image/g3fax
+ * application/x-pdf
+ * application/x-gzpdf
+ * application/x-bzpdf
+ * application/x-wwf
+ * image/bmp
+ * image/x-dds
+ * image/x-eps
+ * image/x-exr
+ * image/gif
+ * image/x-hdr
+ * image/x-ico
+ * video/x-mng
+ * image/x-portable-bitmap
+ * image/x-pcx
+ * image/x-portable-graymap
+ * image/x-portable-pixmap
+ * image/x-psd
+ * image/x-rgb
+ * image/x-tga
+ * image/x-xbitmap
+ * image/x-xcf
+ * image/x-xpixmap
+ * image/x-gzeps
+ * image/x-bzeps
+ * application/x-chm
+ * application/vnd.oasis.opendocument.text
+ * application/oxps
+ * application/vnd.ms-xpsdocument
+ * application/prs.plucker
+ * application/epub+zip
+ * application/x-cbz
+ * application/x-cbr
+ * application/x-cbt
+ */
 
+    // An instance of Okular:SettingsCore is required for Okular to be able to work
+    // Used to monitor configuration changes internally
     Okular::SettingsCore::instance("");
-    const Okular::Document *document = new Okular::Document(0);
+    const QScopedPointer <Okular::Document> document(new Okular::Document(0));
 
     QStringList supportedMimeTypes = document->supportedMimeTypes();
 
-    // Remove the pdf mimetype since the poppler plugin does this
-    if (supportedMimeTypes.contains("application/pdf")) {
-        supportedMimeTypes.removeAt(supportedMimeTypes.indexOf("application/pdf"));
-    }
+    // Supported by other plugins with better implementations
+    supportedMimeTypes.removeAll(QLatin1String("application/pdf"));
+    supportedMimeTypes.removeAll(QLatin1String("image/jpeg"));
+    supportedMimeTypes.removeAll(QLatin1String("image/jp2"));
+    supportedMimeTypes.removeAll(QLatin1String("image/png"));
+    supportedMimeTypes.removeAll(QLatin1String("image/tiff"));
 
-    delete document;
     return supportedMimeTypes;
 }
 
-SimpleResourceGraph okularExtractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
+SimpleResourceGraph OkularExtractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
 {
     Nepomuk2::SimpleResourceGraph graph;
+    // An instance of Okular:SettingsCore is required for Okular to be able to work
+    // Used to monitor configuration changes internally
     Okular::SettingsCore::instance("");
-    Okular::Document *document = new Okular::Document(0);
+    QScopedPointer <Okular::Document> document(new Okular::Document(0));
 
     if ( document->openDocument(fileUrl.path(), fileUrl, KMimeType::mimeType(mimeType)) ) {
         SimpleResource fileRes( resUri );
@@ -90,6 +146,31 @@ SimpleResourceGraph okularExtractor::extract(const QUrl& resUri, const QUrl& fil
             fileRes.addProperty( NFO::pageCount(), pages );
         }
 
+        QString producer = docInfo->get(QLatin1String("producer"));
+        if (!producer.isEmpty()) {
+            fileRes.addProperty( NIE::generator(), producer );
+        }
+
+        QString copyright = docInfo->get(QLatin1String("copyright"));
+        if (!producer.isEmpty()) {
+            fileRes.addProperty( NIE::copyright(), copyright);
+        }
+
+        QString creationDate = docInfo->get(QLatin1String("creationDate"));
+        if (!creationDate.isEmpty()) {
+            fileRes.addProperty( NIE::contentCreated(), creationDate);
+        }
+
+        QString modificationDate = docInfo->get(QLatin1String("modificationDate"));
+        if (!modificationDate.isEmpty()) {
+            fileRes.addProperty( NIE::contentModified(), modificationDate);
+        }
+
+        QString title = docInfo->get(QLatin1String("title"));
+        if (!title.isEmpty()) {
+            fileRes.addProperty( NIE::title(), title);
+        }
+
         if (document->canExportToText()) {
             KTemporaryFile tempFile;
             tempFile.open();
@@ -100,8 +181,7 @@ SimpleResourceGraph okularExtractor::extract(const QUrl& resUri, const QUrl& fil
         graph << fileRes;
     }
 
-    delete document;
     return graph;
 }
 }
-NEPOMUK_EXPORT_EXTRACTOR( Nepomuk2::okularExtractor, "nepomukokularextractor" )
+NEPOMUK_EXPORT_EXTRACTOR( Nepomuk2::OkularExtractor, "nepomukokularextractor" )

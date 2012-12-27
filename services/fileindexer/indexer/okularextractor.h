@@ -23,10 +23,10 @@
 #include "extractorplugin.h"
 
 namespace Nepomuk2 {
-class okularExtractor : public ExtractorPlugin
+class OkularExtractor : public ExtractorPlugin
 {
 public:
-    okularExtractor(QObject *parent, const QVariantList&);
+    OkularExtractor(QObject *parent, const QVariantList&);
     virtual QStringList mimetypes();
     virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType);
 };
