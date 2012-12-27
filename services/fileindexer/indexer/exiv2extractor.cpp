@@ -84,12 +84,13 @@ namespace {
     }
 
     QVariant toVariantFloat(const Exiv2::Value& value) {
+        // WARNING: Dbus does not recognize float, cast to double
         if( value.typeId() == Exiv2::tiffFloat || value.typeId() == Exiv2::tiffDouble )
-            return QVariant( value.toFloat() );
+            return QVariant( static_cast<double>(value.toFloat()) );
 
         QString str( toString(value) );
         bool ok = false;
-        float val = str.toFloat(&ok);
+        double val = str.toFloat(&ok);
         if( ok )
             return QVariant( val );
 
