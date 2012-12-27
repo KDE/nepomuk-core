@@ -79,7 +79,7 @@ void Nepomuk2::SimpleIndexingJob::start()
     if( m_mimeType.isEmpty() ) {
         m_mimeType = KMimeType::findByUrl( m_nieUrl )->name();
     }
-    QList<QUrl> types = typesForMimeType( m_mimeType );
+    QSet<QUrl> types = typesForMimeType( m_mimeType );
     foreach(const QUrl& type, types)
         m_res.addType( type );
 
@@ -138,7 +138,7 @@ void Nepomuk2::SimpleIndexingJob::slotJobFinished(KJob* job_)
 }
 
 
-QList<QUrl> Nepomuk2::SimpleIndexingJob::typesForMimeType(const QString& mimeType)
+QSet<QUrl> Nepomuk2::SimpleIndexingJob::typesForMimeType(const QString& mimeType)
 {
     QSet<QUrl> types;
 
@@ -222,10 +222,11 @@ QList<QUrl> Nepomuk2::SimpleIndexingJob::typesForMimeType(const QString& mimeTyp
         typeMapper.insert( QLatin1String("application/vnd.ms-opentype"), NFO::Font() );
     }
 
-    types << typeMapper.value( mimeType );
-    // TODO: Add some basic NMM types?
+    QHash< QString, QUrl >::const_iterator it = typeMapper.constFind( mimeType );
+    if( it != typeMapper.constEnd() )
+        types << it.value();
 
-    return types.toList();
+    return types;
 }
 
 QString Nepomuk2::SimpleIndexingJob::mimeType()

@@ -88,11 +88,13 @@ bool Nepomuk2::Indexer::indexFile(const KUrl& url)
 
         if( level > 1 ) {
             clearIndexingData( url );
-            simpleIndex( url, &uri, &mimeType );
+            if( !simpleIndex( url, &uri, &mimeType ) )
+                return false;
         }
     }
     else {
-        simpleIndex( url, &uri, &mimeType );
+        if( !simpleIndex( url, &uri, &mimeType ) )
+            return false;
     }
 
     kDebug() << uri << mimeType;
