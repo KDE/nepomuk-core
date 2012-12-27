@@ -998,6 +998,75 @@ void DataManagementModelTest::testSetProperty_legacyData()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
+void DataManagementModelTest::testSetProperty_file()
+{
+    QTemporaryFile fileA;
+    fileA.open();
+    QTemporaryFile fileB;
+    fileB.open();
+    QTemporaryFile fileC;
+    fileC.open();
+
+    QUrl fileAUrl = QUrl::fromLocalFile(fileA.fileName());
+    QUrl fileBUrl = QUrl::fromLocalFile(fileB.fileName());
+    QUrl fileCUrl = QUrl::fromLocalFile(fileC.fileName());
+
+    m_dmModel->setProperty(QList<QUrl>() << fileAUrl, QUrl("prop:/string"), QVariantList() << QVariant(QLatin1String("foobar")), QLatin1String("Testapp"));
+
+    // make sure the nie:url relation has been created
+    QVERIFY(m_model->containsAnyStatement(Node(), NIE::url(), QUrl::fromLocalFile(fileA.fileName())));
+    QVERIFY(!m_model->containsAnyStatement(fileAUrl, Node(), Node()));
+
+    // get the resource uri
+    const QUrl fileAResUri = m_model->listStatements(Node(), NIE::url(), fileAUrl).allStatements().first().subject().uri();
+
+    // make sure the resource is a file
+    QVERIFY(m_model->containsAnyStatement(fileAResUri, RDF::type(), NFO::FileDataObject()));
+
+    // make sure the actual value is there
+    QVERIFY(m_model->containsAnyStatement(fileAResUri, QUrl("prop:/string"), LiteralValue(QLatin1String("foobar"))));
+
+    // add relation from file to file
+    m_dmModel->setProperty(QList<QUrl>() << fileAUrl, QUrl("prop:/res"), QVariantList() << QVariant(fileBUrl), QLatin1String("Testapp"));
+
+    // make sure the nie:url relation has been created
+    QVERIFY(m_model->containsAnyStatement(Node(), NIE::url(), fileBUrl));
+    QVERIFY(!m_model->containsAnyStatement(fileBUrl, Node(), Node()));
+
+    // get the resource uri
+    const QUrl fileBResUri = m_model->listStatements(Node(), NIE::url(), fileBUrl).allStatements().first().subject().uri();
+
+    // make sure the resource is a file
+    QVERIFY(m_model->containsAnyStatement(fileBResUri, RDF::type(), NFO::FileDataObject()));
+
+    // make sure the actual value is there
+    QVERIFY(m_model->containsAnyStatement(fileAResUri, QUrl("prop:/res"), fileBResUri));
+
+
+    // add the same relation but with another app
+    m_dmModel->setProperty(QList<QUrl>() << fileAUrl, QUrl("prop:/res"), QVariantList() << QVariant(fileBUrl), QLatin1String("Otherapp"));
+
+    // there is only one prop:/res relation defined
+    QCOMPARE(m_model->listStatements(Node(), QUrl("prop:/res"), Node()).allStatements().count(), 1);
+
+    // test adding a property to both the file and the resource URI. The result should be the exact same as doing it with only one of them
+    m_dmModel->setProperty(QList<QUrl>() << fileAResUri << fileAUrl, QUrl("prop:/string"), QVariantList() << QVariant(QLatin1String("Whatever")), QLatin1String("Testapp"));
+
+    QCOMPARE(m_model->listStatements(fileAResUri, QUrl("prop:/string"), LiteralValue(QLatin1String("Whatever"))).allStatements().count(), 1);
+    QCOMPARE(m_model->listStatements(Node(), NIE::url(), fileAUrl).allStatements().count(), 1);
+
+    // test the same with the file as object
+    m_dmModel->setProperty(QList<QUrl>() << QUrl("nepomuk:/res/A"), QUrl("prop:/res"), QVariantList() << QVariant(fileAUrl) << QVariant(fileAResUri), QLatin1String("Testapp"));
+
+    QCOMPARE(m_model->listStatements(QUrl("nepomuk:/res/A"), QUrl("prop:/res"), fileAResUri).allStatements().count(), 1);
+    QVERIFY(!m_model->containsAnyStatement(QUrl("nepomuk:/res/A"), QUrl("prop:/res"), fileAUrl));
+    QCOMPARE(m_model->listStatements(Node(), NIE::url(), fileAUrl).allStatements().count(), 1);
+
+    QVERIFY(!haveTrailingGraphs());
+    QVERIFY(!haveDataInDefaultGraph());
+}
+
+
 void DataManagementModelTest::testRemoveProperty()
 {
     const int cleanCount = m_model->statementCount();
