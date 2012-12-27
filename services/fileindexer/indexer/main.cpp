@@ -70,8 +70,6 @@ int main(int argc, char *argv[])
 
     // Application
     KApplication app;
-//    QCoreApplication app( argc, argv );
-//    KComponentData data( aboutData, KComponentData::RegisterAsMainComponent );
 
     if( args->count() == 0 ) {
         QTextStream err( stderr );

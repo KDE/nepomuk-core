@@ -42,28 +42,18 @@ okularExtractor::okularExtractor(QObject* parent, const QVariantList&)
 
 QStringList okularExtractor::mimetypes()
 {
-    /*
-     * Copied from Okular::Document::supportedMimeTypes
-     */
-    QStringList supportedMimeTypes;
-    QString constraint( "(Library == 'okularpart')" );
-    QLatin1String basePartService( "KParts/ReadOnlyPart" );
-    KService::List offers = KServiceTypeTrader::self()->query( basePartService, constraint );
-    KService::List::ConstIterator it = offers.constBegin(), itEnd = offers.constEnd();
-    for ( ; it != itEnd; ++it )
-    {
-        KService::Ptr service = *it;
-        QStringList mimeTypes = service->serviceTypes();
-        foreach ( const QString& mimeType, mimeTypes )
-            if ( mimeType != basePartService )
-                supportedMimeTypes.append( mimeType );
-    }
+
+    Okular::SettingsCore::instance("");
+    const Okular::Document *document = new Okular::Document(0);
+
+    QStringList supportedMimeTypes = document->supportedMimeTypes();
 
     // Remove the pdf mimetype since the poppler plugin does this
     if (supportedMimeTypes.contains("application/pdf")) {
         supportedMimeTypes.removeAt(supportedMimeTypes.indexOf("application/pdf"));
     }
 
+    delete document;
     return supportedMimeTypes;
 }
 
