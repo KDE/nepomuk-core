@@ -173,8 +173,13 @@ SimpleResourceGraph OkularExtractor::extract(const QUrl& resUri, const QUrl& fil
 
         if (document->canExportToText()) {
             KTemporaryFile tempFile;
+            // KTemporaryFile only creates the file after open is called,
+            // so we create the file and then close it.
             tempFile.open();
+            tempFile.close();
             document->exportToText( tempFile.fileName() );
+            // Open again, because exportToText closes the fd
+            tempFile.open();
             fileRes.addProperty( NIE::plainTextContent(), tempFile.readAll() );
         }
 
