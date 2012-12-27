@@ -38,6 +38,9 @@ namespace Nepomuk2 {
 OkularExtractor::OkularExtractor(QObject* parent, const QVariantList&)
                                  : ExtractorPlugin(parent)
 {
+    // An instance of Okular:SettingsCore is required for Okular to be able to work
+    // Used to monitor configuration changes internally
+    Okular::SettingsCore::instance("");
 }
 
 QStringList OkularExtractor::mimetypes()
@@ -94,9 +97,6 @@ QStringList OkularExtractor::mimetypes()
  * application/x-cbt
  */
 
-    // An instance of Okular:SettingsCore is required for Okular to be able to work
-    // Used to monitor configuration changes internally
-    Okular::SettingsCore::instance("");
     const QScopedPointer <Okular::Document> document(new Okular::Document(0));
 
     QStringList supportedMimeTypes = document->supportedMimeTypes();
@@ -115,9 +115,7 @@ SimpleResourceGraph OkularExtractor::extract(const QUrl& resUri, const QUrl& fil
 {
     Nepomuk2::SimpleResourceGraph graph;
     // An instance of Okular:SettingsCore is required for Okular to be able to work
-    // Used to monitor configuration changes internally
-    Okular::SettingsCore::instance("");
-    QScopedPointer <Okular::Document> document(new Okular::Document(0));
+    QScopedPointer<Okular::Document> document(new Okular::Document(0));
 
     if ( document->openDocument(fileUrl.path(), fileUrl, KMimeType::mimeType(mimeType)) ) {
         SimpleResource fileRes( resUri );
@@ -136,37 +134,37 @@ SimpleResourceGraph OkularExtractor::extract(const QUrl& resUri, const QUrl& fil
             fileRes.addProperty( NCO::creator(), res );
         }
 
-        QString subject = docInfo->get(QLatin1String("subject"));
+        const QString subject = docInfo->get(QLatin1String("subject"));
         if (!subject.isEmpty()) {
             fileRes.addProperty( NIE::subject(),  subject );
         }
 
-        QString pages = docInfo->get(QLatin1String("pages"));
+        const QString pages = docInfo->get(QLatin1String("pages"));
         if (!pages.isEmpty()) {
-            fileRes.addProperty( NFO::pageCount(), pages );
+            fileRes.addProperty( NFO::pageCount(), QString::number(pages.toInt()) );
         }
 
-        QString producer = docInfo->get(QLatin1String("producer"));
+        const QString producer = docInfo->get(QLatin1String("producer"));
         if (!producer.isEmpty()) {
             fileRes.addProperty( NIE::generator(), producer );
         }
 
-        QString copyright = docInfo->get(QLatin1String("copyright"));
+        const QString copyright = docInfo->get(QLatin1String("copyright"));
         if (!producer.isEmpty()) {
             fileRes.addProperty( NIE::copyright(), copyright);
         }
 
-        QString creationDate = docInfo->get(QLatin1String("creationDate"));
+        const QString creationDate = docInfo->get(QLatin1String("creationDate"));
         if (!creationDate.isEmpty()) {
-            fileRes.addProperty( NIE::contentCreated(), creationDate);
+            fileRes.addProperty( NIE::contentCreated(), dateTimeFromString(creationDate));
         }
 
-        QString modificationDate = docInfo->get(QLatin1String("modificationDate"));
+        const QString modificationDate = docInfo->get(QLatin1String("modificationDate"));
         if (!modificationDate.isEmpty()) {
-            fileRes.addProperty( NIE::contentModified(), modificationDate);
+            fileRes.addProperty( NIE::contentModified(), dateTimeFromString(modificationDate));
         }
 
-        QString title = docInfo->get(QLatin1String("title"));
+        const QString title = docInfo->get(QLatin1String("title"));
         if (!title.isEmpty()) {
             fileRes.addProperty( NIE::title(), title);
         }
