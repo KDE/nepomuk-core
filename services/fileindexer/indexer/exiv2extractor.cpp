@@ -165,7 +165,8 @@ SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& file
             fileRes.setProperty( NEXIF::flash(), value );
     }
 
-    it = data.findKey( Exiv2::ExifKey("Exif.Photo.PixelXDimension") );
+    // The width and height have already been set above, this is not required
+    /*it = data.findKey( Exiv2::ExifKey("Exif.Photo.PixelXDimension") );
     if( it != data.end() ) {
         QVariant value = toVariantLong( it->value() );
         if( !value.isNull() )
@@ -177,7 +178,7 @@ SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& file
         QVariant value = toVariantLong( it->value() );
         if( !value.isNull() )
             fileRes.setProperty( NFO::height(), value );
-    }
+    }*/
 
     it = data.findKey( Exiv2::ExifKey("Exif.Image.Make") );
     if( it != data.end() ) {
