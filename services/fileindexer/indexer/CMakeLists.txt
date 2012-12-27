@@ -128,6 +128,27 @@ if(FFMPEG_FOUND)
 
 endif(FFMPEG_FOUND)
 
+if(OKULAR_FOUND)
+    include_directories( ${OKULAR_INCLUDE_DIRS} )
+
+    kde4_add_plugin( nepomukokularextractor okularextractor.cpp extractorplugin.cpp )
+
+    target_link_libraries( nepomukokularextractor
+        nepomukcore
+        ${OKULAR_LIBRARIES}
+    )
+
+    install(
+    FILES nepomukokularextractor.desktop
+    DESTINATION ${SERVICES_INSTALL_DIR})
+
+    install(
+    TARGETS nepomukokularextractor
+    DESTINATION ${PLUGIN_INSTALL_DIR})
+
+endif(OKULAR_FOUND)
+
+
 
 kde4_add_plugin( nepomukplaintextextractor plaintextextractor.cpp extractorplugin.cpp )
 
