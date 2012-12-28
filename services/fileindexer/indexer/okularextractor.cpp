@@ -45,7 +45,10 @@ OkularExtractor::OkularExtractor(QObject* parent, const QVariantList&)
 
 QStringList OkularExtractor::mimetypes()
 {
-/* Add support for all of the following
+/* Okular supports the following, however,
+ * all of these need testing.
+ *
+ * TODO: Test the following to check if they can be supported
  *
  * application/postscriptimage/x-eps
  * application/x-gzpostscript
@@ -54,7 +57,6 @@ QStringList OkularExtractor::mimetypes()
  * image/x-bzeps
  * image/vnd.djvu
  * application/x-fictionbook+xml
- * application/x-mobipocket-ebook
  * KParts/ReadWritePart
  * application/vnd.kde.okular-archive
  * application/x-dvi
@@ -70,7 +72,6 @@ QStringList OkularExtractor::mimetypes()
  * image/x-dds
  * image/x-eps
  * image/x-exr
- * image/gif
  * image/x-hdr
  * image/x-ico
  * video/x-mng
@@ -91,22 +92,18 @@ QStringList OkularExtractor::mimetypes()
  * application/oxps
  * application/vnd.ms-xpsdocument
  * application/prs.plucker
- * application/epub+zip
  * application/x-cbz
  * application/x-cbr
  * application/x-cbt
  */
 
-    const QScopedPointer <Okular::Document> document(new Okular::Document(0));
 
-    QStringList supportedMimeTypes = document->supportedMimeTypes();
+    QStringList supportedMimeTypes;
 
-    // Supported by other plugins with better implementations
-    supportedMimeTypes.removeAll(QLatin1String("application/pdf"));
-    supportedMimeTypes.removeAll(QLatin1String("image/jpeg"));
-    supportedMimeTypes.removeAll(QLatin1String("image/jp2"));
-    supportedMimeTypes.removeAll(QLatin1String("image/png"));
-    supportedMimeTypes.removeAll(QLatin1String("image/tiff"));
+    supportedMimeTypes << QLatin1String("application/x-mobipocket-ebook")
+                       << QLatin1String("application/epub+zip")
+                       << QLatin1String("application/vnd.oasis.opendocument.text")
+                       << QLatin1String("application/x-cbr");
 
     return supportedMimeTypes;
 }
@@ -122,7 +119,15 @@ SimpleResourceGraph OkularExtractor::extract(const QUrl& resUri, const QUrl& fil
 
         // Basic Data
         const Okular::DocumentInfo* docInfo = document->documentInfo();
-        fileRes.addType(NFO::PaginatedTextDocument());
+
+        if (mimeType == QLatin1String("application/x-mobipocket-ebook") ||
+            mimeType == QLatin1String("application/epub+zip") ||
+            mimeType == QLatin1String("application/vnd.oasis.opendocument.text") ||
+            mimeType == QLatin1String("application/x-cbr")) {
+            fileRes.addType(NFO::PaginatedTextDocument());
+        } else {
+            fileRes.addType(NFO::Image());
+        }
 
         QString author = docInfo->get(QLatin1String("author"));
         if (!author.isEmpty()) {
@@ -182,6 +187,8 @@ SimpleResourceGraph OkularExtractor::extract(const QUrl& resUri, const QUrl& fil
         }
 
         graph << fileRes;
+    } else {
+        kDebug() << "Could not open file";
     }
 
     return graph;
