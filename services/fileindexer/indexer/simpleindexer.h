@@ -52,7 +52,7 @@ namespace Nepomuk2 {
         QUrl m_resUri;
         QString m_mimeType;
 
-        QList<QUrl> typesForMimeType(const QString& mimeType);
+        QSet<QUrl> typesForMimeType(const QString& mimeType);
     };
 }
 

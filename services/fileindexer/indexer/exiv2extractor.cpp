@@ -84,12 +84,13 @@ namespace {
     }
 
     QVariant toVariantFloat(const Exiv2::Value& value) {
+        // WARNING: Dbus does not recognize float, cast to double
         if( value.typeId() == Exiv2::tiffFloat || value.typeId() == Exiv2::tiffDouble )
-            return QVariant( value.toFloat() );
+            return QVariant( static_cast<double>(value.toFloat()) );
 
         QString str( toString(value) );
         bool ok = false;
-        float val = str.toFloat(&ok);
+        double val = str.toFloat(&ok);
         if( ok )
             return QVariant( val );
 
@@ -165,7 +166,8 @@ SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& file
             fileRes.setProperty( NEXIF::flash(), value );
     }
 
-    it = data.findKey( Exiv2::ExifKey("Exif.Photo.PixelXDimension") );
+    // The width and height have already been set above, this is not required
+    /*it = data.findKey( Exiv2::ExifKey("Exif.Photo.PixelXDimension") );
     if( it != data.end() ) {
         QVariant value = toVariantLong( it->value() );
         if( !value.isNull() )
@@ -177,7 +179,7 @@ SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& file
         QVariant value = toVariantLong( it->value() );
         if( !value.isNull() )
             fileRes.setProperty( NFO::height(), value );
-    }
+    }*/
 
     it = data.findKey( Exiv2::ExifKey("Exif.Image.Make") );
     if( it != data.end() ) {

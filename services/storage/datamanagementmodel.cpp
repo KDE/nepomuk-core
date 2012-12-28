@@ -596,6 +596,9 @@ void Nepomuk2::DataManagementModel::setProperty(const QList<QUrl> &resources, co
             d->m_watchManager->changeSomething();
         }
     }
+    else {
+        addProperty(uriHash, property, resolvedNodes, app, true);
+    }
 }
 
 void Nepomuk2::DataManagementModel::removeProperty(const QList<QUrl> &resources, const QUrl &property, const QVariantList &values, const QString &app)
