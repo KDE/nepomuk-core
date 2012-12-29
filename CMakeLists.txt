@@ -1,4 +1,7 @@
 project(nepomuk-core)
+# set_package_properties appeared in cmake 2.8.6
+# TODO: Remove when kdelibs >= 4.10 will be required
+cmake_minimum_required(VERSION 2.8.6 FATAL_ERROR)
 
 # set the version to be used by NepomukCoreConfig.cmake and the lib version
 # ===============================================================================================
