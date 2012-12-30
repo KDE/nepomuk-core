@@ -45,9 +45,6 @@ macro_log_feature(EXIV2_FOUND "Exiv2" "Image Tag reader" "http://www.exiv2.org" 
 macro_optional_find_package(FFmpeg)
 macro_log_feature(FFMPEG_FOUND "FFmpeg" "Video Tag reader" "http://ffmpeg.org" FALSE "" "Support for video metadata")
 
-macro_optional_find_package(Okular)
-macro_log_feature(OKULAR_FOUND "Okular" "Various formats supported by Okular" "http://okular.kde.org" FALSE "" "Support for various file formats supported by Okular")
-
 # Some definitions
 # ===============================================================================================
 add_definitions (${QT_DEFINITIONS} ${KDE4_DEFINITIONS})

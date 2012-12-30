@@ -1,5 +1,0 @@
-[Desktop Entry]
-Type=Service
-X-KDE-ServiceTypes=NepomukFileExtractor
-X-KDE-Library=nepomukokularextractor
-Name=Nepomuk Extractor using Okular
