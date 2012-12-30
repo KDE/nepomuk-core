@@ -46,19 +46,18 @@ namespace Nepomuk2 {
         bool isIndexing() const;
 
         /**
-         * The folder currently being indexed. Empty if not indexing.
-         * If suspended the folder might still be set!
+         * A user readable description of the scheduler's status
          */
-        QString currentFolder() const;
+        QString userStatusString() const;
 
         /**
-         * The file currently being indexed. Empty if not indexing.
-         * If suspended the file might still be set!
+         * The current uri being indexed. It is empty if no file is being indexed.
+         * The url being empty does not indicate that the indexer isn't running,
+         * just that it hasn't found a file to index.
          *
-         * This file should always be a child of currentFolder().
+         * \sa indexingStarted
+         * \sa indexingStopped
          */
-        QString currentFile() const;
-
         QUrl currentUrl() const;
 
         /**
@@ -111,6 +110,7 @@ namespace Nepomuk2 {
         // Emitted on calling suspend/resume
         void indexingSuspended( bool suspended );
 
+        void statusStringChanged();
     private Q_SLOTS:
         void slotConfigChanged();
         void slotCleaningDone();
