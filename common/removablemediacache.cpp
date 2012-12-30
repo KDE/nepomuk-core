@@ -66,6 +66,7 @@ namespace {
 
 Nepomuk2::RemovableMediaCache::RemovableMediaCache(QObject *parent)
     : QObject(parent)
+    , m_entryCacheMutex( QMutex::Recursive )
 {
     initCacheEntries();
 
@@ -99,6 +100,7 @@ void Nepomuk2::RemovableMediaCache::initCacheEntries()
 
 QList<const Nepomuk2::RemovableMediaCache::Entry *> Nepomuk2::RemovableMediaCache::allMedia() const
 {
+    QMutexLocker lock(&m_entryCacheMutex);
     QList<const Entry*> media;
     for(QHash<QString, Entry>::const_iterator it = m_metadataCache.begin(); it != m_metadataCache.end(); ++it)
         media.append(&(*it));
@@ -172,6 +174,8 @@ const Nepomuk2::RemovableMediaCache::Entry* Nepomuk2::RemovableMediaCache::findE
 
 QList<const Nepomuk2::RemovableMediaCache::Entry*> Nepomuk2::RemovableMediaCache::findEntriesByMountPath(const QString &path) const
 {
+    QMutexLocker lock(&m_entryCacheMutex);
+
     QList<const Entry*> entries;
     for( QHash<QString, Entry>::const_iterator it = m_metadataCache.constBegin();
         it != m_metadataCache.constEnd(); ++it ) {
@@ -193,6 +197,7 @@ bool Nepomuk2::RemovableMediaCache::hasRemovableSchema(const KUrl &url) const
 
 bool Nepomuk2::RemovableMediaCache::isEmpty() const
 {
+    QMutexLocker lock(&m_entryCacheMutex);
     return m_metadataCache.isEmpty();
 }
 
@@ -209,7 +214,7 @@ void Nepomuk2::RemovableMediaCache::slotSolidDeviceAdded( const QString& udi )
 
 void Nepomuk2::RemovableMediaCache::slotSolidDeviceRemoved( const QString& udi )
 {
-    kDebug() << udi;
+    QMutexLocker lock(&m_entryCacheMutex);
     QHash< QString, Entry >::iterator it = m_metadataCache.find( udi );
     if( it != m_metadataCache.end() ) {
         kDebug() << "Found removable storage volume for Nepomuk undocking:" << udi;
