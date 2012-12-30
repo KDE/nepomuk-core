@@ -135,7 +135,8 @@ bool BasicIndexingQueue::process(const QString& path, UpdateDirFlags flags)
             index( path );
         }
 
-        if( recursive && shouldIndexContents(path) ) {
+        // We don't want to follow system links
+        if( recursive && !info.isSymLink() && shouldIndexContents(path) ) {
             QDir::Filters dirFilter = QDir::NoDotAndDotDot|QDir::Readable|QDir::Files|QDir::Dirs;
 
             QPair<QDirIterator*, UpdateDirFlags> pair = qMakePair( new QDirIterator( path, dirFilter ), flags );

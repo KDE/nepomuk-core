@@ -39,6 +39,7 @@
 #include <KUrl>
 #include <KStandardDirs>
 #include <KConfigGroup>
+#include <KLocale>
 
 
 Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
@@ -71,6 +72,16 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
     connect( m_fileIQ, SIGNAL(startedIndexing()), this, SLOT(slotStartedIndexing()) );
     connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
+
+    // Status String
+    connect( m_basicIQ, SIGNAL(beginIndexingFile(QUrl)), this, SIGNAL(statusStringChanged()) );
+    connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), this, SIGNAL(statusStringChanged()) );
+    connect( m_basicIQ, SIGNAL(startedIndexing()), this, SIGNAL(statusStringChanged()) );
+    connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SIGNAL(statusStringChanged()) );
+    connect( m_fileIQ, SIGNAL(beginIndexingFile(QUrl)), this, SIGNAL(statusStringChanged()) );
+    connect( m_fileIQ, SIGNAL(endIndexingFile(QUrl)), this, SIGNAL(statusStringChanged()) );
+    connect( m_fileIQ, SIGNAL(startedIndexing()), this, SIGNAL(statusStringChanged()) );
+    connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SIGNAL(statusStringChanged()) );
 
     m_eventMonitor = new EventMonitor( this );
     connect( m_eventMonitor, SIGNAL(diskSpaceStatusChanged(bool)),
@@ -152,16 +163,6 @@ bool Nepomuk2::IndexScheduler::isSuspended() const
 bool Nepomuk2::IndexScheduler::isIndexing() const
 {
     return m_indexing;
-}
-
-QString Nepomuk2::IndexScheduler::currentFolder() const
-{
-    return KUrl(currentUrl()).directory();
-}
-
-QString Nepomuk2::IndexScheduler::currentFile() const
-{
-    return currentUrl().toLocalFile();
 }
 
 QUrl Nepomuk2::IndexScheduler::currentUrl() const
@@ -332,6 +333,38 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
             m_fileIQ->suspend();
         else
             m_fileIQ->resume();
+    }
+}
+
+QString Nepomuk2::IndexScheduler::userStatusString() const
+{
+    bool indexing = isIndexing();
+    bool suspended = isSuspended();
+    bool cleaning = ( m_cleaner != 0 );
+    bool processing = !m_basicIQ->isEmpty();
+
+    if ( suspended ) {
+        return i18nc( "@info:status", "File indexer is suspended." );
+    }
+    else if ( cleaning ) {
+        // TODO: Change this string for 4.11
+        return i18nc( "@info:status", "Scanning for recent changes in files for desktop search");
+    }
+    else if ( indexing ) {
+        QUrl url = currentUrl();
+
+        if( url.isEmpty() ) {
+            return i18nc( "@info:status", "Indexing files for desktop search." );
+        }
+        else {
+            return i18nc( "@info:status", "Indexing %1", url.toLocalFile() );
+        }
+    }
+    else if ( processing ) {
+        return i18nc( "@info:status", "Scanning for recent changes in files for desktop search");
+    }
+    else {
+        return i18nc( "@info:status", "File indexer is idle." );
     }
 }
 

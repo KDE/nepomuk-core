@@ -26,7 +26,6 @@
 
 #include <KDebug>
 #include <KDirNotify>
-#include <KLocale>
 
 #include "resourcemanager.h"
 
@@ -51,18 +50,8 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     ( void )new FileIndexerAdaptor( this );
 
     // setup status connections
-    connect( m_indexScheduler, SIGNAL( indexingStarted() ),
-             this, SIGNAL( statusStringChanged() ) );
-    connect( m_indexScheduler, SIGNAL( indexingStopped() ),
-             this, SIGNAL( statusStringChanged() ) );
-    connect( m_indexScheduler, SIGNAL(basicIndexingDone()),
-             this, SLOT( slotIndexingDone() ) );
-    connect( m_indexScheduler, SIGNAL( indexingFolder(QString) ),
-             this, SIGNAL( statusStringChanged() ) );
-    connect( m_indexScheduler, SIGNAL( indexingFile(QString) ),
-             this, SIGNAL( statusStringChanged() ) );
-    connect( m_indexScheduler, SIGNAL( indexingSuspended(bool) ),
-             this, SIGNAL( statusStringChanged() ) );
+    connect( m_indexScheduler, SIGNAL(statusStringChanged()),
+             this, SIGNAL(statusStringChanged()) );
 
     // start initial indexing honoring the hidden config option to disable it
     if( FileIndexerConfig::self()->isInitialRun() || !FileIndexerConfig::self()->initialUpdateDisabled() ) {
@@ -122,39 +111,8 @@ QString Nepomuk2::FileIndexer::simpleUserStatusString() const
 
 QString Nepomuk2::FileIndexer::userStatusString( bool simple ) const
 {
-    bool indexing = m_indexScheduler->isIndexing();
-    bool suspended = m_indexScheduler->isSuspended();
-
-    if ( suspended ) {
-        return i18nc( "@info:status", "File indexer is suspended." );
-    }
-    else if ( indexing ) {
-        QString folder = m_indexScheduler->currentFolder();
-        bool autoUpdate =  m_indexScheduler->currentFlags() & AutoUpdateFolder;
-
-        if ( folder.isEmpty() || simple ) {
-            if( autoUpdate ) {
-                return i18nc( "@info:status", "Scanning for recent changes in files for desktop search");
-            }
-            else {
-                return i18nc( "@info:status", "Indexing files for desktop search." );
-            }
-        }
-        else {
-            if( autoUpdate ) {
-                return i18nc( "@info:status", "Scanning for recent changes in %1", folder );
-            }
-            else {
-                if( m_indexScheduler->currentFile().isEmpty() )
-                    return i18nc( "@info:status", "Indexing files in %1", folder );
-                else
-                    return i18nc( "@info:status", "Indexing %1", m_indexScheduler->currentFile() );
-            }
-        }
-    }
-    else {
-        return i18nc( "@info:status", "File indexer is idle." );
-    }
+    Q_UNUSED( simple );
+    return m_indexScheduler->userStatusString();
 }
 
 
@@ -195,13 +153,13 @@ void Nepomuk2::FileIndexer::resume() const
 
 QString Nepomuk2::FileIndexer::currentFile() const
 {
-   return m_indexScheduler->currentFile();
+   return m_indexScheduler->currentUrl().toLocalFile();
 }
 
 
 QString Nepomuk2::FileIndexer::currentFolder() const
 {
-    return m_indexScheduler->currentFolder();
+    return KUrl(m_indexScheduler->currentUrl()).directory();
 }
 
 

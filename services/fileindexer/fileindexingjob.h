@@ -75,6 +75,7 @@ namespace Nepomuk2 {
     private slots:
         void slotIndexedFile(int exitCode);
         void slotProcessTimerTimeout();
+        void slotProcessNonExistingFile();
 
     private:
         KUrl m_url;
