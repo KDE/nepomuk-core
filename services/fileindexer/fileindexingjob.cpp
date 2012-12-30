@@ -22,15 +22,22 @@
 #include "fileindexingjob.h"
 #include "util.h"
 #include "fileindexerconfig.h"
+#include "resourcemanager.h"
+#include "kext.h"
 
 #include <KUrl>
 #include <KDebug>
 #include <KProcess>
 #include <KStandardDirs>
 
+#include <Soprano/Node>
+#include <Soprano/Model>
+#include <Soprano/QueryResultIterator>
+
 #include <QtCore/QFileInfo>
 #include <QtCore/QTimer>
 
+using namespace Nepomuk2::Vocabulary;
 
 Nepomuk2::FileIndexingJob::FileIndexingJob(const QFileInfo& info, QObject* parent)
     : KJob(parent),
@@ -45,6 +52,11 @@ Nepomuk2::FileIndexingJob::FileIndexingJob(const QFileInfo& info, QObject* paren
 
 void Nepomuk2::FileIndexingJob::start()
 {
+    if( !QFile::exists(m_url.toLocalFile()) ) {
+        QTimer::singleShot( 0, this, SLOT(slotProcessNonExistingFile()) );
+        return;
+    }
+
     // setup the external process which does the actual indexing
     const QString exe = KStandardDirs::findExe(QLatin1String("nepomukindexer"));
 
@@ -62,6 +74,23 @@ void Nepomuk2::FileIndexingJob::start()
 
     // start the timer which will kill the process if it does not terminate after 5 minutes
     m_processTimer->start(5*60*1000);
+}
+
+void Nepomuk2::FileIndexingJob::slotProcessNonExistingFile()
+{
+    QString query = QString::fromLatin1("select ?r where { ?r nie:url %1. }")
+                    .arg( Soprano::Node::resourceToN3(m_url) );
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    while( it.next() ) {
+        QUrl uri = it[0].uri();
+
+        // We do not just delete the resource cause it could be part of some removeable media
+        // which is not mounted. When the device is mounted, then the file will get reindexed
+        model->removeAllStatements( uri, KExt::indexingLevel(), QUrl() );
+    }
+
+    emitResult();
 }
 
 
