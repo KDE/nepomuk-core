@@ -18,7 +18,7 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/CTestCustom.cmake ${CMAKE_CURRENT_BIN
 
 # search required packages
 # ===============================================================================================
-find_package(KDE4 4.7.00 REQUIRED)
+find_package(KDE4 4.9.4 REQUIRED)
 include(KDE4Defaults)
 
 # TODO: Remove this block and the cmake directory when kdelibs >= 4.10 will be required
