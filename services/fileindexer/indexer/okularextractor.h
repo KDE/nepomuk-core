@@ -29,6 +29,8 @@ public:
     OkularExtractor(QObject *parent, const QVariantList&);
     virtual QStringList mimetypes();
     virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType);
+private:
+    QStringList m_supportedMimeTypes;
 };
 }
 #endif // OKULAREXTRACTOR_H
