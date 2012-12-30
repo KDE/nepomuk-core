@@ -41,9 +41,10 @@ extern "C" {
 #include "nmm.h"
 #include "nie.h"
 #include "nfo.h"
-#include <nco.h>
+#include "nco.h"
 
 #include <Soprano/Vocabulary/NAO>
+#include <Soprano/Vocabulary/RDF>
 
 #include <KDebug>
 #include <QtCore/QDateTime>
@@ -206,6 +207,10 @@ SimpleResourceGraph FFmpegExtractor::extract(const QUrl& resUri, const QUrl& fil
 
         fileRes.addProperty( NMM::musicAlbum(), album );
         fileRes.addProperty( NAO::hasSubResource(), album );
+
+        // Just in case
+        if( !fileRes.contains(RDF::type(), NMM::MusicPiece()) )
+            fileRes.addType( NMM::MusicPiece() );
     }
 
     entry = av_dict_get(dict, "genre", NULL, 0);
