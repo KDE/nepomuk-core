@@ -374,8 +374,26 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
         kDebug() << "Device configured to not be indexed.";
     }
 
-    kDebug() << "Installing watch for removable storage at mount point" << entry->mountPath();
-    watchFolder(entry->mountPath());
+    //
+    // Install the watches
+    //
+    KConfig config("nepomukstrigirc");
+    KConfigGroup cfg = config.group( "RemovableMedia" );
+
+    if( cfg.readEntry<bool>( "add watches", true ) ) {
+        if( entry->device().isDeviceInterface( Solid::DeviceInterface::NetworkShare ) ) {
+            if( cfg.readEntry<bool>( "add watches network share", false ) ) {
+                kDebug() << "Installing watch for network share at mount point" << entry->mountPath();
+                watchFolder(entry->mountPath());
+            }
+        }
+        else {
+            kDebug() << "Installing watch for removable storage at mount point" << entry->mountPath();
+            // vHanda: Perhaps this should only be done if we have some metadata on the removable media
+            // and if we do not then we add the watches when we get some metadata?
+            watchFolder(entry->mountPath());
+        }
+    }
 }
 
 void Nepomuk2::FileWatch::slotDeviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry )
