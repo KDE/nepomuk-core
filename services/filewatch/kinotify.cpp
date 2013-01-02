@@ -156,7 +156,8 @@ public:
             if( it->hasNext() ) {
                 QString dirPath = it->next();
                 if( addWatch( QFile::encodeName(dirPath) ) ) {
-                    QDirIterator* iter= new QDirIterator( dirPath, QDir::Dirs | QDir::NoDotAndDotDot);
+                    // IMPORTANT: We do not follow system links. Ever.
+                    QDirIterator* iter= new QDirIterator( dirPath, QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks );
                     dirIterators.push_front( iter );
                     addedWatchSuccessfully = true;
                 }
@@ -249,7 +250,7 @@ bool KInotify::addWatch( const QString& path, WatchEvents mode, WatchFlags flags
     d->flags = flags;
     if(! (d->addWatch( QFile::encodeName(path) )))
         return false;
-    QDirIterator* iter = new QDirIterator( path, QDir::Dirs | QDir::NoDotAndDotDot);
+    QDirIterator* iter = new QDirIterator( path, QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks );
     d->dirIterators.append( iter );
     return d->_k_addWatches();
 }

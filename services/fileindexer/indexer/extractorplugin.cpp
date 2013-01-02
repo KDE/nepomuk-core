@@ -60,18 +60,22 @@ QDateTime ExtractorPlugin::dateTimeFromString(const QString& dateString)
 {
     QDateTime dateTime;
 
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "yyyy-MM-dd"); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "dd-MM-yyy"); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "yyyy-MM"); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "MM-yyyy"); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "yyyy.MM.dd"); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "dd.MM.yyyy"); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "dd MMMM yyyy"); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "MM.yyyy"); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "yyyy.MM"); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "yyyy"); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, "yy"); dateTime.setTimeSpec(Qt::UTC);  }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("yyyy-MM-dd")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("dd-MM-yyy")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("yyyy-MM")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("MM-yyyy")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("yyyy.MM.dd")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("dd.MM.yyyy")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("dd MMMM yyyy")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("MM.yyyy")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("yyyy.MM")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("yyyy")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("yy")); dateTime.setTimeSpec(Qt::UTC);  }
     if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, Qt::ISODate); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("dddd d MMM yyyy h':'mm':'ss AP"));dateTime.setTimeSpec(Qt::LocalTime);}
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, Qt::SystemLocaleDate); dateTime.setTimeSpec(Qt::UTC);}
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, Qt::SystemLocaleShortDate); dateTime.setTimeSpec(Qt::UTC);}
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, Qt::SystemLocaleLongDate); dateTime.setTimeSpec(Qt::UTC);}
     if(!dateTime.isValid()) {
         kWarning() << "Could not determine correct datetime format from:" << dateString;
         return QDateTime();
