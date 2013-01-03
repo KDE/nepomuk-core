@@ -407,7 +407,7 @@ void InvalidFileResourcesJob::execute()
     // Delete all the files that do not have a url
     //
     QLatin1String query("select distinct ?r where { ?r a nfo:FileDataObject. FILTER NOT EXISTS {"
-                        " ?r nie:url ?url . }");
+                        " ?r nie:url ?url . } }");
 
     Soprano::Model *model = Nepomuk2::ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
@@ -475,7 +475,7 @@ private:
 void InvalidResourcesJob::execute()
 {
     // Clear all the resources which do not have any rdf:type
-    QLatin1String query("select distinct ?r where { ?r ?p ?o . FILTER NOT EXISTS { ?r a ?t . }");
+    QLatin1String query("select distinct ?r where { ?r ?p ?o . FILTER NOT EXISTS { ?r a ?t . } }");
 
     Soprano::Model *model = Nepomuk2::ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
