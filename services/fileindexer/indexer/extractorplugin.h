@@ -44,7 +44,7 @@ namespace Nepomuk2 {
      *
      * \author Vishesh Handa <me@vhanda.in>
      */
-    class NEPOMUK_EXPORT ExtractorPlugin : public QObject
+    class ExtractorPlugin : public QObject
     {
         Q_OBJECT
     public:
