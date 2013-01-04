@@ -53,7 +53,8 @@ void WebMinerIndexingQueue::fillQueue()
         return;
 
     QString query = QString::fromLatin1("select ?url where { ?r nie:url ?url ; kext:indexingLevel ?l "
-                                        " FILTER(?l > 1 && ?l < 3  ). } LIMIT 10");
+                                        " Filter regex(?mime , \"audio|video|pdf\", \"i\")"
+                                        " FILTER(?l = 2  ). } LIMIT 10");
 
     Soprano::Model* model = ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
