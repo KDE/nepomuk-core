@@ -115,6 +115,10 @@ QString PopplerExtractor::parseFirstPage(Poppler::Document* pdfDoc)
 {
     Poppler::Page *p = pdfDoc->page(0);
 
+    if(!p) {
+      return QString();
+    }
+
     QList<Poppler::TextBox*> tbList = p->textList();
     QMap<int, QString> possibleTitleMap;
 
