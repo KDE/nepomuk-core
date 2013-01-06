@@ -95,6 +95,9 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
     QString plainTextContent;
     for( int i=0; i<pdfDoc->numPages(); i++ ) {
         Poppler::Page* page = pdfDoc->page( i );
+        if(!page) {  // broken pdf files do not return a valid page
+            break;
+        }
         plainTextContent.append( page->text( QRectF() ) );
         delete page;
     }
@@ -114,6 +117,10 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
 QString PopplerExtractor::parseFirstPage(Poppler::Document* pdfDoc)
 {
     Poppler::Page *p = pdfDoc->page(0);
+
+    if(!p) {
+      return QString();
+    }
 
     QList<Poppler::TextBox*> tbList = p->textList();
     QMap<int, QString> possibleTitleMap;
