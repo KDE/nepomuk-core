@@ -95,6 +95,9 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
     QString plainTextContent;
     for( int i=0; i<pdfDoc->numPages(); i++ ) {
         Poppler::Page* page = pdfDoc->page( i );
+        if(!page) {  // broken pdf files do not return a valid page
+            break;
+        }
         plainTextContent.append( page->text( QRectF() ) );
         delete page;
     }
