@@ -105,6 +105,7 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     int fileIQDelay = cfg.readEntry<int>( "FileIQDelay", 0 );
     m_basicIQ->setDelay( basicIQDelay );
     m_fileIQ->setDelay( fileIQDelay );
+    m_webIQ->setDelay( fileIQDelay );
 
     QString value = cfg.readEntry<QString>( "NormalMode_FileIndexing", "suspend" );
     if( value == "suspend" )
@@ -173,7 +174,9 @@ bool Nepomuk2::IndexScheduler::isIndexing() const
 
 QUrl Nepomuk2::IndexScheduler::currentUrl() const
 {
-    if( !m_fileIQ->currentUrl().isEmpty() )
+    if( !m_webIQ->currentUrl().isEmpty() )
+        return m_webIQ->currentUrl();
+    else if( !m_fileIQ->currentUrl().isEmpty() )
         return m_fileIQ->currentUrl();
     else
         return m_basicIQ->currentUrl();
@@ -265,6 +268,7 @@ void Nepomuk2::IndexScheduler::slotConfigChanged()
 
     m_basicIQ->clear();
     m_fileIQ->clear();
+    m_webIQ->clear();
 
     // Make sure this is called after the cleaner has been created, otherwise
     // both the tasks will happen in parallel
@@ -294,8 +298,9 @@ void Nepomuk2::IndexScheduler::slotEndIndexingFile(const QUrl&)
 {
     const QUrl basicUrl = m_basicIQ->currentUrl();
     const QUrl fileUrl = m_fileIQ->currentUrl();
+    const QUrl webUrl = m_webIQ->currentUrl();
 
-    if( basicUrl.isEmpty() && fileUrl.isEmpty() ) {
+    if( basicUrl.isEmpty() && fileUrl.isEmpty() && webUrl.isEmpty()) {
         setIndexingStarted( false );
     }
 }
@@ -313,6 +318,7 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
 
         m_basicIQ->suspend();
         m_fileIQ->suspend();
+        m_webIQ->suspend();
     }
 
     else if( m_eventMonitor->isOnBattery() ) {
@@ -321,6 +327,7 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
 
         m_basicIQ->resume();
         m_fileIQ->suspend();
+        m_webIQ->suspend();
     }
 
     else if( m_eventMonitor->isIdle() ) {
@@ -329,6 +336,7 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
 
         m_basicIQ->resume();
         m_fileIQ->resume();
+        m_webIQ->resume();
     }
 
     else {
@@ -336,10 +344,14 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
         m_state = State_Normal;
 
         m_basicIQ->resume();
-        if( m_shouldSuspendFileIQOnNormal )
+        if( m_shouldSuspendFileIQOnNormal ) {
             m_fileIQ->suspend();
-        else
+            m_webIQ->resume();
+        }
+        else {
             m_fileIQ->resume();
+            m_webIQ->resume();
+        }
     }
 }
 
