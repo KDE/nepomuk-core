@@ -52,7 +52,7 @@ void WebMinerIndexingQueue::fillQueue()
     if (m_fileQueue.size() > 0)
         return;
 
-    QString query = QString::fromLatin1("select ?url where { ?r nie:url ?url ; kext:indexingLevel ?l "
+    QString query = QString::fromLatin1("select ?url where { ?r nie:url ?url ; kext:indexingLevel ?l ; nie:mimeType ?mime"
                                         " Filter regex(?mime , \"audio|video|pdf\", \"i\")"
                                         " FILTER(?l = 2  ). } LIMIT 10");
 
