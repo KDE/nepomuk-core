@@ -27,6 +27,7 @@
 #include <QtCore/QFile>
 #include <QtCore/QScopedArrayPointer>
 #include <QtCore/QLinkedList>
+#include <QtCore/QTimer>
 
 #include <kdebug.h>
 
@@ -77,6 +78,7 @@ public:
     }
 
     QHash<int, QByteArray> cookies;
+    QTimer cookieExpireTimer;
 
     // url <-> wd mappings
     // Read the documentation fo OptimizedByteArray to understand why have a cache
@@ -199,6 +201,11 @@ KInotify::KInotify( QObject* parent )
     : QObject( parent ),
       d( new Private( this ) )
 {
+    // 1 second is more than enough time for the EventMoveTo event to occur
+    // after the EventMoveFrom event has occurred
+    d->cookieExpireTimer.setInterval( 1000 );
+    d->cookieExpireTimer.setSingleShot( true );
+    connect( &d->cookieExpireTimer, SIGNAL(timeout()), this, SLOT(slotClearCookies()) );
 }
 
 
@@ -366,6 +373,7 @@ void KInotify::slotEvent( int socket )
         if ( event->mask & EventMoveFrom ) {
 //            kDebug() << path << "EventMoveFrom";
             d->cookies[event->cookie] = path;
+            d->cookieExpireTimer.start();
         }
         if ( event->mask & EventMoveTo ) {
             // check if we have a cookie for this one
@@ -429,5 +437,19 @@ void KInotify::slotEvent( int socket )
         kDebug() << "Failed to read event.";
     }
 }
+
+void KInotify::slotClearCookies()
+{
+    QHashIterator<int, QByteArray> it( d->cookies );
+    while( it.hasNext() ) {
+        it.next();
+        removeWatch( it.value() );
+        // FIXME: Emit true for directories. How do we do this?
+        emit deleted( QFile::decodeName(it.value()), false );
+    }
+
+    d->cookies.clear();
+}
+
 
 #include "kinotify.moc"
