@@ -31,6 +31,7 @@
 #include "nie.h"
 
 #include <KDebug>
+#include <KJob>
 
 
 Nepomuk2::MetadataMover::MetadataMover( Soprano::Model* model, QObject* parent )
@@ -138,7 +139,10 @@ void Nepomuk2::MetadataMover::removeMetadata( const KUrl& url )
     }
     else {
         const bool isFolder = url.url().endsWith('/');
-        Nepomuk2::removeResources(QList<QUrl>() << url);
+        KJob* job = Nepomuk2::removeResources( QList<QUrl>() << url );
+        job->exec();
+        if( job->error() )
+            kError() << job->errorString();
 
         if( isFolder ) {
             //
@@ -169,7 +173,12 @@ void Nepomuk2::MetadataMover::removeMetadata( const KUrl& url )
                     urls << it[0].uri();
                 }
                 if ( !urls.isEmpty() ) {
-                    Nepomuk2::removeResources(urls);
+                    KJob* job = Nepomuk2::removeResources(urls);
+                    // This will spawn an event loop and wait, but that is okay cause
+                    // the MetadataMover is not running on the main thread
+                    job->exec();
+                    if( job->error() )
+                        kError() << job->errorString();
                 }
                 else {
                     break;
