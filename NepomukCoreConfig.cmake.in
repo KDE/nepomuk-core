@@ -47,7 +47,9 @@ find_file(NEPOMUK2_ADDONTOLOGYCLASSES_FILE Nepomuk2AddOntologyClasses.cmake
           PATH ${_currentDir}
          )
 
-if(NEPOMUK2_ADDONTOLOGYCLASSES_FILE)
-  message(STATUS "Found NEPOMUK2_ADDONTOLOGYCLASSES_FILE: ${NEPOMUK2_ADDONTOLOGYCLASSES_FILE}")
+if(NOT NEPOMUK2_ADDONTOLOGYCLASSES_FILE)
+  message(STATUS "Could not find Nepomuk2AddOntologyClasses.cmake")
+else()
   include("${NEPOMUK2_ADDONTOLOGYCLASSES_FILE}")
 endif()
+
