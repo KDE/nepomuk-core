@@ -50,10 +50,12 @@
 #include <QtCore/QStringList>
 
 
-Nepomuk2::Query::SearchRunnable::SearchRunnable( Soprano::Model* model, Nepomuk2::Query::Folder* folder )
+Nepomuk2::Query::SearchRunnable::SearchRunnable( Soprano::Model* model, const QString& sparqlQuery, const Nepomuk2::Query::RequestPropertyMap& map )
     : QRunnable(),
       m_model( model ),
-      m_folder( folder )
+      m_sparqlQuery( sparqlQuery ),
+      m_requestPropertyMap( map ),
+      m_cancelled( false )
 {
 }
 
@@ -65,48 +67,30 @@ Nepomuk2::Query::SearchRunnable::~SearchRunnable()
 
 void Nepomuk2::Query::SearchRunnable::cancel()
 {
-    // "detach" us from the folder which will most likely be deleted now
-    QMutexLocker lock( &m_folderMutex );
-    m_folder = 0;
+    m_cancelled = true;
 }
 
 
 void Nepomuk2::Query::SearchRunnable::run()
 {
-    QMutexLocker lock( &m_folderMutex );
-    if( !m_folder )
-        return;
-    kDebug() << m_folder->query() << m_folder->sparqlQuery();
-    const QString sparql = m_folder->sparqlQuery();
-    lock.unlock();
+    kDebug() << m_sparqlQuery;
 
 #ifndef NDEBUG
     QTime time;
     time.start();
 #endif
 
-    ResultIterator hits( sparql, m_folder->requestPropertyMap() );
-    while ( m_folder &&
-            hits.next() ) {
+    ResultIterator hits( m_sparqlQuery, m_requestPropertyMap );
+    while ( !m_cancelled && hits.next() ) {
         Result result = hits.result();
 
         kDebug() << "Found result:" << result.resource().uri() << result.score();
-
-        lock.relock();
-        if( m_folder ) {
-            QList<Nepomuk2::Query::Result> results;
-            results << result;
-            QMetaObject::invokeMethod( m_folder, "addResults", Qt::QueuedConnection, Q_ARG( QList<Nepomuk2::Query::Result>, results ) );
-        }
-        lock.unlock();
+        emit newResult( result );
     }
 
 #ifndef NDEBUG
-    kDebug() << time.elapsed();
+    kDebug() << "Query Time:" << time.elapsed()/1000.0 << "seconds";
 #endif
 
-    lock.relock();
-    if( m_folder ) {
-        QMetaObject::invokeMethod( m_folder, "listingFinished", Qt::QueuedConnection );
-    }
+    emit listingFinished();
 }

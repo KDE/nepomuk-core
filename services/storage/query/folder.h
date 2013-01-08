@@ -32,12 +32,6 @@
 
 #include <KUrl>
 
-namespace Soprano {
-    namespace Util {
-        class AsyncQuery;
-    }
-}
-
 namespace Nepomuk2 {
     namespace Query {
 
@@ -95,14 +89,14 @@ namespace Nepomuk2 {
              */
             int getResultCount() const { return m_resultCount; }
 
-            /// called by the CountQueryRunnable
-            void countQueryFinished( int count );
-
-        public Q_SLOTS:
-            void addResults( const QList<Nepomuk2::Query::Result>& result );
+        private Q_SLOTS:
+            void addResult( const Nepomuk2::Query::Result& result );
             void listingFinished();
 
             void update();
+
+            /// called by the CountQueryRunnable
+            void countQueryFinished( int count );
 
         Q_SIGNALS:
             void newEntries( const QList<Nepomuk2::Query::Result>& entries );
@@ -157,9 +151,6 @@ namespace Nepomuk2 {
             /// the result count. -1 until determined
             int m_resultCount;
 
-            /// Query used to get the total count. Only non-null during execution
-            QPointer<Soprano::Util::AsyncQuery> m_countQuery;
-
             /// true once the initial listing is done and only updates are to be signalled
             bool m_initialListingDone;
 
@@ -172,7 +163,6 @@ namespace Nepomuk2 {
             /// the runnable doing work at the moment or 0 if idle
             SearchRunnable* m_currentSearchRunnable;
             CountQueryRunnable* m_currentCountQueryRunnable;
-            mutable QMutex m_runnableMutex;
 
             /// did the nepomuk store change after the last update - used for caching of update signals via m_updateTimer
             bool m_storageChanged;

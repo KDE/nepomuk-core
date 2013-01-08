@@ -37,10 +37,11 @@ namespace Nepomuk2 {
     namespace Query {
         class Folder;
 
-        class SearchRunnable : public QRunnable
+        class SearchRunnable : public QObject, public QRunnable
         {
+            Q_OBJECT
         public:
-            SearchRunnable( Soprano::Model* model, Folder* folder );
+            SearchRunnable( Soprano::Model* model, const QString& sparqlQuery, const RequestPropertyMap& map );
             ~SearchRunnable();
 
             /**
@@ -50,6 +51,7 @@ namespace Nepomuk2 {
 
         Q_SIGNALS:
             void newResult( const Nepomuk2::Query::Result& result );
+            void listingFinished();
 
         protected:
             void run();
@@ -57,8 +59,9 @@ namespace Nepomuk2 {
         private:
             Soprano::Model* m_model;
 
-            QPointer<Folder> m_folder;
-            mutable QMutex m_folderMutex;
+            QString m_sparqlQuery;
+            RequestPropertyMap m_requestPropertyMap;
+            bool m_cancelled;
         };
     }
 }
