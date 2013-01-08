@@ -22,6 +22,7 @@
 
 #include "resourcemanager.h"
 #include "resource.h"
+#include "resultiterator.h"
 
 #include <Soprano/Version>
 #include <Soprano/Model>
@@ -84,10 +85,10 @@ void Nepomuk2::Query::SearchRunnable::run()
     time.start();
 #endif
 
-    Soprano::QueryResultIterator hits = m_model->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
+    ResultIterator hits( sparql, m_folder->requestPropertyMap() );
     while ( m_folder &&
             hits.next() ) {
-        Result result = extractResult( hits );
+        Result result = hits.result();
 
         kDebug() << "Found result:" << result.resource().uri() << result.score();
 
@@ -108,45 +109,4 @@ void Nepomuk2::Query::SearchRunnable::run()
     if( m_folder ) {
         QMetaObject::invokeMethod( m_folder, "listingFinished", Qt::QueuedConnection );
     }
-}
-
-
-Nepomuk2::Query::Result Nepomuk2::Query::SearchRunnable::extractResult( const Soprano::QueryResultIterator& it ) const
-{
-    Result result( Resource::fromResourceUri( it[0].uri() ) );
-
-    // make sure we do not store values twice
-    QStringList names = it.bindingNames();
-    names.removeAll( QLatin1String( "r" ) );
-
-    m_folderMutex.lock();
-    if( m_folder ) {
-        RequestPropertyMap requestProperties = m_folder->requestPropertyMap();
-        for ( RequestPropertyMap::const_iterator rpIt = requestProperties.constBegin();
-             rpIt != requestProperties.constEnd(); ++rpIt ) {
-            result.addRequestProperty( rpIt.value(), it.binding( rpIt.key() ) );
-            names.removeAll( rpIt.key() );
-        }
-    }
-    m_folderMutex.unlock();
-
-    static const char* s_scoreVarName = "_n_f_t_m_s_";
-    static const char* s_excerptVarName = "_n_f_t_m_ex_";
-
-    Soprano::BindingSet set;
-    int score = 0;
-    Q_FOREACH( const QString& var, names ) {
-        if ( var == QLatin1String( s_scoreVarName ) )
-            score = it[var].literal().toInt();
-        else if ( var == QLatin1String( s_excerptVarName ) )
-            result.setExcerpt( it[var].toString() );
-        else
-            set.insert( var, it[var] );
-    }
-
-    result.setAdditionalBindings( set );
-    result.setScore( ( double )score );
-
-    // score will be set above
-    return result;
 }
