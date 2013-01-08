@@ -88,6 +88,19 @@ macro_display_feature_log()
 
 # generate NepomukCoreConfig.cmake for easy utilisation of the package by other cmake build systems
 # ===============================================================================================
+
+macro(MAKE_INSTALL_PATH_ABSOLUTE out in)
+   if(IS_ABSOLUTE "${in}")
+      set(${out} "${in}")
+   else()
+      set(${out} "\${CMAKE_INSTALL_PREFIX}/${in}")
+   endif()
+endmacro()
+
+make_install_path_absolute(NEPOMUK_CORE_INCLUDE_DIR ${INCLUDE_INSTALL_DIR})
+make_install_path_absolute(NEPOMUK_CORE_LIB_DIR ${LIB_INSTALL_DIR})
+make_install_path_absolute(NEPOMUK_CORE_DBUS_INTERFACES_DIR ${DBUS_INTERFACES_INSTALL_DIR})
+
 configure_file(NepomukCoreConfig.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/NepomukCoreConfig.cmake @ONLY)
 
 # Generate NepomukCoreConfigVersion.cmake
