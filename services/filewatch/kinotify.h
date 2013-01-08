@@ -176,6 +176,7 @@ Q_SIGNALS:
 
 private Q_SLOTS:
     void slotEvent( int );
+    void slotClearCookies();
 
 private:
     class Private;
