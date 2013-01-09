@@ -33,11 +33,12 @@
 #include <QtCore/QMutexLocker>
 #include <QtCore/QTime>
 
-Nepomuk2::Query::CountQueryRunnable::CountQueryRunnable( Soprano::Model* model, Folder* folder )
+Nepomuk2::Query::CountQueryRunnable::CountQueryRunnable( Soprano::Model* model, const Nepomuk2::Query::Query& query )
     : QRunnable(),
       m_model( model ),
-      m_folder( folder )
+      m_cancelled( false )
 {
+    m_countQuery = query.toSparqlQuery( Query::CreateCountQuery );
     kDebug();
 }
 
@@ -49,40 +50,29 @@ Nepomuk2::Query::CountQueryRunnable::~CountQueryRunnable()
 
 void Nepomuk2::Query::CountQueryRunnable::cancel()
 {
-    // "detach" us from the folder which will most likely be deleted now
-    QMutexLocker lock( &m_folderMutex );
-    m_folder = 0;
+    m_cancelled = true;
 }
 
 
 void Nepomuk2::Query::CountQueryRunnable::run()
 {
-    QMutexLocker lock( &m_folderMutex );
-    if( !m_folder )
-        return;
-
     int count = -1;
-    Query query = m_folder->query();
-    lock.unlock();
 
 #ifndef NDEBUG
     QTime time;
     time.start();
 #endif
 
-    QString sparql = query.toSparqlQuery( Query::CreateCountQuery );
-    Soprano::QueryResultIterator it = m_model->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
-    if( it.next() ) {
+    Soprano::QueryResultIterator it = m_model->executeQuery( m_countQuery, Soprano::Query::QueryLanguageSparql );
+    if( it.next() && !m_cancelled ) {
         count = it.binding( 0 ).literal().toInt();
     }
     kDebug() << "Count:" << count;
 
 #ifndef NDEBUG
-    kDebug() << time.elapsed();
+    kDebug() << "Count Query Time:" << time.elapsed()/1000.0 << "seconds";
 #endif
 
-    lock.relock();
-
-    if( m_folder )
-        m_folder->countQueryFinished( count );
+    if( !m_cancelled )
+        emit countQueryFinished( count );
 }

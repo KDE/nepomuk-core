@@ -31,10 +31,11 @@ namespace Nepomuk2 {
     namespace Query {
         class Folder;
 
-        class CountQueryRunnable : public QRunnable
+        class CountQueryRunnable : public QObject, public QRunnable
         {
+            Q_OBJECT
         public:
-            CountQueryRunnable( Soprano::Model* model, Folder* folder );
+            CountQueryRunnable( Soprano::Model* model, const Query& query );
             ~CountQueryRunnable();
 
             /**
@@ -43,11 +44,14 @@ namespace Nepomuk2 {
             void cancel();
 
             void run();
+        Q_SIGNALS:
+            void countQueryFinished( int count );
 
         private:
             Soprano::Model* m_model;
-            QPointer<Folder> m_folder;
-            QMutex m_folderMutex;
+
+            QString m_countQuery;
+            bool m_cancelled;
         };
     }
 }

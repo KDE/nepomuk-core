@@ -24,6 +24,7 @@
 
 #include <QtCore/QMultiHash>
 #include <QtCore/QSet>
+#include <QtCore/QMutex>
 
 #include <Soprano/FilterModel>
 #include <QtDBus/QDBusObjectPath>
@@ -96,8 +97,6 @@ namespace Nepomuk2 {
         void addType(ResourceWatcherConnection* conn, const QString& type);
         void removeType(ResourceWatcherConnection* conn, const QString& type);
 
-        QSet<QUrl> getTypes(const Soprano::Node& res) const;
-
         /// called by changeProperty
         void changeTypes(const QUrl& res, const QSet<QUrl> &resTypes, const QSet<QUrl> &addedTypes, const QSet<QUrl> &removedTypes);
 
@@ -111,6 +110,7 @@ namespace Nepomuk2 {
         QMultiHash<QUrl, ResourceWatcherConnection*> m_typeHash;
         QSet<ResourceWatcherConnection*> m_watchAllConnections;
 
+        mutable QMutex m_mutex;
         // only used to generate unique dbus paths
         int m_connectionCount;
 

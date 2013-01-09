@@ -22,6 +22,7 @@
 
 #include "resourcemanager.h"
 #include "resource.h"
+#include "resultiterator.h"
 
 #include <Soprano/Version>
 #include <Soprano/Model>
@@ -49,10 +50,12 @@
 #include <QtCore/QStringList>
 
 
-Nepomuk2::Query::SearchRunnable::SearchRunnable( Soprano::Model* model, Nepomuk2::Query::Folder* folder )
+Nepomuk2::Query::SearchRunnable::SearchRunnable( Soprano::Model* model, const QString& sparqlQuery, const Nepomuk2::Query::RequestPropertyMap& map )
     : QRunnable(),
       m_model( model ),
-      m_folder( folder )
+      m_sparqlQuery( sparqlQuery ),
+      m_requestPropertyMap( map ),
+      m_cancelled( false )
 {
 }
 
@@ -64,89 +67,30 @@ Nepomuk2::Query::SearchRunnable::~SearchRunnable()
 
 void Nepomuk2::Query::SearchRunnable::cancel()
 {
-    // "detach" us from the folder which will most likely be deleted now
-    QMutexLocker lock( &m_folderMutex );
-    m_folder = 0;
+    m_cancelled = true;
 }
 
 
 void Nepomuk2::Query::SearchRunnable::run()
 {
-    QMutexLocker lock( &m_folderMutex );
-    if( !m_folder )
-        return;
-    kDebug() << m_folder->query() << m_folder->sparqlQuery();
-    const QString sparql = m_folder->sparqlQuery();
-    lock.unlock();
+    kDebug() << m_sparqlQuery;
 
 #ifndef NDEBUG
     QTime time;
     time.start();
 #endif
 
-    Soprano::QueryResultIterator hits = m_model->executeQuery( sparql, Soprano::Query::QueryLanguageSparql );
-    while ( m_folder &&
-            hits.next() ) {
-        Result result = extractResult( hits );
+    ResultIterator hits( m_sparqlQuery, m_requestPropertyMap );
+    while ( !m_cancelled && hits.next() ) {
+        Result result = hits.result();
 
         kDebug() << "Found result:" << result.resource().uri() << result.score();
-
-        lock.relock();
-        if( m_folder ) {
-            QList<Nepomuk2::Query::Result> results;
-            results << result;
-            QMetaObject::invokeMethod( m_folder, "addResults", Qt::QueuedConnection, Q_ARG( QList<Nepomuk2::Query::Result>, results ) );
-        }
-        lock.unlock();
+        emit newResult( result );
     }
 
 #ifndef NDEBUG
-    kDebug() << time.elapsed();
+    kDebug() << "Query Time:" << time.elapsed()/1000.0 << "seconds";
 #endif
 
-    lock.relock();
-    if( m_folder ) {
-        QMetaObject::invokeMethod( m_folder, "listingFinished", Qt::QueuedConnection );
-    }
-}
-
-
-Nepomuk2::Query::Result Nepomuk2::Query::SearchRunnable::extractResult( const Soprano::QueryResultIterator& it ) const
-{
-    Result result( Resource::fromResourceUri( it[0].uri() ) );
-
-    // make sure we do not store values twice
-    QStringList names = it.bindingNames();
-    names.removeAll( QLatin1String( "r" ) );
-
-    m_folderMutex.lock();
-    if( m_folder ) {
-        RequestPropertyMap requestProperties = m_folder->requestPropertyMap();
-        for ( RequestPropertyMap::const_iterator rpIt = requestProperties.constBegin();
-             rpIt != requestProperties.constEnd(); ++rpIt ) {
-            result.addRequestProperty( rpIt.value(), it.binding( rpIt.key() ) );
-            names.removeAll( rpIt.key() );
-        }
-    }
-    m_folderMutex.unlock();
-
-    static const char* s_scoreVarName = "_n_f_t_m_s_";
-    static const char* s_excerptVarName = "_n_f_t_m_ex_";
-
-    Soprano::BindingSet set;
-    int score = 0;
-    Q_FOREACH( const QString& var, names ) {
-        if ( var == QLatin1String( s_scoreVarName ) )
-            score = it[var].literal().toInt();
-        else if ( var == QLatin1String( s_excerptVarName ) )
-            result.setExcerpt( it[var].toString() );
-        else
-            set.insert( var, it[var] );
-    }
-
-    result.setAdditionalBindings( set );
-    result.setScore( ( double )score );
-
-    // score will be set above
-    return result;
+    emit listingFinished();
 }

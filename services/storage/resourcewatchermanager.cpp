@@ -22,6 +22,7 @@
 #include "resourcewatchermanager.h"
 #include "resourcewatcherconnection.h"
 #include "datamanagementmodel.h"
+#include "typecache.h"
 
 #include <Soprano/Statement>
 #include <Soprano/StatementIterator>
@@ -100,6 +101,7 @@ bool hashContainsAtLeastOneOf(Nepomuk2::ResourceWatcherConnection* con, const QS
 Nepomuk2::ResourceWatcherManager::ResourceWatcherManager(DataManagementModel* parent)
     : QObject(parent),
       m_model(parent),
+      m_mutex( QMutex::Recursive ),
       m_connectionCount(0)
 {
     QDBusConnection::sessionBus().registerObject("/resourcewatcher", this, QDBusConnection::ExportScriptableSlots|QDBusConnection::ExportScriptableSignals);
@@ -109,6 +111,7 @@ Nepomuk2::ResourceWatcherManager::~ResourceWatcherManager()
 {
     // the connections call removeConnection() from their descrutors. Thus,
     // we need to clean them up before we are deleted ourselves
+    QMutexLocker locker( &m_mutex );
     QSet<ResourceWatcherConnection*> allConnections
             = QSet<ResourceWatcherConnection*>::fromList(m_resHash.values())
             + QSet<ResourceWatcherConnection*>::fromList(m_propHash.values())
@@ -120,6 +123,7 @@ Nepomuk2::ResourceWatcherManager::~ResourceWatcherManager()
 
 void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUrl &property, const QList<Soprano::Node> &addedValues, const QList<Soprano::Node> &removedValues)
 {
+    QMutexLocker locker( &m_mutex );
 //    kDebug() << res << property << addedValues << removedValues;
 
     //
@@ -127,7 +131,7 @@ void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUr
     //
     QSet<QUrl> types;
     if(!m_typeHash.isEmpty()) {
-        types = getTypes(res);
+        types = m_model->typeCache()->types( res ).toSet();
     }
 
 
@@ -231,6 +235,7 @@ void Nepomuk2::ResourceWatcherManager::changeProperty(const QMultiHash< QUrl, So
                                                      const QUrl& property,
                                                      const QList<Soprano::Node>& nodes)
 {
+    QMutexLocker locker( &m_mutex );
     QList<QUrl> uniqueKeys = oldValues.keys();
     foreach( const QUrl resUri, uniqueKeys ) {
         const QList<Soprano::Node> old = oldValues.values( resUri );
@@ -240,6 +245,7 @@ void Nepomuk2::ResourceWatcherManager::changeProperty(const QMultiHash< QUrl, So
 
 void Nepomuk2::ResourceWatcherManager::createResource(const QUrl &uri, const QList<QUrl> &types)
 {
+    QMutexLocker locker( &m_mutex );
     QSet<ResourceWatcherConnection*> connections(m_watchAllConnections);
     foreach(const QUrl& type, types) {
         foreach(ResourceWatcherConnection* con, m_typeHash.values( type )) {
@@ -258,9 +264,10 @@ void Nepomuk2::ResourceWatcherManager::createResource(const QUrl &uri, const QLi
 
 void Nepomuk2::ResourceWatcherManager::removeResource(const QUrl &res, const QList<QUrl>& _types)
 {
-    QSet<QUrl> types(_types.toSet());
+    QMutexLocker locker( &m_mutex );
+    QList<QUrl> types(_types);
     if(!m_typeHash.isEmpty()) {
-        types = getTypes(res);
+        types = m_model->typeCache()->types( res );
     }
 
     QSet<ResourceWatcherConnection*> connections(m_watchAllConnections);
@@ -284,6 +291,7 @@ void Nepomuk2::ResourceWatcherManager::removeResource(const QUrl &res, const QLi
 
 void Nepomuk2::ResourceWatcherManager::changeSomething()
 {
+    QMutexLocker locker( &m_mutex );
     // make sure we emit from the correct thread through a queued connection
     QMetaObject::invokeMethod(this, "somethingChanged");
 }
@@ -292,6 +300,7 @@ Nepomuk2::ResourceWatcherConnection* Nepomuk2::ResourceWatcherManager::createCon
                                                                                       const QList<QUrl> &properties,
                                                                                       const QList<QUrl> &types)
 {
+    QMutexLocker locker( &m_mutex );
     kDebug() << resources << properties << types;
 
     ResourceWatcherConnection* con = new ResourceWatcherConnection( this );
@@ -318,6 +327,7 @@ QDBusObjectPath Nepomuk2::ResourceWatcherManager::watch(const QStringList& resou
                                                        const QStringList& properties,
                                                        const QStringList& types)
 {
+    QMutexLocker locker( &m_mutex );
     kDebug() << resources << properties << types;
 
     if(ResourceWatcherConnection* con = createConnection(convertUris(resources), convertUris(properties), convertUris(types))) {
@@ -343,6 +353,7 @@ namespace {
 
 void Nepomuk2::ResourceWatcherManager::removeConnection(Nepomuk2::ResourceWatcherConnection *con)
 {
+    QMutexLocker locker( &m_mutex );
     removeConnectionFromHash( m_resHash, con );
     removeConnectionFromHash( m_propHash, con );
     removeConnectionFromHash( m_typeHash, con );
@@ -351,6 +362,7 @@ void Nepomuk2::ResourceWatcherManager::removeConnection(Nepomuk2::ResourceWatche
 
 void Nepomuk2::ResourceWatcherManager::setResources(Nepomuk2::ResourceWatcherConnection *conn, const QStringList &resources)
 {
+    QMutexLocker locker( &m_mutex );
     const QSet<QUrl> newRes = convertUris(resources).toSet();
     const QSet<QUrl> oldRes = m_resHash.keys(conn).toSet();
 
@@ -374,12 +386,14 @@ void Nepomuk2::ResourceWatcherManager::setResources(Nepomuk2::ResourceWatcherCon
 
 void Nepomuk2::ResourceWatcherManager::addResource(Nepomuk2::ResourceWatcherConnection *conn, const QString &resource)
 {
+    QMutexLocker locker( &m_mutex );
     m_resHash.insert(convertUri(resource), conn);
     m_watchAllConnections.remove(conn);
 }
 
 void Nepomuk2::ResourceWatcherManager::removeResource(Nepomuk2::ResourceWatcherConnection *conn, const QString &resource)
 {
+    QMutexLocker locker( &m_mutex );
     m_resHash.remove(convertUri(resource), conn);
     if(!m_resHash.values().contains(conn) &&
        !m_propHash.values().contains(conn) &&
@@ -390,6 +404,7 @@ void Nepomuk2::ResourceWatcherManager::removeResource(Nepomuk2::ResourceWatcherC
 
 void Nepomuk2::ResourceWatcherManager::setProperties(Nepomuk2::ResourceWatcherConnection *conn, const QStringList &properties)
 {
+    QMutexLocker locker( &m_mutex );
     const QSet<QUrl> newprop = convertUris(properties).toSet();
     const QSet<QUrl> oldprop = m_propHash.keys(conn).toSet();
 
@@ -413,12 +428,14 @@ void Nepomuk2::ResourceWatcherManager::setProperties(Nepomuk2::ResourceWatcherCo
 
 void Nepomuk2::ResourceWatcherManager::addProperty(Nepomuk2::ResourceWatcherConnection *conn, const QString &property)
 {
+    QMutexLocker locker( &m_mutex );
     m_propHash.insert(convertUri(property), conn);
     m_watchAllConnections.remove(conn);
 }
 
 void Nepomuk2::ResourceWatcherManager::removeProperty(Nepomuk2::ResourceWatcherConnection *conn, const QString &property)
 {
+    QMutexLocker locker( &m_mutex );
     m_propHash.remove(convertUri(property), conn);
     if(!m_resHash.values().contains(conn) &&
        !m_propHash.values().contains(conn) &&
@@ -429,6 +446,7 @@ void Nepomuk2::ResourceWatcherManager::removeProperty(Nepomuk2::ResourceWatcherC
 
 void Nepomuk2::ResourceWatcherManager::setTypes(Nepomuk2::ResourceWatcherConnection *conn, const QStringList &types)
 {
+    QMutexLocker locker( &m_mutex );
     const QSet<QUrl> newtype = convertUris(types).toSet();
     const QSet<QUrl> oldtype = m_typeHash.keys(conn).toSet();
 
@@ -452,12 +470,14 @@ void Nepomuk2::ResourceWatcherManager::setTypes(Nepomuk2::ResourceWatcherConnect
 
 void Nepomuk2::ResourceWatcherManager::addType(Nepomuk2::ResourceWatcherConnection *conn, const QString &type)
 {
+    QMutexLocker locker( &m_mutex );
     m_typeHash.insert(convertUri(type), conn);
     m_watchAllConnections.remove(conn);
 }
 
 void Nepomuk2::ResourceWatcherManager::removeType(Nepomuk2::ResourceWatcherConnection *conn, const QString &type)
 {
+    QMutexLocker locker( &m_mutex );
     m_typeHash.remove(convertUri(type), conn);
     if(!m_resHash.values().contains(conn) &&
        !m_propHash.values().contains(conn) &&
@@ -466,19 +486,10 @@ void Nepomuk2::ResourceWatcherManager::removeType(Nepomuk2::ResourceWatcherConne
     }
 }
 
-QSet<QUrl> Nepomuk2::ResourceWatcherManager::getTypes(const Soprano::Node &res) const
-{
-    QSet<QUrl> types;
-    Soprano::NodeIterator it = m_model->listStatements(res, RDF::type(), Soprano::Node()).iterateObjects();
-    while(it.next()) {
-        types.insert(it.current().uri());
-    }
-    return types;
-}
-
 // FIXME: also take super-classes into account
 void Nepomuk2::ResourceWatcherManager::changeTypes(const QUrl &res, const QSet<QUrl>& resTypes, const QSet<QUrl> &addedTypes, const QSet<QUrl> &removedTypes)
 {
+    QMutexLocker locker( &m_mutex );
     // first collect all the connections we need to emit the signals for
     QSet<ResourceWatcherConnection*> addConnections(m_watchAllConnections), removeConnections(m_watchAllConnections);
 
@@ -555,6 +566,7 @@ void Nepomuk2::ResourceWatcherManager::changeTypes(const QUrl &res, const QSet<Q
 
 bool Nepomuk2::ResourceWatcherManager::connectionWatchesOneType(Nepomuk2::ResourceWatcherConnection *con, const QSet<QUrl> &types) const
 {
+    QMutexLocker locker( &m_mutex );
     return !m_typeHash.values().contains(con) || hashContainsAtLeastOneOf(con, types, m_typeHash);
 }
 
