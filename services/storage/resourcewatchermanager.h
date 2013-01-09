@@ -97,8 +97,6 @@ namespace Nepomuk2 {
         void addType(ResourceWatcherConnection* conn, const QString& type);
         void removeType(ResourceWatcherConnection* conn, const QString& type);
 
-        QSet<QUrl> getTypes(const Soprano::Node& res) const;
-
         /// called by changeProperty
         void changeTypes(const QUrl& res, const QSet<QUrl> &resTypes, const QSet<QUrl> &addedTypes, const QSet<QUrl> &removedTypes);
 

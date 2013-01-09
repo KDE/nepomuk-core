@@ -22,6 +22,7 @@
 #include "resourcewatchermanager.h"
 #include "resourcewatcherconnection.h"
 #include "datamanagementmodel.h"
+#include "typecache.h"
 
 #include <Soprano/Statement>
 #include <Soprano/StatementIterator>
@@ -130,7 +131,7 @@ void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUr
     //
     QSet<QUrl> types;
     if(!m_typeHash.isEmpty()) {
-        types = getTypes(res);
+        types = m_model->typeCache()->types( res ).toSet();
     }
 
 
@@ -264,9 +265,9 @@ void Nepomuk2::ResourceWatcherManager::createResource(const QUrl &uri, const QLi
 void Nepomuk2::ResourceWatcherManager::removeResource(const QUrl &res, const QList<QUrl>& _types)
 {
     QMutexLocker locker( &m_mutex );
-    QSet<QUrl> types(_types.toSet());
+    QList<QUrl> types(_types);
     if(!m_typeHash.isEmpty()) {
-        types = getTypes(res);
+        types = m_model->typeCache()->types( res );
     }
 
     QSet<ResourceWatcherConnection*> connections(m_watchAllConnections);
@@ -483,16 +484,6 @@ void Nepomuk2::ResourceWatcherManager::removeType(Nepomuk2::ResourceWatcherConne
        !m_typeHash.values().contains(conn)) {
         m_watchAllConnections << conn;
     }
-}
-
-QSet<QUrl> Nepomuk2::ResourceWatcherManager::getTypes(const Soprano::Node &res) const
-{
-    QSet<QUrl> types;
-    Soprano::NodeIterator it = m_model->listStatements(res, RDF::type(), Soprano::Node()).iterateObjects();
-    while(it.next()) {
-        types.insert(it.current().uri());
-    }
-    return types;
 }
 
 // FIXME: also take super-classes into account

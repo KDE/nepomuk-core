@@ -1257,8 +1257,9 @@ void ResourceWatcherTest::testMergeResources()
     QCOMPARE( wRemoveSpy.count(), 1 );
     args = wRemoveSpy.takeFirst();
     QCOMPARE( args[0].toUrl(), voldUri );
-    QCOMPARE( args[1].toList().size(), 1 );
-    QCOMPARE( args[1].toList().first().toUrl(), NCO::Contact() );
+    QCOMPARE( args[1].toList().size(), 2 );
+    QVERIFY( args[1].toList().contains( NCO::Contact() ) );
+    QVERIFY( args[1].toList().contains( RDFS::Resource() ) );
 
     QCOMPARE( personCreateSpy.count(), 0 );
 
