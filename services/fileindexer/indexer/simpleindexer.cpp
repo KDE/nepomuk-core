@@ -91,20 +91,6 @@ void Nepomuk2::SimpleIndexingJob::start()
     // Indexing Level
     m_res.setProperty(KExt::indexingLevel(), 1);
 
-#ifdef Q_OS_UNIX
-    KDE_struct_stat statBuf;
-    if( KDE_stat( QFile::encodeName(fileInfo.absoluteFilePath()).data(), &statBuf ) == 0 ) {
-        m_res.setProperty( KExt::unixFileMode(), int(statBuf.st_mode) );
-    }
-
-    if( !fileInfo.owner().isEmpty() ) {
-        m_res.setProperty( KExt::unixFileOwner(), fileInfo.owner() );
-    }
-    if( !fileInfo.group().isEmpty() ) {
-        m_res.setProperty( KExt::unixFileGroup(), fileInfo.group() );
-    }
-#endif // Q_OS_UNIX
-
     QHash<QUrl, QVariant> additionalMetadata;
     additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
 
