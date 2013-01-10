@@ -643,7 +643,6 @@ Nepomuk2::Query::Query Nepomuk2::Query::Query::fromQueryUrl( const KUrl& url )
     }
     else {
         Query query = QueryParser::parseQuery( extractPlainQuery(url) );
-        query.setRequestProperties( QList<RequestProperty>() << Nepomuk2::Query::Query::RequestProperty( Nepomuk2::Vocabulary::NIE::url(), true ) );
         return query;
     }
 }
