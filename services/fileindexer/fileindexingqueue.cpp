@@ -104,6 +104,16 @@ void FileIndexingQueue::clear()
     m_fileQueue.clear();
 }
 
+void FileIndexingQueue::clear(const QString& path)
+{
+    QMutableListIterator<QUrl> it( m_fileQueue );
+    while( it.hasNext() ) {
+        if( it.next().toLocalFile().startsWith( path ) )
+            it.remove();
+    }
+}
+
+
 QUrl FileIndexingQueue::currentUrl()
 {
     return m_currentUrl;

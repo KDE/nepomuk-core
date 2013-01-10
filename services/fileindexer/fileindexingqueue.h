@@ -37,6 +37,7 @@ namespace Nepomuk2 {
         virtual void fillQueue();
 
         void clear();
+        void clear( const QString& path );
         QUrl currentUrl();
 
     public slots:

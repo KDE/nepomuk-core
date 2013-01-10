@@ -52,6 +52,24 @@ void BasicIndexingQueue::clear()
     m_iterators.clear();
 }
 
+void BasicIndexingQueue::clear(const QString& path)
+{
+    QMutableListIterator< QPair<QString, UpdateDirFlags> > it( m_paths );
+    while( it.hasNext() ) {
+        it.next();
+        if( it.value().first.startsWith( path ) )
+            it.remove();
+    }
+
+    QMutableListIterator< QPair<QDirIterator*, UpdateDirFlags> > iter( m_iterators );
+    while( iter.hasNext() ) {
+        QDirIterator* dirIter =  iter.next().first;
+
+        if( dirIter->filePath().startsWith( path ) )
+            iter.remove();
+    }
+}
+
 QUrl BasicIndexingQueue::currentUrl() const
 {
     return m_currentUrl;
@@ -78,6 +96,7 @@ void BasicIndexingQueue::enqueue(const QString& path)
 
 void BasicIndexingQueue::enqueue(const QString& path, UpdateDirFlags flags)
 {
+    kDebug() << path;
     bool wasEmpty = m_paths.empty();
     m_paths.enqueue( qMakePair( path, flags ) );
     callForNextIteration();

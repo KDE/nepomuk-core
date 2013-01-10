@@ -380,5 +380,10 @@ bool Nepomuk2::FileIndexerConfig::isDebugModeEnabled() const
     return m_config.group( "General" ).readEntry( "debug mode", false );
 }
 
+Nepomuk2::RemovableMediaCache* Nepomuk2::FileIndexerConfig::removableMediaCache()
+{
+    return m_removableMediaCache;
+}
+
 
 #include "fileindexerconfig.moc"

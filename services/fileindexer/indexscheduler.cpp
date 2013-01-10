@@ -58,6 +58,11 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     connect( FileIndexerConfig::self(), SIGNAL( configChanged() ),
              this, SLOT( slotConfigChanged() ) );
 
+    // Stop indexing when a device is unmounted
+    RemovableMediaCache* cache = FileIndexerConfig::self()->removableMediaCache();
+    connect( cache, SIGNAL(deviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry*)),
+             this, SLOT(slotTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry*)) );
+
     m_basicIQ = new BasicIndexingQueue( this );
     m_fileIQ = new FileIndexingQueue( this );
 
@@ -293,6 +298,20 @@ void Nepomuk2::IndexScheduler::slotEndIndexingFile(const QUrl&)
     if( basicUrl.isEmpty() && fileUrl.isEmpty() ) {
         setIndexingStarted( false );
     }
+}
+
+void Nepomuk2::IndexScheduler::slotTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry)
+{
+    const QString path = entry->mountPath();
+    QMutableListIterator< QPair<QString, UpdateDirFlags> > it( m_foldersToQueue );
+    while( it.hasNext() ) {
+        it.next();
+        if( it.value().first.startsWith( path ) )
+            it.remove();
+    }
+
+    m_basicIQ->clear( path );
+    m_fileIQ->clear( path );
 }
 
 

@@ -21,6 +21,7 @@
 #define _NEPOMUK_FILEINDEXER_INDEX_SCHEDULER_H_
 
 #include "basicindexingqueue.h" // Required for UpdateDirFlags
+#include "removablemediacache.h"
 
 namespace Nepomuk2 {
 
@@ -124,6 +125,7 @@ namespace Nepomuk2 {
         // Event Monitor integration
         void slotScheduleIndexing();
 
+        void slotTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry);
     private:
         void queueAllFoldersForUpdate( bool forceUpdate = false );
 

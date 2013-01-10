@@ -169,6 +169,8 @@ namespace Nepomuk2 {
          */
         bool isDebugModeEnabled() const;
 
+        RemovableMediaCache* removableMediaCache();
+
     Q_SIGNALS:
         void configChanged();
 
