@@ -1,5 +1,6 @@
 /* This file is part of the KDE Project
    Copyright (c) 2007-2011 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2012-2013 Vishesh Handa <me@vhanda.in>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -342,36 +343,54 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
     // tell the file indexer to update the newly mounted device
     //
     KConfig fileIndexerConfig( "nepomukstrigirc" );
+    const QByteArray devGroupName( "Device-" + entry->url().toUtf8() );
     int index = 0;
+    // Old-format -> port to new format
     if(fileIndexerConfig.group("Devices").hasKey(entry->url())) {
-        index = fileIndexerConfig.group("Devices").readEntry(entry->url(), false) ? 1 : -1;
+        KConfigGroup devicesGroup = fileIndexerConfig.group( "Devices" );
+        index = devicesGroup.readEntry(entry->url(), false) ? 1 : -1;
+        devicesGroup.deleteEntry( entry->url() );
+
+        KConfigGroup devGroup = fileIndexerConfig.group( devGroupName );
+        if( index == 1 )
+            devGroup.writeEntry( "folders", QStringList() << entry->mountPath() );
+        else if( index == -1 )
+            devGroup.writeEntry( "exclude folders", QStringList() << entry->mountPath() );
+
+        // TODO: Migrate the existing data as well?
+    }
+
+    // Already exists
+    else if( fileIndexerConfig.hasGroup( devGroupName ) ) {
+        // Inform the indexer to start the indexing process
+        // TODO: How do you handle the exclude folders as well?
+        //       Need some way to tell the file indexer to reparse the entire config
+
+        /*
+        org::kde::nepomuk::FileIndexer fileIndexer( "org.kde.nepomuk.services.nepomukfileindexer", "/nepomukfileindexer", QDBusConnection::sessionBus() );
+        if ( fileIndexer.isValid() ) {
+            const QStringList folders = fileIndexerConfig.group( devGroupName ).readEntry("folders", QStringList());
+            foreach( const QString& folder, folders ) {
+            }
+        }
+        */
+        index = 1;
     }
 
     const bool indexNewlyMounted = fileIndexerConfig.group( "RemovableMedia" ).readEntry( "index newly mounted", false );
     const bool askIndividually = fileIndexerConfig.group( "RemovableMedia" ).readEntry( "ask user", false );
 
     if( index == 0 && indexNewlyMounted && !askIndividually ) {
-        index = 1;
-    }
+        KConfigGroup deviceGroup = fileIndexerConfig.group( "Device-" + entry->url() );
+        deviceGroup.writeEntry( "folders", QStringList() << entry->mountPath() );
 
-    // index automatically
-    if( index == 1 ) {
-        kDebug() << "Device configured for automatic indexing. Calling the file indexer service.";
-        org::kde::nepomuk::FileIndexer fileIndexer( "org.kde.nepomuk.services.nepomukfileindexer", "/nepomukfileindexer", QDBusConnection::sessionBus() );
-        if ( fileIndexer.isValid() ) {
-            fileIndexer.indexFolder( entry->mountPath(), true /* recursive */, false /* no forced update */ );
-        }
+        index = 1;
     }
 
     // ask the user if we should index
     else if( index == 0 && indexNewlyMounted && askIndividually ) {
         kDebug() << "Device unknown. Asking user for action.";
         (new RemovableDeviceIndexNotification(entry, this))->sendEvent();
-    }
-
-    else {
-        // TODO: remove all the indexed info
-        kDebug() << "Device configured to not be indexed.";
     }
 
     //

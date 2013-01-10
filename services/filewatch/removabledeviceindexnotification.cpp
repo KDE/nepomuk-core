@@ -57,18 +57,19 @@ RemovableDeviceIndexNotification::RemovableDeviceIndexNotification(const Nepomuk
 void RemovableDeviceIndexNotification::slotActionDoIndexActivated()
 {
     KConfig fileIndexerConfig( "nepomukstrigirc" );
-    fileIndexerConfig.group("Devices").writeEntry(m_medium->url(), true);
+    KConfigGroup group = fileIndexerConfig.group( QByteArray("Device-") + m_medium->url().toUtf8() );
+    group.writeEntry( "folders", m_medium->mountPath() );
 
-    org::kde::nepomuk::FileIndexer fileIndexer( "org.kde.nepomuk.services.nepomukfileindexer", "/nepomukfileindexer", QDBusConnection::sessionBus() );
-    fileIndexer.indexFolder( m_medium->mountPath(), true /* recursive */, false /* no forced update */ );
-
+    // We don't need to inform the fileindexer. The configuration file would have
+    // changed and the file indexer will update itself
     close();
 }
 
 void RemovableDeviceIndexNotification::slotActionDoNotIndexActivated()
 {
     KConfig fileIndexerConfig( "nepomukstrigirc" );
-    fileIndexerConfig.group("Devices").writeEntry(m_medium->url(), false);
+    KConfigGroup group = fileIndexerConfig.group( QByteArray("Device-") + m_medium->url().toUtf8() );
+    group.writeEntry( "exclude folders", m_medium->mountPath() );
 
     close();
 }
