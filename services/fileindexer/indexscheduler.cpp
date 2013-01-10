@@ -297,8 +297,11 @@ void Nepomuk2::IndexScheduler::slotEndIndexingFile(const QUrl&)
 
 void Nepomuk2::IndexScheduler::slotScheduleIndexing()
 {
-    if( m_state == State_Suspended )
+    if( m_state == State_Suspended ) {
+        m_basicIQ->suspend();
+        m_fileIQ->suspend();
         return;
+    }
 
     if( m_eventMonitor->isDiskSpaceLow() ) {
         kDebug() << "Disk Space";
