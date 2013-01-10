@@ -29,6 +29,7 @@
 #include <kio/global.h>
 
 #include "regexpcache.h"
+#include "removablemediacache.h"
 
 namespace Nepomuk2 {
     /**
@@ -203,6 +204,7 @@ namespace Nepomuk2 {
 
         /// Caching cleaned up list (no duplicates, no useless entries, etc.)
         QList<QPair<QString, bool> > m_folderCache;
+        RemovableMediaCache* m_removableMediaCache;
 
         /// cache of regexp objects for all exclude filters
         /// to prevent regexp parsing over and over

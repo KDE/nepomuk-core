@@ -1,5 +1,6 @@
 /* This file is part of the KDE Project
    Copyright (c) 2008-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2013      Vishesh Handa <me@vhanda.in>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -63,6 +64,11 @@ Nepomuk2::FileIndexerConfig::FileIndexerConfig(QObject* parent)
     connect( dirWatch, SIGNAL( created( const QString& ) ),
              this, SLOT( slotConfigDirty() ) );
     dirWatch->addFile( KStandardDirs::locateLocal( "config", m_config.name() ) );
+
+    // FIXME: This will probably be very very in-efficient
+    // We do not need the full power of the RemovableMediaCache, we just need to fetch
+    // the devices that are currently mouned
+    m_removableMediaCache = new RemovableMediaCache( this );
 
     forceConfigUpdate();
 }
@@ -302,12 +308,32 @@ void Nepomuk2::FileIndexerConfig::buildFolderCache()
 {
     QWriteLocker lock( &m_folderCacheMutex );
 
-    QStringList includeFoldersPlain = m_config.group( "General" ).readPathEntry( "folders", QStringList() << QDir::homePath() );
-    QStringList excludeFoldersPlain = m_config.group( "General" ).readPathEntry( "exclude folders", QStringList() );
+    //
+    // General folders
+    //
+    KConfigGroup group = m_config.group( "General" );
+    QStringList includeFoldersPlain = group.readPathEntry( "folders", QStringList() << QDir::homePath() );
+    QStringList excludeFoldersPlain = group.readPathEntry( "exclude folders", QStringList() );
 
     m_folderCache.clear();
     insertSortFolders( includeFoldersPlain, true, m_folderCache );
     insertSortFolders( excludeFoldersPlain, false, m_folderCache );
+
+    //
+    // Removable Media
+    //
+    QList<const RemovableMediaCache::Entry*> allMedia = m_removableMediaCache->allMedia();
+    foreach( const RemovableMediaCache::Entry* entry, allMedia ) {
+        QByteArray groupName = QByteArray("Device-") + entry->url().toUtf8();
+
+        KConfigGroup group = m_config.group( groupName );
+        QStringList includeFoldersPlain = group.readPathEntry( "folders", QStringList() );
+        QStringList excludeFoldersPlain = group.readPathEntry( "exclude folders", QStringList() );
+
+        insertSortFolders( includeFoldersPlain, true, m_folderCache );
+        insertSortFolders( excludeFoldersPlain, false, m_folderCache );
+    }
+
     cleanupList( m_folderCache );
 }
 
