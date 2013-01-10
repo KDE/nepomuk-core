@@ -3,6 +3,7 @@ Type=Service
 X-KDE-ServiceTypes=NepomukFileExtractor
 X-KDE-Library=nepomuktaglibextractor
 Name=Nepomuk TagLib Extractor
+Name[bs]=Nepomukovo TagLib Ekstrator
 Name[ca]=Extractor TagLib del Nepomuk
 Name[da]=Nepomuk TagLib-udtrækker
 Name[el]=Εξαγωγέας TagLib Nepomuk
