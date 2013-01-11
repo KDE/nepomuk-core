@@ -28,6 +28,7 @@
 #include <QtCore/QScopedArrayPointer>
 #include <QtCore/QLinkedList>
 #include <QtCore/QTimer>
+#include <QtCore/QPair>
 
 #include <kdebug.h>
 
@@ -77,7 +78,7 @@ public:
         close();
     }
 
-    QHash<int, QByteArray> cookies;
+    QHash<int, QPair<QByteArray, WatchFlags> > cookies;
     QTimer cookieExpireTimer;
 
     // url <-> wd mappings
@@ -372,13 +373,13 @@ void KInotify::slotEvent( int socket )
         }
         if ( event->mask & EventMoveFrom ) {
 //            kDebug() << path << "EventMoveFrom";
-            d->cookies[event->cookie] = path;
+            d->cookies[event->cookie] = qMakePair( path, WatchFlags( event->mask ) );
             d->cookieExpireTimer.start();
         }
         if ( event->mask & EventMoveTo ) {
             // check if we have a cookie for this one
             if ( d->cookies.contains( event->cookie ) ) {
-                const QByteArray oldPath = d->cookies.take(event->cookie);
+                const QByteArray oldPath = d->cookies.take(event->cookie).first;
 
                 // update the path cache
                 if( event->mask & IN_ISDIR ) {
@@ -440,12 +441,11 @@ void KInotify::slotEvent( int socket )
 
 void KInotify::slotClearCookies()
 {
-    QHashIterator<int, QByteArray> it( d->cookies );
+    QHashIterator<int, QPair<QByteArray, WatchFlags> > it( d->cookies );
     while( it.hasNext() ) {
         it.next();
-        removeWatch( it.value() );
-        // FIXME: Emit true for directories. How do we do this?
-        emit deleted( QFile::decodeName(it.value()), false );
+        removeWatch( it.value().first );
+        emit deleted( QFile::decodeName(it.value().first), it.value().second & IN_ISDIR );
     }
 
     d->cookies.clear();
