@@ -160,6 +160,13 @@ SimpleResourceGraph FFmpegExtractor::extract(const QUrl& resUri, const QUrl& fil
 
                 subRes.addProperty( NFO::aspectRatio(), aspectRatio );
                 subRes.addProperty( NFO::frameRate(), frameRate );
+
+                // Also add all of these to the main file resource
+                // It's easier to fetch them this way
+                fileRes.setProperty( NFO::width(), codec->width );
+                fileRes.setProperty( NFO::height(), codec->height );
+                fileRes.setProperty( NFO::aspectRatio(), aspectRatio );
+                fileRes.setProperty( NFO::frameRate(), frameRate );
             }
 
             fileRes.addProperty( NIE::hasPart(), subRes );
