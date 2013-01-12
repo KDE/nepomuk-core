@@ -38,7 +38,7 @@ namespace Nepomuk2 {
         virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType);
 
     private:
-        QString parseFirstPage(Poppler::Document* pdfDoc);
+        QString parseFirstPage(Poppler::Document* pdfDoc, const QUrl& fileUrl);
     };
 }
 
