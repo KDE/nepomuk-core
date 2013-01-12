@@ -174,13 +174,20 @@ namespace Nepomuk2 {
     Q_SIGNALS:
         void configChanged();
 
+        void includeFolderListChanged( const QStringList& added, const QStringList& removed );
+        void excludeFolderListChanged( const QStringList& added, const QStringList& removed );
+        void fileExcludeFiltersChanged();
+        void mimeTypeFiltersChanged();
+
     public Q_SLOTS:
         /**
          * Reread the config from disk and update the configuration cache.
          * This is only required for testing as normally the config updates
          * itself whenever the config file on disk changes.
+         *
+         * \return \c true if the config has actually changed
          */
-        void forceConfigUpdate();
+        bool forceConfigUpdate();
 
         /**
          * Should be called once the initial indexing is done, ie. all folders
@@ -198,9 +205,12 @@ namespace Nepomuk2 {
          * \p folder is set to the folder which was the reason for the descision.
          */
         bool folderInFolderList( const QString& path, QString& folder ) const;
-        void buildFolderCache();
-        void buildExcludeFilterRegExpCache();
-        void buildMimeTypeCache();
+
+        // These functions return true if the the new cache is different from the old one
+        // They also emit signals to indicate how they are different
+        bool buildFolderCache();
+        bool buildExcludeFilterRegExpCache();
+        bool buildMimeTypeCache();
 
         mutable KConfig m_config;
 
@@ -211,6 +221,7 @@ namespace Nepomuk2 {
         /// cache of regexp objects for all exclude filters
         /// to prevent regexp parsing over and over
         RegExpCache m_excludeFilterRegExpCache;
+        QSet<QString> m_prevFileFilters;
 
         /// A set of mimetypes which should never be indexed
         QSet<QString> m_excludeMimetypes;
@@ -219,6 +230,24 @@ namespace Nepomuk2 {
         mutable QReadWriteLock m_mimetypeMutex;
 
         static FileIndexerConfig* s_self;
+
+        //
+        // Use to save the previous data in order to inform clients of the changes
+        //
+        struct Entry {
+            QSet<QString> includes;
+            QSet<QString> excludes;
+        };
+        QHash<QByteArray, Entry> m_entries;
+
+        /**
+         * Emit folder changed signals for the entry.
+         * \p include new set of include directories
+         * \p exclude new set of exclude directories
+         *
+         * \return \c true if signals were emitted
+         */
+        bool emitFolderChangedSignals( const Entry& entry, const QSet<QString>& include, const QSet<QString> exclude );
     };
 }
 

@@ -113,7 +113,11 @@ namespace Nepomuk2 {
 
         void statusStringChanged();
     private Q_SLOTS:
-        void slotConfigChanged();
+        // Config
+        void slotConfigFiltersChanged();
+        void slotIncludeFolderListChanged(const QStringList& added, const QStringList& removed);
+        void slotExcludeFolderListChanged(const QStringList& added, const QStringList& removed);
+
         void slotCleaningDone();
 
         void slotBeginIndexingFile(const QUrl& url);
@@ -133,6 +137,8 @@ namespace Nepomuk2 {
         // no signal is emitted twice
         void setIndexingStarted( bool started );
 
+        void restartCleaner();
+
         bool m_indexing;
 
         IndexCleaner* m_cleaner;
@@ -148,7 +154,8 @@ namespace Nepomuk2 {
             State_OnBattery,
             State_UserIdle,
             State_LowDiskSpace,
-            State_Suspended
+            State_Suspended,
+            State_Cleaning
         };
         State m_state;
 

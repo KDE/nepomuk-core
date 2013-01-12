@@ -1,6 +1,6 @@
 /* This file is part of the KDE Project
    Copyright (c) 2008-2010 Sebastian Trueg <trueg@kde.org>
-   Copyright (c) 2010-12 Vishesh Handa <handa.vish@gmail.com>
+   Copyright (c) 2010-2013 Vishesh Handa <handa.vish@gmail.com>
 
    Parts of this file are based on code from Strigi
    Copyright (C) 2006-2007 Jos van den Oever <jos@vandenoever.info>
@@ -55,8 +55,17 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     connect( m_cleaner, SIGNAL(finished(KJob*)), this, SLOT(slotCleaningDone()) );
     m_cleaner->start();
 
-    connect( FileIndexerConfig::self(), SIGNAL( configChanged() ),
-             this, SLOT( slotConfigChanged() ) );
+    FileIndexerConfig* indexConfig = FileIndexerConfig::self();
+    connect( indexConfig, SIGNAL(includeFolderListChanged(QStringList,QStringList)),
+             this, SLOT(slotIncludeFolderListChanged(QStringList,QStringList)) );
+    connect( indexConfig, SIGNAL(excludeFolderListChanged(QStringList,QStringList)),
+             this, SLOT(slotExcludeFolderListChanged(QStringList,QStringList)) );
+
+    // FIXME: What if both the signals are emitted?
+    connect( indexConfig, SIGNAL(fileExcludeFiltersChanged()),
+             this, SLOT(slotConfigFiltersChanged()) );
+    connect( indexConfig, SIGNAL(mimeTypeFiltersChanged()),
+             this, SLOT(slotConfigFiltersChanged()) );
 
     // Stop indexing when a device is unmounted
     RemovableMediaCache* cache = FileIndexerConfig::self()->removableMediaCache();
@@ -216,7 +225,8 @@ void Nepomuk2::IndexScheduler::slotCleaningDone()
         m_basicIQ->enqueue( pair.first, pair.second );
     }
 
-    m_fileIQ->start();
+    m_state = State_Normal;
+    slotScheduleIndexing();
 }
 
 void Nepomuk2::IndexScheduler::updateDir( const QString& path, UpdateDirFlags flags )
@@ -251,25 +261,68 @@ void Nepomuk2::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
 }
 
 
-void Nepomuk2::IndexScheduler::slotConfigChanged()
+void Nepomuk2::IndexScheduler::slotIncludeFolderListChanged(const QStringList& added, const QStringList& removed)
+{
+    kDebug() << added << removed;
+    foreach( const QString& path, removed ) {
+        m_basicIQ->clear( path );
+        m_fileIQ->clear( path );
+    }
+
+    restartCleaner();
+
+    foreach( const QString& path, added ) {
+        if( m_cleaner )
+            m_foldersToQueue.append( qMakePair( path, UpdateDirFlags(UpdateRecursive) ) );
+        else
+            m_basicIQ->enqueue( path, UpdateRecursive );
+    }
+}
+
+void Nepomuk2::IndexScheduler::slotExcludeFolderListChanged(const QStringList& added, const QStringList& removed)
+{
+    kDebug() << added << removed;
+    foreach( const QString& path, added ) {
+        m_basicIQ->clear( path );
+        m_fileIQ->clear( path );
+    }
+
+    restartCleaner();
+
+    foreach( const QString& path, removed ) {
+        if( m_cleaner )
+            m_foldersToQueue.append( qMakePair( path, UpdateDirFlags(UpdateRecursive) ) );
+        else
+            m_basicIQ->enqueue( path, UpdateRecursive );
+    }
+}
+
+void Nepomuk2::IndexScheduler::restartCleaner()
 {
     if( m_cleaner ) {
         m_cleaner->kill();
         delete m_cleaner;
     }
 
-    // TODO: only clean the folders that were removed from the config
+    // TODO: only clean the filters that were changed from the config
     m_cleaner = new IndexCleaner( this );
     connect( m_cleaner, SIGNAL(finished(KJob*)), this, SLOT(slotCleaningDone()) );
     m_cleaner->start();
 
+    m_state = State_Cleaning;
+    slotScheduleIndexing();
+}
+
+
+void Nepomuk2::IndexScheduler::slotConfigFiltersChanged()
+{
+    restartCleaner();
+
+    // We need to this - there is no way to avoid it
     m_basicIQ->clear();
     m_fileIQ->clear();
 
-    // Make sure this is called after the cleaner has been created, otherwise
-    // both the tasks will happen in parallel
-    // TODO: only update folders that were added in the config
-    updateAll();
+    queueAllFoldersForUpdate();
 }
 
 
@@ -317,7 +370,8 @@ void Nepomuk2::IndexScheduler::slotTeardownRequested(const Nepomuk2::RemovableMe
 
 void Nepomuk2::IndexScheduler::slotScheduleIndexing()
 {
-    if( m_state == State_Suspended ) {
+    if( m_state == State_Suspended || m_state == State_Cleaning ) {
+        kDebug() << "Cleaning | Suspended";
         m_basicIQ->suspend();
         m_fileIQ->suspend();
         return;
