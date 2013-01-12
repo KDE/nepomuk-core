@@ -170,8 +170,10 @@ bool Nepomuk2::Indexer::fileIndex(const QUrl& uri, const QUrl& url, const QStrin
             return false;
         }
 
-        kDebug() << "Saving plain text content";
-        setNiePlainTextContent( uri, plainText );
+        if( plainText.length() ) {
+            kDebug() << "Saving plain text content";
+            setNiePlainTextContent( uri, plainText );
+        }
     }
 
     // Update the indexing level even if no data has changed
