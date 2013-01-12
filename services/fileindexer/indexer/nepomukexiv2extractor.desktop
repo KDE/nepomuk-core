@@ -3,7 +3,6 @@ Type=Service
 X-KDE-ServiceTypes=NepomukFileExtractor
 X-KDE-Library=nepomukexiv2extractor
 Name=Nepomuk Exiv2 Extractor
-Name[bs]=Nepomuk Exiv2 ekstraktor
 Name[ca]=Extractor Exiv2 del Nepomuk
 Name[da]=Nepomuk Exiv2-udtrækning
 Name[el]=Εξαγωγέας Exiv2 Nepomuk
