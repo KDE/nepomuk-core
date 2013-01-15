@@ -65,7 +65,6 @@ Nepomuk2::FileIndexerConfig::FileIndexerConfig(QObject* parent)
              this, SLOT( slotConfigDirty() ) );
     dirWatch->addFile( KStandardDirs::locateLocal( "config", m_config.name() ) );
 
-    m_removableMediaCache = new RemovableMediaCache( this );
     forceConfigUpdate();
 }
 
@@ -350,9 +349,10 @@ bool Nepomuk2::FileIndexerConfig::buildFolderCache()
     //
     // Removable Media
     //
-    QList<const RemovableMediaCache::Entry*> allMedia = m_removableMediaCache->allMedia();
-    foreach( const RemovableMediaCache::Entry* entry, allMedia ) {
-        QByteArray groupName = QByteArray("Device-") + entry->url().toUtf8();
+    QStringList groupList = m_config.groupList();
+    foreach( const QString& groupName, groupList ) {
+        if( !groupName.startsWith("Device-") )
+            continue;
 
         KConfigGroup group = m_config.group( groupName );
         QString mountPath = group.readEntry( "mount path", QString() );
@@ -451,11 +451,6 @@ bool Nepomuk2::FileIndexerConfig::suspendOnPowerSaveDisabled() const
 bool Nepomuk2::FileIndexerConfig::isDebugModeEnabled() const
 {
     return m_config.group( "General" ).readEntry( "debug mode", false );
-}
-
-Nepomuk2::RemovableMediaCache* Nepomuk2::FileIndexerConfig::removableMediaCache()
-{
-    return m_removableMediaCache;
 }
 
 

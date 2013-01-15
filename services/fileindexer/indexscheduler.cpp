@@ -68,7 +68,7 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
              this, SLOT(slotConfigFiltersChanged()) );
 
     // Stop indexing when a device is unmounted
-    RemovableMediaCache* cache = FileIndexerConfig::self()->removableMediaCache();
+    RemovableMediaCache* cache = new RemovableMediaCache( this );
     connect( cache, SIGNAL(deviceTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry*)),
              this, SLOT(slotTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry*)) );
 
