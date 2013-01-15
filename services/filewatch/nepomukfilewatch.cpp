@@ -369,17 +369,20 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
     // Already exists
     else if( fileIndexerConfig.hasGroup( devGroupName ) ) {
         // Inform the indexer to start the indexing process
-        // TODO: How do you handle the exclude folders as well?
-        //       Need some way to tell the file indexer to reparse the entire config
 
-        /*
         org::kde::nepomuk::FileIndexer fileIndexer( "org.kde.nepomuk.services.nepomukfileindexer", "/nepomukfileindexer", QDBusConnection::sessionBus() );
         if ( fileIndexer.isValid() ) {
-            const QStringList folders = fileIndexerConfig.group( devGroupName ).readEntry("folders", QStringList());
-            foreach( const QString& folder, folders ) {
+            KConfigGroup group = fileIndexerConfig.group( devGroupName );
+            const QString mountPath = group.readEntry( "mount path", QString() );
+            if( !mountPath.isEmpty() ) {
+                const QStringList folders = group.readPathEntry("folders", QStringList());
+                foreach( const QString& folder, folders ) {
+                    QString path = mountPath + folder;
+                    fileIndexer.indexFolder( path, true, false );
+                }
             }
         }
-        */
+
         index = 1;
     }
 
