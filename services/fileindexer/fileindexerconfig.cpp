@@ -355,8 +355,20 @@ bool Nepomuk2::FileIndexerConfig::buildFolderCache()
         QByteArray groupName = QByteArray("Device-") + entry->url().toUtf8();
 
         KConfigGroup group = m_config.group( groupName );
-        QStringList includeFoldersPlain = group.readPathEntry( "folders", QStringList() );
-        QStringList excludeFoldersPlain = group.readPathEntry( "exclude folders", QStringList() );
+        QString mountPath = group.readEntry( "mount path", QString() );
+        if( mountPath.isEmpty() )
+            continue;
+
+        QStringList includes = group.readPathEntry( "folders", QStringList() );
+        QStringList excludes = group.readPathEntry( "exclude folders", QStringList() );
+
+        QStringList includeFoldersPlain;
+        foreach( const QString& path, includes )
+            includeFoldersPlain << mountPath + path;
+
+        QStringList excludeFoldersPlain;
+        foreach( const QString& path, excludes )
+            excludeFoldersPlain << mountPath + path;
 
         insertSortFolders( includeFoldersPlain, true, m_folderCache );
         insertSortFolders( excludeFoldersPlain, false, m_folderCache );
@@ -365,7 +377,7 @@ bool Nepomuk2::FileIndexerConfig::buildFolderCache()
         QSet<QString> excludeSet = excludeFoldersPlain.toSet();
 
         Entry& cacheEntry = m_entries[ groupName ];
-        changed = changed || emitFolderChangedSignals( cacheEntry, includeFoldersPlain.toSet(), excludeFoldersPlain.toSet() );
+        changed = changed || emitFolderChangedSignals( cacheEntry, includeSet, excludeSet );
 
         cacheEntry.includes = includeSet;
         cacheEntry.excludes = excludeSet;

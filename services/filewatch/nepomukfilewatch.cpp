@@ -352,11 +352,13 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
         devicesGroup.deleteEntry( entry->url() );
 
         KConfigGroup devGroup = fileIndexerConfig.group( devGroupName );
+        devGroup.writeEntry( "mount path", entry->mountPath() );
         if( index == 1 )
-            devGroup.writeEntry( "folders", QStringList() << entry->mountPath() );
+            devGroup.writeEntry( "folders", QStringList() << QLatin1String("/") );
         else if( index == -1 )
-            devGroup.writeEntry( "exclude folders", QStringList() << entry->mountPath() );
+            devGroup.writeEntry( "exclude folders", QStringList() << QLatin1String("/") );
 
+        fileIndexerConfig.sync();
         // TODO: Migrate the existing data as well?
     }
 

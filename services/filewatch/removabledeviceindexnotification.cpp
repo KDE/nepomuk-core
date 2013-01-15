@@ -58,7 +58,8 @@ void RemovableDeviceIndexNotification::slotActionDoIndexActivated()
 {
     KConfig fileIndexerConfig( "nepomukstrigirc" );
     KConfigGroup group = fileIndexerConfig.group( QByteArray("Device-") + m_medium->url().toUtf8() );
-    group.writeEntry( "folders", m_medium->mountPath() );
+    group.writeEntry( "mount path", m_medium->mountPath() );
+    group.writePathEntry( "folders", QStringList() << QLatin1String("/") );
 
     // We don't need to inform the fileindexer. The configuration file would have
     // changed and the file indexer will update itself
@@ -69,7 +70,8 @@ void RemovableDeviceIndexNotification::slotActionDoNotIndexActivated()
 {
     KConfig fileIndexerConfig( "nepomukstrigirc" );
     KConfigGroup group = fileIndexerConfig.group( QByteArray("Device-") + m_medium->url().toUtf8() );
-    group.writeEntry( "exclude folders", m_medium->mountPath() );
+    group.writeEntry( "mount path", m_medium->mountPath() );
+    group.writePathEntry( "exclude folders", QStringList() << QLatin1String("/") );
 
     close();
 }
