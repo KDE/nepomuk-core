@@ -15,7 +15,6 @@ set(storage_SRCS
   ontologyloader.cpp
   ontologymanagermodel.cpp
   graphretriever.cpp
-  removablemediamodel.cpp
   datamanagementmodel.cpp
   datamanagementadaptor.cpp
   datamanagementcommand.cpp

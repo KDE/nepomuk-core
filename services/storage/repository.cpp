@@ -14,7 +14,6 @@
 
 #include "repository.h"
 #include "modelcopyjob.h"
-#include "removablemediamodel.h"
 #include "datamanagementmodel.h"
 #include "datamanagementadaptor.h"
 #include "classandpropertytree.h"
@@ -62,7 +61,6 @@ Nepomuk2::Repository::Repository( const QString& name )
       m_state( CLOSED ),
       m_model( 0 ),
       m_classAndPropertyTree( 0 ),
-      m_removableStorageModel( 0 ),
       m_inferenceModel( 0 ),
       m_dataManagementModel( 0 ),
       m_dataManagementAdaptor( 0 ),
@@ -101,9 +99,6 @@ void Nepomuk2::Repository::close()
 
     delete m_classAndPropertyTree;
     m_classAndPropertyTree = 0;
-
-    delete m_removableStorageModel;
-    m_removableStorageModel = 0;
 
     delete m_modelCopyJob;
     m_modelCopyJob = 0;
@@ -205,13 +200,9 @@ void Nepomuk2::Repository::open()
     // =================================
     m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
 
-    // create the RemovableMediaModel which does the transparent handling of removable mounts
-    // =================================
-    m_removableStorageModel = new Nepomuk2::RemovableMediaModel(m_model);
-
     // Create the Inference model which enables Virtuoso inference
     // =================================
-    m_inferenceModel = new VirtuosoInferenceModel(m_removableStorageModel);
+    m_inferenceModel = new VirtuosoInferenceModel(m_model);
 
     // create the DataManagementModel on top of everything
     // =================================
