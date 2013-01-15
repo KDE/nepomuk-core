@@ -25,6 +25,7 @@
 #include "removablemediacache.h"
 #include "fileindexerconfig.h"
 #include "activefilequeue.h"
+#include "removablemediadatamigrator.h"
 
 #ifdef BUILD_KINOTIFY
 #include "kinotify.h"
@@ -359,7 +360,10 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
             devGroup.writeEntry( "exclude folders", QStringList() << QLatin1String("/") );
 
         fileIndexerConfig.sync();
-        // TODO: Migrate the existing data as well?
+
+        // Migrate the existing filex data
+        RemovableMediaDataMigrator* migrator = new RemovableMediaDataMigrator( entry );
+        QThreadPool::globalInstance()->start( migrator );
     }
 
     // Already exists
