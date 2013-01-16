@@ -76,6 +76,7 @@ namespace Nepomuk2 {
         void enqueue(const QString& path, UpdateDirFlags flags);
 
         void clear();
+        void clear( const QString& path );
 
     protected:
         virtual void processNextIteration();

@@ -85,7 +85,17 @@ public:
                 m_socketConnectFailed = false;
                 kDebug() << "Connected :)";
 
-                if( !localSocketModel )
+                // FIXME: This results in a slight memory leak
+                // Always recreate the model - We need to do this cause Soprano has this concept
+                // of multiple models where each model name is mapped to an id.
+                // Normally, when calling init() again, it is fine to not re-create the model
+                // since nothing has really changed.
+                // However, when the storage service is restarted, we need to recreate the model
+                // so as to make the storage service map the name "main" to this id, and
+                // inform the client about it. We cannot keep using the old ID.
+                // ( The IDs are randomly generated, so there is no chance of reusing the last id )
+                //
+                //if( !localSocketModel )
                     localSocketModel = localSocketClient.createModel( "main" );
             }
             else {

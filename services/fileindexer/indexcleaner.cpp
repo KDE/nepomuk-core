@@ -243,14 +243,15 @@ void Nepomuk2::IndexCleaner::clearNextBatch()
 {
     QList<QUrl> resources;
     Soprano::QueryResultIterator it
-            = ResourceManager::instance()->mainModel()->executeQuery( m_query, Soprano::Query::QueryLanguageSparql );
+            = ResourceManager::instance()->mainModel()->executeQuery( m_query, Soprano::Query::QueryLanguageSparqlNoInference );
     while( it.next() ) {
         resources << it[0].uri();
     }
 
     if( !resources.isEmpty() ) {
+        kDebug() << resources;
         KJob* job = Nepomuk2::clearIndexedData(resources);
-        connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotRemoveResourcesDone(KJob*)), Qt::DirectConnection );
+        connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotRemoveResourcesDone(KJob*)), Qt::QueuedConnection );
     }
 
     else if( !m_removalQueries.isEmpty() ) {

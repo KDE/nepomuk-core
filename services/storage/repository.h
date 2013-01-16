@@ -99,7 +99,6 @@ namespace Nepomuk2 {
 
         Soprano::Model* m_model;
         Nepomuk2::ClassAndPropertyTree* m_classAndPropertyTree;
-        RemovableMediaModel* m_removableStorageModel;
         VirtuosoInferenceModel* m_inferenceModel;
         DataManagementModel* m_dataManagementModel;
         Nepomuk2::DataManagementAdaptor* m_dataManagementAdaptor;

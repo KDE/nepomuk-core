@@ -8,20 +8,6 @@ include_directories(
   ${libnepomukcore_BINARY_DIR}
   )
 
-kde4_add_unit_test(removablemediamodeltest
-  removablemediamodeltest.cpp
-  ../removablemediamodel.cpp
-)
-add_definitions(-DFAKE_COMPUTER_XML="\\"${CMAKE_CURRENT_SOURCE_DIR}/solid/fakecomputer.xml\\"")
-target_link_libraries(removablemediamodeltest
-  ${QT_QTTEST_LIBRARY}
-  ${SOPRANO_LIBRARIES}
-  ${KDE4_KDECORE_LIBS}
-  ${KDE4_SOLID_LIBS}
-  nepomukcore
-  nepomukcommon
-)
-
 set( DMTEST
   ../classandpropertytree.cpp
   ../datamanagementmodel.cpp

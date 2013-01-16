@@ -1,5 +1,6 @@
 /* This file is part of the KDE Project
    Copyright (c) 2008-2010 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2013      Vishesh Handa <me@vhanda.in>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -145,8 +146,8 @@ KIO::filesize_t Nepomuk2::FileIndexerConfig::minDiskSpace() const
 
 void Nepomuk2::FileIndexerConfig::slotConfigDirty()
 {
-    forceConfigUpdate();
-    emit configChanged();
+    if( forceConfigUpdate() )
+        emit configChanged();
 }
 
 
@@ -298,40 +299,138 @@ namespace {
 }
 
 
-void Nepomuk2::FileIndexerConfig::buildFolderCache()
+bool Nepomuk2::FileIndexerConfig::emitFolderChangedSignals(const Nepomuk2::FileIndexerConfig::Entry& entry,
+                                                           const QSet< QString >& include, const QSet< QString > exclude)
+{
+    QStringList includeAdded = QSet<QString>(include).subtract( entry.includes ).toList();
+    QStringList includeRemoved = QSet<QString>(entry.includes).subtract( include ).toList();
+
+    bool changed = false;
+    if( !includeAdded.isEmpty() || !includeRemoved.isEmpty() ) {
+        emit includeFolderListChanged( includeAdded, includeRemoved );
+        changed = true;
+    }
+
+    QStringList excludeAdded = QSet<QString>(exclude).subtract( entry.excludes ).toList();
+    QStringList excludeRemoved = QSet<QString>(entry.excludes).subtract( exclude ).toList();
+
+    if( !excludeAdded.isEmpty() || !excludeRemoved.isEmpty() ) {
+        emit excludeFolderListChanged( excludeAdded, excludeRemoved );
+        changed = true;
+    }
+
+    return changed;
+}
+
+bool Nepomuk2::FileIndexerConfig::buildFolderCache()
 {
     QWriteLocker lock( &m_folderCacheMutex );
 
-    QStringList includeFoldersPlain = m_config.group( "General" ).readPathEntry( "folders", QStringList() << QDir::homePath() );
-    QStringList excludeFoldersPlain = m_config.group( "General" ).readPathEntry( "exclude folders", QStringList() );
+    //
+    // General folders
+    //
+    KConfigGroup group = m_config.group( "General" );
+    QStringList includeFoldersPlain = group.readPathEntry( "folders", QStringList() << QDir::homePath() );
+    QStringList excludeFoldersPlain = group.readPathEntry( "exclude folders", QStringList() );
 
     m_folderCache.clear();
     insertSortFolders( includeFoldersPlain, true, m_folderCache );
     insertSortFolders( excludeFoldersPlain, false, m_folderCache );
+
+    QSet<QString> includeSet = includeFoldersPlain.toSet();
+    QSet<QString> excludeSet = excludeFoldersPlain.toSet();
+
+    Entry& generalEntry = m_entries[ "General" ];
+    bool changed = emitFolderChangedSignals( generalEntry, includeSet, excludeSet );
+
+    generalEntry.includes = includeSet;
+    generalEntry.excludes = excludeSet;
+
+    //
+    // Removable Media
+    //
+    QStringList groupList = m_config.groupList();
+    foreach( const QString& groupName, groupList ) {
+        if( !groupName.startsWith("Device-") )
+            continue;
+
+        KConfigGroup group = m_config.group( groupName );
+        QString mountPath = group.readEntry( "mount path", QString() );
+        if( mountPath.isEmpty() )
+            continue;
+
+        QStringList includes = group.readPathEntry( "folders", QStringList() );
+        QStringList excludes = group.readPathEntry( "exclude folders", QStringList() );
+
+        QStringList includeFoldersPlain;
+        foreach( const QString& path, includes )
+            includeFoldersPlain << mountPath + path;
+
+        QStringList excludeFoldersPlain;
+        foreach( const QString& path, excludes )
+            excludeFoldersPlain << mountPath + path;
+
+        insertSortFolders( includeFoldersPlain, true, m_folderCache );
+        insertSortFolders( excludeFoldersPlain, false, m_folderCache );
+
+        QSet<QString> includeSet = includeFoldersPlain.toSet();
+        QSet<QString> excludeSet = excludeFoldersPlain.toSet();
+
+        Entry& cacheEntry = m_entries[ groupName ];
+        changed = changed || emitFolderChangedSignals( cacheEntry, includeSet, excludeSet );
+
+        cacheEntry.includes = includeSet;
+        cacheEntry.excludes = excludeSet;
+    }
+
     cleanupList( m_folderCache );
+
+    return changed;
 }
 
 
-void Nepomuk2::FileIndexerConfig::buildExcludeFilterRegExpCache()
+bool Nepomuk2::FileIndexerConfig::buildExcludeFilterRegExpCache()
 {
     QWriteLocker lock( &m_folderCacheMutex );
-    m_excludeFilterRegExpCache.rebuildCacheFromFilterList( excludeFilters() );
+    QStringList newFilters = excludeFilters();
+    m_excludeFilterRegExpCache.rebuildCacheFromFilterList( newFilters );
+
+    QSet<QString> newFilterSet = newFilters.toSet();
+    if( m_prevFileFilters != newFilterSet ) {
+        m_prevFileFilters = newFilterSet;
+        emit fileExcludeFiltersChanged();
+        return true;
+    }
+
+    return false;
 }
 
-void Nepomuk2::FileIndexerConfig::buildMimeTypeCache()
+bool Nepomuk2::FileIndexerConfig::buildMimeTypeCache()
 {
     QWriteLocker lock( &m_mimetypeMutex );
-    QStringList excludeTypes = m_config.group( "General" ).readPathEntry( "exclude mimetypes", QStringList() );
-    m_excludeMimetypes = excludeTypes.toSet();
+    QStringList newMimeExcludes = m_config.group( "General" ).readPathEntry( "exclude mimetypes", QStringList() );
+
+    QSet<QString> newMimeExcludeSet = newMimeExcludes.toSet();
+    if( m_excludeMimetypes != newMimeExcludeSet ) {
+        m_excludeMimetypes = newMimeExcludeSet;
+        emit mimeTypeFiltersChanged();
+        return true;
+    }
+
+    return false;
 }
 
 
-void Nepomuk2::FileIndexerConfig::forceConfigUpdate()
+bool Nepomuk2::FileIndexerConfig::forceConfigUpdate()
 {
     m_config.reparseConfiguration();
-    buildFolderCache();
-    buildExcludeFilterRegExpCache();
-    buildMimeTypeCache();
+    bool changed = false;
+
+    changed = changed || buildFolderCache();
+    changed = changed || buildExcludeFilterRegExpCache();
+    changed = changed || buildMimeTypeCache();
+
+    return changed;
 }
 
 void Nepomuk2::FileIndexerConfig::setInitialRun(bool isInitialRun)

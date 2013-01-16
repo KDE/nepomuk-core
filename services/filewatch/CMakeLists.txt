@@ -17,6 +17,7 @@ set(SRCS
   updaterequest.cpp
   ../fileindexer/fileindexerconfig.cpp
   removabledeviceindexnotification.cpp
+  removablemediadatamigrator.cpp
   activefilequeue.cpp
   )
 
