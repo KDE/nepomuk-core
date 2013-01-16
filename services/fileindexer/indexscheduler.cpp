@@ -84,7 +84,6 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
 
     connect( m_basicIQ, SIGNAL(startedIndexing()), this, SLOT(slotStartedIndexing()) );
     connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
-    connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(slotScheduleIndexing()) );
     connect( m_fileIQ, SIGNAL(startedIndexing()), this, SLOT(slotStartedIndexing()) );
     connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SLOT(slotFinishedIndexing()) );
 
