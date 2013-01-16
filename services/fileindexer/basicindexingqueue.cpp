@@ -65,8 +65,10 @@ void BasicIndexingQueue::clear(const QString& path)
     while( iter.hasNext() ) {
         QDirIterator* dirIter =  iter.next().first;
 
-        if( dirIter->filePath().startsWith( path ) )
+        if( dirIter->path().startsWith( path ) ) {
             iter.remove();
+            delete dirIter;
+        }
     }
 }
 
