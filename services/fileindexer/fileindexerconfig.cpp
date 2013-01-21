@@ -426,9 +426,9 @@ bool Nepomuk2::FileIndexerConfig::forceConfigUpdate()
     m_config.reparseConfiguration();
     bool changed = false;
 
-    changed = changed || buildFolderCache();
-    changed = changed || buildExcludeFilterRegExpCache();
-    changed = changed || buildMimeTypeCache();
+    changed = buildFolderCache() || changed;
+    changed = buildExcludeFilterRegExpCache() || changed;
+    changed = buildMimeTypeCache() || changed;
 
     return changed;
 }
