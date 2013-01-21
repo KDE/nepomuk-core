@@ -45,6 +45,7 @@ namespace Nepomuk2 {
         void indexingFolder( const QString& path );
         void indexingStarted();
         void indexingStopped();
+        void fileIndexingDone();
 
     public Q_SLOTS:
         /**

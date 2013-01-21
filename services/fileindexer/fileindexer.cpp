@@ -73,6 +73,8 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
              this, SIGNAL( indexingStopped() ) );
     connect( m_indexScheduler, SIGNAL( indexingFolder(QString) ),
              this, SIGNAL( indexingFolder(QString) ) );
+    connect( m_indexScheduler, SIGNAL(fileIndexingDone()),
+             this, SIGNAL(fileIndexingDone()) );
 }
 
 

@@ -76,6 +76,7 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     m_fileIQ = new FileIndexingQueue( this );
 
     connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SIGNAL(basicIndexingDone()) );
+    connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SIGNAL(fileIndexingDone()) );
 
     connect( m_basicIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(slotBeginIndexingFile(QUrl)) );
     connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(slotEndIndexingFile(QUrl)) );

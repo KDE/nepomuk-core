@@ -103,6 +103,7 @@ namespace Nepomuk2 {
         void indexingStateChanged( bool indexing );
 
         void basicIndexingDone();
+        void fileIndexingDone();
 
         // Finer Index state
         void indexingFolder( const QString& );
