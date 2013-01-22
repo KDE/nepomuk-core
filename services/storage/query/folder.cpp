@@ -221,8 +221,10 @@ Nepomuk2::Query::RequestPropertyMap Nepomuk2::Query::Folder::requestPropertyMap(
 
 void Nepomuk2::Query::Folder::addResult(const Result& result)
 {
-    if ( !m_results.contains( result.resource().uri() ) ) {
-        m_newResults.insert(result.resource().uri(), result);
+    const QUrl resUri = result.resource().uri();
+    m_newResults.insert( resUri, result );
+
+    if ( !m_results.contains( resUri ) ) {
         emit newEntries( QList<Result>() << result );
     }
 }
@@ -267,12 +269,8 @@ void Nepomuk2::Query::Folder::listingFinished()
 
 void Nepomuk2::Query::Folder::slotStorageChanged()
 {
-    if ( !m_updateTimer.isActive() && !m_currentSearchRunnable ) {
-        update();
-    }
-    else {
-        m_storageChanged = true;
-    }
+    m_updateTimer.start();
+    m_storageChanged = true;
 }
 
 
