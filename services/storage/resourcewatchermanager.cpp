@@ -208,20 +208,6 @@ void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUr
     //
     foreach(ResourceWatcherConnection* con, connections) {
         // make sure we emit from the correct thread through a queued connection
-        if(!addedValues.isEmpty()) {
-            QMetaObject::invokeMethod(con,
-                                      "propertyAdded",
-                                      Q_ARG(QString, convertUri(res)),
-                                      Q_ARG(QString, convertUri(property)),
-                                      Q_ARG(QVariantList, nodeListToVariantList(addedValues)));
-        }
-        if(!removedValues.isEmpty()) {
-            QMetaObject::invokeMethod(con,
-                                      "propertyRemoved",
-                                      Q_ARG(QString, convertUri(res)),
-                                      Q_ARG(QString, convertUri(property)),
-                                      Q_ARG(QVariantList, nodeListToVariantList(removedValues)));
-        }
         QMetaObject::invokeMethod(con,
                                   "propertyChanged",
                                   Q_ARG(QString, convertUri(res)),

@@ -352,8 +352,6 @@ namespace Nepomuk2 {
         void slotResourceRemoved(const QString& res, const QStringList& types);
         void slotResourceTypesAdded(const QString& res, const QStringList& types);
         void slotResourceTypesRemoved(const QString& res, const QStringList& types);
-        void slotPropertyAdded(const QString& res, const QString& prop, const QVariantList& objects);
-        void slotPropertyRemoved(const QString& res, const QString& prop, const QVariantList& objects);
         void slotPropertyChanged(const QString& res, const QString& prop,
                                  const QVariantList & oldObjs,
                                  const QVariantList & newObjs);
