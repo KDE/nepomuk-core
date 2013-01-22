@@ -71,6 +71,7 @@ QStringList FFmpegExtractor::mimetypes()
     types << QLatin1String("video/mpeg");
     types << QLatin1String("video/x-ms-wmv");
     types << QLatin1String("video/mp4");
+    types << QLatin1String("video/x-matroska");
 
     return types;
 }
