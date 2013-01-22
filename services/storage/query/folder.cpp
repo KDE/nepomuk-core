@@ -221,8 +221,10 @@ Nepomuk2::Query::RequestPropertyMap Nepomuk2::Query::Folder::requestPropertyMap(
 
 void Nepomuk2::Query::Folder::addResult(const Result& result)
 {
-    if ( !m_results.contains( result.resource().uri() ) ) {
-        m_newResults.insert(result.resource().uri(), result);
+    const QUrl resUri = result.resource().uri();
+    m_newResults.insert( resUri, result );
+
+    if ( !m_results.contains( resUri ) ) {
         emit newEntries( QList<Result>() << result );
     }
 }
