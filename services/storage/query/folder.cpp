@@ -269,12 +269,8 @@ void Nepomuk2::Query::Folder::listingFinished()
 
 void Nepomuk2::Query::Folder::slotStorageChanged()
 {
-    if ( !m_updateTimer.isActive() && !m_currentSearchRunnable ) {
-        update();
-    }
-    else {
-        m_storageChanged = true;
-    }
+    m_updateTimer.start();
+    m_storageChanged = true;
 }
 
 
