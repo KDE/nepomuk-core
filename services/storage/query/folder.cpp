@@ -82,8 +82,7 @@ namespace {
             initWatcherForTerm( watcher, term.toOptionalTerm().subTerm(), emptyProperty );
         else if( term.isNegationTerm() )
             initWatcherForTerm( watcher, term.toNegationTerm().subTerm(), emptyProperty );
-        else if( term.isResourceTypeTerm() )
-            watcher->addType( term.toResourceTypeTerm().type() );
+        //if( term.isResourceTypeTerm() ) is not managed: we continue to watch all types.
         else if( term.isComparisonTerm() ) {
             const QUrl prop = term.toComparisonTerm().property().uri();
             if( prop.isEmpty() ) {
