@@ -56,37 +56,8 @@ Nepomuk2::SimpleIndexingJob::SimpleIndexingJob(const QUrl& fileUrl, const QStrin
 
 void Nepomuk2::SimpleIndexingJob::start()
 {
-    SimpleResource m_res;
+    SimpleResource m_res = createSimpleResource( m_nieUrl, &m_mimeType );
     m_resUri = m_res.uri();
-
-    m_res.addProperty(NIE::url(), m_nieUrl);
-    m_res.addProperty(NFO::fileName(), m_nieUrl.fileName());
-
-    m_res.addType(NFO::FileDataObject());
-    m_res.addType(NIE::InformationElement());
-
-    QFileInfo fileInfo(m_nieUrl.toLocalFile());
-    if( fileInfo.isDir() ) {
-        m_res.addType(NFO::Folder());
-    }
-    else {
-        m_res.addProperty(NFO::fileSize(), fileInfo.size());
-    }
-
-    //
-    // Types by mime type
-    //
-    if( m_mimeType.isEmpty() ) {
-        m_mimeType = KMimeType::findByUrl( m_nieUrl )->name();
-    }
-    QSet<QUrl> types = typesForMimeType( m_mimeType );
-    foreach(const QUrl& type, types)
-        m_res.addType( type );
-
-    m_res.addProperty(NIE::mimeType(), m_mimeType);
-
-    m_res.setProperty(NIE::created(), fileInfo.created());
-    m_res.setProperty(NIE::lastModified(), fileInfo.lastModified());
 
     // Indexing Level
     m_res.setProperty(KExt::indexingLevel(), 1);
@@ -123,7 +94,47 @@ void Nepomuk2::SimpleIndexingJob::slotJobFinished(KJob* job_)
     emitResult();
 }
 
+// static
 
+Nepomuk2::SimpleResource Nepomuk2::SimpleIndexingJob::createSimpleResource(const KUrl& fileUrl, QString* mimeType)
+{
+    SimpleResource res;
+
+    res.addProperty(NIE::url(), fileUrl);
+    res.addProperty(NFO::fileName(), fileUrl.fileName());
+
+    res.addType(NFO::FileDataObject());
+    res.addType(NIE::InformationElement());
+
+    QFileInfo fileInfo(fileUrl.toLocalFile());
+    if( fileInfo.isDir() ) {
+        res.addType(NFO::Folder());
+    }
+    else {
+        res.addProperty(NFO::fileSize(), fileInfo.size());
+    }
+
+    // Types by mime type
+    QString mime;
+    if( mimeType )
+        mime = *mimeType;
+
+    if( mime.isEmpty() ) {
+        mime= KMimeType::findByUrl( fileUrl )->name();
+    }
+    QSet<QUrl> types = typesForMimeType( mime );
+    foreach(const QUrl& type, types)
+        res.addType( type );
+
+    res.addProperty(NIE::mimeType(), mime );
+
+    res.setProperty(NIE::created(), fileInfo.created());
+    res.setProperty(NIE::lastModified(), fileInfo.lastModified());
+
+    return res;
+}
+
+// static
 QSet<QUrl> Nepomuk2::SimpleIndexingJob::typesForMimeType(const QString& mimeType)
 {
     QSet<QUrl> types;
