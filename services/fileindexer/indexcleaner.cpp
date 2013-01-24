@@ -236,6 +236,14 @@ void Nepomuk2::IndexCleaner::start()
                                                 "FILTER NOT EXISTS { ?r nie:isPartOf ?p . } . "
                                                 "} LIMIT %1")
                             .arg(limit);
+
+
+        m_removalQueries << QString::fromLatin1("select ?r where {"
+                                                " ?g <http://www.strigi.org/fields#indexGraphFor> ?r ."
+                                                " ?r nie:isPartOf ?f ."
+                                                " FILTER(!REGEX(STR(?f), '^nepomuk:/res/')) . "
+                                                " } LIMIT %1")
+                            .arg(limit);
     }
 
     //
