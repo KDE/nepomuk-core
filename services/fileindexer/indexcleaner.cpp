@@ -232,11 +232,9 @@ void Nepomuk2::IndexCleaner::start()
         m_removalQueries << QString::fromLatin1("select ?r where { "
                                                 "graph ?g { ?r ?pp ?oo . } . "
                                                 "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
-                                                "FILTER(!bif:exists((select (1) where { ?r %1 ?u . }))) . "
-                                                "FILTER(!bif:exists((select (1) where { ?r %2 ?p . }))) . "
-                                                "} LIMIT %3")
-                            .arg(Soprano::Node::resourceToN3(NIE::url()),
-                                 Soprano::Node::resourceToN3(NIE::isPartOf()))
+                                                "FILTER NOT EXISTS { ?r nie:url ?u . } . "
+                                                "FILTER NOT EXISTS { ?r nie:isPartOf ?p . } . "
+                                                "} LIMIT %1")
                             .arg(limit);
     }
 
