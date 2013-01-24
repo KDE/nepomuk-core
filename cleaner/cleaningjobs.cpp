@@ -417,6 +417,7 @@ void InvalidFileResourcesJob::execute()
         deleteList << it[0].uri();
 
         if( deleteList.size() > 10 ) {
+            kDebug() << deleteList;
             KJob* job = Nepomuk2::removeResources( deleteList );
             job->exec();
             deleteList.clear();
@@ -433,6 +434,7 @@ void InvalidFileResourcesJob::execute()
     // Delete the files whose url does not exist
     //
 
+    /*
     query = QLatin1String( "select distinct ?r ?url where { "
                            "?r a nfo:FileDataObject ; nie:url ?url . }" );
     it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
@@ -456,7 +458,7 @@ void InvalidFileResourcesJob::execute()
         KJob* job = Nepomuk2::removeResources( deleteList );
         job->exec();
         deleteList.clear();
-    }
+    }*/
 }
 
 
@@ -485,6 +487,7 @@ void InvalidResourcesJob::execute()
         deleteList << it[0].uri();
 
         if( deleteList.size() > 10 ) {
+            kDebug() << deleteList;
             KJob* job = Nepomuk2::removeResources( deleteList );
             job->exec();
             deleteList.clear();
@@ -532,12 +535,12 @@ void InvalidStatementsJob::execute()
         if( iter.next() ) {
             st.setObject( iter[0] );
             st.setContext( iter[1] );
-        }
 
-        // FIXME: What about the trailing graphs?
-        kDebug() << st;
-        model->removeAllStatements( st.subject(), st.predicate(), Soprano::Node() );
-        model->addStatement( st );
+            // FIXME: What about the trailing graphs?
+            kDebug() << st;
+            model->removeAllStatements( st.subject(), st.predicate(), Soprano::Node() );
+            model->addStatement( st );
+        }
     }
 
     // TODO: Figure out how to clear the statements which do not follow the domain and range
