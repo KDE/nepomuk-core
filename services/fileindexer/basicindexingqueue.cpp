@@ -187,6 +187,9 @@ bool BasicIndexingQueue::shouldIndex(const QString& path, const QString& mimetyp
         return false;
 
     QFileInfo fileInfo( path );
+    if( !fileInfo.exists() )
+        return false;
+
     bool needToIndex = false;
 
     Soprano::Model* model = ResourceManager::instance()->mainModel();
