@@ -200,7 +200,7 @@ bool BasicIndexingQueue::shouldIndex(const QString& path, const QString& mimetyp
         QString query = QString::fromLatin1("ask where { ?r nie:url %1 . }")
                         .arg( Soprano::Node::resourceToN3( QUrl::fromLocalFile(path) ) );
 
-        needToIndex = !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+        needToIndex = !model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference ).boolValue();
     }
     else {
         // check if this file is new by checking its mtime
@@ -208,7 +208,7 @@ bool BasicIndexingQueue::shouldIndex(const QString& path, const QString& mimetyp
                         .arg( Soprano::Node::resourceToN3( QUrl::fromLocalFile(path) ),
                             Soprano::Node::literalToN3( Soprano::LiteralValue(fileInfo.lastModified()) ) );
 
-        needToIndex = !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+        needToIndex = !model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference ).boolValue();
     }
 
     if( needToIndex ) {
