@@ -65,6 +65,14 @@ Soprano::QueryResultIterator Nepomuk2::VirtuosoInferenceModel::executeQuery(cons
 
 void Nepomuk2::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
 {
+    // WARNING:
+    // The Ontology graph groups are not used anywhere. They typically are supposed to be used
+    // in queries so as to not return ontology results, but we do not use them cause virtuoso
+    // seems to crash with graph groups in queries
+    // So there is not point in creating them
+    m_haveInferenceRule = true;
+    return;
+
     // Create the Nepomuk Ontology group
     QString ontGroupQuery = QString::fromLatin1("DB.DBA.RDF_GRAPH_GROUP_CREATE( '%1', 1, '',"
                                                 "'Contains the graphs all of all the ontologies' )")
@@ -123,53 +131,9 @@ void Nepomuk2::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
 
     m_haveInferenceRule = (ontologyCount > 0);
 
-    // update graph visibility if something has changed or if we never did it
+    // Remove all type visibility stuff
     const QUrl visibilityGraph = QUrl::fromEncoded(s_typeVisibilityGraph);
-    if(forced ||
-       !executeQuery(QString::fromLatin1("ask where { graph %1 { ?s ?p ?o . } }")
-                     .arg(Soprano::Node::resourceToN3(visibilityGraph)),
-                     Soprano::Query::QueryLanguageSparql).boolValue()) {
-        kDebug() << "Need to update type visibility.";
-        updateTypeVisibility();
-    }
-}
-
-void Nepomuk2::VirtuosoInferenceModel::updateTypeVisibility()
-{
-    const QUrl visibilityGraph = QUrl::fromEncoded(s_typeVisibilityGraph);
-
-    // 1. remove all visibility values we added ourselves
-    removeContext(visibilityGraph);
-
-    // 2. Set each type non-visible which has a parent type that is non-visible
-    executeQuery(QString::fromLatin1("insert into %1 { "
-                                     "?t %2 'false'^^%3 . "
-                                     "} where { "
-                                     "?t a rdfs:Class . "
-                                     "filter not exists { ?t %2 ?v . } . "
-                                     "filter exists { ?tt %2 'false'^^%3 .  ?t rdfs:subClassOf ?tt . } }")
-                 .arg(Soprano::Node::resourceToN3(visibilityGraph),
-                      Soprano::Node::resourceToN3(NAO::userVisible()),
-                      Soprano::Node::resourceToN3(XMLSchema::boolean())),
-                 Soprano::Query::QueryLanguageSparql);
-
-    // 3. Set each type visible which is not rdfs:Resource and does not have a non-visible parent
-    executeQuery(QString::fromLatin1("insert into %1 { "
-                                     "?t %2 'true'^^%3 . "
-                                     "} where { "
-                                     "?t a rdfs:Class . "
-                                     "filter not exists { ?t %2 ?v . } . "
-                                     "filter not exists { ?tt %2 'false'^^%3 .  ?t rdfs:subClassOf ?tt . } }")
-                 .arg(Soprano::Node::resourceToN3(visibilityGraph),
-                      Soprano::Node::resourceToN3(NAO::userVisible()),
-                      Soprano::Node::resourceToN3(XMLSchema::boolean())),
-                 Soprano::Query::QueryLanguageSparql);
-
-    // 4. make rdfs:Resource non-visible (this is required since with KDE 4.9 we introduced a new
-    //    way of visibility handling which relies on types alone rather than visibility values on
-    //    resources. Any visible type will make all sub-types visible, too. If rdfs:Resource were
-    //    visible everything would be.
-    removeAllStatements(RDFS::Resource(), NAO::userVisible(), Soprano::Node());
+    removeContext( visibilityGraph );
 }
 
 #include "virtuosoinferencemodel.moc"

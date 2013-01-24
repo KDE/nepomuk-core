@@ -50,8 +50,6 @@ namespace Nepomuk2 {
         void updateOntologyGraphs(bool forced);
 
     private:
-        void updateTypeVisibility();
-
         bool m_haveInferenceRule;
     };
 }
