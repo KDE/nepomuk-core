@@ -1,7 +1,7 @@
 /*
    This file is part of the Nepomuk KDE project.
    Copyright (C) 2010-2011 Sebastian Trueg <trueg@kde.org>
-   Copyright (C) 2010-2011 Vishesh Handa <handa.vish@gmail.com>
+   Copyright (C) 2010-2013 Vishesh Handa <handa.vish@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -28,6 +28,7 @@
 #include <QtCore/QMutexLocker>
 #include <QtCore/QSet>
 #include <KDebug>
+#include <KConfigGroup>
 
 #include "resource.h"
 #include "resourcemanager.h"
@@ -74,6 +75,17 @@ Nepomuk2::IndexCleaner::IndexCleaner(QObject* parent)
       m_delay(0)
 {
     setCapabilities( Suspendable );
+
+    KConfig config("nepomukstrigirc");
+    KConfigGroup generalGrp = config.group( "general" );
+    m_supportLegacyData = generalGrp.readEntry( "legacyCleaning", true );
+
+    QString query = QString::fromLatin1("ask where { ?g <http://www.strigi.org/fields#indexGraphFor> ?r . }");
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    m_supportStrigiGraphData = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference ).boolValue();
+
+    kDebug() << "LegacyData: " << m_supportLegacyData;
+    kDebug() << "StrigiGraphData: " << m_supportStrigiGraphData;
 }
 
 
@@ -119,13 +131,15 @@ void Nepomuk2::IndexCleaner::start()
     // 2. (legacy data) We query all files that should not be in the store.
     // This for example excludes all filex:/ URLs.
     //
-    m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                             "?r nie:url ?url . "
-                                             "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
-                                             "FILTER(REGEX(STR(?url),'^file:/')) . "
-                                             "%2 } LIMIT %3" )
-                        .arg( folderFilter )
-                        .arg(limit);
+    if( m_supportStrigiGraphData ) {
+        m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
+                                                "?r nie:url ?url . "
+                                                "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
+                                                "FILTER(REGEX(STR(?url),'^file:/')) . "
+                                                "%2 } LIMIT %3" )
+                            .arg( folderFilter )
+                            .arg(limit);
+    }
 
 
     //
@@ -157,14 +171,16 @@ void Nepomuk2::IndexCleaner::start()
         }
 
         // 3.2. (legacy data) Data for files which are excluded through filters
-        m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                                 "?r nie:url ?url . "
-                                                 "?r nfo:fileName ?fn . "
-                                                 "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
-                                                 "FILTER(REGEX(STR(?url),\"^file:/\")) . "
-                                                 "%1 } LIMIT %2" )
-                            .arg( filters )
-                            .arg(limit);
+        if( m_supportStrigiGraphData ) {
+            m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
+                                                    "?r nie:url ?url . "
+                                                    "?r nfo:fileName ?fn . "
+                                                    "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
+                                                    "FILTER(REGEX(STR(?url),\"^file:/\")) . "
+                                                    "%1 } LIMIT %2" )
+                                .arg( filters )
+                                .arg(limit);
+        }
     }
 
     // 3.3. Data for files which have paths that are excluded through exclude filters
@@ -180,45 +196,55 @@ void Nepomuk2::IndexCleaner::start()
                             .arg(limit);
 
         // 3.4. (legacy data) Data for files which have paths that are excluded through exclude filters
-        m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                                 "?r nie:url ?url . "
-                                                 "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
-                                                 "FILTER(REGEX(STR(?url),\"^file:/\") && %1) . "
-                                                 "} LIMIT %2" )
-                            .arg( excludeFiltersFolderFilter)
-                            .arg(limit);
+        if( m_supportStrigiGraphData ) {
+            m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
+                                                    "?r nie:url ?url . "
+                                                    "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
+                                                    "FILTER(REGEX(STR(?url),\"^file:/\") && %1) . "
+                                                    "} LIMIT %2" )
+                                .arg( excludeFiltersFolderFilter)
+                                .arg(limit);
+        }
     }
 
-    //
-    // 4. (legacy data) Remove all old data from Xesam-times. While we leave out the data created by libnepomuk
-    // there is no problem since libnepomuk still uses backwards compatible queries and we use
-    // libnepomuk to determine URIs in the strigi backend.
-    //
-    m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                             "?r <http://strigi.sf.net/ontologies/0.9#parentUrl> ?p1 . } LIMIT %1" )
-                        .arg(limit);
-    m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
-                                             "?r %1 ?u2 . } LIMIT %2" )
-                        .arg( Soprano::Node::resourceToN3( Soprano::Vocabulary::Xesam::url() ) )
-                        .arg(limit);
+    if( m_supportLegacyData ) {
+        //
+        // 4. (legacy data) Remove all old data from Xesam-times. While we leave out the data created by libnepomuk
+        // there is no problem since libnepomuk still uses backwards compatible queries and we use
+        // libnepomuk to determine URIs in the strigi backend.
+        //
+        m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
+                                                "?r <http://strigi.sf.net/ontologies/0.9#parentUrl> ?p1 . } LIMIT %1" )
+                            .arg(limit);
+        m_removalQueries << QString::fromLatin1( "select distinct ?r where { "
+                                                "?r %1 ?u2 . } LIMIT %2" )
+                            .arg( Soprano::Node::resourceToN3( Soprano::Vocabulary::Xesam::url() ) )
+                            .arg(limit);
 
 
-    //
-    // 5. (legacy data) Remove data which is useless but still around from before. This could happen due to some buggy version of
-    // the indexer or the filewatch service or even some application messing up the data.
-    // We look for indexed files that do not have a nie:url defined and thus, will never be caught by any of the
-    // other queries. In addition we check for an isPartOf relation since strigi produces EmbeddedFileDataObjects
-    // for video and audio streams.
-    //
-    m_removalQueries << QString::fromLatin1("select ?r where { "
-                                            "graph ?g { ?r ?pp ?oo . } . "
-                                            "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
-                                            "FILTER(!bif:exists((select (1) where { ?r %1 ?u . }))) . "
-                                            "FILTER(!bif:exists((select (1) where { ?r %2 ?p . }))) . "
-                                            "} LIMIT %3")
-                        .arg(Soprano::Node::resourceToN3(NIE::url()),
-                             Soprano::Node::resourceToN3(NIE::isPartOf()))
-                        .arg(limit);
+        //
+        // 5. (legacy data) Remove data which is useless but still around from before. This could happen due to some buggy version of
+        // the indexer or the filewatch service or even some application messing up the data.
+        // We look for indexed files that do not have a nie:url defined and thus, will never be caught by any of the
+        // other queries. In addition we check for an isPartOf relation since strigi produces EmbeddedFileDataObjects
+        // for video and audio streams.
+        //
+        m_removalQueries << QString::fromLatin1("select ?r where { "
+                                                "graph ?g { ?r ?pp ?oo . } . "
+                                                "?g <http://www.strigi.org/fields#indexGraphFor> ?r . "
+                                                "FILTER NOT EXISTS { ?r nie:url ?u . } . "
+                                                "FILTER NOT EXISTS { ?r nie:isPartOf ?p . } . "
+                                                "} LIMIT %1")
+                            .arg(limit);
+
+
+        m_removalQueries << QString::fromLatin1("select ?r where {"
+                                                " ?g <http://www.strigi.org/fields#indexGraphFor> ?r ."
+                                                " ?r nie:isPartOf ?f ."
+                                                " FILTER(!REGEX(STR(?f), '^nepomuk:/res/')) . "
+                                                " } LIMIT %1")
+                            .arg(limit);
+    }
 
     //
     // Start the removal
@@ -260,6 +286,11 @@ void Nepomuk2::IndexCleaner::clearNextBatch()
     }
 
     else {
+        if( m_supportLegacyData ) {
+            KConfig config("nepomukstrigirc");
+            KConfigGroup generalGrp = config.group( "general" );
+            generalGrp.writeEntry( "legacyCleaning", false );
+        }
         emitResult();
     }
 }

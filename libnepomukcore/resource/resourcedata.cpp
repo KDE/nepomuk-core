@@ -296,6 +296,7 @@ bool Nepomuk2::ResourceData::store()
 
         if( !m_naoIdentifier.isEmpty() ) {
             setProperty( NAO::identifier(), m_naoIdentifier );
+            setProperty( NAO::prefLabel(), m_naoIdentifier );
             m_naoIdentifier.clear();
         }
         if( !m_nieUrl.isEmpty() ) {

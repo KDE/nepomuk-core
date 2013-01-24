@@ -53,7 +53,7 @@ namespace Nepomuk2 {
         Q_OBJECT
 
     public:
-        FileIndexingJob( const QFileInfo& info, QObject* parent = 0 );
+        FileIndexingJob( const QUrl& fileUrl, QObject* parent = 0 );
 
         KUrl url() const { return m_url; }
 

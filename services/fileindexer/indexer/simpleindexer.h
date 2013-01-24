@@ -32,6 +32,8 @@
 
 namespace Nepomuk2 {
 
+    class SimpleResource;
+
     class SimpleIndexingJob : public KJob
     {
         Q_OBJECT
@@ -44,6 +46,14 @@ namespace Nepomuk2 {
         QUrl uri();
         QString mimeType();
 
+        /**
+         * Fills a new SimpleResource with the basic data of the fileUrl such
+         * as type, mimetype, and other stat info.
+         *
+         * If the mimetype has not been provided it will be inferred from the \p fileUrl
+         */
+        static SimpleResource createSimpleResource( const KUrl& fileUrl, QString* mimeType );
+
     private slots:
         void slotJobFinished(KJob* job);
 
@@ -52,7 +62,7 @@ namespace Nepomuk2 {
         QUrl m_resUri;
         QString m_mimeType;
 
-        QSet<QUrl> typesForMimeType(const QString& mimeType);
+        static QSet<QUrl> typesForMimeType(const QString& mimeType);
     };
 }
 

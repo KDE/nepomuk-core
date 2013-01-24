@@ -39,9 +39,9 @@
 
 using namespace Nepomuk2::Vocabulary;
 
-Nepomuk2::FileIndexingJob::FileIndexingJob(const QFileInfo& info, QObject* parent)
+Nepomuk2::FileIndexingJob::FileIndexingJob(const QUrl& fileUrl, QObject* parent)
     : KJob(parent),
-      m_url( info.absoluteFilePath() )
+      m_url( fileUrl )
 {
     // setup the timer used to kill the indexer process if it seems to get stuck
     m_processTimer = new QTimer(this);
