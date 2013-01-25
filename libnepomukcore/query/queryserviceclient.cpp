@@ -404,8 +404,15 @@ QList< Nepomuk2::Query::Result > Nepomuk2::Query::QueryServiceClient::syncDeskto
 void Nepomuk2::Query::QueryServiceClient::close()
 {
     // drop pending query calls
-    // TODO: This could lead to dangling queries in the service when close is called before the pending call has returned!!!
-    //       We could also use a stack of pending calls or something like that.
+
+    // in case we fired a query but it did not return yet, cancel it
+    if (d->m_pendingCallWatcher && !d->queryInterface) {
+        QDBusPendingReply<QDBusObjectPath> reply = *(d->m_pendingCallWatcher);
+        OrgKdeNepomukQueryInterface interface( d->queryServiceInterface->service(),
+                                               reply.value().path(),
+                                               d->dbusConnection );
+        interface.close();
+    }
     delete d->m_pendingCallWatcher;
 
     d->m_errorMessage.truncate(0);
