@@ -300,28 +300,30 @@ namespace {
 }
 
 
-bool Nepomuk2::FileIndexerConfig::emitFolderChangedSignals(const Nepomuk2::FileIndexerConfig::Entry& entry,
-                                                           const QSet< QString >& include, const QSet< QString > exclude)
+void Nepomuk2::FileIndexerConfig::fillIncludeFolderChanges(const Nepomuk2::FileIndexerConfig::Entry& entry, const QSet<QString>& include, QStringList* includeAdded, QStringList* includeRemoved)
 {
-    QStringList includeAdded = QSet<QString>(include).subtract( entry.includes ).toList();
-    QStringList includeRemoved = QSet<QString>(entry.includes).subtract( include ).toList();
+    QStringList added = QSet<QString>(include).subtract( entry.includes ).toList();
+    QStringList removed = QSet<QString>(entry.includes).subtract( include ).toList();
 
-    bool changed = false;
-    if( !includeAdded.isEmpty() || !includeRemoved.isEmpty() ) {
-        emit includeFolderListChanged( includeAdded, includeRemoved );
-        changed = true;
-    }
+    if( includeAdded )
+        includeAdded->append( added );
 
-    QStringList excludeAdded = QSet<QString>(exclude).subtract( entry.excludes ).toList();
-    QStringList excludeRemoved = QSet<QString>(entry.excludes).subtract( exclude ).toList();
-
-    if( !excludeAdded.isEmpty() || !excludeRemoved.isEmpty() ) {
-        emit excludeFolderListChanged( excludeAdded, excludeRemoved );
-        changed = true;
-    }
-
-    return changed;
+    if( includeRemoved )
+        includeRemoved->append( removed );
 }
+
+void Nepomuk2::FileIndexerConfig::fillExcludeFolderChanges(const Nepomuk2::FileIndexerConfig::Entry& entry, const QSet<QString>& exclude, QStringList* excludeAdded, QStringList* excludeRemoved)
+{
+    QStringList added = QSet<QString>(exclude).subtract( entry.excludes ).toList();
+    QStringList removed = QSet<QString>(entry.excludes).subtract( exclude ).toList();
+
+    if( excludeAdded )
+        excludeAdded->append( added );
+
+    if( excludeRemoved )
+        excludeRemoved->append( removed );
+}
+
 
 bool Nepomuk2::FileIndexerConfig::buildFolderCache()
 {
@@ -338,11 +340,17 @@ bool Nepomuk2::FileIndexerConfig::buildFolderCache()
     insertSortFolders( includeFoldersPlain, true, m_folderCache );
     insertSortFolders( excludeFoldersPlain, false, m_folderCache );
 
+    QStringList includeAdded;
+    QStringList includeRemoved;
+    QStringList excludeAdded;
+    QStringList excludeRemoved;;
+
     QSet<QString> includeSet = includeFoldersPlain.toSet();
     QSet<QString> excludeSet = excludeFoldersPlain.toSet();
 
     Entry& generalEntry = m_entries[ "General" ];
-    bool changed = emitFolderChangedSignals( generalEntry, includeSet, excludeSet );
+    fillIncludeFolderChanges( generalEntry, includeSet, &includeAdded, &includeRemoved );
+    fillExcludeFolderChanges( generalEntry, excludeSet, &excludeAdded, &excludeRemoved );
 
     generalEntry.includes = includeSet;
     generalEntry.excludes = excludeSet;
@@ -378,13 +386,25 @@ bool Nepomuk2::FileIndexerConfig::buildFolderCache()
         QSet<QString> excludeSet = excludeFoldersPlain.toSet();
 
         Entry& cacheEntry = m_entries[ groupName ];
-        changed = changed || emitFolderChangedSignals( cacheEntry, includeSet, excludeSet );
+        fillIncludeFolderChanges( cacheEntry, includeSet, &includeAdded, &includeRemoved );
+        fillExcludeFolderChanges( cacheEntry, excludeSet, &excludeAdded, &excludeRemoved );
 
         cacheEntry.includes = includeSet;
         cacheEntry.excludes = excludeSet;
     }
 
     cleanupList( m_folderCache );
+
+    bool changed = false;
+    if( !includeAdded.isEmpty() || !includeRemoved.isEmpty() ) {
+        emit includeFolderListChanged( includeAdded, includeRemoved );
+        changed = true;
+    }
+
+    if( !excludeAdded.isEmpty() || !excludeRemoved.isEmpty() ) {
+        emit excludeFolderListChanged( excludeAdded, excludeRemoved );
+        changed = true;
+    }
 
     return changed;
 }

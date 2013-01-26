@@ -275,6 +275,7 @@ void Nepomuk2::IndexCleaner::clearNextBatch()
     }
 
     if( !resources.isEmpty() ) {
+        kDebug() << m_query;
         kDebug() << resources;
         KJob* job = Nepomuk2::clearIndexedData(resources);
         connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotRemoveResourcesDone(KJob*)), Qt::QueuedConnection );
