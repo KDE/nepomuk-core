@@ -245,7 +245,15 @@ void Nepomuk2::FileWatch::slotFileCreated( const QString& path, bool isDir )
 
 void Nepomuk2::FileWatch::slotFileClosedAfterWrite( const QString& path )
 {
-    if(FileIndexerConfig::self()->shouldBeIndexed(path)) {
+    QDateTime current = QDateTime::currentDateTime();
+    QDateTime modification = QFileInfo(path).lastModified();
+
+    // If we have recieved a FileClosedAfterWrite event, then the file must have been
+    // closed within the last minute.
+    // This is being done cause many applications open the file under write mode, do not
+    // make any modifications and then close the file. This results in us getting
+    // the FileClosedAfterWrite event
+    if( modification.secsTo(current) <= 1000 * 60 ) {
         m_fileModificationQueue->enqueueUrl( path );
     }
 }
@@ -437,6 +445,7 @@ void Nepomuk2::FileWatch::slotDeviceTeardownRequested(const Nepomuk2::RemovableM
 
 void Nepomuk2::FileWatch::slotActiveFileQueueTimeout(const KUrl &url)
 {
+    kDebug() << url;
     updateFileViaFileIndexer(url.toLocalFile());
 }
 
