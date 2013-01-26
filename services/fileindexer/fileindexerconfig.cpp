@@ -133,6 +133,7 @@ QStringList Nepomuk2::FileIndexerConfig::excludeFilters() const
 
 bool Nepomuk2::FileIndexerConfig::indexHiddenFilesAndFolders() const
 {
+    return m_indexHidden;
     return m_config.group( "General" ).readEntry( "index hidden folders", false );
 }
 
@@ -429,6 +430,12 @@ bool Nepomuk2::FileIndexerConfig::forceConfigUpdate()
     changed = buildFolderCache() || changed;
     changed = buildExcludeFilterRegExpCache() || changed;
     changed = buildMimeTypeCache() || changed;
+
+    bool hidden = m_config.group( "General" ).readEntry( "index hidden folders", false );
+    if( hidden != m_indexHidden ) {
+        m_indexHidden = hidden;
+        changed = true;
+    }
 
     return changed;
 }

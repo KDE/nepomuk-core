@@ -222,6 +222,8 @@ namespace Nepomuk2 {
         /// A set of mimetypes which should never be indexed
         QSet<QString> m_excludeMimetypes;
 
+        bool m_indexHidden;
+
         mutable QReadWriteLock m_folderCacheMutex;
         mutable QReadWriteLock m_mimetypeMutex;
 
