@@ -97,6 +97,7 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     connect( m_fileIQ, SIGNAL(endIndexingFile(QUrl)), this, SIGNAL(statusStringChanged()) );
     connect( m_fileIQ, SIGNAL(startedIndexing()), this, SIGNAL(statusStringChanged()) );
     connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SIGNAL(statusStringChanged()) );
+    connect( this, SIGNAL(indexingSuspended(bool)), this, SIGNAL(statusStringChanged()) );
 
     m_eventMonitor = new EventMonitor( this );
     connect( m_eventMonitor, SIGNAL(diskSpaceStatusChanged(bool)),

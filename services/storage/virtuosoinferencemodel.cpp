@@ -65,14 +65,6 @@ Soprano::QueryResultIterator Nepomuk2::VirtuosoInferenceModel::executeQuery(cons
 
 void Nepomuk2::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
 {
-    // WARNING:
-    // The Ontology graph groups are not used anywhere. They typically are supposed to be used
-    // in queries so as to not return ontology results, but we do not use them cause virtuoso
-    // seems to crash with graph groups in queries
-    // So there is not point in creating them
-    m_haveInferenceRule = true;
-    return;
-
     // Create the Nepomuk Ontology group
     QString ontGroupQuery = QString::fromLatin1("DB.DBA.RDF_GRAPH_GROUP_CREATE( '%1', 1, '',"
                                                 "'Contains the graphs all of all the ontologies' )")
@@ -101,14 +93,17 @@ void Nepomuk2::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
                          Soprano::Query::QueryLanguageUser,
                          QLatin1String("sql"));
 
+            /*
             QString ontGroupQuery = QString::fromLatin1("DB.DBA.RDF_GRAPH_GROUP_INS('%1', '%2')")
                                     .arg( QLatin1String(s_nepomukOntologyGroup),
                                           it[0].uri().toString() );
             executeQuery( ontGroupQuery, Soprano::Query::QueryLanguageUser, QLatin1String("sql"));
             ontologies << it[0].uri();
+            */
         }
 
         // Fetch all the graph metadata graphs
+        /*
         foreach(const QUrl& graphUri, ontologies) {
             QString graphMetaQUery = QString::fromLatin1("select distinct ?r where { ?r %1 %2 . }")
                                     .arg( Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor()),
@@ -127,6 +122,7 @@ void Nepomuk2::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
                                 .arg( QLatin1String(s_nepomukOntologyGroup),
                                       QLatin1String("http://www.openlinksw.com/schemas/virtrdf#") );
         executeQuery( ontGroupQuery, Soprano::Query::QueryLanguageUser, QLatin1String("sql"));
+        */
     }
 
     m_haveInferenceRule = (ontologyCount > 0);

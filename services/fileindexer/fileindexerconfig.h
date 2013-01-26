@@ -222,6 +222,8 @@ namespace Nepomuk2 {
         /// A set of mimetypes which should never be indexed
         QSet<QString> m_excludeMimetypes;
 
+        bool m_indexHidden;
+
         mutable QReadWriteLock m_folderCacheMutex;
         mutable QReadWriteLock m_mimetypeMutex;
 
@@ -237,13 +239,13 @@ namespace Nepomuk2 {
         QHash<QString, Entry> m_entries;
 
         /**
-         * Emit folder changed signals for the entry.
-         * \p include new set of include directories
-         * \p exclude new set of exclude directories
-         *
-         * \return \c true if signals were emitted
+         * Fills the \p includeAdded and \p includeRemoved lists with the changes
+         * that have occured between \p entry and \p include
          */
-        bool emitFolderChangedSignals( const Entry& entry, const QSet<QString>& include, const QSet<QString> exclude );
+        void fillIncludeFolderChanges( const Entry& entry, const QSet<QString>& include,
+                                       QStringList* includeAdded, QStringList* includeRemoved );
+        void fillExcludeFolderChanges( const Entry& entry, const QSet<QString>& exclude,
+                                       QStringList* excludeAdded, QStringList* excludeRemoved );
     };
 }
 

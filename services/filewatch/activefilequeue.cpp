@@ -1,6 +1,7 @@
 /*
    This file is part of the Nepomuk KDE project.
    Copyright (C) 2011 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2013 Vishesh Handa <me@vhanda.in>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -50,6 +51,7 @@ namespace {
     }
 }
 
+
 Q_DECLARE_TYPEINFO(Entry, Q_MOVABLE_TYPE);
 
 
@@ -57,8 +59,14 @@ class ActiveFileQueue::Private
 {
 public:
     QQueue<Entry> m_queue;
+    int m_queueTimeout;
+
     QTimer m_queueTimer;
-    int m_timeout;
+
+    /// Contains a set of all the entries for which we emitted the urlTimeout sigal
+    QList<Entry> m_emittedEntries;
+    int m_emittedTimeout;
+
 };
 
 
@@ -67,7 +75,8 @@ ActiveFileQueue::ActiveFileQueue(QObject *parent)
       d(new Private())
 {
     // we default to 5 seconds
-    d->m_timeout = 5;
+    d->m_queueTimeout = 5;
+    d->m_emittedTimeout = 5;
 
     // setup the timer
     connect(&d->m_queueTimer, SIGNAL(timeout()),
@@ -84,15 +93,26 @@ ActiveFileQueue::~ActiveFileQueue()
 
 void ActiveFileQueue::enqueueUrl(const KUrl &url)
 {
-    Entry defaultEntry(url, d->m_timeout);
+    Entry defaultEntry(url, d->m_queueTimeout);
+
+    // If the url is already in the queue update its timestamp
     QQueue<Entry>::iterator it = qFind(d->m_queue.begin(), d->m_queue.end(), defaultEntry);
-    if(it == d->m_queue.end()) {
-        // if this is a new url add it with the default timeout
-        d->m_queue.enqueue(defaultEntry);
+    if(it != d->m_queue.end()) {
+        it->cnt = d->m_queueTimeout;
     }
     else {
-        // If the url is already in the queue update its timestamp
-        it->cnt = d->m_timeout;
+        // We check if we just emitted the url, if so we move it to the normal queue
+        QList<Entry>::iterator iter = qFind(d->m_emittedEntries.begin(), d->m_emittedEntries.end(), defaultEntry);
+        if( iter != d->m_emittedEntries.end() ) {
+            d->m_queue.enqueue( defaultEntry );
+            d->m_emittedEntries.erase( iter );
+        }
+        else {
+            // It's not in any of the queues
+            emit urlTimeout( url );
+            defaultEntry.cnt = d->m_emittedTimeout;
+            d->m_emittedEntries.append( defaultEntry );
+        }
     }
 
     // make sure the timer is running
@@ -103,26 +123,43 @@ void ActiveFileQueue::enqueueUrl(const KUrl &url)
 
 void ActiveFileQueue::setTimeout(int seconds)
 {
-    d->m_timeout = seconds;
+    d->m_queueTimeout = seconds;
+}
+
+void ActiveFileQueue::setWaitTimeout(int seconds)
+{
+    d->m_emittedTimeout = seconds;
 }
 
 void ActiveFileQueue::slotTimer()
 {
     // we run through the queue, decrease each counter and emit each entry which has a count of 0
-    QQueue<Entry>::iterator it = d->m_queue.begin();
-    while(it != d->m_queue.end()) {
-        it->cnt--;
-        if(it->cnt == 0) {
-            emit urlTimeout(it->url);
-            it = d->m_queue.erase(it);
+    QMutableListIterator<Entry> it( d->m_queue );
+    while( it.hasNext() ) {
+        Entry& entry = it.next();
+        entry.cnt--;
+        if( entry.cnt <= 0 ) {
+            // Insert into the emitted queue
+            entry.cnt = d->m_emittedTimeout;
+            d->m_emittedEntries.append( entry );
+
+            emit urlTimeout( entry.url );
+            it.remove();
         }
-        else {
-            ++it;
+    }
+
+    // Run through all the emitted entires and remove them
+    it = QMutableListIterator<Entry>( d->m_emittedEntries );
+    while( it.hasNext() ) {
+        Entry& entry = it.next();
+        entry.cnt--;
+        if( entry.cnt <= 0 ) {
+            it.remove();
         }
     }
 
     // stop the timer in case we have nothing left to do
-    if(d->m_queue.isEmpty()) {
+    if(d->m_queue.isEmpty() && d->m_emittedEntries.isEmpty()) {
         d->m_queueTimer.stop();
     }
 }

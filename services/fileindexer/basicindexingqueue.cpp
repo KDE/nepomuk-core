@@ -54,14 +54,14 @@ void BasicIndexingQueue::clear()
 
 void BasicIndexingQueue::clear(const QString& path)
 {
-    QMutableListIterator< QPair<QString, UpdateDirFlags> > it( m_paths );
+    QMutableVectorIterator< QPair<QString, UpdateDirFlags> > it( m_paths );
     while( it.hasNext() ) {
         it.next();
         if( it.value().first.startsWith( path ) )
             it.remove();
     }
 
-    QMutableListIterator< QPair<QDirIterator*, UpdateDirFlags> > iter( m_iterators );
+    QMutableVectorIterator< QPair<QDirIterator*, UpdateDirFlags> > iter( m_iterators );
     while( iter.hasNext() ) {
         QDirIterator* dirIter =  iter.next().first;
 
@@ -100,7 +100,7 @@ void BasicIndexingQueue::enqueue(const QString& path, UpdateDirFlags flags)
 {
     kDebug() << path;
     bool wasEmpty = m_paths.empty();
-    m_paths.enqueue( qMakePair( path, flags ) );
+    m_paths.push( qMakePair( path, flags ) );
     callForNextIteration();
 
     if( wasEmpty )
@@ -120,12 +120,12 @@ void BasicIndexingQueue::processNextIteration()
             processingFile = process( dirIt->next(), pair.second );
         }
         else {
-            delete m_iterators.dequeue().first;
+            delete m_iterators.pop().first;
         }
     }
 
     else if( !m_paths.isEmpty() ) {
-        QPair< QString, UpdateDirFlags > pair = m_paths.dequeue();
+        QPair< QString, UpdateDirFlags > pair = m_paths.pop();
         processingFile = process( pair.first, pair.second );
     }
 
@@ -161,7 +161,7 @@ bool BasicIndexingQueue::process(const QString& path, UpdateDirFlags flags)
             QDir::Filters dirFilter = QDir::NoDotAndDotDot|QDir::Readable|QDir::Files|QDir::Dirs;
 
             QPair<QDirIterator*, UpdateDirFlags> pair = qMakePair( new QDirIterator( path, dirFilter ), flags );
-            m_iterators.enqueue( pair );
+            m_iterators.push( pair );
         }
     }
     else if( info.isFile() && (forced || indexingRequired) ) {
@@ -258,6 +258,12 @@ void BasicIndexingQueue::slotIndexingFinished(KJob* job)
     m_currentFlags = NoUpdateFlags;
 
     emit endIndexingFile( url );
+
+    // Give back the memory
+    if( m_paths.isEmpty() )
+        m_paths.clear();
+    if( m_iterators.isEmpty() )
+        m_iterators.clear();
 
     // Continue the queue
     finishIteration();
