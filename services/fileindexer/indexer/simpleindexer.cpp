@@ -120,7 +120,9 @@ Nepomuk2::SimpleResource Nepomuk2::SimpleIndexingJob::createSimpleResource(const
         mime = *mimeType;
 
     if( mime.isEmpty() ) {
-        mime= KMimeType::findByUrl( fileUrl )->name();
+        mime = KMimeType::findByUrl( fileUrl )->name();
+        if( mimeType )
+            *mimeType = mime;
     }
     QSet<QUrl> types = typesForMimeType( mime );
     foreach(const QUrl& type, types)

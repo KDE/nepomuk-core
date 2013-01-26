@@ -50,7 +50,9 @@ namespace Nepomuk2 {
          * Fills a new SimpleResource with the basic data of the fileUrl such
          * as type, mimetype, and other stat info.
          *
-         * If the mimetype has not been provided it will be inferred from the \p fileUrl
+         * \param mimeType Indicates the mimetype of the fileUrl. If a non emtpy value has been
+         *                 provided, then it will be used. Otherwise \p mimeType will be updated
+         *                 to reflect the new value
          */
         static SimpleResource createSimpleResource( const KUrl& fileUrl, QString* mimeType );
 
