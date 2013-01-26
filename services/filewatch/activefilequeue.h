@@ -28,13 +28,19 @@
 
 /**
  * The active file queue maintains a queue of file paths
- * with a timestamp. It will signal the timout of a file after
- * a given time. As soon as a file is queued again its timestamp
+ * with a timestamp.
+ *
+ * When a file enters the queue, it will immediately time out.
+ * If the file has just timed out (default is upto 5 seconds), then it will
+ * time out after a given time. As soon as a file is queued again its timestamp
  * will be reset and the timing restarts.
  *
  * This allows to "compress" file modification events of downloads
  * and the like into a single event resulting in a smoother
  * experience for the user.
+ *
+ * Whereas modification events which occur only one will immediately
+ * be sent forward.
  *
  * \author Sebastian Trueg <trueg@ĸde.org>
  */
@@ -59,6 +65,12 @@ public slots:
      * that the timeout will be between \p seconds and \p seconds+1.
      */
     void setTimeout(int seconds);
+
+    /**
+     * Sets the timeout in seconds, that the queue should track the url
+     * once it has already been emitted.
+     */
+    void setWaitTimeout(int seconds);
 
 private slots:
     void slotTimer();

@@ -46,14 +46,24 @@ void ActiveFileQueueTest::testTimeout()
     // enqueue one url and then make sure it is not emitted before the timeout
     ActiveFileQueue queue;
     queue.setTimeout(3);
-    queue.enqueueUrl(myUrl);
+    queue.setWaitTimeout(2);
 
     QSignalSpy spy( &queue, SIGNAL(urlTimeout(KUrl)) );
+    queue.enqueueUrl(myUrl);
+
+    // The signal should be emitted immediately
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.takeFirst().first().value<KUrl>(), myUrl);
 
     // wait for 1 seconds
     loopWait(1000);
 
+    queue.enqueueUrl(myUrl);
     // the signal should not have been emitted yet
+    QVERIFY(spy.isEmpty());
+
+    // wait for 1 seconds
+    loopWait(1000);
     QVERIFY(spy.isEmpty());
 
     // wait another 2 seconds
@@ -71,12 +81,21 @@ void ActiveFileQueueTest::testRequeue()
     // enqueue one url and then make sure it is not emitted before the timeout
     ActiveFileQueue queue;
     queue.setTimeout(3);
-    queue.enqueueUrl(myUrl);
+    queue.setWaitTimeout(2);
 
     QSignalSpy spy( &queue, SIGNAL(urlTimeout(KUrl)) );
+    queue.enqueueUrl(myUrl);
 
+    // The signal should be emitted immediately
+    QCOMPARE(spy.count(), 1);
+    QCOMPARE(spy.takeFirst().first().value<KUrl>(), myUrl);
+
+    queue.enqueueUrl(myUrl);
     // wait for 2 seconds
     loopWait(1000);
+
+    // the signal should not have been emitted yet
+    QVERIFY(spy.isEmpty());
 
     // re-queue the url
     queue.enqueueUrl(myUrl);
