@@ -441,6 +441,8 @@ namespace Nepomuk2 {
          * For now this is a simple string which can either be the path to
          * an actual pixmap file or just the name of an icon as defined by
          * the freedesktop.org standard.
+         *
+         * \since 4.10
          */
         QStringList symbols() const;
 
@@ -449,6 +451,8 @@ namespace Nepomuk2 {
          * For now this is a simple string which can either be the path to
          * an actual pixmap file or just the name of an icon as defined by
          * the freedesktop.org standard.
+         *
+         * \since 4.10
          */
         void setSymbols( const QStringList& value );
 
@@ -457,6 +461,8 @@ namespace Nepomuk2 {
          * assigned. For now this is a simple string which can either be
          * the path to an actual pixmap file or just the name of an icon as
          * defined by the freedesktop.org standard.
+         *
+         * \since 4.10
          */
         void addSymbol( const QString& value );
 
