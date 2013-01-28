@@ -45,6 +45,7 @@ namespace Nepomuk2 {
 
         bool isSuspended() const;
         bool isIndexing() const;
+        bool isCleaning() const;
 
         /**
          * A user readable description of the scheduler's status

@@ -8,6 +8,9 @@
     <method name="isSuspended">
       <arg type="b" direction="out" />
     </method>
+    <method name="isCleaning">
+      <arg type="b" direction="out" />
+    </method>
     <method name="currentFolder">
       <arg type="s" direction="out" />
     </method>

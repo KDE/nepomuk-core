@@ -175,6 +175,11 @@ bool Nepomuk2::IndexScheduler::isSuspended() const
     return m_state == State_Suspended;
 }
 
+bool Nepomuk2::IndexScheduler::isCleaning() const
+{
+    return m_state == State_Cleaning;
+}
+
 bool Nepomuk2::IndexScheduler::isIndexing() const
 {
     return m_indexing;
