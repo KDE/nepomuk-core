@@ -60,6 +60,7 @@ namespace Nepomuk2 {
 
         bool isSuspended() const;
         bool isIndexing() const;
+        bool isCleaning() const;
 
         void resume() const;
         void suspend() const;

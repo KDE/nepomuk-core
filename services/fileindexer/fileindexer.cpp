@@ -140,6 +140,11 @@ bool Nepomuk2::FileIndexer::isIndexing() const
     return m_indexScheduler->isIndexing();
 }
 
+bool Nepomuk2::FileIndexer::isCleaning() const
+{
+    return m_indexScheduler->isCleaning();
+}
+
 
 void Nepomuk2::FileIndexer::suspend() const
 {

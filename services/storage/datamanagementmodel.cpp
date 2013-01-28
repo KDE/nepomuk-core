@@ -518,9 +518,15 @@ void Nepomuk2::DataManagementModel::setProperty(const QList<QUrl> &resources, co
         //          A file is moved and before the nie:url is updated data is added to the file in the new location.
         //          At this point the file is there twice and the data should ideally be merged. But how to decide that
         //          and how to distiguish between that situation and a file overwrite?
-        if(containsAnyStatement(Soprano::Node(), NIE::url(), *nodes.constBegin())) {
-            setError(QLatin1String("setProperty: No two resources can have the same nie:url at the same time."), Soprano::Error::ErrorInvalidArgument);
-            return;
+        QString query = QString::fromLatin1("select ?r where { ?r nie:url %1 . }")
+                        .arg( nodes.constBegin()->toN3() );
+
+        Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+        if( it.next() ) {
+            if( it[0] != resources.first() ) {
+                setError(QLatin1String("setProperty: No two resources can have the same nie:url at the same time."), Soprano::Error::ErrorInvalidArgument);
+                return;
+            }
         }
 
         if(updateNieUrlOnLocalFile(resources.first(), nodes.constBegin()->uri())) {
