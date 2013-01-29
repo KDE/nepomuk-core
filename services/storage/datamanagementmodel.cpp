@@ -2869,6 +2869,12 @@ bool Nepomuk2::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource
     }
 
     if (!oldNieUrlGraph.isEmpty()) {
+        const QString oldBasePath = KUrl(oldNieUrl).path(KUrl::AddTrailingSlash);
+        const QString newBasePath = KUrl(nieUrl).path(KUrl::AddTrailingSlash);
+
+        if( oldBasePath == newBasePath )
+            return true;
+
         removeStatement(resUri, NIE::url(), oldNieUrl, oldNieUrlGraph);
         addStatement(resUri, NIE::url(), nieUrl, oldNieUrlGraph);
 
@@ -2907,9 +2913,6 @@ bool Nepomuk2::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource
                                                   "}")
                 .arg(Soprano::Node::resourceToN3(NIE::url()),
                      KUrl(oldNieUrl).url(KUrl::AddTrailingSlash));
-
-        const QString oldBasePath = KUrl(oldNieUrl).path(KUrl::AddTrailingSlash);
-        const QString newBasePath = KUrl(nieUrl).path(KUrl::AddTrailingSlash);
 
         //
         // We cannot use one big loop since our updateMetadata calls below can change the iterator
