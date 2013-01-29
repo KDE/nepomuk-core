@@ -49,7 +49,10 @@ namespace {
         case SIGHUP:
         case SIGQUIT:
         case SIGINT:
-            delete s_control;
+            if( s_control ) {
+                delete s_control;
+                s_control = 0;
+            }
             QCoreApplication::exit( 0 );
         }
     }
