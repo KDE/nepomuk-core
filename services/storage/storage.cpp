@@ -22,6 +22,7 @@
 
 #include <QtDBus/QDBusConnection>
 #include <QtCore/QFile>
+#include <QCoreApplication>
 
 #include <KDebug>
 #include <KGlobal>
@@ -48,6 +49,9 @@ Nepomuk2::Storage::Storage( QObject* parent, const QList<QVariant>& )
     connect( m_core, SIGNAL( initializationDone(bool) ),
              this, SLOT( slotNepomukCoreInitialized(bool) ) );
     m_core->init();
+
+    connect( QCoreApplication::instance(), SIGNAL(aboutToQuit()),
+             m_core, SLOT(deleteLater()) );
 }
 
 
