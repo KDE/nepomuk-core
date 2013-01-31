@@ -4,6 +4,7 @@ X-KDE-ServiceType=NepomukService
 Comment=Nepomuk Service
 Comment[bs]=Servis Nepomuka
 Comment[ca]=Servei Nepomuk
+Comment[ca@valencia]=Servei Nepomuk
 Comment[cs]=Služba Nepomuk
 Comment[da]=Nepomuk-tjeneste
 Comment[de]=Nepomuk-Dienst
