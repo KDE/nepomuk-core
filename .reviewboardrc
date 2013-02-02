@@ -1,0 +1,4 @@
+REVIEWBOARD_URL = "https://git.reviewboard.kde.org"
+TARGET_GROUPS = "Nepomuk"
+GUESS_FIELDS = True
+REPOSITORY = "nepomuk-core"
