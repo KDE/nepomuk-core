@@ -405,6 +405,7 @@ void ResourceTests::tagsUpdate()
     QVERIFY(tag3.exists());
 
     Resource res(resUri);
+    res.setWatchEnabled( true );
 
     QList<Tag> tags;
     tags << tag1 << tag2 << tag3;
@@ -487,6 +488,7 @@ void ResourceTests::newResourcesUpdated()
     QUrl fileUri;
 
     Resource fileRes( fileUrl );
+    fileRes.setWatchEnabled( true );
     QVERIFY(!fileRes.exists());
     QVERIFY(fileRes.uri().isEmpty());
 
@@ -506,6 +508,7 @@ void ResourceTests::newResourcesUpdated()
 void ResourceTests::identifierUpdate()
 {
     Tag tag("Fire");
+    tag.setWatchEnabled( true );
     QVERIFY(!tag.exists());
 
     // Save the tag
@@ -571,6 +574,7 @@ void ResourceTests::resourceDeletion()
 
     Tag tag("Poop");
     Resource fileRes( fileUrl );
+    fileRes.setWatchEnabled(true);
     fileRes.addTag(tag);
 
     const QUrl tagUri = tag.uri();

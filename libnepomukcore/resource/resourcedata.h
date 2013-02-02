@@ -164,6 +164,8 @@ namespace Nepomuk2 {
         void propertyRemoved( const Types::Property &prop, const QVariant &value );
         void propertyAdded( const Types::Property &prop, const QVariant &value );
 
+        void setWatchEnabled( bool status );
+        bool watchEnabled();
     private:
         ResourceData(const ResourceData&); // = delete
         ResourceData& operator = (const ResourceData&); // = delete
@@ -171,6 +173,7 @@ namespace Nepomuk2 {
         void updateIdentifierLists( const QString& oldIdentifier, const QString& newIdentifier );
 
         void addToWatcher();
+        void removeFromWatcher();
 
         /// Will reset this instance to 0 as if constructed without parameters
         /// Used by remove() and deleteData()
@@ -203,6 +206,7 @@ namespace Nepomuk2 {
 
         bool m_cacheDirty;
         bool m_addedToWatcher;
+        bool m_watchEnabled;
 
         ResourceManagerPrivate* m_rm;
     };

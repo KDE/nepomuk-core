@@ -668,6 +668,22 @@ Nepomuk2::File Nepomuk2::Resource::toFile() const
     return File( *this );
 }
 
+void Nepomuk2::Resource::setWatchEnabled(bool status)
+{
+    determineFinalResourceData();
+    if( m_data )
+        return m_data->setWatchEnabled( status );
+}
+
+bool Nepomuk2::Resource::watchEnabled()
+{
+    determineFinalResourceData();
+    if( m_data )
+        return m_data->watchEnabled();
+
+    return false;
+}
+
 
 // static
 Nepomuk2::Resource Nepomuk2::Resource::fromResourceUri( const KUrl& uri, const Nepomuk2::Types::Class& type )
