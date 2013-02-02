@@ -132,7 +132,7 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
         }
 
         if( audioProp->bitrate() ) {
-            fileRes.setProperty( NFO::averageBitrate(), audioProp->bitrate() );
+            fileRes.setProperty( NFO::averageBitrate(), audioProp->bitrate() * 1000 );
         }
 
         if( audioProp->channels() ) {
