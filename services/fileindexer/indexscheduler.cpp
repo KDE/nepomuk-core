@@ -51,10 +51,6 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
         QFile::remove(KStandardDirs::locateLocal("data", QLatin1String("nepomuk/file-indexer-error-log")));
     }
 
-    m_cleaner = new IndexCleaner(this);
-    connect( m_cleaner, SIGNAL(finished(KJob*)), this, SLOT(slotCleaningDone()) );
-    m_cleaner->start();
-
     FileIndexerConfig* indexConfig = FileIndexerConfig::self();
     connect( indexConfig, SIGNAL(includeFolderListChanged(QStringList,QStringList)),
              this, SLOT(slotIncludeFolderListChanged(QStringList,QStringList)) );
@@ -105,6 +101,10 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
              this, SLOT(slotScheduleIndexing()) );
     connect( m_eventMonitor, SIGNAL(powerManagementStatusChanged(bool)),
              this, SLOT(slotScheduleIndexing()) );
+
+    m_cleaner = new IndexCleaner(this);
+    connect( m_cleaner, SIGNAL(finished(KJob*)), this, SLOT(slotCleaningDone()) );
+    m_cleaner->start();
 
     // Special settings for the queues
     KConfig config( "nepomukstrigirc" );
