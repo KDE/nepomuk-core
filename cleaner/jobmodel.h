@@ -26,7 +26,9 @@
 
 #include <KJob>
 
-class CleaningJob;
+namespace Nepomuk2 {
+    class CleaningJob;
+}
 
 class JobModel : public QAbstractListModel
 {
@@ -64,8 +66,8 @@ private:
 
     QStringList m_jobs;
 
-    QList<CleaningJob*> m_allJobs;
-    CleaningJob* m_curJob;
+    QList<Nepomuk2::CleaningJob*> m_allJobs;
+    Nepomuk2::CleaningJob* m_curJob;
 
     QThread* m_jobThread;
 };

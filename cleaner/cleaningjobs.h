@@ -18,39 +18,15 @@
 */
 
 
-#ifndef CLEANINGJOB_H
-#define CLEANINGJOB_H
+#ifndef CLEANINGJOBS_H
+#define CLEANINGJOBS_H
 
 #include <KJob>
 #include <KLocalizedString>
 #include <QtCore/QUrl>
 
-class CleaningJob : public KJob
-{
-    Q_OBJECT
-public:
-    explicit CleaningJob(QObject* parent = 0);
-    virtual ~CleaningJob();
+#include "cleaningjob.h"
 
-    virtual void start();
-    virtual QString jobName() = 0;
+QList<Nepomuk2::CleaningJob*> allJobs();
 
-    void quit();
-
-protected:
-    bool shouldQuit();
-
-private slots:
-    void slotStartExecution();
-
-private:
-    virtual void execute() = 0;
-
-    bool m_shouldQuit;
-};
-
-QList<CleaningJob*> allJobs();
-
-
-
-#endif // CLEANINGJOB_H
+#endif // CLEANINGJOBS_H

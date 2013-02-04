@@ -19,6 +19,7 @@
 
 
 #include "jobmodel.h"
+#include "cleaningjob.h"
 #include "cleaningjobs.h"
 
 #include <KIcon>
@@ -26,6 +27,8 @@
 #include <QThread>
 
 #include "resourcemanager.h"
+
+using namespace Nepomuk2;
 
 JobModel::JobModel(QObject* parent): QAbstractListModel(parent)
 {

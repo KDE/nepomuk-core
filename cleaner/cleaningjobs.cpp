@@ -18,6 +18,7 @@
 */
 
 
+#include "cleaningjob.h"
 #include "cleaningjobs.h"
 #include "resource.h"
 #include "variant.h"
@@ -39,39 +40,13 @@
 #include "nco.h"
 
 #include <KDebug>
+#include <KService>
+#include <KServiceTypeTrader>
 
+using namespace Nepomuk2;
 using namespace Nepomuk2::Vocabulary;
 using namespace Soprano::Vocabulary;
 
-CleaningJob::CleaningJob(QObject* parent)
-    : KJob(parent)
-{
-}
-
-CleaningJob::~CleaningJob()
-{
-}
-
-void CleaningJob::start() {
-    QTimer::singleShot( 0, this, SLOT(slotStartExecution()) );
-}
-
-void CleaningJob::slotStartExecution()
-{
-    m_shouldQuit = false;
-    execute();
-    emitResult();
-}
-
-void CleaningJob::quit()
-{
-    m_shouldQuit = true;
-}
-
-bool CleaningJob::shouldQuit()
-{
-    return m_shouldQuit;
-}
 
 
 //
@@ -550,6 +525,7 @@ void InvalidStatementsJob::execute()
 
 QList< CleaningJob* > allJobs()
 {
+    // standard jobs
     QList<CleaningJob*> list;
     list << new CrappyInferenceData();
     list << new EmptyTagCleaner();
@@ -562,6 +538,23 @@ QList< CleaningJob* > allJobs()
     list << new InvalidFileResourcesJob();
     list << new InvalidResourcesJob();
     list << new InvalidStatementsJob();
+
+    // plugins
+    KService::List plugins = KServiceTypeTrader::self()->query( "NepomukCleaningJob" );
+    for( KService::List::const_iterator it = plugins.constBegin(); it != plugins.constEnd(); it++ ) {
+        KService::Ptr service = *it;
+
+        QString error;
+        Nepomuk2::CleaningJob* job = service->createInstance<Nepomuk2::CleaningJob>( 0, QVariantList(), &error );
+        if( job ) {
+            list << job;
+        }
+        else {
+            kError() << "Could not create Cleaning job: " << service->library();
+            kError() << error;
+        }
+    }
+
     return list;
 }
 
