@@ -46,6 +46,7 @@ namespace Nepomuk2 {
          */
         void start();
 
+        void enqueue( const QUrl& url );
     signals:
         void beginIndexingFile(const QUrl& url);
         void endIndexingFile(const QUrl& url);
