@@ -69,6 +69,7 @@ Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, c
       m_modificationMutex(QMutex::Recursive),
       m_cacheDirty(false),
       m_addedToWatcher(false),
+      m_watchEnabled(false),
       m_rm(rm)
 {
     if( !uri.isEmpty() ) {
@@ -170,10 +171,7 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
 
     if( !m_uri.isEmpty() ) {
         m_rm->m_initializedData.remove( m_uri );
-        if( m_addedToWatcher ) {
-            m_rm->removeFromWatcher( m_uri );
-            m_addedToWatcher = false;
-        }
+        removeFromWatcher();
     }
     m_rm->mutex.unlock();
 
@@ -313,9 +311,20 @@ bool Nepomuk2::ResourceData::store()
 // Caller must hold m_modificationMutex
 void Nepomuk2::ResourceData::addToWatcher()
 {
-    m_rm->addToWatcher( m_uri );
-    m_addedToWatcher = true;
+    if( m_watchEnabled && !m_addedToWatcher ) {
+        m_rm->addToWatcher( m_uri );
+        m_addedToWatcher = true;
+    }
 }
+
+void Nepomuk2::ResourceData::removeFromWatcher()
+{
+    if( m_addedToWatcher ) {
+        m_rm->removeFromWatcher( m_uri );
+        m_addedToWatcher = false;
+    }
+}
+
 
 bool Nepomuk2::ResourceData::load()
 {
@@ -757,4 +766,22 @@ void Nepomuk2::ResourceData::propertyAdded( const Types::Property &prop, const Q
         updateKickOffLists(prop.uri(), var);
         m_cache[prop.uri()].append(var);
     }
+}
+
+void Nepomuk2::ResourceData::setWatchEnabled(bool status)
+{
+    QMutexLocker lock(&m_modificationMutex);
+    if( m_watchEnabled != status ) {
+        if( status )
+            addToWatcher();
+        else
+            removeFromWatcher();
+
+        m_watchEnabled = status;
+    }
+}
+
+bool Nepomuk2::ResourceData::watchEnabled()
+{
+    return m_watchEnabled;
 }

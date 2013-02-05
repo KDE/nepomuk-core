@@ -81,10 +81,11 @@ void ResourceTests::newTag()
     QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, RDF::type(), NAO::Tag()));
     QVERIFY(model->containsAnyStatement(uri, NAO::identifier(), Soprano::LiteralValue("Test")));
+    QVERIFY(model->containsAnyStatement(uri, NAO::prefLabel(), Soprano::LiteralValue::createPlainLiteral("Test")));
 
     QList<Soprano::Statement> stList = model->listStatements( tag.uri(), Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
-    QCOMPARE(stList.size(), 4);
+    QCOMPARE(stList.size(), 5);
 }
 
 void ResourceTests::newContact()
@@ -404,6 +405,7 @@ void ResourceTests::tagsUpdate()
     QVERIFY(tag3.exists());
 
     Resource res(resUri);
+    res.setWatchEnabled( true );
 
     QList<Tag> tags;
     tags << tag1 << tag2 << tag3;
@@ -486,6 +488,7 @@ void ResourceTests::newResourcesUpdated()
     QUrl fileUri;
 
     Resource fileRes( fileUrl );
+    fileRes.setWatchEnabled( true );
     QVERIFY(!fileRes.exists());
     QVERIFY(fileRes.uri().isEmpty());
 
@@ -505,6 +508,7 @@ void ResourceTests::newResourcesUpdated()
 void ResourceTests::identifierUpdate()
 {
     Tag tag("Fire");
+    tag.setWatchEnabled( true );
     QVERIFY(!tag.exists());
 
     // Save the tag
@@ -570,6 +574,7 @@ void ResourceTests::resourceDeletion()
 
     Tag tag("Poop");
     Resource fileRes( fileUrl );
+    fileRes.setWatchEnabled(true);
     fileRes.addTag(tag);
 
     const QUrl tagUri = tag.uri();

@@ -516,6 +516,18 @@ namespace Nepomuk2 {
          */
         static Resource fromResourceUri( const KUrl& uri, const Nepomuk2::Types::Class& type = Nepomuk2::Types::Class() );
 
+        /**
+         * Enables automatic updates of the internal cache using a
+         * ResourceWatcher.
+         */
+        void setWatchEnabled( bool status );
+
+        /**
+         * \return \p true if this resource will automatically update its cache
+         * when the data is changed by some other application
+         */
+        bool watchEnabled();
+
     private:
         /**
          * Determines the final ResourceData and updates m_data if

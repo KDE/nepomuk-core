@@ -62,6 +62,15 @@ void FileIndexingQueue::fillQueue()
         m_fileQueue.enqueue( it[0].uri() );
 }
 
+void FileIndexingQueue::enqueue(const QUrl& url)
+{
+    if( !m_fileQueue.contains(url) ) {
+        m_fileQueue.enqueue( url );
+        callForNextIteration();
+    }
+}
+
+
 bool FileIndexingQueue::isEmpty()
 {
     return m_fileQueue.isEmpty();

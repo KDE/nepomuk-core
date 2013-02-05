@@ -318,20 +318,20 @@ namespace {
     }
 }
 
-void Nepomuk2::ResourceWatcher::slotPropertyChanged(const QString& resUri, const QString& propUri, const QVariantList& oldObjs, const QVariantList& newObjs)
+void Nepomuk2::ResourceWatcher::slotPropertyChanged(const QString& res_, const QString& prop_, const QVariantList& addedObjs, const QVariantList& removedObjs)
 {
-    const Resource res = Resource::fromResourceUri(KUrl(resUri));
-    const Types::Property prop = KUrl(propUri);
+    const Resource res = Resource::fromResourceUri(KUrl(res_));
+    const Types::Property prop = KUrl(prop_);
 
-    foreach( const QVariant& v, oldObjs ) {
-        emit propertyRemoved( res, prop, v );
+    foreach( const QVariant& v, addedObjs ) {
+        emit propertyAdded( res, prop, convertType(prop, v) );
     }
 
-    foreach( const QVariant& v, newObjs ) {
-        emit propertyAdded( res, prop, v );
+    foreach( const QVariant& v, removedObjs ) {
+        emit propertyRemoved( res, prop, convertType(prop, v) );
     }
 
-    emit propertyChanged( res, prop, oldObjs, newObjs );
+    emit propertyChanged( res, prop, addedObjs, removedObjs );
 }
 
 #include "resourcewatcher.moc"
