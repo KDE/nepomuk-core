@@ -81,10 +81,11 @@ void ResourceTests::newTag()
     QVERIFY(model->containsAnyStatement(uri, NAO::created(), Soprano::Node()));
     QVERIFY(model->containsAnyStatement(uri, RDF::type(), NAO::Tag()));
     QVERIFY(model->containsAnyStatement(uri, NAO::identifier(), Soprano::LiteralValue("Test")));
+    QVERIFY(model->containsAnyStatement(uri, NAO::prefLabel(), Soprano::LiteralValue::createPlainLiteral("Test")));
 
     QList<Soprano::Statement> stList = model->listStatements( tag.uri(), Soprano::Node(),
                                                               Soprano::Node() ).allStatements();
-    QCOMPARE(stList.size(), 4);
+    QCOMPARE(stList.size(), 5);
 }
 
 void ResourceTests::newContact()
