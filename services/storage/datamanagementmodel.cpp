@@ -2552,101 +2552,32 @@ QHash< QUrl, QList< Soprano::Node > > DataManagementModel::addProperty(const QLi
         foreach(const Soprano::Node& node, nodes)
             finalProperties << qMakePair(resUri, node);
 
-    //
-    // Check if values already exist. If so remove the resources from the resourceSet and only add the application
-    // as maintainedBy in a new graph (except if its the only statement in the graph)
-    //
-    if(!knownResources.isEmpty()) {
-        const QString existingValuesQuery = QString::fromLatin1("select distinct ?r ?v ?g ?m "
-                                                                "(select count(*) where { graph ?g { ?s ?p ?o . } . FILTER(%4) . }) as ?cnt "
-                                                                "where { "
-                                                                "graph ?g { ?r %2 ?v . } . "
-                                                                "?m %1 ?g . "
-                                                                "FILTER(?r in (%3)) . "
-                                                                "FILTER(?v in (%5)) . }")
-                .arg(Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor()),
-                     Soprano::Node::resourceToN3(property),
-                     resourcesToN3(knownResources).join(QLatin1String(",")),
-                     createResourceMetadataPropertyFilter(QLatin1String("?p")),
-                     nodesToN3(resolvedNodes).join(QLatin1String(",")));
-        QList<Soprano::BindingSet> existingValueBindings = executeQuery(existingValuesQuery, Soprano::Query::QueryLanguageSparql).allBindings();
-        Q_FOREACH(const Soprano::BindingSet& binding, existingValueBindings) {
-            kDebug() << "Existing value" << binding;
-            const QUrl r = binding["r"].uri();
-            const Soprano::Node v = binding["v"];
-            const QUrl g = binding["g"].uri();
-            const QUrl m = binding["m"].uri();
-            const int cnt = binding["cnt"].literal().toInt();
-
-            // in case we do not signal the changes we restrict the values already in the query
-            if(resolvedNodes.contains(v)) {
-                // we handle this property here - thus, no need to handle it below
-                finalProperties.remove(qMakePair(r, v));
-
-                // in case the app is the same there is no need to do anything
-                if(containsStatement(g, NAO::maintainedBy(), appRes, m)) {
-                    continue;
-                }
-                else if(cnt == 1) {
-                    // we can reuse the graph
-                    addStatement(g, NAO::maintainedBy(), appRes, m);
-                }
-                else {
-                    // we need to split the graph
-                    // FIXME: do not split the same graph again and again. Check if the graph in question already is the one we created.
-                    const QUrl newGraph = splitGraph(g, m, appRes);
-
-                    // and finally move the actual property over to the new graph
-                    removeStatement(r, property, v, g);
-                    addStatement(r, property, v, newGraph);
-                }
-            }
+    // add all the data
+    // TODO: Add in one go, instead of multiple addStatement calls
+    QHash<QUrl, QList<Soprano::Node> > finalValuesPerResource;
+    foreach(const QUrl& resUri, resources) {
+        foreach(const Soprano::Node& node, nodes) {
+            addStatement(resUri, property, node, graph);
+            finalValuesPerResource[resUri].append(node);
         }
     }
 
-
-    //
-    // All conditions have been checked - create the actual data
-    //
-    if(!finalProperties.isEmpty()) {
-        if(graph.isEmpty()) {
-            graph = createGraph( app );
-            if(!graph.isValid()) {
-                // error has been set in createGraph
-                return QHash<QUrl, QList<Soprano::Node> >();
-            }
+    // inform interested parties
+    if(signalPropertyChanged) {
+        for(QHash<QUrl, QList<Soprano::Node> >::const_iterator it = finalValuesPerResource.constBegin(); it != finalValuesPerResource.constEnd(); ++it) {
+            d->m_watchManager->changeProperty(it.key(), property, it.value(), QList<Soprano::Node>());
         }
-
-        // add all the data
-        // TODO: check if using one big sparql insert improves performance
-        QHash<QUrl, QList<Soprano::Node> > finalValuesPerResource;
-        for(QSet<QPair<QUrl, Soprano::Node> >::const_iterator it = finalProperties.constBegin(); it != finalProperties.constEnd(); ++it) {
-            addStatement(it->first, property, it->second, graph);
-            if(property == NIE::url() && it->second.uri().scheme() == QLatin1String("file")) {
-                if(!containsAnyStatement(it->first, RDF::type(), NFO::FileDataObject()))
-                    addStatement(it->first, RDF::type(), NFO::FileDataObject(), graph);
-            }
-            finalValuesPerResource[it->first].append(it->second);
+        if(!finalValuesPerResource.isEmpty()) {
+            d->m_watchManager->changeSomething();
         }
-
-        // inform interested parties
-        if(signalPropertyChanged) {
-            for(QHash<QUrl, QList<Soprano::Node> >::const_iterator it = finalValuesPerResource.constBegin(); it != finalValuesPerResource.constEnd(); ++it) {
-                d->m_watchManager->changeProperty(it.key(), property, it.value(), QList<Soprano::Node>());
-            }
-            if(!finalValuesPerResource.isEmpty()) {
-                d->m_watchManager->changeSomething();
-            }
-        }
-
-        // update modification date
-        QSet<QUrl> finalResources = finalValuesPerResource.keys().toSet();
-        updateModificationDate( finalResources, graph, QDateTime::currentDateTime(), true );
-
-        return finalValuesPerResource;
     }
 
-    return QHash<QUrl, QList<Soprano::Node> >();
+    // update modification date
+    // TODO: This can be done when pushing the data above!
+    QSet<QUrl> finalResources = finalValuesPerResource.keys().toSet();
+    updateModificationDate( finalResources, graph, QDateTime::currentDateTime(), true );
+
+    return finalValuesPerResource;
 }
 
 bool Nepomuk2::DataManagementModel::doesResourceExist(const QUrl &res, const QUrl& graph) const
