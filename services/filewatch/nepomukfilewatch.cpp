@@ -20,6 +20,7 @@
 #include "nepomukfilewatch.h"
 #include "metadatamover.h"
 #include "fileindexerinterface.h"
+#include "filewatchadaptor.h"
 #include "fileexcludefilters.h"
 #include "removabledeviceindexnotification.h"
 #include "removablemediacache.h"
@@ -39,6 +40,7 @@
 #include <KUrl>
 #include <KPluginFactory>
 #include <KConfigGroup>
+#include <KLocale>
 
 #include "resourcemanager.h"
 #include "nie.h"
@@ -108,10 +110,12 @@ Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
 #ifdef BUILD_KINOTIFY
     , m_dirWatch( 0 )
 #endif
+    , m_isIdle(true)
 {
     // Create the configuration instance singleton (for thread-safety)
     // ==============================================================
     (void)new FileIndexerConfig(this);
+    resetStatusMessage();
 
     // the list of default exclude filters we use here differs from those
     // that can be configured for the file indexer service
@@ -128,6 +132,12 @@ Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
     m_metadataMover = new MetadataMover( mainModel() );
     connect( m_metadataMover, SIGNAL(movedWithoutData(QString)),
              this, SLOT(slotMovedWithoutData(QString)),
+             Qt::QueuedConnection );
+    connect( m_metadataMover, SIGNAL(statusMessage(QString)),
+             this, SLOT(updateStatusMessage(QString)),
+             Qt::QueuedConnection );
+    connect( m_metadataMover, SIGNAL(metadataUpdateStopped()),
+             this, SLOT(resetStatusMessage()),
              Qt::QueuedConnection );
     m_metadataMover->moveToThread(m_metadataMoverThread);
 
@@ -197,6 +207,15 @@ void Nepomuk2::FileWatch::watchFolder( const QString& path )
 #endif
 }
 
+bool Nepomuk2::FileWatch::isUpdatingMetaData() const
+{
+    return !m_isIdle;
+}
+
+QString Nepomuk2::FileWatch::statusMessage() const
+{
+    return m_statusMessage;
+}
 
 void Nepomuk2::FileWatch::slotFileMoved( const QString& urlFrom, const QString& urlTo )
 {
@@ -447,6 +466,28 @@ void Nepomuk2::FileWatch::slotActiveFileQueueTimeout(const KUrl &url)
 {
     kDebug() << url;
     updateFileViaFileIndexer(url.toLocalFile());
+}
+
+void Nepomuk2::FileWatch::updateStatusMessage(const QString &newStatus)
+{
+    m_statusMessage = newStatus;
+
+    if( m_isIdle ) {
+        emit metadataUpdateStarted();
+        m_isIdle = false;
+    }
+
+    emit status(1, m_statusMessage);
+}
+
+void Nepomuk2::FileWatch::resetStatusMessage()
+{
+    m_isIdle = true;
+
+    m_statusMessage = i18n( "The File Watcher is idle." );
+
+    emit metadataUpdateStopped();
+    emit status( 0, m_statusMessage );
 }
 
 #include "nepomukfilewatch.moc"

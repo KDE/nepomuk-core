@@ -101,6 +101,7 @@ void Nepomuk2::ServiceControl::start()
     QDBusConnection::sessionBus().registerObject( '/' + m_serviceName,
                                                   m_nepomukServiceModule,
                                                   QDBusConnection::ExportScriptableSlots |
+                                                  QDBusConnection::ExportScriptableSignals |
                                                   QDBusConnection::ExportScriptableProperties |
                                                   QDBusConnection::ExportAdaptors);
 }

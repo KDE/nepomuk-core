@@ -32,6 +32,7 @@
 
 #include <KDebug>
 #include <KJob>
+#include <KLocale>
 
 
 Nepomuk2::MetadataMover::MetadataMover( Soprano::Model* model, QObject* parent )
@@ -96,6 +97,8 @@ void Nepomuk2::MetadataMover::slotWorkUpdateQueue()
     // lock for initial iteration
     QMutexLocker lock(&m_queueMutex);
 
+    emit metadataUpdateStarted();
+
     // work the queue
     if( !m_updateQueue.isEmpty() ) {
         UpdateRequest updateRequest = m_updateQueue.dequeue();
@@ -107,11 +110,15 @@ void Nepomuk2::MetadataMover::slotWorkUpdateQueue()
 
         // an empty second url means deletion
         if( updateRequest.target().isEmpty() ) {
+
+            emit statusMessage( i18n("Remove metadata from %1",updateRequest.source().prettyUrl()) );
             removeMetadata( updateRequest.source() );
         }
         else {
             const KUrl from = updateRequest.source();
             const KUrl to = updateRequest.target();
+
+            emit statusMessage( i18n("Move metadata from %1 to %2",from.prettyUrl(),to.prettyUrl()) );
 
             // We do NOT get deleted messages for overwritten files! Thus, we
             // have to remove all metadata for overwritten files first.
@@ -125,6 +132,8 @@ void Nepomuk2::MetadataMover::slotWorkUpdateQueue()
     }
     else {
         //kDebug() << "All update requests handled. Stopping timer.";
+
+        emit metadataUpdateStopped();
         m_queueTimer->stop();
     }
 }

@@ -22,6 +22,8 @@ set(SRCS
   )
 
 qt4_add_dbus_interface(SRCS ../../interfaces/org.kde.nepomuk.FileIndexer.xml fileindexerinterface)
+qt4_add_dbus_interface(SRCS ../../interfaces/org.kde.nepomuk.FileWatch.xml filewatchinterface)
+qt4_add_dbus_adaptor(SRCS ../../interfaces/org.kde.nepomuk.FileWatch.xml nepomukfilewatch.h Nepomuk2::FileWatch )
 
 if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   set(SRCS
