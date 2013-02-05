@@ -202,7 +202,7 @@ public Q_SLOTS:
      */
     SimpleResourceGraph describeResources(const QList<QUrl>& resources,
                                           DescribeResourcesFlags flags = NoDescribeResourcesFlags,
-                                          const QList<QUrl>& targetParties = QList<QUrl>() ) const;
+                                          const QList<QUrl>& targetParties = QList<QUrl>() );
 
     /**
      * Export a set of resources, i.e. retrieve their properties.
@@ -223,7 +223,7 @@ public Q_SLOTS:
                             Soprano::RdfSerialization serialization,
                             const QString& userSerialization = QString(),
                             DescribeResourcesFlags flags = NoDescribeResourcesFlags,
-                            const QList<QUrl>& targetParties = QList<QUrl>() ) const;
+                            const QList<QUrl>& targetParties = QList<QUrl>() );
     //@}
 
     /**
@@ -236,6 +236,8 @@ public Q_SLOTS:
 private:
     QUrl createGraph(const QString& app = QString(), const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()));
     QUrl createGraph(const QString& app, const QMultiHash<QUrl, Soprano::Node>& additionalMetadata);
+
+    QUrl fetchGraph(const QString& app, bool discardable = false);
 
     /**
      * Splits \p graph into two. This essentially copies the graph metadata to a new graph and metadata graph pair.
@@ -272,17 +274,16 @@ private:
      * Adds for each resource in \p resources a property for each node in nodes. \p nodes cannot be empty.
      * This method is used in the public setProperty and addProperty slots to avoid a lot of code duplication.
      *
-     * \param resources A hash mapping the resources provided by the client to the actual resource URIs. This hash is created via resolveUrls() and can
-     *                  contain empty values which means that the resource corresponding to a file URL does not exist yet.
-     *                  This hash cannot be empty.
+     * \param resources A list of resource uris
      * \param property The property to use. This cannot be empty.
-     * \param nodes A hash mapping value nodes as created via resolveNodes from the output of ClassAndPropertyTree::variantToNodeSet. Like \p resources
-     *              this hash might contain empty values which refer to non-existing file resources. This cannot be empty.
+     * \param nodes A list of objects
      * \param app The calling application.
      *
      * \return A mapping from changed resources to actually newly added values.
      */
-    QHash<QUrl, QList<Soprano::Node> > addProperty(const QHash<QUrl, QUrl>& resources, const QUrl& property, const QHash<Soprano::Node, Soprano::Node>& nodes, const QString& app, bool signalPropertyChanged = false);
+    QHash<QUrl, QList<Soprano::Node> > addProperty(const QList<QUrl>& resources, const QUrl& property,
+                                                   const QList<Soprano::Node>& nodes, const QString& app,
+                                                   bool signalPropertyChanged = false);
 
     /**
      * Removes the given resources without any additional checks. The provided list needs to contain already resolved valid resource URIs.
@@ -304,24 +305,25 @@ private:
      * \param statLocalFiles If \p true the method will check if local files exist and set an error
      * if not.
      */
-    QUrl resolveUrl(const QUrl& url, bool statLocalFiles = false) const;
+    QUrl resolveUrl(const QUrl& url, bool statLocalFiles = false);
 
     /**
      * Resolves local file URLs through nie:url.
-     * \return a Hash mapping \p urls to their actual resource URIs or an empty QUrl if the resource does not exist.
+     * \return a list of urls which contain the actual resource uris. If the resource uri does not exist
+     *         it is created
      *
      * \param statLocalFiles If \p true this method does check if the local file exists and may set an error if not.
      */
-    QHash<QUrl, QUrl> resolveUrls(const QList<QUrl>& urls, bool statLocalFiles = true) const;
+    QList<QUrl> resolveUrls(const QList< QUrl >& urls, const QString& app, bool statLocalFiles = true);
 
     /**
      * Resolves local file URLs through nie:url.
-     * \return a Hash mapping \p nodes to the nodes that should actually be added to the model or an empty node if the resource for a file URL
-     * does not exist yet.
      *
      * This method does check if the local file exists and may set an error.
      */
-    QHash<Soprano::Node, Soprano::Node> resolveNodes(const QSet<Soprano::Node>& nodes) const;
+    QList<Soprano::Node> resolveNodes(const QSet<Soprano::Node>& nodes, const QString& app);
+
+    QList<QUrl> createFileResources(const QList<QUrl>& nieUrls, const QUrl& graph);
 
     /**
      * Updates the nie:url of a local file resource.
