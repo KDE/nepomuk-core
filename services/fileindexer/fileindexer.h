@@ -33,7 +33,7 @@ namespace Nepomuk2 {
     class FileIndexer : public Nepomuk2::Service
     {
         Q_OBJECT
-        Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.nepomukfileindexer")
+        Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.FileIndexer")
 
     public:
         FileIndexer( QObject* parent = 0, const QList<QVariant>& args = QList<QVariant>() );
@@ -41,53 +41,54 @@ namespace Nepomuk2 {
 
     Q_SIGNALS:
         void statusStringChanged();
-        void statusChanged(); //vHanda: Can't we just use statusStringChanged? or should that be renamed
-        void indexingFolder( const QString& path );
-        void indexingStarted();
-        void indexingStopped();
-        void fileIndexingDone();
+
+        Q_SCRIPTABLE void statusChanged();
+        Q_SCRIPTABLE void indexingFolder( const QString& path );
+        Q_SCRIPTABLE void indexingStarted();
+        Q_SCRIPTABLE void indexingStopped();
+        Q_SCRIPTABLE void fileIndexingDone();
 
     public Q_SLOTS:
         /**
          * \return A user readable status string. Includes the currently indexed folder.
          */
-        QString userStatusString() const;
+        Q_SCRIPTABLE QString userStatusString() const;
 
         /**
          * Simplified status string without details.
          */
-        QString simpleUserStatusString() const;
+        Q_SCRIPTABLE QString simpleUserStatusString() const;
 
-        bool isSuspended() const;
-        bool isIndexing() const;
-        bool isCleaning() const;
+        Q_SCRIPTABLE bool isSuspended() const;
+        Q_SCRIPTABLE bool isIndexing() const;
+        Q_SCRIPTABLE bool isCleaning() const;
 
-        void resume() const;
-        void suspend() const;
-        void setSuspended( bool );
+        Q_SCRIPTABLE void resume() const;
+        Q_SCRIPTABLE void suspend() const;
+        Q_SCRIPTABLE void setSuspended( bool );
 
-        QString currentFolder() const;
-        QString currentFile() const;
+        Q_SCRIPTABLE QString currentFolder() const;
+        Q_SCRIPTABLE QString currentFile() const;
 
         /**
          * Update folder \a path if it is configured to be indexed.
          */
-        void updateFolder( const QString& path, bool recursive, bool forced );
+        Q_SCRIPTABLE void updateFolder( const QString& path, bool recursive, bool forced );
 
         /**
          * Update all folders configured to be indexed.
          */
-        void updateAllFolders( bool forced );
+        Q_SCRIPTABLE void updateAllFolders( bool forced );
 
         /**
          * Index a folder independent of its configuration status.
          */
-        void indexFolder( const QString& path, bool recursive, bool forced );
+        Q_SCRIPTABLE void indexFolder( const QString& path, bool recursive, bool forced );
 
         /**
          * Index a specific file
          */
-        void indexFile( const QString& path );
+        Q_SCRIPTABLE void indexFile( const QString& path );
 
     private Q_SLOTS:
         void updateWatches();

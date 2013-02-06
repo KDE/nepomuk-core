@@ -46,9 +46,6 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
     connect( FileIndexerConfig::self(), SIGNAL( configChanged() ),
              this, SLOT( updateWatches() ) );
 
-    // export on dbus
-    ( void )new FileIndexerAdaptor( this );
-
     // setup status connections
     connect( m_indexScheduler, SIGNAL(statusStringChanged()),
              this, SIGNAL(statusStringChanged()) );
