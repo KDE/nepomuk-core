@@ -1057,45 +1057,51 @@ void DataManagementModelTest::testRemoveProperty()
 {
     const int cleanCount = m_model->statementCount();
 
-    QUrl mg1;
-    const QUrl g1 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg1);
-    m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar")), g1);
-    m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g1);
-    m_model->addStatement(QUrl("res:/A"), NAO::lastModified(), LiteralValue(QDateTime::currentDateTime()), g1);
+    QUrl resA("nepomuk:/res/A");
+    QList<QUrl> resAList;
+    resAList << resA;
+    m_dmModel->addProperty( resAList, QUrl("prop:/string"), QVariantList() << QString("foobar"), "Testapp" );
+    m_dmModel->addProperty( resAList, QUrl("prop:/string"), QVariantList() << QString("hello world"), "Testapp" );
 
-    m_dmModel->removeProperty(QList<QUrl>() << QUrl("res:/A"), QUrl("prop:/string"), QVariantList() << QLatin1String("hello world"), QLatin1String("Testapp"));
+
+    QList<Node> lastModNodes = m_model->listStatements(resA, NAO::lastModified(), QUrl()).iterateObjects().allNodes();
+    QCOMPARE( lastModNodes.size(), 1 );
+    QDateTime lastMod = lastModNodes.first().literal().toDateTime();
+
+    m_dmModel->removeProperty( resAList, QUrl("prop:/string"), QVariantList() << QLatin1String("hello world"), QLatin1String("Testapp"));
 
     QVERIFY(!m_dmModel->lastError());
 
     // test that the data has been removed
-    QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world"))));
+    QVERIFY(!m_model->containsAnyStatement(resA, QUrl("prop:/string"), LiteralValue(QLatin1String("hello world"))));
 
-    // test that the mtime has been updated (and is thus in another graph)
-    QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), NAO::lastModified(), Soprano::Node(), g1));
-    QVERIFY(m_model->containsAnyStatement(QUrl("res:/A"), NAO::lastModified(), Soprano::Node()));
+    // test that the mtime has been updated
+    QList<Node> newLastModNodes = m_model->listStatements(resA, NAO::lastModified(), QUrl()).iterateObjects().allNodes();
+    QCOMPARE( newLastModNodes.size(), 1 );
+    QDateTime newLastMod = newLastModNodes.first().literal().toDateTime();
+    QVERIFY( newLastMod > lastMod );
 
     // test that the other property value is still valid
-    QVERIFY(m_model->containsStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar")), g1));
+    QVERIFY(m_model->containsAnyStatement(resA, QUrl("prop:/string"), LiteralValue(QLatin1String("foobar"))));
 
     QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 
-
     // step 2: remove the second value
-    m_dmModel->removeProperty(QList<QUrl>() << QUrl("res:/A"), QUrl("prop:/string"), QVariantList() << QLatin1String("foobar"), QLatin1String("Testapp"));
+    m_dmModel->removeProperty(resAList, QUrl("prop:/string"), QVariantList() << QLatin1String("foobar"), QLatin1String("Testapp"));
 
     QVERIFY(!m_dmModel->lastError());
 
     // the property should be gone entirely
-    QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), QUrl("prop:/string"), Soprano::Node()));
+    QVERIFY(!m_model->containsAnyStatement(resA, QUrl("prop:/string"), Soprano::Node()));
 
     // even the resource should be gone since the NAO mtime does not count as a "real" property
-    QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), Soprano::Node(), Soprano::Node()));
+    QVERIFY(!m_model->containsAnyStatement(resA, Soprano::Node(), Soprano::Node()));
 
     // nothing except the ontology and the Testapp Agent should be left
-    QCOMPARE(m_model->statementCount(), cleanCount+6);
+    // the +5 = appGraph type, appGraph maintained, appMetaGraph, appGraphCoreGraphFor, appGraph created
+    QCOMPARE(m_model->statementCount(), cleanCount+6+5);
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -1147,6 +1153,9 @@ void DataManagementModelTest::testRemoveProperty_invalid_args()
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g1);
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/int"), LiteralValue(42), g1);
     m_model->addStatement(QUrl("res:/A"), NAO::lastModified(), LiteralValue(QDateTime::currentDateTime()), g1);
+
+    // Using add property so that the graph and app are created
+    m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/blankres"), QUrl("prop:/string"), QVariantList() << QLatin1String("foobar"), QLatin1String("testapp"));
 
     // remember current state to compare later on
     Soprano::Graph existingStatements = m_model->listStatements().allStatements();
@@ -1256,6 +1265,9 @@ void DataManagementModelTest::testRemoveProperty_invalid_args()
 // it is not allowed to change properties, classes or graphs through this API
 void DataManagementModelTest::testRemoveProperty_protectedTypes()
 {
+    // Using add property so that the graph and app are created
+    m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/blankres"), QUrl("prop:/string"), QVariantList() << QLatin1String("foobar"), QLatin1String("testapp"));
+
     // remember current state to compare later on
     Soprano::Graph existingStatements = m_model->listStatements().allStatements();
 
@@ -1531,6 +1543,9 @@ void DataManagementModelTest::testRemoveProperties_invalid_args()
 
 void DataManagementModelTest::testRemoveProperties_protectedTypes()
 {
+    // Using add property so that the graph and app are created
+    m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/blankres"), QUrl("prop:/string"), QVariantList() << QLatin1String("foobar"), QLatin1String("testapp"));
+
     // remember current state to compare later on
     Soprano::Graph existingStatements = m_model->listStatements().allStatements();
 
