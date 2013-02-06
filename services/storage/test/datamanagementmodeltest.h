@@ -45,6 +45,8 @@ private Q_SLOTS:
     void init();
 
     void testAddProperty();
+    void testAddProperty_double();
+    void testAddProperty_diffApp();
     void testAddProperty_createRes();
     void testAddProperty_cardinality();
     void testAddProperty_file();

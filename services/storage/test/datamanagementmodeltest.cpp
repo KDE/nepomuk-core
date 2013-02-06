@@ -1,7 +1,7 @@
 /*
    This file is part of the Nepomuk KDE project.
    Copyright (C) 2011 Sebastian Trueg <trueg@kde.org>
-   Copyright (C) 2011 Vishesh Handa <handa.vish@gmail.com>
+   Copyright (C) 2011-13 Vishesh Handa <handa.vish@gmail.com>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -157,49 +157,79 @@ void DataManagementModelTest::testAddProperty()
     // check that we only have one agent instance
     QCOMPARE(m_model->listStatements(Node(), RDF::type(), NAO::Agent()).allStatements().count(), 1);
 
-    //
-    // rewrite the same property with the same app
-    //
+    QVERIFY(!haveTrailingGraphs());
+    QVERIFY(!haveDataInDefaultGraph());
+}
+
+void DataManagementModelTest::testAddProperty_double()
+{
+    m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/res/A"), QUrl("prop:/string"), QVariantList() << QVariant(QLatin1String("hello world")), QLatin1String("Testapp"));
+
     Soprano::Graph existingStatements = m_model->listStatements().allStatements();
+
     m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/res/A"), QUrl("prop:/string"), QVariantList() << QVariant(QLatin1String("hello world")), QLatin1String("Testapp"));
 
     // nothing should have changed
-    QCOMPARE(existingStatements, Soprano::Graph(m_model->listStatements().allStatements()));
+    // apart from the nao:lastModified
+    QSet<Soprano::Statement> newSet = m_model->listStatements().allStatements().toSet();
+    QSet<Soprano::Statement> existingSet = existingStatements.toSet();
+    foreach(const Soprano::Statement& st, newSet) {
+        if( st.predicate() != NAO::lastModified() )
+            QVERIFY(existingSet.contains(st));
+    }
 
+    foreach(const Soprano::Statement& st, existingSet) {
+        if( st.predicate() != NAO::lastModified() )
+            QVERIFY(newSet.contains(st));
+    }
 
-    //
+    QVERIFY(!haveTrailingGraphs());
+    QVERIFY(!haveDataInDefaultGraph());
+}
+
+void DataManagementModelTest::testAddProperty_diffApp()
+{
+    m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/res/A"), QUrl("prop:/string"), QVariantList() << QVariant(QLatin1String("hello world")), QLatin1String("Testapp"));
+
+    Soprano::Graph existingStatements = m_model->listStatements().allStatements();
+
     // rewrite the same property with another app
-    //
     m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/res/A"), QUrl("prop:/string"), QVariantList() << QVariant(QLatin1String("hello world")), QLatin1String("Otherapp"));
 
     // there should only be the new app, nothing else
-    // thus, all previous statements need to be there
+    // thus, all previous statements need to be there except for the NAO::lastModified which would have changed
     foreach(const Statement& s, existingStatements.toList()) {
-        QVERIFY(m_model->containsStatement(s));
+        if( s.predicate() != NAO::lastModified() )
+            QVERIFY(m_model->containsStatement(s));
     }
 
 
-    // plus the new app
-    existingStatements.addStatements(
-                m_model->executeQuery(QString::fromLatin1("select ?g ?s ?p ?o where { graph ?g { ?s ?p ?o . } . filter(bif:exists((select (1) where { graph ?g { ?a a %1 . ?a %2 %3 . } . })))}")
-                                      .arg(Soprano::Node::resourceToN3(NAO::Agent()),
-                                           Soprano::Node::resourceToN3(NAO::identifier()),
-                                           Soprano::Node::literalToN3(QLatin1String("Otherapp"))),
-                                      Soprano::Query::QueryLanguageSparql)
-                .iterateStatementsFromBindings(QLatin1String("s"), QLatin1String("p"), QLatin1String("o"), QLatin1String("g"))
-                .allStatements()
-                + m_model->executeQuery(QString::fromLatin1("select ?g ?s ?p ?o where { graph ?g { ?s ?p ?o . } . filter(bif:exists((select (1) where { graph ?gg { ?a a %1 . ?a %2 %3 . } . ?g %4 ?gg . })))}")
-                                        .arg(Soprano::Node::resourceToN3(NAO::Agent()),
-                                             Soprano::Node::resourceToN3(NAO::identifier()),
-                                             Soprano::Node::literalToN3(QLatin1String("Otherapp")),
-                                             Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor())),
-                                        Soprano::Query::QueryLanguageSparql)
-                .iterateStatementsFromBindings(QLatin1String("s"), QLatin1String("p"), QLatin1String("o"), QLatin1String("g"))
-                .allStatements()
-                + m_model->listStatements(Node(), NAO::maintainedBy(), Node(), Node()).allStatements()
-                );
+    // Check if the new app exists
+    QVERIFY(m_model->executeQuery(QString::fromLatin1("ask where { "
+                                                      "graph ?g { ?r a %1 . ?r %2 %3 . } . "
+                                                      "graph ?mg { ?g a %4 . ?mg a %5 . ?mg %6 ?g . } . }")
+                                  .arg(Soprano::Node::resourceToN3(NAO::Agent()),
+                                       Soprano::Node::resourceToN3(NAO::identifier()),
+                                       Soprano::Node::literalToN3(QLatin1String("Otherapp")),
+                                       Soprano::Node::resourceToN3(NRL::InstanceBase()),
+                                       Soprano::Node::resourceToN3(NRL::GraphMetadata()),
+                                       Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor())),
+                                  Soprano::Query::QueryLanguageSparql).boolValue());
 
-    QCOMPARE(existingStatements, Soprano::Graph(m_model->listStatements().allStatements()));
+    // Check if the data exists twice if 2 different graphs
+    QList<Node> graphList = m_model->listStatements(QUrl("nepomuk:/res/A"), QUrl("prop:/string"), LiteralValue("hello world")).iterateContexts().allNodes();
+    QCOMPARE( graphList.size(), 2 );
+
+    QList<Node> app1NodeList = m_model->listStatements( graphList.first(), NAO::maintainedBy(), QUrl() ).iterateObjects().allNodes();
+    QList<Node> app2NodeList = m_model->listStatements( graphList.last(), NAO::maintainedBy(), QUrl() ).iterateObjects().allNodes();
+
+    QCOMPARE(app1NodeList.size(), 1);
+    QCOMPARE(app2NodeList.size(), 1);
+
+    const QUrl app1 = app1NodeList.first().uri();
+    const QUrl app2 = app2NodeList.first().uri();
+
+    QVERIFY( app1 != app2 );
 
     QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
@@ -287,13 +317,6 @@ void DataManagementModelTest::testAddProperty_file()
     // make sure the actual value is there
     QVERIFY(m_model->containsAnyStatement(fileAResUri, QUrl("prop:/res"), fileBResUri));
 
-
-    // add the same relation but with another app
-    m_dmModel->addProperty(QList<QUrl>() << QUrl::fromLocalFile(fileA.fileName()), QUrl("prop:/res"), QVariantList() << QVariant(QUrl::fromLocalFile(fileB.fileName())), QLatin1String("Otherapp"));
-
-    // there is only one prop:/res relation defined
-    QCOMPARE(m_model->listStatements(Node(), QUrl("prop:/res"), Node()).allStatements().count(), 1);
-
     // we now add two values for a property with cardinality 1
     m_dmModel->addProperty(QList<QUrl>() << QUrl::fromLocalFile(fileA.fileName()), QUrl("prop:/res_c1"), QVariantList() << QVariant(QUrl::fromLocalFile(fileB.fileName())), QLatin1String("Testapp"));
     m_dmModel->addProperty(QList<QUrl>() << QUrl::fromLocalFile(fileA.fileName()), QUrl("prop:/res_c1"), QVariantList() << QVariant(QUrl::fromLocalFile(fileC.fileName())), QLatin1String("Testapp"));
@@ -336,13 +359,15 @@ void DataManagementModelTest::testAddProperty_invalidFile()
     // will automatically add the file:/ protocol to local paths.
     QVERIFY( !m_model->containsAnyStatement( Node(), NIE::url(), f1Url ) );
 
-    m_dmModel->addProperty( QList<QUrl>() << QUrl("file:///Blah"), NIE::comment(),
+    m_dmModel->addProperty( QList<QUrl>() << QUrl("file:///Blah"), QUrl("prop:/string"),
                             QVariantList() << "Comment", QLatin1String("testapp") );
 
     // There should be some error as '/Blah' does not exist
     QVERIFY(m_dmModel->lastError());
 
-    QVERIFY(!haveTrailingGraphs());
+    // A new empty graph for the testapp would have been constructed
+    //QVERIFY(!haveTrailingGraphs());
+
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -429,9 +454,9 @@ void DataManagementModelTest::testAddProperty_invalid_args()
     // the call should have failed
     QVERIFY(m_dmModel->lastError());
 
-    // nothing should have changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
+    // nonExistingFileUrl should not exist
+    QVERIFY( !m_model->containsAnyStatement(nonExistingFileUrl, QUrl(), QUrl()) );
+    QVERIFY( !m_model->containsAnyStatement(QUrl(), QUrl(), nonExistingFileUrl) );
 
     // non-existing file as object
     m_dmModel->addProperty(QList<QUrl>() << QUrl("res:/A"), QUrl("prop:/res"), QVariantList() << nonExistingFileUrl, QLatin1String("testapp"));
@@ -439,9 +464,9 @@ void DataManagementModelTest::testAddProperty_invalid_args()
     // the call should have failed
     QVERIFY(m_dmModel->lastError());
 
-    // nothing should have changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
+    // nonExistingFileUrl should not exist
+    QVERIFY( !m_model->containsAnyStatement(nonExistingFileUrl, QUrl(), QUrl()) );
+    QVERIFY( !m_model->containsAnyStatement(QUrl(), QUrl(), nonExistingFileUrl) );
 
     // TODO: try setting protected properties like nie:url, nfo:fileName, nie:isPartOf (only applies to files)
 }
@@ -639,62 +664,26 @@ void DataManagementModelTest::testSetProperty_overwrite()
 
 
     //
-    // Rewrite the same value
+    // Rewrite the same value with a different app
     //
     m_dmModel->setProperty(QList<QUrl>() << QUrl("res:/A"), QUrl("prop:/int2"), QVariantList() << 42, QLatin1String("testapp"));
 
-    // the value should only be there once
-    QCOMPARE(m_model->listStatements(QUrl("res:/A"), QUrl("prop:/int2"), LiteralValue(42)).allStatements().count(), 1);
+    QList<Node> graphList = m_model->listStatements(QUrl("res:/A"), QUrl("prop:/int2"), LiteralValue(42)).iterateContexts().allNodes();
 
-    // in a new graph since the old one still contains the type
-    QVERIFY(m_model->listStatements(QUrl("res:/A"), QUrl("prop:/int2"), LiteralValue(42)).allStatements().first().context().uri() != g);
+    // the value should be there twice
+    QCOMPARE(graphList.size(), 2);
 
-    // there should be one graph now which contains the value and which is marked as being maintained by both apps
-    QVERIFY(m_model->executeQuery(QString::fromLatin1("ask where { "
-                                                      "graph ?g { <res:/A> <prop:/int2> %1 . } . "
-                                                      "graph ?mg { ?g a %2 . ?mg a %3 . ?mg %4 ?g . } . "
-                                                      "?g %5 ?a1 . ?a1 %6 %7 . "
-                                                      "?g %5 ?a2 . ?a2 %6 %8 . "
-                                                      "}")
-                                  .arg(Soprano::Node::literalToN3(42),
-                                       Soprano::Node::resourceToN3(NRL::InstanceBase()),
-                                       Soprano::Node::resourceToN3(NRL::GraphMetadata()),
-                                       Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor()),
-                                       Soprano::Node::resourceToN3(NAO::maintainedBy()),
-                                       Soprano::Node::resourceToN3(NAO::identifier()),
-                                       Soprano::Node::literalToN3(QLatin1String("testapp")),
-                                       Soprano::Node::literalToN3(QLatin1String("A"))),
-                                  Soprano::Query::QueryLanguageSparql).boolValue());
+    // Each graph should be maintained by different applications
+    QList<Node> app1NodeList = m_model->listStatements( graphList.first(), NAO::maintainedBy(), QUrl() ).iterateObjects().allNodes();
+    QList<Node> app2NodeList = m_model->listStatements( graphList.last(), NAO::maintainedBy(), QUrl() ).iterateObjects().allNodes();
 
-    //
-    // Now we rewrite the type which should result in reusing the old graph but with the new app as maintainer
-    //
-    m_dmModel->setProperty(QList<QUrl>() << QUrl("res:/A"), RDF::type(), QVariantList() << NAO::Tag(), QLatin1String("testapp"));
+    QCOMPARE(app1NodeList.size(), 1);
+    QCOMPARE(app2NodeList.size(), 1);
 
-    // the type should only be define once
-    QCOMPARE(m_model->listStatements(QUrl("res:/A"), RDF::type(), NAO::Tag()).allStatements().count(), 1);
+    const QUrl app1 = app1NodeList.first().uri();
+    const QUrl app2 = app2NodeList.first().uri();
 
-    // the graph should be the same
-    QVERIFY(m_model->listStatements(QUrl("res:/A"), RDF::type(), NAO::Tag()).allStatements().first().context().uri() == g);
-
-    // the new app should be listed as maintainer as should be the old one
-    QCOMPARE(m_model->listStatements(g, NAO::maintainedBy(), Node(), mg).allStatements().count(), 2);
-
-    QVERIFY(m_model->executeQuery(QString::fromLatin1("ask where { "
-                                                      "graph ?g { <res:/A> a %1 . } . "
-                                                      "graph ?mg { ?g a %2 . ?mg a %3 . ?mg %4 ?g . } . "
-                                                      "?g %5 ?a1 . ?a1 %6 %7 . "
-                                                      "?g %5 ?a2 . ?a2 %6 %8 . "
-                                                      "}")
-                                  .arg(Soprano::Node::resourceToN3(NAO::Tag()),
-                                       Soprano::Node::resourceToN3(NRL::InstanceBase()),
-                                       Soprano::Node::resourceToN3(NRL::GraphMetadata()),
-                                       Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor()),
-                                       Soprano::Node::resourceToN3(NAO::maintainedBy()),
-                                       Soprano::Node::resourceToN3(NAO::identifier()),
-                                       Soprano::Node::literalToN3(QLatin1String("testapp")),
-                                       Soprano::Node::literalToN3(QLatin1String("A"))),
-                                  Soprano::Query::QueryLanguageSparql).boolValue());
+    QVERIFY( app1 != app2 );
 
     QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
@@ -702,9 +691,11 @@ void DataManagementModelTest::testSetProperty_overwrite()
 
 void DataManagementModelTest::testSetProperty_invalid_args()
 {
+    // Use setProperty so that testapp gets created.
+    m_dmModel->setProperty(QList<QUrl>() << QUrl("nepomuk:/res/testRes"), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
+
     // remember current state to compare later on
     Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
 
     // empty resource list
     m_dmModel->setProperty(QList<QUrl>(), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
@@ -780,6 +771,8 @@ void DataManagementModelTest::testSetProperty_invalid_args()
 void DataManagementModelTest::testSetProperty_nieUrl1()
 {
     // setting nie:url if it is not there yet should result in a normal setProperty including graph creation
+    // FIXME: This is just wrong! If a resource does not exist, you should not be able to create it
+    //        just by adding a new value!
     m_dmModel->setProperty(QList<QUrl>() << QUrl("nepomuk:/res/A"), NIE::url(), QVariantList() << QUrl("file:///tmp/A"), QLatin1String("testapp"));
 
     QVERIFY(m_model->containsAnyStatement(QUrl("nepomuk:/res/A"), NIE::url(), QUrl("file:///tmp/A")));
@@ -1041,13 +1034,6 @@ void DataManagementModelTest::testSetProperty_file()
 
     // make sure the actual value is there
     QVERIFY(m_model->containsAnyStatement(fileAResUri, QUrl("prop:/res"), fileBResUri));
-
-
-    // add the same relation but with another app
-    m_dmModel->setProperty(QList<QUrl>() << fileAUrl, QUrl("prop:/res"), QVariantList() << QVariant(fileBUrl), QLatin1String("Otherapp"));
-
-    // there is only one prop:/res relation defined
-    QCOMPARE(m_model->listStatements(Node(), QUrl("prop:/res"), Node()).allStatements().count(), 1);
 
     // test adding a property to both the file and the resource URI. The result should be the exact same as doing it with only one of them
     m_dmModel->setProperty(QList<QUrl>() << fileAResUri << fileAUrl, QUrl("prop:/string"), QVariantList() << QVariant(QLatin1String("Whatever")), QLatin1String("Testapp"));
