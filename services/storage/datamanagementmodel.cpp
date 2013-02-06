@@ -910,7 +910,8 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
 
 void Nepomuk2::DataManagementModel::removeResources(const QList<QUrl> &resources, RemovalFlags flags, const QString &app)
 {
-    Q_UNUSED(app);
+    kDebug() << resources << app << flags;
+
     // 1. get all sub-resources and check if they are used by some other resource (not in the list of resources to remove)
     //    for the latter one can use a bif:exists and a !filter(?s in <s>, <s>, ...) - based on the value of force
     // 2. remove the resources and the sub-resources
@@ -939,7 +940,6 @@ void Nepomuk2::DataManagementModel::removeResources(const QList<QUrl> &resources
     // Resolve file URLs, we can simply ignore the non-existing file resources which are reflected by empty resolved URIs
     //
     QSet<QUrl> resolvedResources = QSet<QUrl>::fromList(resolveUrls(resources, app, false));
-    resolvedResources.remove(QUrl());
     if(resolvedResources.isEmpty() || lastError()) {
         return;
     }
@@ -959,7 +959,7 @@ void Nepomuk2::DataManagementModel::removeResources(const QList<QUrl> &resources
     //
     // Actually remove the data
     //
-    removeAllResources(resolvedResources, flags);
+    removeAllResources(resolvedResources, flags, app);
 }
 
 void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &resources, RemovalFlags flags, const QString &app)
@@ -1319,7 +1319,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
     // Remove the resources that are gone completely
     //
     if(!resourcesToRemoveCompletely.isEmpty()){
-        removeAllResources(resourcesToRemoveCompletely, flags);
+        removeAllResources(resourcesToRemoveCompletely, flags, app);
     }
 
     // make sure we do not leave trailing graphs behind
@@ -2925,11 +2925,11 @@ TypeCache* DataManagementModel::typeCache()
     return d->m_typeCache;
 }
 
-void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resources, RemovalFlags flags)
+void Nepomuk2::DataManagementModel::removeAllResources(const QSet< QUrl >& resourceUris, RemovalFlags flags, const QString& app)
 {
     Q_UNUSED(flags);
 
-    QSet<QUrl> resolvedResources(resources);
+    QSet<QUrl> resolvedResources(resourceUris);
 
     //
     // Handle the sub-resources:
@@ -2962,32 +2962,28 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resourc
 
 
     // get the graphs we need to check with removeTrailingGraphs later on
-    QSet<QUrl> graphs;
     QSet<QUrl> actuallyRemovedResources;
     Soprano::QueryResultIterator it
-            = executeQuery(QString::fromLatin1("select distinct ?g ?r where { graph ?g { ?r ?p ?o . } . FILTER(?r in (%1)) . }")
+            = executeQuery(QString::fromLatin1("select distinct ?r where { ?r ?p ?o . FILTER(?r in (%1)) . }")
                            .arg(resourcesToN3(resolvedResources).join(QLatin1String(","))),
-                           Soprano::Query::QueryLanguageSparql);
+                           Soprano::Query::QueryLanguageSparqlNoInference);
     while(it.next()) {
-        graphs << it[0].uri();
-        actuallyRemovedResources << it[1].uri();
+        actuallyRemovedResources << it[0].uri();
     }
 
     // get the resources that we modify by removing relations to one of the deleted ones
     QSet<QUrl> modifiedResources;
     QList<Soprano::Statement> removedStatements;
     foreach(const QUrl& resUri, resolvedResources) {
-        it = executeQuery(QString::fromLatin1("select distinct ?g ?o ?p where { graph ?g { ?o ?p %1 . } }")
+        it = executeQuery(QString::fromLatin1("select distinct ?o ?p where { ?o ?p %1 . }")
                         .arg(Soprano::Node::resourceToN3(resUri)),
                         Soprano::Query::QueryLanguageSparqlNoInference);
         while(it.next()) {
-            graphs << it[0].uri();
-            modifiedResources << it[1].uri();
-            removedStatements << Soprano::Statement(it[1].uri(), it[2].uri(), resUri);
+            modifiedResources << it[0].uri();
+            removedStatements << Soprano::Statement(it[0].uri(), it[1].uri(), resUri);
         }
     }
     modifiedResources -= actuallyRemovedResources;
-
 
     // remove the resources and inform interested parties
     foreach(const Soprano::Node& res, actuallyRemovedResources) {
@@ -2997,8 +2993,7 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet<QUrl> &resourc
         removeAllStatements(res, Soprano::Node(), Soprano::Node());
         removeAllStatements(Soprano::Node(), Soprano::Node(), res);
     }
-    updateModificationDate(modifiedResources);
-    removeTrailingGraphs(graphs);
+    updateModificationDate(modifiedResources, fetchGraph(app));
 
     foreach(const Soprano::Statement& st, removedStatements) {
         d->m_watchManager->changeProperty( st.subject().uri(), st.predicate().uri(),

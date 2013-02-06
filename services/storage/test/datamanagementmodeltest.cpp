@@ -1670,7 +1670,6 @@ void DataManagementModelTest::testRemoveResources()
     // verify that other resources were not touched
     QCOMPARE(m_model->listStatements(QUrl("res:/C"), Node(), Node()).allStatements().count(), 2);
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -1740,7 +1739,6 @@ void DataManagementModelTest::testRemoveResources_subresources()
     QCOMPARE(m_model->listStatements(QUrl("res:/D"), Node(), Node()).allStatements().count(), 1);
     QCOMPARE(m_model->listStatements(QUrl("res:/E"), Node(), Node()).allStatements().count(), 2);
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -1798,6 +1796,9 @@ void DataManagementModelTest::testRemoveResources_invalid_args()
 // make sure we do not allow to remove classes, properties, and graphs
 void DataManagementModelTest::testRemoveResources_protectedTypes()
 {
+    // Using add property so that the graph and app are created
+    m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/blankres"), QUrl("prop:/string"), QVariantList() << QLatin1String("foobar"), QLatin1String("testapp"));
+
     // remember current state to compare later on
     Soprano::Graph existingStatements = m_model->listStatements().allStatements();
 
@@ -1922,7 +1923,6 @@ void DataManagementModelTest::testRemoveResources_deletedFile()
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), Node(), Node()));
     QVERIFY(!m_model->containsAnyStatement(Node(), Node(), fileUrl));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 

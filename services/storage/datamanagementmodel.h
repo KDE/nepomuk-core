@@ -290,7 +290,7 @@ private:
      *
      * Used by removeResources() and removeDataByApplication()
      */
-    void removeAllResources(const QSet<QUrl>& resourceUris, RemovalFlags flags);
+    void removeAllResources(const QSet<QUrl>& resourceUris, RemovalFlags flags, const QString& app);
 
     /**
      * Checks if resource \p res actually exists. A resource exists if any information other than the standard metadata
