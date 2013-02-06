@@ -40,6 +40,23 @@ namespace Nepomuk2 {
         Q_OBJECT
 
     public:
+        /**
+         * @brief Represents the current state of the indexer
+         *
+         * The enumes are assigned with fixed numbers because they will be
+         * transferred via dBus
+         *
+         * @see Nepomuk2::FileIndexer::status()
+         */
+        enum State {
+            State_Normal = 0,
+            State_UserIdle = 1,
+            State_OnBattery = 2,
+            State_LowDiskSpace = 3,
+            State_Suspended = 4,
+            State_Cleaning = 5
+        };
+
         IndexScheduler( QObject* parent=0 );
         ~IndexScheduler();
 
@@ -51,6 +68,15 @@ namespace Nepomuk2 {
          * A user readable description of the scheduler's status
          */
         QString userStatusString() const;
+
+        /**
+         * @brief Returns the internal stateof the indexer as enum
+         *
+         * This status is used to expose the current state of the indexer via dbus.
+         *
+         * @return Enum state of the indexer
+         */
+        State currentStatus() const;
 
         /**
          * The current uri being indexed. It is empty if no file is being indexed.
@@ -132,6 +158,7 @@ namespace Nepomuk2 {
         void slotScheduleIndexing();
 
         void slotTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry);
+
     private:
         void queueAllFoldersForUpdate( bool forceUpdate = false );
 
@@ -151,14 +178,6 @@ namespace Nepomuk2 {
 
         EventMonitor* m_eventMonitor;
 
-        enum State {
-            State_Normal,
-            State_OnBattery,
-            State_UserIdle,
-            State_LowDiskSpace,
-            State_Suspended,
-            State_Cleaning
-        };
         State m_state;
 
         bool m_shouldSuspendFileIQOnNormal;

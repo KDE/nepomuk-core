@@ -48,14 +48,44 @@ namespace Nepomuk2 {
         Q_SCRIPTABLE void indexingStopped();
         Q_SCRIPTABLE void fileIndexingDone();
 
+        /**
+         * Emitted each time the status/activity of the FileIndexer changes
+         *
+         * @p status what the watcher is doing tehse represent the IndexScheduler::Status enum
+         * @see Nepomuk2::IndexScheduler::Status
+         *
+         * @p msg translated status message that indicates what is happening
+         */
+        Q_SCRIPTABLE void status(int status, QString msg);
+
     public Q_SLOTS:
         /**
+         * @brief Translated status message of the current Indexer behaviour.
+         *
+         * @since 4.11
+         */
+        Q_SCRIPTABLE QString statusMessage() const;
+
+        /**
+         * @brief Returns the internal state of the indexer
+         *
+         * @since 4.11
+         *
+         * @return an integer that represents the status as defined in Nepomuk2::IndexScheduler::Status
+         */
+        Q_SCRIPTABLE int currentStatus() const;
+
+        /**
          * \return A user readable status string. Includes the currently indexed folder.
+         *
+         * @deprecated use statusMessage() instead
          */
         Q_SCRIPTABLE QString userStatusString() const;
 
         /**
          * Simplified status string without details.
+         *
+         * @deprecated use statusMessage() instead
          */
         Q_SCRIPTABLE QString simpleUserStatusString() const;
 
@@ -93,6 +123,15 @@ namespace Nepomuk2 {
     private Q_SLOTS:
         void updateWatches();
         void slotIndexingDone();
+
+        /**
+         * @brief Called when the status string in the Indexscheduler is changed
+         *
+         * emits the current indexer state and status message via dbus.
+         *
+         * @see status()
+         */
+        void emitStatusMessage();
 
     private:
         QString userStatusString( bool simple ) const;

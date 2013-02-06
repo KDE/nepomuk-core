@@ -72,6 +72,10 @@ Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
              this, SIGNAL( indexingFolder(QString) ) );
     connect( m_indexScheduler, SIGNAL(fileIndexingDone()),
              this, SIGNAL(fileIndexingDone()) );
+
+    connect( m_indexScheduler, SIGNAL( statusStringChanged() ),
+             this, SLOT( emitStatusMessage() ) );
+
 }
 
 
@@ -84,6 +88,12 @@ void Nepomuk2::FileIndexer::slotIndexingDone()
     FileIndexerConfig::self()->setInitialRun(false);
 }
 
+void Nepomuk2::FileIndexer::emitStatusMessage()
+{
+    QString message = m_indexScheduler->userStatusString();
+
+    emit status((int)m_indexScheduler->currentStatus(), message);
+}
 
 void Nepomuk2::FileIndexer::updateWatches()
 {
@@ -95,6 +105,15 @@ void Nepomuk2::FileIndexer::updateWatches()
     }
 }
 
+QString Nepomuk2::FileIndexer::statusMessage() const
+{
+    return m_indexScheduler->userStatusString();
+}
+
+int Nepomuk2::FileIndexer::currentStatus() const
+{
+    return (int)m_indexScheduler->currentStatus();
+}
 
 QString Nepomuk2::FileIndexer::userStatusString() const
 {

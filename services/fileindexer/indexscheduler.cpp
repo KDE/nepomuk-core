@@ -376,7 +376,6 @@ void Nepomuk2::IndexScheduler::slotTeardownRequested(const Nepomuk2::RemovableMe
     m_fileIQ->clear( path );
 }
 
-
 void Nepomuk2::IndexScheduler::slotScheduleIndexing()
 {
     if( m_state == State_Suspended || m_state == State_Cleaning ) {
@@ -454,6 +453,10 @@ QString Nepomuk2::IndexScheduler::userStatusString() const
     }
 }
 
+Nepomuk2::IndexScheduler::State Nepomuk2::IndexScheduler::currentStatus() const
+{
+    return m_state;
+}
 
 
 
