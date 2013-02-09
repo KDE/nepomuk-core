@@ -151,6 +151,9 @@ public Q_SLOTS:
      * One typical usecase is that the file indexer uses (rdf:type, nrl:DiscardableInstanceBase)
      * to state that the provided information can be recreated at any time. Only built-in types
      * such as int, string, or url are supported.
+     * \note Due to performance concerns, currently only (rdf:type, nrl:DiscardableInstanceBase)
+     * is considered as additionalMetadata. The rest is ignored.
+     *
      * \param app The calling application
      */
     QHash<QUrl,QUrl> storeResources(const SimpleResourceGraph& resources,
@@ -159,6 +162,23 @@ public Q_SLOTS:
                         Nepomuk2::StoreResourcesFlags flags = Nepomuk2::NoStoreResourcesFlags,
                         const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()) );
 
+    /**
+     * \param resources The resources to be merged. Blank nodes will be converted into new
+     * URIs (unless the corresponding resource already exists).
+     * \param identificationMode This method can try hard to avoid duplicate resources by looking
+     * for already existing duplicates based on nrl:DefiningProperty. By default it only looks
+     * for duplicates of resources that do not have a resource URI (SimpleResource::uri()) defined.
+     * This behaviour can be changed with this parameter.
+     * \param flags Additional flags to change the behaviour of the method.
+     * \param discardable Indicates if the data being stored is discardable. This is typically used
+     * in the file indexer so that the rdf:type nrl:DiscardableInstanceBase is applied.
+     * \param app The calling application
+     */
+    QHash<QUrl,QUrl> storeResources(const SimpleResourceGraph& resources,
+                        const QString& app,
+                        bool discardable,
+                        Nepomuk2::StoreIdentificationMode identificationMode = Nepomuk2::IdentifyNew,
+                        Nepomuk2::StoreResourcesFlags flags = Nepomuk2::NoStoreResourcesFlags);
     /**
      * Merges all the resources into one.
      * Properties from the first resource in \p resources take precedence over all other resources

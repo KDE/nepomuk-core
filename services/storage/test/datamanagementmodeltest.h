@@ -27,6 +27,7 @@
 namespace Soprano {
 class Model;
 class NRLModel;
+class Statement;
 }
 namespace Nepomuk2 {
 class DataManagementModel;
@@ -122,7 +123,6 @@ private Q_SLOTS:
     void testRemoveAllDataByApplication4();
 
     void testStoreResources_strigiCase();
-    void testStoreResources_graphRules();
     void testStoreResources_createResource();
     void testStoreResources_invalid_args();
     void testStoreResources_invalid_args_with_existing();
@@ -193,6 +193,8 @@ private:
     Nepomuk2::VirtuosoInferenceModel* m_inferenceModel;
     Nepomuk2::ClassAndPropertyTree* m_classAndPropertyTree;
     Nepomuk2::DataManagementModel* m_dmModel;
+
+    void checkDataMaintainedBy( const Soprano::Statement& st, const QList<QString>& apps );
 };
 
 #endif

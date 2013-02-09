@@ -1530,11 +1530,25 @@ namespace {
 }
 
 //// TODO: do not allow to create properties or classes this way
-QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::SimpleResourceGraph &resources,
+QHash<QUrl, QUrl> DataManagementModel::storeResources(const Nepomuk2::SimpleResourceGraph &resources,
                                                   const QString &app,
                                                   Nepomuk2::StoreIdentificationMode identificationMode,
                                                   Nepomuk2::StoreResourcesFlags flags,
                                                   const QHash<QUrl, QVariant> &additionalMetadata)
+{
+    bool discardable = false;
+    if( QMultiHash<QUrl, QVariant>(additionalMetadata).contains(RDF::type(), NRL::DiscardableInstanceBase()) ) {
+        discardable = true;
+    }
+
+    return storeResources(resources, app, discardable, identificationMode, flags);
+}
+
+QHash<QUrl, QUrl> DataManagementModel::storeResources(const SimpleResourceGraph& resources,
+                                                      const QString& app,
+                                                      bool discardable,
+                                                      StoreIdentificationMode identificationMode,
+                                                      StoreResourcesFlags flags)
 {
     if(app.isEmpty()) {
         setError(QLatin1String("storeResources: Empty application specified. This is not supported."), Soprano::Error::ErrorInvalidArgument);
@@ -1777,8 +1791,9 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
     //
     resIdent.identifyAll();
 
-    ResourceMerger merger( this, app, additionalMetadata, flags );
+    ResourceMerger merger( this, app, flags, discardable );
     merger.setMappings( resIdent.mappings() );
+
     if( !merger.merge( resIdent.resourceHash() ) ) {
         kDebug() << " MERGING FAILED! ";
         kDebug() << "Setting error!" << merger.lastError();
