@@ -2,6 +2,7 @@
 Type=ServiceType
 X-KDE-ServiceType=NepomukCleaningJob
 Comment=Nepomuk Cleaning Job
+Comment[de]=Bereinigung der Nepomuk-Daten
 Comment[es]=Trabajo de limpieza de Nepomuk
 Comment[fi]=Nepomukin puhdistustyö
 Comment[nl]=Taak voor opschonen van Nepomuk
