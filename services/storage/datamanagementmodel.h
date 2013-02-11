@@ -377,6 +377,9 @@ private:
 
     bool isProtectedProperty(const QUrl& prop) const;
 
+    /// Returns the list of modified resources
+    QList<QUrl> removeResourcesFromGraph(const QList<QUrl>& resources, const QUrl& graph);
+
     class Private;
     Private* const d;
 

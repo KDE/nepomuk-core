@@ -2028,13 +2028,9 @@ void DataManagementModelTest::testRemoveDataByApplication1()
     // delete the resource
     m_dmModel->removeDataByApplication(QList<QUrl>() << QUrl("res:/A"), Nepomuk2::NoRemovalFlags, QLatin1String("A"));
 
-    // verify that nothing is left, not even the graph
+    // verify that the resource has been deleted
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), Node(), Node()));
-    QVERIFY(!m_model->containsAnyStatement(Node(), NAO::maintainedBy(), QUrl("app:/A")));
-    QCOMPARE(m_model->listStatements(Node(), RDF::type(), NRL::InstanceBase()).allStatements().count(), 1);
-    QCOMPARE(m_model->listStatements(Node(), RDF::type(), NRL::GraphMetadata()).allStatements().count(), 1);
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2064,9 +2060,6 @@ void DataManagementModelTest::testRemoveDataByApplication2()
     // delete the resource
     m_dmModel->removeDataByApplication(QList<QUrl>() << QUrl("res:/A"), Nepomuk2::NoRemovalFlags, QLatin1String("A"));
 
-    // verify that graph1 is gone completely
-    QVERIFY(!m_model->containsAnyStatement(Node(), Node(), Node(), g1));
-
     // only two statements left: the one in the second graph and the last modification date
     QCOMPARE(m_model->listStatements(QUrl("res:/A"), Node(), Node()).allStatements().count(), 2);
     QVERIFY(m_model->containsStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g2));
@@ -2094,19 +2087,20 @@ void DataManagementModelTest::testRemoveDataByApplication3()
     QUrl mg1;
     const QUrl g1 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg1);
     m_model->addStatement(g1, NAO::maintainedBy(), QUrl("app:/A"), mg1);
-    m_model->addStatement(g1, NAO::maintainedBy(), QUrl("app:/B"), mg1);
+
+    const QUrl g2 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg1);
+    m_model->addStatement(g2, NAO::maintainedBy(), QUrl("app:/A"), mg1);
 
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar")), g1);
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g1);
+    m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar")), g2);
+    m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g2);
 
     // delete the resource
     m_dmModel->removeDataByApplication(QList<QUrl>() << QUrl("res:/A"), Nepomuk2::NoRemovalFlags, QLatin1String("A"));
 
     // the resource should still be there, without any changes, not even a changed mtime
-    QCOMPARE(m_model->listStatements(QUrl("res:/A"), Node(), Node()).allStatements().count(), 2);
-
-    QVERIFY(!m_model->containsAnyStatement(g1, NAO::maintainedBy(), QUrl("app:/A"), mg1));
-    QCOMPARE(m_model->listStatements(g1, NAO::maintainedBy(), Node()).allStatements().count(), 1);
+    QCOMPARE(m_model->listStatements(QUrl("res:/A"), Node(), Node()).allStatements().count(), 3);
 
     QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
@@ -2183,7 +2177,6 @@ void DataManagementModelTest::testRemoveDataByApplication5()
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), Node(), Node()));
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/B"), Node(), Node()));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2295,7 +2288,6 @@ void DataManagementModelTest::testRemoveDataByApplication7()
     // verify that the creation date is still there
     QVERIFY(m_model->containsAnyStatement(QUrl("res:/A"), NAO::created(), Soprano::Node()));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2330,7 +2322,6 @@ void DataManagementModelTest::testRemoveDataByApplication8()
     QCOMPARE(m_model->listStatements(Node(), RDF::type(), NRL::InstanceBase()).allStatements().count(), 1);
     QCOMPARE(m_model->listStatements(Node(), RDF::type(), NRL::GraphMetadata()).allStatements().count(), 1);
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2441,7 +2432,6 @@ void DataManagementModelTest::testRemoveDataByApplication10()
         QVERIFY( l.isEmpty() );
     }
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2483,7 +2473,6 @@ void DataManagementModelTest::testRemoveDataByApplication11()
     // the "hello world" should still be there
     QVERIFY(m_model->containsAnyStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world"))));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2568,7 +2557,6 @@ void DataManagementModelTest::testRemoveDataByApplication_subResourcesOfSubResou
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/C"), Node(), Node()));
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/D"), Node(), Node()));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2628,7 +2616,6 @@ void DataManagementModelTest::testRemoveDataByApplication_subResourcesOfSubResou
     // the only statements left for resA should be the one from app B and the metadata (which is only lastModified)
     QCOMPARE(m_model->listStatements(QUrl("res:/A"), Node(), Node()).allElements().count(), 2);
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2734,7 +2721,6 @@ void DataManagementModelTest::testRemoveDataByApplication_realLife()
 
     QVERIFY( !m_model->executeQuery( query2, Soprano::Query::QueryLanguageSparql ).boolValue() );
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2791,7 +2777,6 @@ void DataManagementModelTest::testRemoveDataByApplication_nieUrl()
     // The nie:url should still exist
     QVERIFY( m_model->containsAnyStatement( res1, NIE::url(), fileUrl ) );
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2832,7 +2817,6 @@ void DataManagementModelTest::testRemoveDataByApplication_nieUrlRelated()
     const QUrl fileResUri = m_model->listStatements(Soprano::Node(), NIE::url(), fileUrl).allElements().first().subject().uri();
     QVERIFY(m_model->containsAnyStatement(res, QUrl("prop:/res"), fileResUri));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2888,7 +2872,6 @@ void DataManagementModelTest::testRemoveDataByApplication_mtime()
     QCOMPARE(m_model->listStatements(QUrl("res:/C"), NAO::lastModified(), Node()).allElements().count(), 1);
     QCOMPARE(m_model->listStatements(QUrl("res:/C"), NAO::lastModified(), Node()).allElements().first().object().literal().toDateTime(), date);
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -2935,7 +2918,6 @@ void DataManagementModelTest::testRemoveDataByApplication_mtimeRelated()
     QCOMPARE(m_model->listStatements(QUrl("res:/C"), NAO::lastModified(), Node()).allElements().count(), 1);
     QCOMPARE(m_model->listStatements(QUrl("res:/C"), NAO::lastModified(), Node()).allElements().first().object().literal().toDateTime(), date);
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -3000,7 +2982,6 @@ void DataManagementModelTest::testRemoveDataByApplication_related()
     QVERIFY(m_model->containsAnyStatement(QUrl("res:/B"), QUrl("prop:/res2"), QUrl("res:/A")));
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/B"), QUrl("prop:/res3"), QUrl("res:/C")));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -3040,7 +3021,6 @@ void DataManagementModelTest::testRemoveDataByApplication_legacyIndexerData()
     QVERIFY(!m_model->containsAnyStatement(Node(), Node(), Node(), g1));
     QVERIFY(!m_model->containsAnyStatement(Node(), Node(), Node(), mg1));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -3079,7 +3059,6 @@ void DataManagementModelTest::testRemoveDataByApplication_deletedFile()
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), Node(), Node()));
     QVERIFY(!m_model->containsAnyStatement(Node(), Node(), fileUrl));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -3090,9 +3069,6 @@ void DataManagementModelTest::testRemoveAllDataByApplication1()
     QUrl appG = m_nrlModel->createGraph(NRL::InstanceBase());
     m_model->addStatement(QUrl("app:/A"), RDF::type(), NAO::Agent(), appG);
     m_model->addStatement(QUrl("app:/A"), NAO::identifier(), LiteralValue(QLatin1String("A")), appG);
-
-    // remember current state to compare later on
-    Soprano::Graph existingStatements = m_model->listStatements().allStatements();
 
     QUrl mg1;
     const QUrl g1 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg1);
@@ -3114,13 +3090,8 @@ void DataManagementModelTest::testRemoveAllDataByApplication1()
     // make sure nothing is there anymore
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), Node(), Node()));
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/B"), Node(), Node()));
-    QVERIFY(!m_model->containsAnyStatement(Node(), NAO::maintainedBy(), QUrl("app:/A")));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
-
-    // everything should be as before
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
 }
 
 // test that other resources are not removed - the easy way
@@ -3153,9 +3124,7 @@ void DataManagementModelTest::testRemoveAllDataByApplication2()
 
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), Node(), Node()));
     QCOMPARE(m_model->listStatements(QUrl("res:/B"), Node(), Node()).allStatements().count(), 3);
-    QVERIFY(!m_model->containsAnyStatement(Node(), NAO::maintainedBy(), QUrl("app:/A")));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -3173,7 +3142,9 @@ void DataManagementModelTest::testRemoveAllDataByApplication3()
     QUrl mg1;
     const QUrl g1 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg1);
     m_model->addStatement(g1, NAO::maintainedBy(), QUrl("app:/A"), mg1);
-    m_model->addStatement(g1, NAO::maintainedBy(), QUrl("app:/B"), mg1);
+    QUrl mg2;
+    const QUrl g2 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg2);
+    m_model->addStatement(g2, NAO::maintainedBy(), QUrl("app:/B"), mg2);
 
     // create two resources to remove
     m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar")), g1);
@@ -3183,14 +3154,16 @@ void DataManagementModelTest::testRemoveAllDataByApplication3()
     m_model->addStatement(QUrl("res:/B"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world 2")), g1);
     m_model->addStatement(QUrl("res:/B"), NAO::created(), LiteralValue(QDateTime::currentDateTime()), g1);
 
+    m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar")), g2);
+    m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g2);
+    m_model->addStatement(QUrl("res:/B"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar 2")), g2);
+    m_model->addStatement(QUrl("res:/B"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world 2")), g2);
+
     m_dmModel->removeDataByApplication(Nepomuk2::NoRemovalFlags, QLatin1String("A"));
 
     QCOMPARE(m_model->listStatements(QUrl("res:/A"), Node(), Node()).allStatements().count(), 3);
     QCOMPARE(m_model->listStatements(QUrl("res:/B"), Node(), Node()).allStatements().count(), 3);
-    QVERIFY(!m_model->containsAnyStatement(Node(), NAO::maintainedBy(), QUrl("app:/A")));
-    QCOMPARE(m_model->listStatements(Node(), NAO::maintainedBy(), QUrl("app:/B")).allStatements().count(), 1);
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
@@ -3224,7 +3197,6 @@ void DataManagementModelTest::testRemoveAllDataByApplication4()
     QVERIFY(m_model->containsAnyStatement(QUrl("res:/A"), NAO::lastModified(), Soprano::Node()));
     QVERIFY(m_model->containsAnyStatement(Node(), NAO::maintainedBy(), QUrl("app:/A")));
 
-    QVERIFY(!haveTrailingGraphs());
     QVERIFY(!haveDataInDefaultGraph());
 }
 
