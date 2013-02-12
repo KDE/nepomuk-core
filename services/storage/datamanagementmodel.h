@@ -255,22 +255,8 @@ public Q_SLOTS:
 
     QUrl nepomukGraph();
 private:
-    QUrl createGraph(const QString& app = QString(), const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()));
     QUrl createGraph(const QString& app, const QMultiHash<QUrl, Soprano::Node>& additionalMetadata);
-
     QUrl fetchGraph(const QString& app, bool discardable = false);
-
-    /**
-     * Splits \p graph into two. This essentially copies the graph metadata to a new graph and metadata graph pair.
-     * The newly created graph will set as being maintained by \p appRes.
-     *
-     * \param graph The graph that should be split/copied.
-     * \param metadataGraph The metadata graph of graph. This can be empty.
-     * \param appRes The application resource which will be added as maintaining the newly created graph. Can be empty.
-     *
-     * \return The URI of the newly created graph.
-     */
-    QUrl splitGraph(const QUrl& graph, const QUrl& metadataGraph, const QUrl& appRes);
 
     QUrl findApplicationResource(const QString& app, bool create = true);
 
@@ -287,11 +273,6 @@ private:
      */
     Soprano::Error::ErrorCode updateModificationDate( const QSet<QUrl>& resources,
                                                       const QDateTime& date = QDateTime::currentDateTime() );
-
-    /**
-     * Removes all the graphs from \p graphs which do not contain any statements
-     */
-    void removeTrailingGraphs( const QSet<QUrl>& graphs );
 
     /**
      * Adds for each resource in \p resources a property for each node in nodes. \p nodes cannot be empty.
