@@ -232,23 +232,6 @@ void DataManagementModelTest::testAddProperty_diffApp()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
-// test that creating a resource by adding a property on its URI properly sets metadata
-void DataManagementModelTest::testAddProperty_createRes()
-{
-    // we create a new res by simply adding a property to it
-    m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/res/A"), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("Testapp"));
-
-    // now the newly created resource should have all the metadata a resource needs to have
-    QVERIFY(m_model->containsAnyStatement(QUrl("nepomuk:/res/A"), NAO::created(), Node()));
-    QVERIFY(m_model->containsAnyStatement(QUrl("nepomuk:/res/A"), NAO::lastModified(), Node()));
-
-    // and both created and last modification date should be similar
-    QCOMPARE(m_model->listStatements(QUrl("nepomuk:/res/A"), NAO::created(), Node()).iterateObjects().allNodes().first(),
-             m_model->listStatements(QUrl("nepomuk:/res/A"), NAO::lastModified(), Node()).iterateObjects().allNodes().first());
-
-    QVERIFY(!haveDataInDefaultGraph());
-}
-
 
 void DataManagementModelTest::testAddProperty_cardinality()
 {
@@ -572,29 +555,11 @@ void DataManagementModelTest::testSetProperty()
                                   Soprano::Query::QueryLanguageSparql).boolValue());
 
     // check the number of graphs (two for the app, two for the actual data, and the initial count)
-    // and 2 for the nepomuk graph
-    QCOMPARE(m_model->listContexts().allElements().count(), initialGraphCount + 6);
+    // and 1 for the nepomuk graph
+    QCOMPARE(m_model->listContexts().allElements().count(), initialGraphCount + 5);
 
     QVERIFY(!haveDataInDefaultGraph());
 }
-
-// test that creating a resource by setting a property on its URI properly sets metadata
-void DataManagementModelTest::testSetProperty_createRes()
-{
-    // we create a new res by simply adding a property to it
-    m_dmModel->setProperty(QList<QUrl>() << QUrl("nepomuk:/res/A"), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("Testapp"));
-
-    // now the newly created resource should have all the metadata a resource needs to have
-    QVERIFY(m_model->containsAnyStatement(QUrl("nepomuk:/res/A"), NAO::created(), Node()));
-    QVERIFY(m_model->containsAnyStatement(QUrl("nepomuk:/res/A"), NAO::lastModified(), Node()));
-
-    // and both created and last modification date should be similar
-    QCOMPARE(m_model->listStatements(QUrl("nepomuk:/res/A"), NAO::created(), Node()).iterateObjects().allNodes().first(),
-             m_model->listStatements(QUrl("nepomuk:/res/A"), NAO::lastModified(), Node()).iterateObjects().allNodes().first());
-
-    QVERIFY(!haveDataInDefaultGraph());
-}
-
 
 void DataManagementModelTest::testSetProperty_overwrite()
 {
@@ -2405,46 +2370,6 @@ void DataManagementModelTest::testRemoveDataByApplication10()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
-// make sure that graphs which do not have a maintaining app are handled properly, too
-void DataManagementModelTest::testRemoveDataByApplication11()
-{
-    QTemporaryFile fileA;
-    fileA.open();
-
-    // create our app
-    QUrl appG = m_nrlModel->createGraph(NRL::InstanceBase());
-    m_model->addStatement(QUrl("app:/A"), RDF::type(), NAO::Agent(), appG);
-    m_model->addStatement(QUrl("app:/A"), NAO::identifier(), LiteralValue(QLatin1String("A")), appG);
-
-    // create the resource to delete
-    QUrl mg1;
-    const QUrl g1 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg1);
-    m_model->addStatement(g1, NAO::maintainedBy(), QUrl("app:/A"), mg1);
-
-    // graph 2 does not have a maintaining app!
-    const QUrl g2 = m_nrlModel->createGraph(NRL::InstanceBase());
-
-    m_model->addStatement(QUrl("res:/A"), NIE::url(), QUrl::fromLocalFile(fileA.fileName()), g1);
-    m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar")), g1);
-    m_model->addStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g2);
-
-    // delete the resource
-    m_dmModel->removeDataByApplication(QList<QUrl>() << QUrl::fromLocalFile(fileA.fileName()), Nepomuk2::NoRemovalFlags, QLatin1String("A"));
-
-    // now the nie:url should still be there even though A created it
-    QVERIFY(m_model->containsAnyStatement(QUrl("res:/A"), NIE::url(), QUrl::fromLocalFile(fileA.fileName())));
-
-    // creation time should have been created
-    QVERIFY(m_model->containsAnyStatement(QUrl("res:/A"), NAO::lastModified(), Node()));
-
-    // the foobar value should be gone
-    QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar"))));
-
-    // the "hello world" should still be there
-    QVERIFY(m_model->containsAnyStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world"))));
-
-    QVERIFY(!haveDataInDefaultGraph());
-}
 
 // make sure that sub-resources to sub-resources can have backlinks which do not interfer
 void DataManagementModelTest::testRemoveDataByApplication12()
@@ -2750,47 +2675,6 @@ void DataManagementModelTest::testRemoveDataByApplication_nieUrl()
     QVERIFY(!haveDataInDefaultGraph());
 }
 
-// make sure we keep the nie:url in case a relation from another resource exists which is not removed
-void DataManagementModelTest::testRemoveDataByApplication_nieUrlRelated()
-{
-    // create the file we will be removing data for
-    KTemporaryFile file;
-    file.open();
-    const KUrl fileUrl( file.fileName() );
-
-
-    // Indexed the file with some data
-    SimpleResource simpleRes( fileUrl );
-    simpleRes.addProperty( RDF::type(), NFO::FileDataObject() );
-    simpleRes.addProperty( RDF::type(), NMM::MusicPiece() );
-    m_dmModel->storeResources( SimpleResourceGraph() << simpleRes, QLatin1String("A"));
-    QVERIFY( !m_dmModel->lastError() );
-
-    const QUrl nepomukG = m_dmModel->nepomukGraph();
-    QVERIFY(m_model->containsAnyStatement(Soprano::Node(), NIE::url(), fileUrl, nepomukG));
-
-    // now add a relation to some other resource
-    const QUrl res = m_dmModel->createResource(QList<QUrl>() << QUrl("class:/typeA"), QLatin1String("foobar"), QString(), QLatin1String("B"));
-    QVERIFY( !m_dmModel->lastError() );
-    m_dmModel->addProperty(QList<QUrl>() << res, QUrl("prop:/res"), QVariantList() << res, QLatin1String("A"));
-    QVERIFY( !m_dmModel->lastError() );
-
-
-    // remove all the indexed data
-    m_dmModel->removeDataByApplication(QList<QUrl>() << fileUrl, NoRemovalFlags, QLatin1String("A"));
-    QVERIFY( !m_dmModel->lastError() );
-
-
-    // now the basic data from the indexed file should still be there
-    QVERIFY(m_model->containsAnyStatement(Soprano::Node(), NIE::url(), fileUrl));
-
-    // and the relation created by the other application should still be there, too
-    const QUrl fileResUri = m_model->listStatements(Soprano::Node(), NIE::url(), fileUrl).allElements().first().subject().uri();
-    QVERIFY(m_model->containsAnyStatement(res, QUrl("prop:/res"), fileResUri));
-
-    QVERIFY(!haveDataInDefaultGraph());
-}
-
 // make sure the mtime is updated properly in different situations
 void DataManagementModelTest::testRemoveDataByApplication_mtime()
 {
@@ -2957,45 +2841,6 @@ void DataManagementModelTest::testRemoveDataByApplication_related()
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/B"), QUrl("prop:/res3"), QUrl("res:/A")));
     QVERIFY(m_model->containsAnyStatement(QUrl("res:/B"), QUrl("prop:/res2"), QUrl("res:/A")));
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/B"), QUrl("prop:/res3"), QUrl("res:/C")));
-
-    QVERIFY(!haveDataInDefaultGraph());
-}
-
-// make sure legacy indexer data (the graphs marked with indexGraphFor) is removed properly
-void DataManagementModelTest::testRemoveDataByApplication_legacyIndexerData()
-{
-    // create our file
-    QTemporaryFile fileA;
-    fileA.open();
-    const QUrl fileAUrl = QUrl::fromLocalFile(fileA.fileName());
-    const QUrl fileARes("res:/A");
-
-    // create the graph containing the legacy data
-    QUrl mg1;
-    const QUrl g1 = m_nrlModel->createGraph(NRL::DiscardableInstanceBase(), &mg1);
-
-    // mark the graph as being the legacy index graph
-    m_model->addStatement(g1, QUrl("http://www.strigi.org/fields#indexGraphFor"), fileARes, mg1);
-
-    // create the index data
-    m_model->addStatement(fileARes, NIE::url(), fileAUrl, g1);
-    m_model->addStatement(fileARes, RDF::type(), NFO::FileDataObject(), g1);
-    m_model->addStatement(fileARes, RDF::type(), NIE::InformationElement(), g1);
-    m_model->addStatement(fileARes, NIE::title(), LiteralValue(QLatin1String("foobar")), g1);
-
-
-    // remove the information claiming to be the indexer
-    QBENCHMARK_ONCE
-    m_dmModel->removeDataByApplication(QList<QUrl>() << fileAUrl, NoRemovalFlags, QLatin1String("nepomukindexer"));
-
-    // the call should succeed
-    QVERIFY(!m_dmModel->lastError());
-
-    // now make sure that everything is gone
-    QVERIFY(!m_model->containsAnyStatement(fileARes, Node(), Node(), Node()));
-
-    QVERIFY(!m_model->containsAnyStatement(Node(), Node(), Node(), g1));
-    QVERIFY(!m_model->containsAnyStatement(Node(), Node(), Node(), mg1));
 
     QVERIFY(!haveDataInDefaultGraph());
 }

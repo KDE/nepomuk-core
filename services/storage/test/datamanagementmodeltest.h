@@ -48,7 +48,6 @@ private Q_SLOTS:
     void testAddProperty();
     void testAddProperty_double();
     void testAddProperty_diffApp();
-    void testAddProperty_createRes();
     void testAddProperty_cardinality();
     void testAddProperty_file();
     void testAddProperty_invalidFile();
@@ -57,7 +56,6 @@ private Q_SLOTS:
     void testAddProperty_akonadi();
 
     void testSetProperty();
-    void testSetProperty_createRes();
     void testSetProperty_overwrite();
     void testSetProperty_invalid_args();
     void testSetProperty_nieUrl1();
@@ -104,17 +102,14 @@ private Q_SLOTS:
     void testRemoveDataByApplication8();
     void testRemoveDataByApplication9();
     void testRemoveDataByApplication10();
-    void testRemoveDataByApplication11();
     void testRemoveDataByApplication12();
     void testRemoveDataByApplication_subResourcesOfSubResources();
     void testRemoveDataByApplication_subResourcesOfSubResources2();
     void testRemoveDataByApplication_realLife();
     void testRemoveDataByApplication_nieUrl();
-    void testRemoveDataByApplication_nieUrlRelated();
     void testRemoveDataByApplication_mtime();
     void testRemoveDataByApplication_mtimeRelated();
     void testRemoveDataByApplication_related();
-    void testRemoveDataByApplication_legacyIndexerData();
     void testRemoveDataByApplication_deletedFile();
 
     void testRemoveAllDataByApplication1();
