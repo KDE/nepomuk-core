@@ -2170,12 +2170,6 @@ void DataManagementModelTest::testRemoveDataByApplication6()
     m_model->addStatement(QUrl("res:/F"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar")), g1);
     m_model->addStatement(QUrl("res:/F"), QUrl("prop:/int"), LiteralValue(42), g2);
 
-    // sub-resource 6: can be deleted since the prop another app added is only metadata
-    m_model->addStatement(QUrl("res:/A"), QUrl("prop:/res"), QUrl("res:/G"), g1);
-    m_model->addStatement(QUrl("res:/A"), NAO::hasSubResource(), QUrl("res:/G"), g1);
-    m_model->addStatement(QUrl("res:/G"), QUrl("prop:/string"), LiteralValue(QLatin1String("foobar")), g1);
-    m_model->addStatement(QUrl("res:/G"), NAO::lastModified(), LiteralValue(QDateTime::currentDateTime()), g2);
-
     // delete the resource
     m_dmModel->removeDataByApplication(QList<QUrl>() << QUrl("res:/A"), Nepomuk2::RemoveSubResoures, QLatin1String("A"));
 
@@ -2183,7 +2177,6 @@ void DataManagementModelTest::testRemoveDataByApplication6()
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/A"), Node(), Node()));
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/B"), Node(), Node()));
     QVERIFY(!m_model->containsAnyStatement(QUrl("res:/C"), Node(), Node()));
-    QVERIFY(!m_model->containsAnyStatement(QUrl("res:/G"), Node(), Node()));
 
     // E and F need to be preserved
     QCOMPARE(m_model->listStatements(QUrl("res:/D"), Node(), Node()).allStatements().count(), 1);
