@@ -63,6 +63,18 @@ target_link_libraries(datamanagementmodeltest
   datamanagementtestlib
 )
 
+kde4_add_unit_test(datamanagementmodelbenchmark
+  datamanagementmodelbenchmark.cpp
+)
+
+target_link_libraries(datamanagementmodelbenchmark
+  ${QT_QTTEST_LIBRARY}
+  ${SOPRANO_LIBRARIES}
+  ${KDE4_KIO_LIBS}
+  ${KDE4_SOLID_LIBS}
+  nepomukcore
+  datamanagementtestlib
+)
 
 kde4_add_unit_test(datamanagementadaptortest
   datamanagementadaptortest.cpp
