@@ -113,6 +113,14 @@ namespace {
         return n3;
     }
 
+    QStringList urlSetToN3(const QSet<QUrl>& uris) {
+        QStringList n3;
+        Q_FOREACH(const QUrl& uri, uris) {
+            n3 << Soprano::Node::resourceToN3(uri);
+        }
+        return n3;
+    }
+
     template<typename T> QString createResourceFilter(const T& resources, const QString& var, bool exclude = true) {
         QString filter = QString::fromLatin1("%1 in (%2)").arg(var, Nepomuk2::resourcesToN3(resources).join(QLatin1String(",")));
         if(exclude) {
@@ -869,22 +877,36 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
     // create new URIs and a new graph
     const QUrl graph = fetchGraph(app);
     const QUrl resUri = createUri(ResourceUri);
+    const QString resN3 = Soprano::Node::resourceToN3(resUri);
 
     // add provided metadata
-    foreach(const QUrl& type, newTypes) {
-        addStatement(resUri, RDF::type(), type, graph);
-    }
+    QString command = QString::fromLatin1("sparql insert into %1 { %2 ")
+                      .arg( Soprano::Node::resourceToN3(graph),
+                            resN3 );
+
     if(!label.isEmpty()) {
-        addStatement(resUri, NAO::prefLabel(), Soprano::LiteralValue::createPlainLiteral(label), graph);
+        Soprano::LiteralValue lv = Soprano::LiteralValue::createPlainLiteral(label);
+        command += QString::fromLatin1(" nao:prefLabel %1 ;")
+                   .arg( Soprano::Node::literalToN3(lv) );
     }
     if(!description.isEmpty()) {
-        addStatement(resUri, NAO::description(), Soprano::LiteralValue::createPlainLiteral(description), graph);
+        Soprano::LiteralValue lv = Soprano::LiteralValue::createPlainLiteral(description);
+        command += QString::fromLatin1(" nao:description %1 ;")
+                   .arg( Soprano::Node::literalToN3(lv) );
     }
 
+    command += QString::fromLatin1("a %1 . }").arg( urlSetToN3(newTypes).join(",") );
+    executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+
     // add basic metadata to the new resource in the nepomuk graph
-    const QDateTime now = QDateTime::currentDateTime();
-    addStatement(resUri, NAO::created(), Soprano::LiteralValue(now), d->m_nepomukGraph);
-    addStatement(resUri, NAO::lastModified(), Soprano::LiteralValue(now), d->m_nepomukGraph);
+    command = QString::fromLatin1("sparql insert into %1 { %2 ")
+              .arg( Soprano::Node::resourceToN3(d->m_nepomukGraph), resN3 );
+
+    Soprano::LiteralValue now( QDateTime::currentDateTime() );
+    command += QString::fromLatin1(" nao:lastModified %1 ; nao:created %1 . }")
+               .arg( Soprano::Node::literalToN3(now) );
+
+    executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 
     // inform interested parties
     d->m_watchManager->createResource(resUri, newTypes.toList());
@@ -1064,7 +1086,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
     // Shorten the list of resources to the ones that are actually in our graphs
     //
     QString graphN3 = urlListToN3(graphs).join(QLatin1String(","));
-    QString resN3 = urlListToN3(resolvedResources.toList()).join(QLatin1String(","));
+    QString resN3 = urlSetToN3(resolvedResources).join(QLatin1String(","));
 
     query = QString::fromLatin1("select distinct ?r where { graph ?g { ?r ?p ?o. } FILTER(?g in (%1)) ."
                                 "FILTER(?r in (%2)) . }")
@@ -1131,7 +1153,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
         QString deleteCommand = QString::fromLatin1("sparql delete from %1 { ?r ?p ?o. } where { "
                                                     "?r ?p ?o. FILTER(?r in (%2)). }")
                                 .arg( Soprano::Node::resourceToN3(d->m_nepomukGraph),
-                                      urlListToN3(resolvedResources.toList()).join(",") );
+                                      urlSetToN3(resolvedResources).join(",") );
         executeQuery( deleteCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
     }
 }
@@ -1200,7 +1222,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(RemovalFlags flags, 
     resourcesToRemove.subtract( modifiedResources );
     if( resourcesToRemove.count() ) {
         query = QString::fromLatin1("delete from %2 { ?r ?p ?o . } where { ?r ?p ?o. FILTER(?r in (%1)) . }")
-                .arg( urlListToN3(resourcesToRemove.toList()).join(","),
+                .arg( urlSetToN3(resourcesToRemove).join(","),
                       Soprano::Node::resourceToN3(d->m_nepomukGraph) );
 
         executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
