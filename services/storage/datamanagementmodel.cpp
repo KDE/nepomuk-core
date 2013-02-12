@@ -2071,15 +2071,15 @@ QUrl Nepomuk2::DataManagementModel::createGraph(const QString& app, const QMulti
 
 QUrl DataManagementModel::fetchGraph(const QString& app, bool discardable)
 {
-    const QUrl appUri = findApplicationResource(app);
-    const QString query = QString::fromLatin1("select ?g where { ?g a nrl:InstanceBase ; nao:maintainedBy %1 . } LIMIT 1")
-                          .arg( Soprano::Node::resourceToN3(appUri) );
-
-    Soprano::Query::QueryLanguage lang = Soprano::Query::QueryLanguageSparqlNoInference;
+    QLatin1String type("nrl:InstanceBase");
     if( discardable )
-        lang = Soprano::Query::QueryLanguageSparql;
+        type = QLatin1String("nrl:DiscardableInstanceBase");
 
-    Soprano::QueryResultIterator it = executeQuery(query, lang);
+    const QString query = QString::fromLatin1("select ?g where { ?g a %1 ; nao:maintainedBy ?agent ."
+                                              " ?agent nao:identifier %2 . } LIMIT 1")
+                          .arg( type, Soprano::Node::literalToN3(app) );
+
+    Soprano::QueryResultIterator it = executeQuery(query, Soprano::Query::QueryLanguageSparqlNoInference);
     if( it.next() ) {
         return it[0].uri();
     }
