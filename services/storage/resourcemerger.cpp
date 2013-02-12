@@ -269,7 +269,6 @@ Nepomuk2::Sync::ResourceHash Nepomuk2::ResourceMerger::resolveBlankNodes(const N
     QHashIterator<KUrl, Sync::SyncResource> it( resHash_ );
     while( it.hasNext() ) {
         Sync::SyncResource res = it.next().value();
-        const bool wasBlank = res.isBlank();
 
         res.setUri( resolveBlankNode( res.uriNode() ) );
 
@@ -277,20 +276,6 @@ Nepomuk2::Sync::ResourceHash Nepomuk2::ResourceMerger::resolveBlankNodes(const N
         while( it.hasNext() ) {
             it.next();
             it.setValue( resolveBlankNode(it.value()) );
-        }
-
-        //
-        // Add the metadata properties for new nodes
-        //
-        if( wasBlank ) {
-            Soprano::LiteralValue dateTime( QDateTime::currentDateTime() );
-
-            // Check if already exists?
-            if( !res.contains( NAO::lastModified() ) )
-                res.insert( NAO::lastModified(), dateTime );
-
-            if( !res.contains( NAO::created() ) )
-                res.insert( NAO::created(), dateTime );
         }
 
         resHash.insert( res.uri(), res );
@@ -326,6 +311,8 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
         resHash.insert( res.uri(), res );
     }
 
+    Soprano::LiteralValue currentDateTime( QDateTime::currentDateTime() );
+
     //
     // 2. Move the metadata from resHash to the metadataHash
     //
@@ -335,28 +322,52 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     while( it.hasNext() ) {
         Sync::SyncResource& res = it.next().value();
 
-        if( !res.isBlank() ) {
-            Sync::SyncResource metadataRes( res.uri() );
+        Sync::SyncResource metadataRes( res.uri() );
 
-            // Remove the metadata properties - nao:lastModified and nao:created
-            QHash< KUrl, Soprano::Node >::iterator fit = res.find( NAO::lastModified() );
-            if( fit != res.end() ) {
-                metadataRes.insert( NAO::lastModified(), fit.value() );
-                res.erase( fit );
-            }
-
-            fit = res.find( NAO::created() );
-            if( fit != res.end() ) {
-                metadataRes.insert( NAO::created(), fit.value() );
-                res.erase( fit );
-            }
-
-            if( !metadataRes.isEmpty() )
-                resMetadataHash.insert( metadataRes.uri(), metadataRes );
+        // Remove the metadata properties - nao:lastModified and nao:created
+        QHash<KUrl, Soprano::Node>::iterator fit = res.find( NAO::lastModified() );
+        if( fit != res.end() ) {
+            metadataRes.insert( NAO::lastModified(), fit.value() );
+            res.erase( fit );
         }
+        else {
+            metadataRes.insert( NAO::lastModified(), currentDateTime );
+        }
+
+        fit = res.find( NAO::created() );
+        if( fit != res.end() ) {
+            // We do not allow the nao:created to be changed
+            if( res.isBlank() )
+                metadataRes.insert( NAO::created(), fit.value() );
+
+            res.erase( fit );
+        }
+        else {
+            if( res.isBlank() )
+                metadataRes.insert( NAO::created(), currentDateTime );
+        }
+
+        // Also move the nie:url
+        fit = res.find( NIE::url() );
+        if( fit != res.end() ) {
+            metadataRes.insert( NIE::url(), fit.value() );
+            res.erase( fit );
+        }
+
+        resMetadataHash.insert( metadataRes.uri(), metadataRes );
 
         if( !hasValidData( resHash, res ) )
             return false;
+
+    }
+
+    // We don't do this in the loop above cause the data could be invalid
+    it.toFront();
+    while( it.hasNext() ) {
+        Sync::SyncResource& res = it.next().value();
+        if( !res.isBlank() ) {
+            m_model->removeAllStatements( res.uri(), NAO::lastModified(), Soprano::Node() );
+        }
     }
 
     // Create the main graph, if they are any statements to merge
@@ -367,49 +378,9 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     }
 
 
-    //
-    // Apply the Metadata properties back onto the resHash
-    // Also modify the model to remove previous values
-    //
-    Soprano::Node currentDateTime = Soprano::LiteralValue( QDateTime::currentDateTime() );
-
-    it.toFront();
-    while( it.hasNext() ) {
-        Sync::SyncResource& res = it.next().value();
-        //TODO: What about the case when a blank node is created with a specific datetime?
-        if( res.isBlank() )
-            continue;
-
-        const Sync::SyncResource metadataRes = resMetadataHash.value( it.key() );
-        const QUrl resUri = res.uri();
-
-        // Remove previous nao:lastModified
-        m_model->removeAllStatements( resUri, NAO::lastModified(), Soprano::Node() );
-
-        // Add nao:lastModified with currentDateTime (unless provided)
-        QHash< KUrl, Soprano::Node >::const_iterator fit = metadataRes.constFind( NAO::lastModified() );
-        if( fit == metadataRes.constEnd() )
-            res.insert( NAO::lastModified(), currentDateTime );
-        else
-            res.insert( NAO::lastModified(), fit.value() );
-
-        // Check for nao:created
-        fit = metadataRes.constFind( NAO::created() );
-        if( fit != metadataRes.constEnd() ) {
-            QString query = QString::fromLatin1("ask where { %1 nao:created ?o . }")
-                            .arg( Soprano::Node::resourceToN3( resUri ) );
-
-            // in this case the value of nao:created is not changed
-            bool naoCreatedInRepo = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference ).boolValue();
-            if( !naoCreatedInRepo )
-                res.insert( NAO::created(), fit.value() );
-        }
-    }
-    resMetadataHash.clear();
-
-
     // 6. Create all the blank nodes
     resHash = resolveBlankNodes( resHash );
+    resMetadataHash = resolveBlankNodes( resMetadataHash );
 
     //
     // Actual statement pushing
@@ -417,6 +388,9 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
 
     // Push the data in one go
     if( !push( m_graph, resHash ) )
+        return false;
+
+    if( !push( m_model->nepomukGraph(), resMetadataHash ) )
         return false;
 
     //

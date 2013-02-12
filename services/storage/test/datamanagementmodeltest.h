@@ -184,7 +184,6 @@ private:
     KTempDir* createNieUrlTestData();
 
     void resetModel();
-    bool haveTrailingGraphs() const;
     bool haveDataInDefaultGraph() const;
 
     KTempDir* m_storageDir;

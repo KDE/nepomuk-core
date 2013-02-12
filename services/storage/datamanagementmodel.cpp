@@ -203,6 +203,7 @@ public:
     QMutex m_appCacheMutex;
 
     TypeCache* m_typeCache;
+    QUrl m_nepomukGraph;
 };
 
 Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTree* tree, Soprano::Model* model, QObject *parent)
@@ -224,11 +225,13 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
     d->m_protectedProperties.insert(NAO::userVisible());
     d->m_protectedProperties.insert(NIE::url());
 
+    // Create a "Nepomuk" application graph
+    d->m_nepomukGraph = fetchGraph(QLatin1String("nepomuk"));
+
     // Specially add <nepomuk:/me> cause the clients cannot
     // TODO: Add the fullname, email and other details
     if( !containsAnyStatement( QUrl("nepomuk:/me"), Soprano::Node(), Soprano::Node() ) ) {
-        const QUrl graph = createGraph();
-        addStatement( QUrl("nepomuk:/me"), RDF::type(), PIMO::Person(), graph );
+        addStatement( QUrl("nepomuk:/me"), RDF::type(), PIMO::Person(), d->m_nepomukGraph );
     }
 
     // Enable auto-commit after each statement change
@@ -244,6 +247,7 @@ void Nepomuk2::DataManagementModel::clearCache()
     QMutexLocker lock( &d->m_appCacheMutex );
     d->m_appCache.clear();
     d->m_typeCache->clear();
+    d->m_nepomukGraph.clear();
 }
 
 
@@ -254,43 +258,27 @@ Nepomuk2::DataManagementModel::~DataManagementModel()
 }
 
 
-Soprano::Error::ErrorCode Nepomuk2::DataManagementModel::updateModificationDate(const QUrl& resource, const QUrl & graph, const QDateTime& date, bool includeCreationDate)
+Soprano::Error::ErrorCode Nepomuk2::DataManagementModel::updateModificationDate(const QUrl& resource,
+                                                                                const QDateTime& date)
 {
-    return updateModificationDate(QSet<QUrl>() << resource, graph, date, includeCreationDate);
+    return updateModificationDate(QSet<QUrl>() << resource, date);
+
 }
 
-
-Soprano::Error::ErrorCode Nepomuk2::DataManagementModel::updateModificationDate(const QSet<QUrl>& resources, const QUrl & graph, const QDateTime& date, bool includeCreationDate)
+Soprano::Error::ErrorCode Nepomuk2::DataManagementModel::updateModificationDate(const QSet<QUrl>& resources,
+                                                                                const QDateTime& date)
 {
     if(resources.isEmpty()) {
         return Soprano::Error::ErrorNone;
     }
 
-    QUrl metadataGraph(graph);
-    if(metadataGraph.isEmpty()) {
-        metadataGraph = createGraph();
-    }
-
-    QSet<QUrl> mtimeGraphs;
-    Soprano::QueryResultIterator it = executeQuery(QString::fromLatin1("select distinct ?g where { graph ?g { ?r %1 ?d . FILTER(?r in (%2)) . } . }")
-                                                   .arg(Soprano::Node::resourceToN3(NAO::lastModified()),
-                                                        resourcesToN3(resources).join(QLatin1String(","))),
-                                                   Soprano::Query::QueryLanguageSparql);
-    while(it.next()) {
-        mtimeGraphs << it[0].uri();
-    }
-
+    // TODO: Do this in one command?
     foreach(const QUrl& resource, resources) {
         Soprano::Error::ErrorCode c = removeAllStatements(resource, NAO::lastModified(), Soprano::Node());
         if (c != Soprano::Error::ErrorNone)
             return c;
-        addStatement(resource, NAO::lastModified(), Soprano::LiteralValue( date ), metadataGraph);
-        if(includeCreationDate && !containsAnyStatement(resource, NAO::created(), Soprano::Node())) {
-            addStatement(resource, NAO::created(), Soprano::LiteralValue( date ), metadataGraph);
-        }
+        addStatement(resource, NAO::lastModified(), Soprano::LiteralValue( date ), d->m_nepomukGraph);
     }
-
-    removeTrailingGraphs(mtimeGraphs);
 
     return Soprano::Error::ErrorNone;
 }
@@ -715,7 +703,7 @@ void Nepomuk2::DataManagementModel::removeProperty(const QList<QUrl> &resources,
                 removeResources(QList<QUrl>() << res, NoRemovalFlags, app);
             }
             else {
-                updateModificationDate(res, fetchGraph(app));
+                updateModificationDate(res);
             }
         }
     }
@@ -823,7 +811,7 @@ void Nepomuk2::DataManagementModel::removeProperties(const QList<QUrl> &resource
                 removeResources(QList<QUrl>() << res, NoRemovalFlags, app);
             }
             else {
-                updateModificationDate(res, fetchGraph(app));
+                updateModificationDate(res);
             }
         }
     }
@@ -896,10 +884,10 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
         addStatement(resUri, NAO::description(), Soprano::LiteralValue::createPlainLiteral(description), graph);
     }
 
-    // add basic metadata to the new resource
+    // add basic metadata to the new resource in the nepomuk graph
     const QDateTime now = QDateTime::currentDateTime();
-    addStatement(resUri, NAO::created(), Soprano::LiteralValue(now), graph);
-    addStatement(resUri, NAO::lastModified(), Soprano::LiteralValue(now), graph);
+    addStatement(resUri, NAO::created(), Soprano::LiteralValue(now), d->m_nepomukGraph);
+    addStatement(resUri, NAO::lastModified(), Soprano::LiteralValue(now), d->m_nepomukGraph);
 
     // inform interested parties
     d->m_watchManager->createResource(resUri, newTypes.toList());
@@ -1066,7 +1054,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
     }
 
 
-    const QString query = QString::fromLatin1("select ?g where { ?g nao:maintainedBy %1 . }")
+    QString query = QString::fromLatin1("select distinct ?g where { ?g nao:maintainedBy %1 . }")
                           .arg( Soprano::Node::resourceToN3(appRes) );
 
     Soprano::QueryResultIterator it = executeQuery(query, Soprano::Query::QueryLanguageSparqlNoInference);
@@ -1075,16 +1063,84 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
         graphs << it[0].uri();
     }
 
-    // the set of resources that we did modify but not remove entirely
-    QSet<QUrl> modifiedResources;
+    //
+    // Shorten the list of resources to the ones that are actually in our graphs
+    //
+    QString graphN3 = urlListToN3(graphs).join(QLatin1String(","));
+    QString resN3 = urlListToN3(resolvedResources.toList()).join(QLatin1String(","));
 
+    query = QString::fromLatin1("select distinct ?r where { graph ?g { ?r ?p ?o. } FILTER(?g in (%1)) ."
+                                "FILTER(?r in (%2)) . }")
+            .arg( graphN3, resN3 );
+
+    QList<QUrl> finalResourcesList;
+    it = executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    while( it.next() )
+        finalResourcesList << it[0].uri();
+
+    resolvedResources = finalResourcesList.toSet();
+    resN3 = urlListToN3(finalResourcesList).join(QLatin1String(","));
+
+    //
+    // Get modified resources
+    //
+    QStringList notInFilterList;
     foreach(const QUrl& graph, graphs) {
-        modifiedResources.unite( removeResourcesFromGraph( resolvedResources.toList(), graph ).toSet() );
+        notInFilterList << QString::fromLatin1("?g2!=%1").arg(Soprano::Node::resourceToN3(graph));
+    }
+    notInFilterList << QString::fromLatin1("?g2!=%1").arg(Soprano::Node::resourceToN3(d->m_nepomukGraph));
+    QString notInFilter = notInFilterList.join(QLatin1String(" && "));
+
+    query = QString::fromLatin1("select distinct ?r where { "
+                                " graph ?g1 { ?r ?p ?o. } "
+                                " graph ?g2 { ?r ?p2 ?o2 . } "
+                                " FILTER(?g1 in (%1)) . FILTER(?r in (%2)) . "
+                                " FILTER(%3) . }")
+                    .arg( graphN3, resN3, notInFilter );
+
+    it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    QSet<QUrl> modifiedResources;
+    while( it.next() ) {
+        modifiedResources << it[0].uri();
     }
 
-    // TODO: What about the creation date? It might have been removed
-    QDateTime now = QDateTime::currentDateTime();
-    updateModificationDate(modifiedResources, fetchGraph(app), now);
+    query = QString::fromLatin1("select distinct ?r2 where { "
+                                " graph ?g { ?r2 ?p ?r . FILTER(?r in (%1)) .}"
+                                " FILTER(?g in (%2))  }")
+            .arg( resN3, graphN3 );
+
+    it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    while( it.next() ) {
+        QUrl uri = it[0].uri();
+        if( !resolvedResources.contains(uri) )
+            modifiedResources << uri;
+    }
+    updateModificationDate(modifiedResources);
+
+    foreach(const QUrl& graph, graphs) {
+        QString deleteCommand = QString::fromLatin1("sparql delete from %1 { ?r ?p ?o. } where { "
+                                                    "?r ?p ?o. FILTER(?r in (%2)). }")
+                                .arg( Soprano::Node::resourceToN3(graph), resN3 );
+
+        executeQuery( deleteCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+
+        deleteCommand = QString::fromLatin1("sparql delete from %1 { ?o ?p ?r. } where { "
+                                            "?o ?p ?r. FILTER(?r in (%2)). }")
+                                .arg( Soprano::Node::resourceToN3(graph), resN3 );
+
+        executeQuery( deleteCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+    }
+
+    // From the nepomuk graph only remove the resources which should be deleted completely
+    resolvedResources.subtract( modifiedResources );
+
+    if( resolvedResources.count() ) {
+        QString deleteCommand = QString::fromLatin1("sparql delete from %1 { ?r ?p ?o. } where { "
+                                                    "?r ?p ?o. FILTER(?r in (%2)). }")
+                                .arg( Soprano::Node::resourceToN3(d->m_nepomukGraph),
+                                      urlListToN3(resolvedResources.toList()).join(",") );
+        executeQuery( deleteCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+    }
 }
 
 
@@ -1114,52 +1170,52 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(RemovalFlags flags, 
         graphs << it[0].uri();
     }
 
+    // TODO: Find a faster way to update all the nao:lastModified of all the resources in the graph
     QSet<QUrl> modifiedResources;
+
+
+    QStringList notInFilter;
     foreach(const QUrl& graph, graphs) {
-        // Fetch resources to modify
-        QString query = QString::fromLatin1("select distinct ?r where { graph %1 { ?r ?p ?o. } "
-                                            " graph ?g { ?r ?p2 ?o2 . } "
-                                            " FILTER(?g!=%1) . }")
-                        .arg( Soprano::Node::resourceToN3(graph) );
-
-        Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
-        while( it.next() ) {
-            modifiedResources << it[0].uri();
-        }
+        notInFilter << QString::fromLatin1("?g2!=%1").arg(Soprano::Node::resourceToN3(graph));
     }
+    notInFilter << QString::fromLatin1("?g2!=%1").arg(Soprano::Node::resourceToN3(d->m_nepomukGraph));
 
-    updateModificationDate( modifiedResources, fetchGraph(app) );
+    // Fetch resources to modify
+    query = QString::fromLatin1("select distinct ?r where { graph ?g1 { ?r ?p ?o. } "
+                                " graph ?g2 { ?r ?p2 ?o2 . } "
+                                " FILTER(?g1 in (%1)) . "
+                                " FILTER(%2) . }")
+                    .arg( urlListToN3(graphs).join(QLatin1String(",")),
+                          notInFilter.join(QLatin1String(" && ")) );
 
-    foreach(const QUrl& graph, graphs) {
-        QString command = QString::fromLatin1("clear graph %1").arg(Soprano::Node::resourceToN3(graph));
-        executeQuery( command, Soprano::Query::QueryLanguageSparqlNoInference );
-    }
-}
-
-QList<QUrl> Nepomuk2::DataManagementModel::removeResourcesFromGraph(const QList<QUrl>& resources, const QUrl& graph)
-{
-    QString graphN3 = Soprano::Node::resourceToN3(graph);
-    QString resN3 = urlListToN3(resources).join(",");
-
-    // FIXME: What about the creation date?
-    QString query = QString::fromLatin1("select distinct ?r where { graph %1 { ?r ?p ?o. } "
-                                        " graph ?g { ?r ?p2 ?o2 . } "
-                                        " FILTER(?g!=%1) . FILTER(?r in (%2)) . }")
-                    .arg( graphN3, resN3 );
-
-    Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
-    QList<QUrl> modifiedResources;
+    it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
     while( it.next() ) {
         modifiedResources << it[0].uri();
     }
 
-    QString deleteCommand = QString::fromLatin1("sparql delete from %1 { ?r ?p ?o. } where { "
-                                                "graph %1 { ?r ?p ?o. FILTER(?r in (%2)). } }")
-                            .arg( graphN3, resN3 );
+    updateModificationDate( modifiedResources );
 
-    executeQuery( deleteCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+    QSet<QUrl> resourcesToRemove;
+    foreach(const QUrl& graph, graphs) {
+        QString query = QString::fromLatin1("select distinct ?r where { graph %1 { ?r ?p ?o. } }")
+                        .arg( Soprano::Node::resourceToN3(graph) );
 
-    return modifiedResources;
+        Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+        while( it.next() )
+            resourcesToRemove << it[0].uri();
+
+        QString command = QString::fromLatin1("clear graph %1").arg(Soprano::Node::resourceToN3(graph));
+        executeQuery( command, Soprano::Query::QueryLanguageSparqlNoInference );
+    }
+
+    resourcesToRemove.subtract( modifiedResources );
+    if( resourcesToRemove.count() ) {
+        query = QString::fromLatin1("delete from %2 { ?r ?p ?o . } where { ?r ?p ?o. FILTER(?r in (%1)) . }")
+                .arg( urlListToN3(resourcesToRemove.toList()).join(","),
+                      Soprano::Node::resourceToN3(d->m_nepomukGraph) );
+
+        executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    }
 }
 
 
@@ -2188,23 +2244,6 @@ QUrl Nepomuk2::DataManagementModel::createUri(Nepomuk2::DataManagementModel::Uri
     }
 }
 
-QUrl DataManagementModel::createResource(const QUrl& nieUrl, const QUrl& graph)
-{
-    // TODO: Optimize? Create all these statements in one go?
-    const QUrl uri = createUri(ResourceUri);
-    addStatement(uri, NIE::url(), nieUrl, graph);
-    if( nieUrl.isLocalFile() ) {
-        addStatement(uri, RDF::type(), NFO::FileDataObject(), graph);
-        if( QFileInfo(nieUrl.toLocalFile()).isDir() )
-            addStatement(uri, RDF::type(), NFO::Folder(), graph);
-    }
-    else {
-        // FIXME: What now? We should still add some types
-    }
-
-    return uri;
-}
-
 
 QHash< QUrl, QList< Soprano::Node > > DataManagementModel::addProperty(const QList< QUrl >& resources, const QUrl& property, const QList<Soprano::Node>& nodes, const QString& app, bool signalPropertyChanged)
 {
@@ -2263,7 +2302,7 @@ QHash< QUrl, QList< Soprano::Node > > DataManagementModel::addProperty(const QLi
     // update modification date
     // TODO: This can be done when pushing the data above!
     QSet<QUrl> finalResources = finalValuesPerResource.keys().toSet();
-    updateModificationDate( finalResources, graph, QDateTime::currentDateTime(), true );
+    updateModificationDate( finalResources );
 
     return finalValuesPerResource;
 }
@@ -2411,27 +2450,34 @@ QList<QUrl> DataManagementModel::createFileResources(const QList< QUrl >& nieUrl
     QList<QUrl> resUriList;
 
     QString query = QString::fromLatin1("sparql insert into %1 { ").arg( Soprano::Node::resourceToN3(graph) );
+    QString query2 = QString::fromLatin1("sparql insert into %1 { ").arg( Soprano::Node::resourceToN3(d->m_nepomukGraph) );
+
     foreach( const QUrl& nieUrl, nieUrls ) {
         const QUrl resUri = createUri( ResourceUri );
-        query += Soprano::Node::resourceToN3( resUri );
+        const QString resN3 = Soprano::Node::resourceToN3(resUri);
+        query += resN3;
+        query2 += resN3;
 
         resUriList << resUri;
 
         QFileInfo fileInfo( nieUrl.toLocalFile() );
         if( fileInfo.isDir() )
-            query += QLatin1String(" a nfo:FileDataObject, nfo:Folder ; ");
+            query += QLatin1String(" a nfo:FileDataObject, nfo:Folder . ");
         else
-            query += QLatin1String(" a nfo:FileDataObject ; ");
+            query += QLatin1String(" a nfo:FileDataObject . ");
 
-        query += QString::fromLatin1("nie:url %1 ; ").arg( Soprano::Node::resourceToN3(nieUrl) );
+        // Url, lastModified and created will be in the nepomuk graph
+        query2 += QString::fromLatin1(" nie:url %1 ; ").arg( Soprano::Node::resourceToN3(nieUrl) );
 
         Soprano::LiteralValue dtNode( QDateTime::currentDateTime() );
-        query += QString::fromLatin1("nao:lastModified %1 ; nao:created %1 . ")
+        query2 += QString::fromLatin1("nao:lastModified %1 ; nao:created %1 . ")
                       .arg( Soprano::Node::literalToN3( dtNode ) );
     }
     query += QLatin1Char('}');
+    query2 += QLatin1Char('}');
 
     executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+    executeQuery( query2, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
     return resUriList;
 }
 
@@ -2643,6 +2689,14 @@ TypeCache* DataManagementModel::typeCache()
     return d->m_typeCache;
 }
 
+QUrl DataManagementModel::nepomukGraph()
+{
+    if( d->m_nepomukGraph.isEmpty() )
+        d->m_nepomukGraph = fetchGraph(QLatin1String("nepomuk"));
+    return d->m_nepomukGraph;
+}
+
+
 void Nepomuk2::DataManagementModel::removeAllResources(const QSet< QUrl >& resourceUris, RemovalFlags flags, const QString& app)
 {
     Q_UNUSED(flags);
@@ -2711,7 +2765,7 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet< QUrl >& resou
         removeAllStatements(res, Soprano::Node(), Soprano::Node());
         removeAllStatements(Soprano::Node(), Soprano::Node(), res);
     }
-    updateModificationDate(modifiedResources, fetchGraph(app));
+    updateModificationDate(modifiedResources);
 
     foreach(const Soprano::Statement& st, removedStatements) {
         d->m_watchManager->changeProperty( st.subject().uri(), st.predicate().uri(),

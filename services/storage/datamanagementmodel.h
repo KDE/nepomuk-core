@@ -253,6 +253,7 @@ public Q_SLOTS:
 
     TypeCache* typeCache();
 
+    QUrl nepomukGraph();
 private:
     QUrl createGraph(const QString& app = QString(), const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()));
     QUrl createGraph(const QString& app, const QMultiHash<QUrl, Soprano::Node>& additionalMetadata);
@@ -275,15 +276,17 @@ private:
 
     /**
      * Updates the modification date of \p resource to \p date.
-     * Adds the new statement in \p graph.
+     * Adds the new statement in the nepomuk graph
      */
-    Soprano::Error::ErrorCode updateModificationDate( const QUrl& resource, const QUrl& graph = QUrl(), const QDateTime& date = QDateTime::currentDateTime(), bool includeCreationDate = false );
+    Soprano::Error::ErrorCode updateModificationDate( const QUrl& resource,
+                                                      const QDateTime& date = QDateTime::currentDateTime() );
 
     /**
      * Updates the modification date of \p resources to \p date.
-     * Adds the new statement in \p graph.
+     * Adds the new statement in the nepomuk graph
      */
-    Soprano::Error::ErrorCode updateModificationDate( const QSet<QUrl>& resources, const QUrl& graph = QUrl(), const QDateTime& date = QDateTime::currentDateTime(), bool includeCreationDate = false );
+    Soprano::Error::ErrorCode updateModificationDate( const QSet<QUrl>& resources,
+                                                      const QDateTime& date = QDateTime::currentDateTime() );
 
     /**
      * Removes all the graphs from \p graphs which do not contain any statements
@@ -364,9 +367,6 @@ private:
     };
     QUrl createUri(UriType type);
 
-    /// Creates a new resource, and sets its nie:url. It does not set nao:lastModified or nao:created
-    QUrl createResource(const QUrl& nieUrl, const QUrl& graph);
-
     /**
      * Checks if any of the provided resources has a protected type (class, property, graph), ie. one
      * of the resources should not be changed through the standard API.
@@ -376,9 +376,6 @@ private:
     bool containsResourceWithProtectedType(const QSet<QUrl>& resources) const;
 
     bool isProtectedProperty(const QUrl& prop) const;
-
-    /// Returns the list of modified resources
-    QList<QUrl> removeResourcesFromGraph(const QList<QUrl>& resources, const QUrl& graph);
 
     class Private;
     Private* const d;
