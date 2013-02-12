@@ -210,6 +210,10 @@ public:
     QCache<QString, QUrl> m_appCache;
     QMutex m_appCacheMutex;
 
+    typedef QPair<QString, bool> GraphCacheItem;
+    QCache<GraphCacheItem, QUrl> m_graphCache;
+    QMutex m_graphCacheMutex;
+
     TypeCache* m_typeCache;
     QUrl m_nepomukGraph;
 };
@@ -252,8 +256,14 @@ Nepomuk2::DataManagementModel::DataManagementModel(Nepomuk2::ClassAndPropertyTre
 
 void Nepomuk2::DataManagementModel::clearCache()
 {
+    QMutexLocker lock2( &d->m_graphCacheMutex );
+    d->m_graphCache.clear();
+    lock2.unlock();
+
     QMutexLocker lock( &d->m_appCacheMutex );
     d->m_appCache.clear();
+    lock.unlock();
+
     d->m_typeCache->clear();
     d->m_nepomukGraph.clear();
 }
@@ -2071,6 +2081,13 @@ QUrl Nepomuk2::DataManagementModel::createGraph(const QString& app, const QMulti
 
 QUrl DataManagementModel::fetchGraph(const QString& app, bool discardable)
 {
+    QPair<QString, bool> cacheItem(app, discardable);
+    QMutexLocker lock( &d->m_graphCacheMutex );
+    QUrl* uri = d->m_graphCache.object( cacheItem );
+    if( uri ) {
+        return *uri;
+    }
+
     QLatin1String type("nrl:InstanceBase");
     if( discardable )
         type = QLatin1String("nrl:DiscardableInstanceBase");
@@ -2081,14 +2098,20 @@ QUrl DataManagementModel::fetchGraph(const QString& app, bool discardable)
 
     Soprano::QueryResultIterator it = executeQuery(query, Soprano::Query::QueryLanguageSparqlNoInference);
     if( it.next() ) {
-        return it[0].uri();
+        QUrl uri = it[0].uri();
+        d->m_graphCache.insert( cacheItem, new QUrl(uri) );
+
+        return uri;
     }
     else {
         QMultiHash<QUrl, Soprano::Node> hash;
         if( discardable )
             hash.insert( RDF::type(), NRL::DiscardableInstanceBase() );
 
-        return createGraph(app, hash);
+        QUrl uri = createGraph(app, hash);
+        d->m_graphCache.insert( cacheItem, new QUrl(uri) );
+
+        return uri;
     }
 }
 
