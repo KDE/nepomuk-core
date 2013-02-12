@@ -1081,19 +1081,15 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
     //
     // Get modified resources
     //
-    QStringList notInFilterList;
-    foreach(const QUrl& graph, graphs) {
-        notInFilterList << QString::fromLatin1("?g2!=%1").arg(Soprano::Node::resourceToN3(graph));
-    }
-    notInFilterList << QString::fromLatin1("?g2!=%1").arg(Soprano::Node::resourceToN3(d->m_nepomukGraph));
-    QString notInFilter = notInFilterList.join(QLatin1String(" && "));
+    QString notInGraphs = graphN3;
+    notInGraphs += QString::fromLatin1(",%1").arg(Soprano::Node::resourceToN3(d->m_nepomukGraph));
 
     query = QString::fromLatin1("select distinct ?r where { "
                                 " graph ?g1 { ?r ?p ?o. } "
                                 " graph ?g2 { ?r ?p2 ?o2 . } "
                                 " FILTER(?g1 in (%1)) . FILTER(?r in (%2)) . "
-                                " FILTER(%3) . }")
-                    .arg( graphN3, resN3, notInFilter );
+                                " FILTER(!(?g2 in (%3))) . }")
+                    .arg( graphN3, resN3, notInGraphs );
 
     it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
     QSet<QUrl> modifiedResources;
@@ -1170,20 +1166,16 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(RemovalFlags flags, 
     // TODO: Find a faster way to update all the nao:lastModified of all the resources in the graph
     QSet<QUrl> modifiedResources;
 
-
-    QStringList notInFilter;
-    foreach(const QUrl& graph, graphs) {
-        notInFilter << QString::fromLatin1("?g2!=%1").arg(Soprano::Node::resourceToN3(graph));
-    }
-    notInFilter << QString::fromLatin1("?g2!=%1").arg(Soprano::Node::resourceToN3(d->m_nepomukGraph));
+    QString graphN3 = urlListToN3(graphs).join(QLatin1String(","));
+    QString notInGraphs = graphN3;
+    notInGraphs += QString::fromLatin1(",%1").arg(Soprano::Node::resourceToN3(d->m_nepomukGraph));
 
     // Fetch resources to modify
     query = QString::fromLatin1("select distinct ?r where { graph ?g1 { ?r ?p ?o. } "
                                 " graph ?g2 { ?r ?p2 ?o2 . } "
                                 " FILTER(?g1 in (%1)) . "
-                                " FILTER(%2) . }")
-                    .arg( urlListToN3(graphs).join(QLatin1String(",")),
-                          notInFilter.join(QLatin1String(" && ")) );
+                                " FILTER(!(?g2 in (%2))) . }")
+                    .arg( graphN3, notInGraphs );
 
     it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
     while( it.next() ) {
