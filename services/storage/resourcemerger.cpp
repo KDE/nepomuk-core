@@ -317,6 +317,7 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
     // 2. Move the metadata from resHash to the metadataHash
     //
     Sync::ResourceHash resMetadataHash;
+    QStringList resN3List;
 
     QMutableHashIterator<KUrl, Sync::SyncResource> it( resHash );
     while( it.hasNext() ) {
@@ -333,6 +334,9 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
         else {
             metadataRes.insert( NAO::lastModified(), currentDateTime );
         }
+
+        if( !res.isBlank() )
+            resN3List << Soprano::Node::resourceToN3(res.uri());
 
         fit = res.find( NAO::created() );
         if( fit != res.end() ) {
@@ -361,14 +365,15 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
 
     }
 
-    // We don't do this in the loop above cause the data could be invalid
-    it.toFront();
-    while( it.hasNext() ) {
-        Sync::SyncResource& res = it.next().value();
-        if( !res.isBlank() ) {
-            m_model->removeAllStatements( res.uri(), NAO::lastModified(), Soprano::Node() );
-        }
+    // nao:lastModified
+    if( resN3List.count() ) {
+        QString removeCommand = QString::fromLatin1("sparql delete from %1 { ?r nao:lastModified ?m . } where"
+                                                    "{ graph %1 { ?r nao:lastModified ?m . FILTER(?r in (%2)) .} }")
+                                .arg( Soprano::Node::resourceToN3(m_model->nepomukGraph()),
+                                    resN3List.join(",") );
+        m_model->executeQuery( removeCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
     }
+    resN3List.clear();
 
     // Create the main graph, if they are any statements to merge
     if( !resHash.isEmpty() ) {

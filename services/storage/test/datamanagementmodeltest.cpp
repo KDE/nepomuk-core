@@ -3720,14 +3720,16 @@ void DataManagementModelTest::testStoreResources_metadata()
     const QUrl g1 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg1);
     m_model->addStatement(g1, NAO::maintainedBy(), QUrl("app:/A"), mg1);
 
+    QUrl nepomukG = m_dmModel->nepomukGraph();
+
     const QDateTime now = QDateTime::currentDateTime();
     QUrl resA("nepomuk:/res/A");
     m_model->addStatement(resA, RDF::type(), NAO::Tag(), g1);
     m_model->addStatement(resA, QUrl("prop:/int"), LiteralValue(42), g1);
     m_model->addStatement(resA, QUrl("prop:/string"), LiteralValue(QLatin1String("Foobar")), g1);
     m_model->addStatement(resA, QUrl("prop:/string2"), LiteralValue(QLatin1String("Foobar2")), g1);
-    m_model->addStatement(resA, NAO::created(), LiteralValue(now), g1);
-    m_model->addStatement(resA, NAO::lastModified(), LiteralValue(now), g1);
+    m_model->addStatement(resA, NAO::created(), LiteralValue(now), nepomukG);
+    m_model->addStatement(resA, NAO::lastModified(), LiteralValue(now), nepomukG);
 
 
     // now we merge the same resource (with differing metadata)
@@ -3896,14 +3898,14 @@ void DataManagementModelTest::testStoreResources_missingMetadata()
     const QUrl g1 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg1);
     m_model->addStatement(g1, NAO::maintainedBy(), QUrl("app:/A"), mg1);
 
-    qDebug() << "Created graph" << g1 << mg1;
+    const QUrl nepomukG = m_dmModel->nepomukGraph();
 
     const QDateTime now = QDateTime::currentDateTime();
     QUrl resA("nepomuk:/res/A");
     m_model->addStatement(resA, RDF::type(), NAO::Tag(), g1);
     m_model->addStatement(resA, QUrl("prop:/int"), LiteralValue(42), g1);
     m_model->addStatement(resA, QUrl("prop:/string"), LiteralValue(QLatin1String("Foobar")), g1);
-    m_model->addStatement(resA, NAO::lastModified(), LiteralValue(now), g1);
+    m_model->addStatement(resA, NAO::lastModified(), LiteralValue(now), nepomukG);
 
 
     // now we merge the same resource
