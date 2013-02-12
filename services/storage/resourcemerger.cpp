@@ -585,3 +585,25 @@ bool Nepomuk2::ResourceMerger::hasValidData(const QHash<KUrl, Nepomuk2::Sync::Sy
 
     return true;
 }
+
+void Nepomuk2::ResourceMerger::clearError()
+{
+    m_error = Soprano::Error::Error();
+}
+
+Soprano::Error::Error Nepomuk2::ResourceMerger::lastError()
+{
+    return m_error;
+}
+
+void Nepomuk2::ResourceMerger::setError(const Soprano::Error::Error& error)
+{
+    m_error = error;
+}
+
+void Nepomuk2::ResourceMerger::setError(const QString& errorMessage, int code)
+{
+    m_error = Soprano::Error::Error( errorMessage, code );
+}
+
+

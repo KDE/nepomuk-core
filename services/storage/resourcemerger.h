@@ -27,7 +27,6 @@
 #include <QtCore/QSet>
 
 #include <KUrl>
-#include <Soprano/Error/ErrorCache>
 
 #include "datamanagement.h"
 #include "resourceidentifier.h"
@@ -43,7 +42,7 @@ namespace Nepomuk2 {
     class DataManagementModel;
     class ResourceWatcherManager;
 
-    class ResourceMerger : public Soprano::Error::ErrorCache
+    class ResourceMerger
     {
     public:
         ResourceMerger( Nepomuk2::DataManagementModel * model, const QString & app,
@@ -54,6 +53,16 @@ namespace Nepomuk2 {
         QHash<QUrl, QUrl> mappings() const;
 
         bool merge(const Sync::ResourceHash& resHash);
+
+        //
+        // We do not just derive from Soprano::Error::ErrorCache cause it
+        // implements per thread error handling. We do not need that since
+        // each thread has its own ResourceMerger
+        //
+        Soprano::Error::Error lastError();
+        void clearError();
+        void setError(const Soprano::Error::Error& error);
+        void setError(const QString& errorMessage, int code);
 
     private:
         /**
@@ -111,6 +120,8 @@ namespace Nepomuk2 {
 
         QSet<QUrl> metadataProperties;
         ResourceWatcherManager *m_rvm;
+
+        Soprano::Error::Error m_error;
     };
 
 }
