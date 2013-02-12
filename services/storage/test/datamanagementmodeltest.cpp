@@ -723,27 +723,29 @@ void DataManagementModelTest::testSetProperty_invalid_args()
 
 void DataManagementModelTest::testSetProperty_nieUrl1()
 {
-    // setting nie:url if it is not there yet should result in a normal setProperty including graph creation
-    // FIXME: This is just wrong! If a resource does not exist, you should not be able to create it
-    //        just by adding a new value!
-    m_dmModel->setProperty(QList<QUrl>() << QUrl("nepomuk:/res/A"), NIE::url(), QVariantList() << QUrl("file:///tmp/A"), QLatin1String("testapp"));
+    QUrl uri = m_dmModel->createResource( QList<QUrl>() << NFO::FileDataObject(), QString(), QString(), QString("A") );
+    QVERIFY(!m_dmModel->lastError());
 
-    QVERIFY(m_model->containsAnyStatement(QUrl("nepomuk:/res/A"), NIE::url(), QUrl("file:///tmp/A")));
-    QVERIFY(m_model->containsAnyStatement(QUrl("nepomuk:/res/A"), RDF::type(), NFO::FileDataObject()));
+    m_dmModel->setProperty(QList<QUrl>() << uri, NIE::url(), QVariantList() << QUrl("file:///tmp/A"), QLatin1String("testapp"));
+    QVERIFY(!m_dmModel->lastError());
 
-    // remember the graph since it should not change later on
-    const QUrl nieUrlGraph = m_model->listStatements(QUrl("nepomuk:/res/A"), NIE::url(), QUrl("file:///tmp/A")).allStatements().first().context().uri();
+    QVERIFY(m_model->containsAnyStatement(uri, NIE::url(), QUrl("file:///tmp/A")));
+    QVERIFY(m_model->containsAnyStatement(uri, RDF::type(), NFO::FileDataObject()));
 
+    const QUrl nieUrlGraph = m_model->listStatements(uri, NIE::url(), QUrl("file:///tmp/A")).allStatements().first().context().uri();
+
+    // the nie:url should always be in the nepomuk graph
+    QCOMPARE( nieUrlGraph, m_dmModel->nepomukGraph() );
 
     // we reset the URL
-    m_dmModel->setProperty(QList<QUrl>() << QUrl("nepomuk:/res/A"), NIE::url(), QVariantList() << QUrl("file:///tmp/B"), QLatin1String("testapp"));
+    m_dmModel->setProperty(QList<QUrl>() << uri, NIE::url(), QVariantList() << QUrl("file:///tmp/B"), QLatin1String("testapp"));
 
     // the url should have changed
-    QVERIFY(!m_model->containsAnyStatement(QUrl("nepomuk:/res/A"), NIE::url(), QUrl("file:///tmp/A")));
-    QVERIFY(m_model->containsAnyStatement(QUrl("nepomuk:/res/A"), NIE::url(), QUrl("file:///tmp/B")));
+    QVERIFY(!m_model->containsAnyStatement(uri, NIE::url(), QUrl("file:///tmp/A")));
+    QVERIFY(m_model->containsAnyStatement(uri, NIE::url(), QUrl("file:///tmp/B")));
 
     // the graph should have been kept
-    QCOMPARE(m_model->listStatements(QUrl("nepomuk:/res/A"), NIE::url(), Node()).allStatements().first().context().uri(), nieUrlGraph);
+    QCOMPARE(m_model->listStatements(uri, NIE::url(), Node()).allStatements().first().context().uri(), nieUrlGraph);
 
     QVERIFY(!haveDataInDefaultGraph());
 }

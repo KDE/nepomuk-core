@@ -2179,6 +2179,9 @@ QHash< QUrl, QList< Soprano::Node > > DataManagementModel::addProperty(const QLi
     QList<QUrl> knownResources = resources;
     QList<Soprano::Node> resolvedNodes = nodes;
     QUrl graph = fetchGraph(app);
+    if( property == NIE::url() )
+        graph = d->m_nepomukGraph;
+
     const QUrl appRes = findApplicationResource(app);
     QSet<QPair<QUrl, Soprano::Node> > finalProperties;
     foreach(const QUrl& resUri, resources)
