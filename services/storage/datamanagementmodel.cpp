@@ -1346,7 +1346,6 @@ QHash<QUrl, QUrl> DataManagementModel::storeResources(const SimpleResourceGraph&
     // Resolve the nie URLs which are present as resource uris
     //
     QSet<QUrl> blankResources;
-    QSet<QUrl> allNonBlankResources; // Used to order to check if protected types are being modified
     SimpleResourceGraph resGraph( resources );
     QList<SimpleResource> resGraphList = resGraph.toList();
     QMutableListIterator<SimpleResource> iter( resGraphList );
@@ -1362,7 +1361,7 @@ QHash<QUrl, QUrl> DataManagementModel::storeResources(const SimpleResourceGraph&
 
         const UriState state = uriState(res.uri());
         if(state == NepomukUri) {
-            allNonBlankResources << res.uri();
+            continue;
         }
         else if(state == BlankUri) {
             blankResources << res.uri();
@@ -1400,8 +1399,6 @@ QHash<QUrl, QUrl> DataManagementModel::storeResources(const SimpleResourceGraph&
             const QUrl legacyUri = resolveUrl( res.uri() );
             if( lastError() )
                 return QHash<QUrl, QUrl>();
-
-            allNonBlankResources << legacyUri;
         }
         else if( state == OntologyUri ) {
             setError(QLatin1String("It is not allowed to add classes or properties through this API."), Soprano::Error::ErrorInvalidArgument);
@@ -1409,16 +1406,6 @@ QHash<QUrl, QUrl> DataManagementModel::storeResources(const SimpleResourceGraph&
         }
     }
     resGraph = resGraphList;
-
-
-    //
-    // We need to ensure that no client removes any ontology constructs or graphs
-    //
-    if(containsResourceWithProtectedType(allNonBlankResources)) {
-        return QHash<QUrl, QUrl>();
-    }
-    allNonBlankResources.clear();
-
 
     ResourceIdentifier resIdent( identificationMode, this );
     QList<Sync::SyncResource> syncResources;
