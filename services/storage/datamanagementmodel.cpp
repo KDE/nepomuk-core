@@ -1800,10 +1800,6 @@ QHash<QUrl, QUrl> Nepomuk2::DataManagementModel::storeResources(const Nepomuk2::
     //
     resIdent.identifyAll();
 
-    if( resIdent.mappings().empty() ) {
-        kDebug() << "Nothing was mapped merging everything as it is.";
-    }
-
     ResourceMerger merger( this, app, additionalMetadata, flags );
     merger.setMappings( resIdent.mappings() );
     if( !merger.merge( resIdent.resourceHash() ) ) {

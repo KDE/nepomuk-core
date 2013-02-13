@@ -51,6 +51,7 @@ private slots:
     void setProperty_sameData();
 
     void storeResources();
+    void storeResources_email();
 private:
     void resetModel();
 

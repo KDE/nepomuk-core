@@ -45,6 +45,7 @@
 #include "nmm.h"
 #include "nco.h"
 #include "nie.h"
+#include "nmo.h"
 #include "resourcemanager.h"
 
 using namespace Soprano;
@@ -211,5 +212,90 @@ void DataManagementModelBenchmark::storeResources()
         m_dmModel->storeResources( graph, "A" );
     }
 }
+
+namespace {
+    SimpleResource createHeader(const QString& name, const QString &value, SimpleResourceGraph& graph) {
+        SimpleResource res;
+        res.addType( NMO::MessageHeader() );
+        res.addProperty( NMO::headerName(), name );
+        res.addProperty( NMO::headerValue(), value );
+
+        graph << res;
+        return res;
+    }
+
+    QUrl createContact(const QString& name, const QString& email, SimpleResourceGraph& graph) {
+        SimpleResource emRes;
+        emRes.addType( NCO::EmailAddress() );
+        emRes.addProperty( NCO::emailAddress(), email );
+
+        SimpleResource res;
+        res.addType( NCO::Contact() );
+        res.addProperty( NCO::fullname(), name );
+        res.addProperty( NCO::hasEmailAddress(), emRes );
+
+        graph << emRes << res;
+        return res.uri();
+    }
+
+    QUrl createIcon(const QString& iconName, SimpleResourceGraph& graph) {
+        SimpleResource iconRes;
+        iconRes.addType( NAO::FreeDesktopIcon() );
+        iconRes.addProperty( NAO::iconName(), iconName );
+
+        graph << iconRes;
+        return iconRes.uri();
+    }
+
+    QUrl createTag(const QString& identifier, const QString& label, SimpleResourceGraph& graph) {
+        SimpleResource tagRes;
+        tagRes.addType( NAO::Tag() );
+        tagRes.addProperty( NAO::identifier(), identifier );
+        tagRes.addProperty( NAO::prefLabel(), label );
+
+        graph << tagRes;
+        return tagRes.uri();
+    }
+}
+void DataManagementModelBenchmark::storeResources_email()
+{
+    SimpleResourceGraph graph;
+
+    SimpleResource res;
+    res.addType( NMO::Email() );
+    res.setProperty( NIE::byteSize(), 10 );
+    res.setProperty( NMO::isRead(), QVariant(true) );
+    res.setProperty( NMO::plainTextMessageContent(), QLatin1String("This is a test email") );
+    res.setProperty( NAO::prefLabel(), QLatin1String("Email Subject") );
+    res.setProperty( NMO::sentDate(), QDateTime::currentDateTime() );
+    res.setProperty( NMO::messageId(), QLatin1String("message-id") );
+
+    QStringList headers;
+    headers << "List-Id" << "X-Loop" << "X-MailingList" << "X-Spam-Flag" << "Organization";
+
+    foreach(const QString& head, headers) {
+        SimpleResource headRes = createHeader( head, "Don't care about the value", graph );
+        res.addProperty( NMO::messageHeader(), headRes );
+    }
+
+    // Contacts
+    res.addProperty( NMO::from(), createContact("FromCon", "from@contact.org", graph ) );
+    res.addProperty( NMO::to(), createContact("ToCon", "to@contact.org", graph ) );
+    res.addProperty( NMO::bcc(), createContact("BccCon", "bcc@contact.org", graph ) );
+    res.addProperty( NMO::cc(), createContact("ccCon", "cc@contact.org", graph ) );
+
+    res.addProperty( NAO::prefSymbol(), createIcon("internet-mail", graph ) );
+
+    res.addProperty( NAO::hasTag(), createTag( "mail-mark-important", "Important", graph ) );
+    res.addProperty( NAO::hasTag(), createTag( "mail-mark-task", "TODO", graph ) );
+    res.addProperty( NAO::hasTag(), createTag( "mail-mark-junk", "SPAM", graph ) );
+
+    graph << res;
+
+    QBENCHMARK {
+        m_dmModel->storeResources( graph, "TestApp", Nepomuk2::IdentifyNone, Nepomuk2::NoStoreResourcesFlags );
+    }
+}
+
 
 QTEST_KDEMAIN_CORE(DataManagementModelBenchmark)

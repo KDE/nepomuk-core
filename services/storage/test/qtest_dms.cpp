@@ -32,6 +32,7 @@
 #include "nco.h"
 #include "nie.h"
 #include "pimo.h"
+#include "nmo.h"
 
 #include <Soprano/LiteralValue>
 #include <Soprano/QueryResultIterator>
@@ -41,6 +42,22 @@ using namespace Soprano;
 using namespace Nepomuk2::Vocabulary;
 using namespace Nepomuk2;
 
+namespace {
+    void addProperty(Soprano::Model* model, const QUrl& graph, const QUrl& prop, const Node& dom, const Node& ran) {
+        model->addStatement( prop, RDF::type(), RDF::Property(), graph );
+        model->addStatement( prop, RDFS::domain(), dom, graph );
+        model->addStatement( prop, RDFS::range(), ran, graph );
+    }
+
+    void addType(Soprano::Model* model, const QUrl& graph, const QUrl& type, const QList<QUrl>& superTypes) {
+        model->addStatement( type, RDF::type(), RDFS::Class(), graph );
+
+        foreach(const QUrl& super, superTypes) {
+            model->addStatement( type, RDFS::subClassOf(), super, graph );
+            model->addStatement( super, RDF::type(), RDFS::Class(), graph );
+        }
+    }
+}
 void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
 {
     model->addStatement( graph, RDF::type(), NRL::Ontology(), graph );
@@ -261,6 +278,34 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NAO::maintainedBy(), RDF::type(), RDF::Property(), graph );
     model->addStatement( NAO::maintainedBy(), RDFS::range(), RDFS::Resource(), graph );
     model->addStatement( NAO::maintainedBy(), RDFS::domain(), NAO::Agent(), graph );
+
+    // Email stuff
+    addType( model, graph, NMO::MessageHeader(), QList<QUrl>() << RDFS::Resource() );
+    addProperty( model, graph, NMO::messageHeader(), NMO::Message(), NMO::MessageHeader() );
+    addProperty( model, graph, NMO::headerName(), NMO::MessageHeader(), XMLSchema::string() );
+    addProperty( model, graph, NMO::headerValue(), NMO::MessageHeader(), XMLSchema::string() );
+
+    addType( model, graph, NMO::Message(), QList<QUrl>() << NIE::InformationElement() );
+    addType( model, graph, NMO::Email(), QList<QUrl>() << NMO::Message() );
+    addProperty( model, graph, NMO::to(), NMO::Email(), NCO::Contact() );
+    addProperty( model, graph, NMO::from(), NMO::Email(), NCO::Contact() );
+    addProperty( model, graph, NMO::cc(), NMO::Email(), NCO::Contact() );
+    addProperty( model, graph, NMO::bcc(), NMO::Email(), NCO::Contact() );
+    addProperty( model, graph, NMO::isRead(), NMO::Email(), XMLSchema::boolean() );
+    addProperty( model, graph, NMO::plainTextMessageContent(), NMO::Email(), XMLSchema::string() );
+    addProperty( model, graph, NMO::messageId(), NMO::Email(), XMLSchema::string() );
+    addProperty( model, graph, NMO::sentDate(), NMO::Message(), XMLSchema::dateTime() );
+    addProperty( model, graph, NIE::byteSize(), NIE::InformationElement(), XMLSchema::integer() );
+
+    addType( model, graph, NCO::EmailAddress(), QList<QUrl>() << RDFS::Resource() );
+    addProperty( model, graph, NCO::hasEmailAddress(), NCO::Contact(), NCO::EmailAddress() );
+    addProperty( model, graph, NCO::emailAddress(), NCO::EmailAddress(), XMLSchema::string() );
+
+    // Icons
+    addType( model, graph, NAO::Symbol(), QList<QUrl>() << RDFS::Resource() );
+    addType( model, graph, NAO::FreeDesktopIcon(), QList<QUrl>() << NAO::Symbol() );
+    addProperty( model, graph, NAO::iconName(), NAO::FreeDesktopIcon(), XMLSchema::string() );
+    addProperty( model, graph, NAO::prefSymbol(), RDFS::Resource(), NAO::FreeDesktopIcon() );
 }
 
 void Nepomuk2::insertNamespaceAbbreviations(Model* model)
