@@ -77,17 +77,6 @@ using namespace Soprano::Vocabulary;
 //// 1. Somehow handle nie:hasPart (at least in describeResources - compare text annotations where we only want to annotate part of a text)
 
 namespace {
-    /// convert a hash of URL->URI mappings to N3, omitting empty URIs.
-    /// This is a helper for the return type of DataManagementModel::resolveUrls
-    QStringList resourceHashToN3(const QHash<QUrl, QUrl>& urls) {
-        QStringList n3;
-        QHash<QUrl, QUrl>::const_iterator end = urls.constEnd();
-        for(QHash<QUrl, QUrl>::const_iterator it = urls.constBegin(); it != end; ++it) {
-            if(!it.value().isEmpty())
-                n3 << Soprano::Node::resourceToN3(it.value());
-        }
-        return n3;
-    }
 
     QStringList nodesToN3(const QSet<Soprano::Node>& nodes) {
         QStringList n3;

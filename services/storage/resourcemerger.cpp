@@ -70,6 +70,14 @@ namespace {
         return list;
     }
 
+    template<typename T> QStringList urlsToN3( const T &urls ) {
+        QStringList list;
+        foreach( const QUrl& uri, urls ) {
+            list << Soprano::Node::resourceToN3(uri);
+        }
+        return list;
+    }
+
     QList<QUrl> nodeListToUriList( const QList<Soprano::Node>& nodeList ) {
         QList<QUrl> urls;
         urls.reserve( nodeList.size() );
@@ -135,6 +143,7 @@ bool Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
         const QString resN3 = Soprano::Node::resourceToN3( res.uri() );
         query += resN3;
 
+        QList<QUrl> propertiesToRemove;
         QList<KUrl> properties = res.uniqueKeys();
         foreach( const QUrl& prop, properties ) {
             QList<Soprano::Node> values = res.values( prop );
@@ -142,14 +151,14 @@ bool Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
 
             if( lazy || overwrite || overwriteAll ) {
                 if( tree->maxCardinality( prop ) == 1 || overwriteAll ) {
-                    QString query = QString::fromLatin1("select ?o ?g where { graph ?g { %1 %2 ?o . } }")
+                    QString query = QString::fromLatin1("select ?o where { %1 %2 ?o . }")
                                     .arg( resN3, propN3 );
 
                     Soprano::QueryResultIterator it = m_model->executeQuery(query, Soprano::Query::QueryLanguageSparqlNoInference);
                     while (it.next()) {
                         m_resRemoveHash[ res.uri() ].insert( prop, it[0] );
                     }
-                    m_model->removeAllStatements( res.uri(), prop, Soprano::Node() );
+                    propertiesToRemove << prop;
 
                     // In LazyCardinalities we don't care about the cardinality
                     if( lazy )
@@ -157,13 +166,19 @@ bool Nepomuk2::ResourceMerger::push(const QUrl& graph, const Nepomuk2::Sync::Res
                 }
             }
 
-            QStringList n3;
-            foreach( const Soprano::Node& node, values )
-                n3 << node.toN3();
-            query += QString::fromLatin1(" %1 %2 ;").arg( propN3, n3.join(QString(", ")) );
+            query += QString::fromLatin1(" %1 %2 ;").arg( propN3, nodesToN3(values).join(QString(", ")) );
         }
 
         query[ query.length() - 1 ] = '.';
+
+        // Remove the properties
+        if( propertiesToRemove.count() ) {
+            QString query = QString::fromLatin1("sparql delete { graph ?g { %1 ?p ?o.} } where { "
+                                                " graph ?g { %1 ?p ?o. } FILTER(?p in(%2)) . }")
+                            .arg( resN3, urlsToN3(propertiesToRemove).join(",") );
+
+            m_model->executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+        }
 
         // Virtuoso does not like commands that are too long. So we use an arbitary limit of 500 characters.
         if( query.size() >= 500 ) {
