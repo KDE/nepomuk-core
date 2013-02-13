@@ -265,7 +265,7 @@ void Nepomuk2::DataManagementModel::clearCache()
     lock.unlock();
 
     d->m_typeCache->clear();
-    d->m_nepomukGraph.clear();
+    d->m_nepomukGraph = fetchGraph(QLatin1String("nepomuk"));
 }
 
 
@@ -2624,8 +2624,6 @@ TypeCache* DataManagementModel::typeCache()
 
 QUrl DataManagementModel::nepomukGraph()
 {
-    if( d->m_nepomukGraph.isEmpty() )
-        d->m_nepomukGraph = fetchGraph(QLatin1String("nepomuk"));
     return d->m_nepomukGraph;
 }
 

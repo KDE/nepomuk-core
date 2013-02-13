@@ -101,14 +101,11 @@ void DataManagementModelTest::cleanupTestCase()
 void DataManagementModelTest::init()
 {
     resetModel();
-    m_dmModel->nepomukGraph();
 }
 
 
 void DataManagementModelTest::testAddProperty()
 {
-    m_dmModel->nepomukGraph();
-
     // remember graph count
     const int initialGraphCount = m_model->listContexts().allElements().count();
 
