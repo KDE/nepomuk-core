@@ -125,12 +125,11 @@ bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
     //
     QUrl nieUrl = res.nieUrl();
     if( !nieUrl.isEmpty() ) {
-        QString query = QString::fromLatin1("select ?r where { ?r %1 %2 . }")
-                        .arg( Soprano::Node::resourceToN3( NIE::url() ),
-                              Soprano::Node::resourceToN3( nieUrl ) );
-        Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        QString query = QString::fromLatin1("select ?r where { ?r nie:url %1 . } LIMIT 1")
+                        .arg( Soprano::Node::resourceToN3( nieUrl ) );
+        Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
         if( it.next() ) {
-            const QUrl newUri = it["r"].uri();
+            const QUrl newUri = it[0].uri();
             kDebug() << uri << " --> " << newUri;
             manualIdentification( uri, newUri );
             return true;
