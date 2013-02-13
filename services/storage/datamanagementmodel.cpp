@@ -167,12 +167,12 @@ namespace {
         else if(Nepomuk2::ClassAndPropertyTree::self()->contains(uri)) {
             return OntologyUri;
         }
+        else if(uri.toString().startsWith("_:") ) {
+            return BlankUri;
+        }
         // if supported by kio
         else if( KProtocolInfo::isKnownProtocol(uri) ) {
             return SupportedUrl;
-        }
-        else if(uri.toString().startsWith("_:") ) {
-            return BlankUri;
         }
         else {
             return OtherUri;
