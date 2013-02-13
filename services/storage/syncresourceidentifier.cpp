@@ -79,9 +79,6 @@ void Nepomuk2::Sync::ResourceIdentifier::addSyncResource(const Nepomuk2::Sync::S
 
 void Nepomuk2::Sync::ResourceIdentifier::identifyAll()
 {
-    int totalSize = m_notIdentified.size();
-    kDebug() << totalSize;
-
     return identify( m_notIdentified.toList() );
 }
 

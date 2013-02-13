@@ -430,8 +430,11 @@ void Nepomuk2::ClassAndPropertyTree::rebuildTree(Soprano::Model* model)
     // although nao:identifier is actually an abstract property Nepomuk has been using
     // it for very long to store string identifiers (instead of nao:personalIdentifier).
     // Thus, we force its range to xsd:string for correct conversion in variantListToNodeSet()
-    if(m_tree.contains(NAO::identifier()))
-        m_tree[NAO::identifier()]->range = XMLSchema::string();
+    if(m_tree.contains(NAO::identifier())) {
+        ClassOrProperty* cop = m_tree[NAO::identifier()];
+        cop->range = XMLSchema::string();
+        cop->literalType = QVariant::String;
+    }
 
     // add rdfs:Resource as parent for all top-level classes
     ClassOrProperty* rdfsResourceNode = 0;
