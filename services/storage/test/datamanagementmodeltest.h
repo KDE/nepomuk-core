@@ -105,7 +105,6 @@ private Q_SLOTS:
     void testRemoveDataByApplication12();
     void testRemoveDataByApplication_subResourcesOfSubResources();
     void testRemoveDataByApplication_subResourcesOfSubResources2();
-    void testRemoveDataByApplication_realLife();
     void testRemoveDataByApplication_nieUrl();
     void testRemoveDataByApplication_mtime();
     void testRemoveDataByApplication_mtimeRelated();
@@ -180,6 +179,7 @@ private:
 
     void resetModel();
     bool haveDataInDefaultGraph() const;
+    bool haveMetadataInOtherGraphs() const;
 
     KTempDir* m_storageDir;
     Soprano::Model* m_model;
