@@ -108,6 +108,7 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     m_cleaner = new IndexCleaner(this);
     connect( m_cleaner, SIGNAL(finished(KJob*)), this, SLOT(slotCleaningDone()) );
     m_cleaner->start();
+    m_state = State_Cleaning;
 
     // Special settings for the queues
     KConfig config( "nepomukstrigirc" );
