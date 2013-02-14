@@ -48,7 +48,7 @@ void BasicIndexingQueue::clear()
 
 void BasicIndexingQueue::clear(const QString& path)
 {
-    QMutableListIterator< QPair<QString, UpdateDirFlags> > it( m_paths );
+    QMutableVectorIterator< QPair<QString, UpdateDirFlags> > it( m_paths );
     while( it.hasNext() ) {
         it.next();
         if( it.value().first.startsWith( path ) )
@@ -84,7 +84,7 @@ void BasicIndexingQueue::enqueue(const QString& path, UpdateDirFlags flags)
 {
     kDebug() << path;
     bool wasEmpty = m_paths.empty();
-    m_paths.enqueue( qMakePair( path, flags ) );
+    m_paths.push( qMakePair( path, flags ) );
     callForNextIteration();
 
     if( wasEmpty )
@@ -96,7 +96,7 @@ void BasicIndexingQueue::processNextIteration()
     bool processingFile = false;
 
     if( !m_paths.isEmpty() ) {
-        QPair< QString, UpdateDirFlags > pair = m_paths.dequeue();
+        QPair< QString, UpdateDirFlags > pair = m_paths.pop();
         processingFile = process( pair.first, pair.second );
     }
 
@@ -133,7 +133,7 @@ bool BasicIndexingQueue::process(const QString& path, UpdateDirFlags flags)
 
             QDirIterator it( path, dirFilter );
             while( it.hasNext() ) {
-                m_paths.enqueue( qMakePair(it.next(), flags) );
+                m_paths.push( qMakePair(it.next(), flags) );
             }
         }
     }
