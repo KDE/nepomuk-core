@@ -69,10 +69,8 @@ int main(int argc, char *argv[])
     const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
 
     // Application
-    // Use KApplication instead of QCoreApplication since the okular plugin expects a running GUI
-    KApplication app;
-//    QCoreApplication app( argc, argv );
-//    KComponentData data( aboutData, KComponentData::RegisterAsMainComponent );
+    QCoreApplication app( argc, argv );
+    KComponentData data( aboutData, KComponentData::RegisterAsMainComponent );
 
     if( args->count() == 0 ) {
         QTextStream err( stderr );

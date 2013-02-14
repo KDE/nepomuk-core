@@ -106,7 +106,6 @@ namespace Nepomuk2 {
         bool process(const QString& path, Nepomuk2::UpdateDirFlags flags);
 
         QQueue< QPair<QString, UpdateDirFlags> > m_paths;
-        QQueue< QPair<QDirIterator*, UpdateDirFlags> > m_iterators;
 
         QUrl m_currentUrl;
         QString m_currentMimeType;

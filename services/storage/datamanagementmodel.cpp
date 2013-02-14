@@ -237,6 +237,7 @@ void Nepomuk2::DataManagementModel::clearCache()
 
 Nepomuk2::DataManagementModel::~DataManagementModel()
 {
+    delete d->m_typeCache;
     delete d;
 }
 

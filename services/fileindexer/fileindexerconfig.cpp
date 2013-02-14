@@ -51,8 +51,9 @@ namespace {
 Nepomuk2::FileIndexerConfig* Nepomuk2::FileIndexerConfig::s_self = 0;
 
 Nepomuk2::FileIndexerConfig::FileIndexerConfig(QObject* parent)
-    : QObject(parent),
-      m_config( "nepomukstrigirc" )
+    : QObject(parent)
+    , m_config( "nepomukstrigirc" )
+    , m_indexHidden(false)
 {
     if(!s_self) {
         s_self = this;
@@ -134,7 +135,6 @@ QStringList Nepomuk2::FileIndexerConfig::excludeFilters() const
 bool Nepomuk2::FileIndexerConfig::indexHiddenFilesAndFolders() const
 {
     return m_indexHidden;
-    return m_config.group( "General" ).readEntry( "index hidden folders", false );
 }
 
 
