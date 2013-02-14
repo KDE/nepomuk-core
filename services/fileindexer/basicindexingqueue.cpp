@@ -44,12 +44,6 @@ void BasicIndexingQueue::clear()
     m_currentUrl.clear();
     m_currentFlags = NoUpdateFlags;
     m_paths.clear();
-
-    typedef QPair<QDirIterator*, UpdateDirFlags> DirPair;
-    foreach( const DirPair& pair, m_iterators )
-        delete pair.first;
-
-    m_iterators.clear();
 }
 
 void BasicIndexingQueue::clear(const QString& path)
@@ -59,16 +53,6 @@ void BasicIndexingQueue::clear(const QString& path)
         it.next();
         if( it.value().first.startsWith( path ) )
             it.remove();
-    }
-
-    QMutableListIterator< QPair<QDirIterator*, UpdateDirFlags> > iter( m_iterators );
-    while( iter.hasNext() ) {
-        QDirIterator* dirIter =  iter.next().first;
-
-        if( dirIter->path().startsWith( path ) ) {
-            iter.remove();
-            delete dirIter;
-        }
     }
 }
 
@@ -85,7 +69,7 @@ UpdateDirFlags BasicIndexingQueue::currentFlags() const
 
 bool BasicIndexingQueue::isEmpty()
 {
-    return m_iterators.isEmpty() && m_paths.isEmpty();
+    return m_paths.isEmpty();
 }
 
 void BasicIndexingQueue::enqueue(const QString& path)
@@ -111,20 +95,7 @@ void BasicIndexingQueue::processNextIteration()
 {
     bool processingFile = false;
 
-    // First process all the iterators and then the paths
-    if( !m_iterators.isEmpty() ) {
-        QPair< QDirIterator*, UpdateDirFlags > pair = m_iterators.first();
-        QDirIterator* dirIt = pair.first;
-
-        if( dirIt->hasNext() ) {
-            processingFile = process( dirIt->next(), pair.second );
-        }
-        else {
-            delete m_iterators.dequeue().first;
-        }
-    }
-
-    else if( !m_paths.isEmpty() ) {
+    if( !m_paths.isEmpty() ) {
         QPair< QString, UpdateDirFlags > pair = m_paths.dequeue();
         processingFile = process( pair.first, pair.second );
     }
@@ -160,8 +131,10 @@ bool BasicIndexingQueue::process(const QString& path, UpdateDirFlags flags)
         if( recursive && !info.isSymLink() && shouldIndexContents(path) ) {
             QDir::Filters dirFilter = QDir::NoDotAndDotDot|QDir::Readable|QDir::Files|QDir::Dirs;
 
-            QPair<QDirIterator*, UpdateDirFlags> pair = qMakePair( new QDirIterator( path, dirFilter ), flags );
-            m_iterators.enqueue( pair );
+            QDirIterator it( path, dirFilter );
+            while( it.hasNext() ) {
+                m_paths.enqueue( qMakePair(it.next(), flags) );
+            }
         }
     }
     else if( info.isFile() && (forced || indexingRequired) ) {
