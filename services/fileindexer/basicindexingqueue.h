@@ -23,6 +23,7 @@
 
 #include "indexingqueue.h"
 #include <KJob>
+#include <QtCore/QStack>
 
 namespace Nepomuk2 {
 
@@ -105,7 +106,7 @@ namespace Nepomuk2 {
          */
         bool process(const QString& path, Nepomuk2::UpdateDirFlags flags);
 
-        QQueue< QPair<QString, UpdateDirFlags> > m_paths;
+        QStack< QPair<QString, UpdateDirFlags> > m_paths;
 
         QUrl m_currentUrl;
         QString m_currentMimeType;
