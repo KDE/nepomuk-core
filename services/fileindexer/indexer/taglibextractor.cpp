@@ -119,6 +119,8 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
             QDateTime dt = QDateTime::currentDateTime();
             QDate date = dt.date();
             date.setDate( tags->year(), date.month(), date.day() );
+            if( date.year() < 0 )
+                date.setDate( 1, date.month(), date.day() );
             dt.setDate( date );
             fileRes.setProperty( NIE::contentCreated(), dt );
         }
