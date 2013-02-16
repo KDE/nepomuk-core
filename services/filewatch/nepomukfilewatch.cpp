@@ -417,17 +417,22 @@ void Nepomuk2::FileWatch::slotDeviceMounted(const Nepomuk2::RemovableMediaCache:
     KConfigGroup cfg = config.group( "RemovableMedia" );
 
     if( cfg.readEntry<bool>( "add watches", true ) ) {
+        QString path = entry->mountPath();
+        // If the device is not a storage device, mountPath returns QString().
+        // In this case do not try to install watches.
+        if( path.isEmpty() )
+            return;
         if( entry->device().isDeviceInterface( Solid::DeviceInterface::NetworkShare ) ) {
             if( cfg.readEntry<bool>( "add watches network share", false ) ) {
-                kDebug() << "Installing watch for network share at mount point" << entry->mountPath();
-                watchFolder(entry->mountPath());
+                kDebug() << "Installing watch for network share at mount point" << path;
+                watchFolder(path);
             }
         }
         else {
-            kDebug() << "Installing watch for removable storage at mount point" << entry->mountPath();
+            kDebug() << "Installing watch for removable storage at mount point" << path;
             // vHanda: Perhaps this should only be done if we have some metadata on the removable media
             // and if we do not then we add the watches when we get some metadata?
-            watchFolder(entry->mountPath());
+            watchFolder(path);
         }
     }
 }
