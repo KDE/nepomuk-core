@@ -174,7 +174,8 @@ bool Nepomuk2::FileIndexerConfig::shouldBeIndexed( const QString& path ) const
 bool Nepomuk2::FileIndexerConfig::shouldFolderBeWatched( const QString& path ) const
 {
     // do not watch folders in the exclude filters
-    if(!shouldFileBeIndexed( path.split('/', QString::SkipEmptyParts).last() ))
+    QStringList cmpts = path.split('/', QString::SkipEmptyParts);
+    if( cmpts.isEmpty() || !shouldFileBeIndexed( cmpts.last() ) )
         return false;
     return true;
 }
