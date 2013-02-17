@@ -103,6 +103,11 @@ void Nepomuk2::ServiceControl::start()
                                                   QDBusConnection::ExportScriptableSlots |
                                                   QDBusConnection::ExportScriptableProperties |
                                                   QDBusConnection::ExportAdaptors);
+    // Delete the QApplication after the m_nepomukServiceModule
+    // Note: if services need QCoreApplication to hang around for
+    // longer they can disconnect this signal.
+    connect( m_nepomukServiceModule, SIGNAL( destroyed() ),
+             QCoreApplication::instance(), SLOT( quit() ) );
 }
 
 
@@ -110,9 +115,7 @@ void Nepomuk2::ServiceControl::shutdown()
 {
     delete m_nepomukServiceModule;
     m_nepomukServiceModule = 0;
-    QCoreApplication::quit();
 }
-
 
 QString Nepomuk2::ServiceControl::dbusServiceName( const QString& serviceName )
 {
