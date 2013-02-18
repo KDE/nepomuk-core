@@ -97,7 +97,6 @@ namespace {
         else {
             modes &= (~KInotify::EventCloseWrite);
             modes &= (~KInotify::EventCreate);
-            return Nepomuk2::FileIndexerConfig::self()->shouldFolderBeWatched( path );
         }
         return true;
     }
