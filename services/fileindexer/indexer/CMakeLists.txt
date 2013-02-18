@@ -144,3 +144,5 @@ DESTINATION ${SERVICES_INSTALL_DIR})
 install(
 TARGETS nepomukplaintextextractor
 DESTINATION ${PLUGIN_INSTALL_DIR})
+
+add_subdirectory(test)
