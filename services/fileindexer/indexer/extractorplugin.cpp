@@ -95,9 +95,6 @@ QList<SimpleResource> ExtractorPlugin::contactsFromString(const QString& string)
         contactStrings = string.split(';', QString::SkipEmptyParts);
 
     if( contactStrings.size() == 1 )
-        contactStrings = string.split('/', QString::SkipEmptyParts);
-
-    if( contactStrings.size() == 1 )
         contactStrings = string.split(" ft ", QString::SkipEmptyParts);
 
     if( contactStrings.size() == 1 )

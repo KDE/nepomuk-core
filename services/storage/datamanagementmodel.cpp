@@ -932,8 +932,6 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
 
 void Nepomuk2::DataManagementModel::removeResources(const QList<QUrl> &resources, RemovalFlags flags, const QString &app)
 {
-    kDebug() << resources << app << flags;
-
     Q_UNUSED(app);
     // 1. get all sub-resources and check if they are used by some other resource (not in the list of resources to remove)
     //    for the latter one can use a bif:exists and a !filter(?s in <s>, <s>, ...) - based on the value of force
