@@ -257,6 +257,7 @@ namespace {
         return tagRes.uri();
     }
 }
+
 void DataManagementModelBenchmark::storeResources_email()
 {
     SimpleResourceGraph graph;
@@ -294,6 +295,93 @@ void DataManagementModelBenchmark::storeResources_email()
 
     QBENCHMARK {
         m_dmModel->storeResources( graph, "TestApp", Nepomuk2::IdentifyNone, Nepomuk2::NoStoreResourcesFlags );
+    }
+}
+
+void DataManagementModelBenchmark::createResource()
+{
+    QList<QUrl> types;
+    types << NCO::Contact();
+
+    QBENCHMARK {
+        m_dmModel->createResource( types, QString(), QString(), QString("app") );
+    }
+}
+
+void DataManagementModelBenchmark::removeResources()
+{
+    QList<QUrl> types;
+    types << NCO::Contact();
+
+    QBENCHMARK {
+        QUrl uri = m_dmModel->createResource( types, QString(), QString(), QString("app") );
+        m_dmModel->removeResources( QList<QUrl>() << uri, NoRemovalFlags, QLatin1String("app") );
+    }
+}
+
+void DataManagementModelBenchmark::removeDataByApplication()
+{
+    SimpleResource temp;
+    temp.addType( NCO::PersonContact() );
+    temp.addProperty( NCO::fullname(), QLatin1String("Peter Parker") );
+
+    SimpleResourceGraph graph;
+    for( int i=0; i<10; i++ ) {
+        SimpleResource res;
+        QUrl uri = res.uri();
+        res = temp;
+        res.setUri( uri );
+
+        graph << res;
+    }
+
+    QBENCHMARK {
+        QHash<QUrl, QUrl> mappings = m_dmModel->storeResources( graph, "app", Nepomuk2::IdentifyNone );
+        m_dmModel->removeDataByApplication( mappings.values(), NoRemovalFlags, QLatin1String("app") );
+    }
+}
+
+void DataManagementModelBenchmark::removeDataByApplication_subResources()
+{
+    SimpleResource temp;
+    temp.addType( NCO::PersonContact() );
+    temp.addProperty( NCO::fullname(), QLatin1String("Peter Parker") );
+
+    SimpleResourceGraph graph;
+    for( int i=0; i<10; i++ ) {
+        SimpleResource res;
+        QUrl uri = res.uri();
+        res = temp;
+        res.setUri( uri );
+
+        graph << res;
+    }
+
+    QBENCHMARK {
+        QHash<QUrl, QUrl> mappings = m_dmModel->storeResources( graph, "app", Nepomuk2::IdentifyNone );
+        m_dmModel->removeDataByApplication( mappings.values(), RemoveSubResoures, QLatin1String("app") );
+    }
+}
+
+void DataManagementModelBenchmark::removeAllDataByApplication()
+{
+    SimpleResource temp;
+    temp.addType( NCO::PersonContact() );
+    temp.addProperty( NCO::fullname(), QLatin1String("Peter Parker") );
+
+    SimpleResourceGraph graph;
+    for( int i=0; i<10; i++ ) {
+        SimpleResource res;
+        QUrl uri = res.uri();
+        res = temp;
+        res.setUri( uri );
+
+        graph << res;
+    }
+
+    QBENCHMARK {
+        m_dmModel->storeResources( graph, "app", Nepomuk2::IdentifyNone );
+        m_dmModel->removeDataByApplication( NoRemovalFlags, QLatin1String("app") );
     }
 }
 

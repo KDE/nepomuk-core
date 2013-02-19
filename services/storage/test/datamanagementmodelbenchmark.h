@@ -52,6 +52,14 @@ private slots:
 
     void storeResources();
     void storeResources_email();
+
+    void createResource();
+    void removeResources();
+
+    void removeDataByApplication();
+    void removeDataByApplication_subResources();
+
+    void removeAllDataByApplication();
 private:
     void resetModel();
 
