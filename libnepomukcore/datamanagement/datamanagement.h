@@ -241,8 +241,6 @@ namespace Nepomuk2 {
          * This will remove sub-resources that are not referenced by any resource
          * that will not be deleted.
          * See \ref nepomuk_dms_sub_resources for details.
-         *
-         * \deprecated This flag is a no-op now as sub-resources are always removed.
          */
         RemoveSubResoures = 1
     };

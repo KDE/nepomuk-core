@@ -20,6 +20,7 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include "datamanagement.h"
 #include "datamanagementmodel.h"
 #include "classandpropertytree.h"
 #include "resourcemerger.h"
@@ -916,8 +917,6 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
 
 void Nepomuk2::DataManagementModel::removeResources(const QList<QUrl> &resources, RemovalFlags flags, const QString &app)
 {
-    kDebug() << resources << app << flags;
-
     // 1. get all sub-resources and check if they are used by some other resource (not in the list of resources to remove)
     //    for the latter one can use a bif:exists and a !filter(?s in <s>, <s>, ...) - based on the value of force
     // 2. remove the resources and the sub-resources
@@ -965,7 +964,7 @@ void Nepomuk2::DataManagementModel::removeResources(const QList<QUrl> &resources
     //
     // Actually remove the data
     //
-    removeAllResources(resolvedResources, flags, app);
+    removeAllResources(resolvedResources, flags);
 }
 
 void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &resources, RemovalFlags flags, const QString &app)
@@ -1019,15 +1018,16 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
     QList<QUrl> allGraphs( graphs );
     allGraphs << d->m_nepomukGraph;
 
-    //
-    // Handle the sub-resources: we can delete all sub-resources of the deleted ones that are entirely defined by our app
-    // and are not related by other resources.
-    // this has to be done before deleting the resouces in resolvedResources. Otherwise the nao:hasSubResource relationships are already gone!
-    //
-    // Explanation of the query:
-    // The query selects all subresources of the resources in resolvedResources.
-    //
-    if(!appRes.isEmpty()) {
+    if( flags & RemoveSubResoures ) {
+        //
+        // Handle the sub-resources: we can delete all sub-resources of the deleted ones that
+        // are entirely defined by our app and are not related by other resources.
+        // this has to be done before deleting the resouces in resolvedResources.
+        // Otherwise the nao:hasSubResource relationships are already gone!
+        //
+        // Explanation of the query:
+        // The query selects all subresources of the resources in resolvedResources.
+        //
         QSet<QUrl> subResources;
         QSet<QUrl> currentResources = resolvedResources;
         int resCount = 0;
@@ -1164,6 +1164,7 @@ void Nepomuk2::DataManagementModel::removeDataByApplication(const QList<QUrl> &r
 
 void Nepomuk2::DataManagementModel::removeDataByApplication(RemovalFlags flags, const QString &app)
 {
+    Q_UNUSED( flags );
     //
     // Check parameters
     //
@@ -2621,41 +2622,43 @@ QUrl DataManagementModel::nepomukGraph()
 }
 
 
-void Nepomuk2::DataManagementModel::removeAllResources(const QSet< QUrl >& resourceUris, RemovalFlags flags, const QString& app)
+void Nepomuk2::DataManagementModel::removeAllResources(const QSet< QUrl >& resourceUris, RemovalFlags flags)
 {
     Q_UNUSED(flags);
 
     QSet<QUrl> resolvedResources(resourceUris);
 
-    //
-    // Handle the sub-resources:
-    // this has to be done before deleting the resouces in resolvedResources. Otherwise the nao:hasSubResource relationships are already gone!
-    //
-    // Explanation of the query:
-    // The query selects all subresources of the resources in resolvedResources.
-    // It then filters out the sub-resources that are related from other resources that are not the ones being deleted.
-    //
-    QSet<QUrl> subResources = resolvedResources;
-    int resCount = 0;
-    do {
-        resCount = resolvedResources.count();
+    if( flags & RemoveSubResoures ) {
+        //
+        // Handle the sub-resources:
+        // this has to be done before deleting the resouces in resolvedResources. Otherwise the nao:hasSubResource relationships are already gone!
+        //
+        // Explanation of the query:
+        // The query selects all subresources of the resources in resolvedResources.
+        // It then filters out the sub-resources that are related from other resources that are not the ones being deleted.
+        //
+        QSet<QUrl> subResources = resolvedResources;
+        int resCount = 0;
+        do {
+            resCount = resolvedResources.count();
 
-        QString q = QString::fromLatin1("select ?r where { ?r ?p ?o . "
-                                        "?parent nao:hasSubResource ?r . "
-                                        "FILTER(?parent in (%1)) . "
-                                        "FILTER NOT EXISTS { ?r2 ?p3 ?r . FILTER(%2) . "
-                                        " FILTER NOT EXISTS { ?x nao:hasSubResource ?r2 . FILTER(?x in (%1)) . } "
-                                        "} }")
-                    .arg(resourcesToN3(subResources).join(QLatin1String(",")),
-                         createResourceFilter(resolvedResources, QLatin1String("?r2")));
+            QString q = QString::fromLatin1("select ?r where { ?r ?p ?o . "
+                                            "?parent nao:hasSubResource ?r . "
+                                            "FILTER(?parent in (%1)) . "
+                                            "FILTER NOT EXISTS { ?r2 ?p3 ?r . FILTER(%2) . "
+                                            " FILTER NOT EXISTS { ?x nao:hasSubResource ?r2 . FILTER(?x in (%1)) . } "
+                                            "} }")
+                        .arg(resourcesToN3(subResources).join(QLatin1String(",")),
+                            createResourceFilter(resolvedResources, QLatin1String("?r2")));
 
-        Soprano::QueryResultIterator it = executeQuery( q, Soprano::Query::QueryLanguageSparqlNoInference );
-        subResources.clear();
-        while(it.next()) {
-            subResources << it[0].uri();
-        }
-        resolvedResources += subResources;
-    } while(resCount < resolvedResources.count());
+            Soprano::QueryResultIterator it = executeQuery( q, Soprano::Query::QueryLanguageSparqlNoInference );
+            subResources.clear();
+            while(it.next()) {
+                subResources << it[0].uri();
+            }
+            resolvedResources += subResources;
+        } while(resCount < resolvedResources.count());
+    }
 
 
     // Filter out all the resource uris that don't actually exist
