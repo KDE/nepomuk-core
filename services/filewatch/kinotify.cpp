@@ -270,7 +270,7 @@ bool KInotify::removeWatch( const QString& path )
     QMutableLinkedListIterator<QDirIterator*> iter( d->dirIterators );
     while( iter.hasNext() ) {
         QDirIterator* dirIter = iter.next();
-        if( dirIter->filePath().startsWith( path ) ) {
+        if( dirIter->path().startsWith( path ) ) {
             iter.remove();
             delete dirIter;
         }
