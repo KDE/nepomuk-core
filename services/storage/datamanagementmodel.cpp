@@ -2639,16 +2639,17 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet< QUrl >& resou
     int resCount = 0;
     do {
         resCount = resolvedResources.count();
-        Soprano::QueryResultIterator it
-                = executeQuery(QString::fromLatin1("select ?r where { ?r ?p ?o . "
-                                                   "?parent %1 ?r . "
-                                                   "FILTER(?parent in (%2)) . "
-                                                   "FILTER(!bif:exists((select (1) where { ?r2 ?p3 ?r . FILTER(%3) . FILTER(!bif:exists((select (1) where { ?x %1 ?r2 . FILTER(?x in (%2)) . }))) . }))) . "
-                                                   "}")
-                               .arg(Soprano::Node::resourceToN3(NAO::hasSubResource()),
-                                    resourcesToN3(subResources).join(QLatin1String(",")),
-                                    createResourceFilter(resolvedResources, QLatin1String("?r2"))),
-                               Soprano::Query::QueryLanguageSparql);
+
+        QString q = QString::fromLatin1("select ?r where { ?r ?p ?o . "
+                                        "?parent nao:hasSubResource ?r . "
+                                        "FILTER(?parent in (%1)) . "
+                                        "FILTER NOT EXISTS { ?r2 ?p3 ?r . FILTER(%2) . "
+                                        " FILTER NOT EXISTS { ?x nao:hasSubResource ?r2 . FILTER(?x in (%1)) . } "
+                                        "} }")
+                    .arg(resourcesToN3(subResources).join(QLatin1String(",")),
+                         createResourceFilter(resolvedResources, QLatin1String("?r2")));
+
+        Soprano::QueryResultIterator it = executeQuery( q, Soprano::Query::QueryLanguageSparqlNoInference );
         subResources.clear();
         while(it.next()) {
             subResources << it[0].uri();
@@ -2657,7 +2658,7 @@ void Nepomuk2::DataManagementModel::removeAllResources(const QSet< QUrl >& resou
     } while(resCount < resolvedResources.count());
 
 
-    // get the graphs we need to check with removeTrailingGraphs later on
+    // Filter out all the resource uris that don't actually exist
     QSet<QUrl> actuallyRemovedResources;
     Soprano::QueryResultIterator it
             = executeQuery(QString::fromLatin1("select distinct ?r where { ?r ?p ?o . FILTER(?r in (%1)) . }")
