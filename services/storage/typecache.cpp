@@ -52,13 +52,12 @@ QList< QUrl > TypeCache::types(const QUrl& uri)
 
     obj = new QList<QUrl>;
 
-    QString query = QString::fromLatin1("select ?t where { %1 rdf:type ?t . }")
+    // The query won't give all the types with rdf:type instead of 'a'. So retarded!
+    QString query = QString::fromLatin1("select ?t where { %1 a ?t . }")
                     .arg( Soprano::Node::resourceToN3( uri ) );
     Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
     while( it.next() )
         obj->append( it[0].uri() );
-
-    obj->append( RDFS::Resource() );
 
     m_cache.insert( uri, obj );
 
