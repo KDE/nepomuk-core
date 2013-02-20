@@ -9,6 +9,16 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     ${QT_QTTEST_LIBRARY}
     ${KDE4_KDECORE_LIBS}
   )
+
+  set(filesystemmonitortest_SRC filesystemmonitortest.cpp ../filesystemmonitor.cpp
+      ../../../common/regexpcache.cpp ../../fileindexer/fileindexerconfig.cpp
+      ../../../common/fileexcludefilters.cpp)
+  kde4_add_unit_test(filesystemmonitortest TESTNAME nepomuk-filesystemmonitortest NOGUI ${filesystemmonitortest_SRC})
+  target_link_libraries(filesystemmonitortest nepomukcore
+      ${QT_QTTEST_LIBRARY}
+      ${KDE4_KDECORE_LIBS}
+  )
+
 endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 set(activefilequeuetest_SRC activefilequeuetest.cpp ../activefilequeue.cpp)
