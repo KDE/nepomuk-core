@@ -50,6 +50,7 @@ private Q_SLOTS:
     void testResourceRemovedSignal();
 
     void testStoreResources_createResources();
+    void testStoreResources_createSubResources();
 
     // test that make sure each method results in the correct signals
     void testSetProperty();
@@ -67,10 +68,7 @@ private Q_SLOTS:
     void testMergeResources();
 
 private:
-    KTempDir* createNieUrlTestData();
-
     void resetModel();
-    bool haveTrailingGraphs() const;
 
     KTempDir* m_storageDir;
     Soprano::Model* m_model;

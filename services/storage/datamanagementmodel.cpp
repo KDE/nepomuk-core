@@ -924,7 +924,8 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
     addStatement(resUri, NAO::lastModified(), Soprano::LiteralValue(now), graph);
 
     // inform interested parties
-    d->m_watchManager->createResource(resUri, newTypes.toList());
+    QSet<QUrl> allTypes = d->m_classAndPropertyTree->allParents( types );
+    d->m_watchManager->createResource(resUri, allTypes);
     d->m_watchManager->changeSomething();
 
     return resUri;

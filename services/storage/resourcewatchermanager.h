@@ -51,7 +51,7 @@ namespace Nepomuk2 {
                             const QList<Soprano::Node>& removedValues);
         void changeProperty(const QMultiHash<QUrl, Soprano::Node>& oldValues, const QUrl& property,
                             const QList<Soprano::Node>& nodes);
-        void createResource(const QUrl& uri, const QList<QUrl>& types);
+        void createResource(const QUrl& uri, const QSet<QUrl>& types);
         void removeResource(const QUrl& uri, const QList<QUrl>& types);
 
         /// to be called whenever something changes (preferably after calling any of the above)

@@ -54,6 +54,7 @@ public:
     bool isKnownClass(const QUrl& uri) const;
 
     QSet<QUrl> allParents(const QUrl& uri) const;
+    QSet<QUrl> allParents(const QList<QUrl>& types) const;
     bool isChildOf(const QUrl& type, const QUrl& superClass) const;
 
     /// Returns true if the uri is a Class or a Property

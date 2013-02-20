@@ -115,6 +115,18 @@ QSet<QUrl> Nepomuk2::ClassAndPropertyTree::allParents(const QUrl &uri) const
         return QSet<QUrl>();
 }
 
+QSet<QUrl> Nepomuk2::ClassAndPropertyTree::allParents(const QList< QUrl >& types) const
+{
+    QSet<QUrl> all;
+    foreach(const QUrl& uri, types) {
+        all.unite( allParents(uri) );
+        all << uri;
+    }
+
+    return all;
+}
+
+
 bool Nepomuk2::ClassAndPropertyTree::isChildOf(const QUrl &type, const QUrl &superClass) const
 {
     if( type == superClass )

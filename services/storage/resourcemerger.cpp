@@ -800,7 +800,8 @@ bool Nepomuk2::ResourceMerger::merge(const Nepomuk2::Sync::ResourceHash& resHash
         const QUrl newUri = newUriIt.next();
 
         QList<Soprano::Node> types = resHash[ newUri ].values( RDF::type() );
-        m_rvm->createResource( newUri, nodeListToUriList( types ) );
+        QSet<QUrl> allTypes = ClassAndPropertyTree::self()->allParents( nodeListToUriList(types) );
+        m_rvm->createResource( newUri, allTypes );
     }
 
     // Inform the ResourceWatcherManager of the changed properties
