@@ -59,6 +59,10 @@ QList< QUrl > TypeCache::types(const QUrl& uri)
     while( it.next() )
         obj->append( it[0].uri() );
 
+    // Required for resources such as <file:///home/user/...>
+    if( obj->isEmpty() )
+        obj->append( RDFS::Resource() );
+
     m_cache.insert( uri, obj );
 
     return *obj;
