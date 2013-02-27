@@ -1,1 +1,2 @@
 add_subdirectory(nepomukctl)
+add_subdirectory(nepomukshow)
