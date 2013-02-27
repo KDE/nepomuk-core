@@ -122,6 +122,19 @@ target_link_libraries(asyncclientapitest
   nepomukcore
 )
 
+kde4_add_unit_test(identificationtest
+  identificationtests.cpp
+)
+
+target_link_libraries(identificationtest
+  ${QT_QTTEST_LIBRARY}
+  ${SOPRANO_LIBRARIES}
+  ${SOPRANO_CLIENT_LIBRARIES}
+  ${KDE4_KDECORE_LIBS}
+  nepomukcore
+  datamanagementtestlib
+)
+
 kde4_add_executable(resourcewatchertest
   resourcewatchertest.cpp
 )
