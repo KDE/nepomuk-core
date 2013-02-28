@@ -96,6 +96,11 @@ public:
 
     bool watchingPath( const QString& path ) const;
 
+    /**
+     * Call this when the inotify limit has been increased.
+     */
+    void resetUserLimit();
+
 protected:
     /**
      * Called for every folder that is being watched.
@@ -170,9 +175,11 @@ Q_SIGNALS:
      * This means that not all requested paths can be watched until the user watch
      * limit is increased.
      *
-     * This signal will only be emitted once.
+     * The argument is the path being added when the limit was reached.
+     *
+     * This signal will only be emitted once until resetUserLimit is called.
      */
-    void watchUserLimitReached();
+    void watchUserLimitReached( const QString& path );
 
 private Q_SLOTS:
     void slotEvent( int );

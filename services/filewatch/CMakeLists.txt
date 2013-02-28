@@ -31,6 +31,13 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
     kinotify.cpp
 )
 add_definitions(-DBUILD_KINOTIFY)
+
+kde4_install_auth_actions(org.kde.nepomuk.filewatch org.kde.nepomuk.filewatch.actions)
+kde4_add_executable(kde_nepomuk_filewatch_raiselimit  raiselimit.cpp)
+target_link_libraries(kde_nepomuk_filewatch_raiselimit ${KDE4_KDECORE_LIBS})
+install(TARGETS kde_nepomuk_filewatch_raiselimit DESTINATION ${LIBEXEC_INSTALL_DIR})
+kde4_install_auth_helper_files(kde_nepomuk_filewatch_raiselimit org.kde.nepomuk.filewatch root)
+
 endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
 kde4_add_executable(nepomukfilewatch ${SRCS})

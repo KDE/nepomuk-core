@@ -107,7 +107,7 @@ namespace Nepomuk2 {
         void slotMovedWithoutData( const QString& );
         void connectToKDirWatch();
 #ifdef BUILD_KINOTIFY
-        void slotInotifyWatchUserLimitReached();
+        void slotInotifyWatchUserLimitReached( const QString& );
 #endif
         /**
          * To be called whenever the list of indexed folders changes. This is done because

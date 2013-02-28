@@ -69,7 +69,8 @@ class KInotify::Private
 {
 public:
     Private( KInotify* parent )
-        : m_inotifyFd( -1 ),
+        : userLimitReachedSignaled( false),
+          m_inotifyFd( -1 ),
           m_notifier( 0 ),
           q( parent) {
     }
@@ -82,6 +83,8 @@ public:
 
     QHash<int, QPair<QByteArray, WatchFlags> > cookies;
     QTimer cookieExpireTimer;
+    // This variable is set to true if the watch limit is reached, and reset when it is raised
+    bool userLimitReachedSignaled;
 
     // url <-> wd mappings
     // Read the documentation fo OptimizedByteArray to understand why have a cache
@@ -114,31 +117,33 @@ public:
         m_inotifyFd = -1;
     }
 
-    bool addWatch( const QByteArray& path ) {
+    bool addWatch( const QString& path ) {
         WatchEvents newMode = mode;
         WatchFlags newFlags = flags;
-
+        //Encode the path
         if( !q->filterWatch( path, newMode, newFlags ) ) {
             return false;
         }
         // we always need the unmount event to maintain our path hash
         const int mask = newMode|newFlags|EventUnmount|FlagExclUnlink;
 
-        int wd = inotify_add_watch( inotify(), path.data(), mask );
+        const QByteArray encpath = QFile::encodeName( path );
+        int wd = inotify_add_watch( inotify(), encpath.data(), mask );
         if ( wd > 0 ) {
-//            kDebug() << "Successfully added watch for" << path << pathHash.count();
-            OptimizedByteArray normalized( stripTrailingSlash( path ), pathCache );
+//             kDebug() << "Successfully added watch for" << path << watchPathHash.count();
+            OptimizedByteArray normalized( stripTrailingSlash( encpath ), pathCache );
             watchPathHash.insert( wd, normalized );
             pathWatchHash.insert( normalized, wd );
             return true;
         }
         else {
             kDebug() << "Failed to create watch for" << path;
-            static bool userLimitReachedSignaled = false;
-            if ( !userLimitReachedSignaled && errno == ENOSPC ) {
-                kDebug() << "User limit reached. Please raise the inotify user watch limit.";
+            //If we could not create the watch because we have hit the limit, try raising it.
+            if ( errno == ENOSPC ) {
+                //If we can't, fall back to signalling
+                kDebug() << "User limit reached. Count: " << watchPathHash.count();
                 userLimitReachedSignaled = true;
-                emit q->watchUserLimitReached();
+                emit q->watchUserLimitReached( path );
             }
             return false;
         }
@@ -156,14 +161,21 @@ public:
     bool _k_addWatches() {
         bool addedWatchSuccessfully = false;
 
+        //Do nothing if the inotify user limit has been signaled.
+        //This means that we will not empty the dirIterators while
+        //waiting for authentication.
+        if( userLimitReachedSignaled ){
+            return false;
+        }
+
         if( !dirIterators.isEmpty() ) {
             QDirIterator* it = dirIterators.front();
             if( it->hasNext() ) {
                 QString dirPath = it->next();
-                if( addWatch( QFile::encodeName(dirPath) ) ) {
+                if( addWatch( dirPath ) ) {
                     // IMPORTANT: We do not follow system links. Ever.
                     QDirIterator* iter= new QDirIterator( dirPath, QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks );
-                    dirIterators.push_front( iter );
+                    dirIterators.prepend( iter );
                     addedWatchSuccessfully = true;
                 }
             }
@@ -251,6 +263,10 @@ bool KInotify::watchingPath( const QString& path ) const
     return d->pathWatchHash.contains( OptimizedByteArray(p, d->pathCache) );
 }
 
+void KInotify::resetUserLimit()
+{
+    d->userLimitReachedSignaled = false;
+}
 
 bool KInotify::addWatch( const QString& path, WatchEvents mode, WatchFlags flags )
 {
@@ -258,10 +274,18 @@ bool KInotify::addWatch( const QString& path, WatchEvents mode, WatchFlags flags
 
     d->mode = mode;
     d->flags = flags;
-    if(! (d->addWatch( QFile::encodeName(path) )))
+    //If the inotify user limit has been signaled,
+    //just queue this folder for watching.
+    if( d->userLimitReachedSignaled ) {
+        QDirIterator* iter = new QDirIterator( path, QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks );
+        d->dirIterators.prepend( iter );
+        return false;
+    }
+
+    if(! ( d->addWatch( path ) ) )
         return false;
     QDirIterator* iter = new QDirIterator( path, QDir::Dirs | QDir::NoDotAndDotDot | QDir::NoSymLinks );
-    d->dirIterators.append( iter );
+    d->dirIterators.prepend( iter );
     return d->_k_addWatches();
 }
 

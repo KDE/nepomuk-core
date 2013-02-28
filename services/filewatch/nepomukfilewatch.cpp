@@ -155,8 +155,8 @@ Nepomuk2::FileWatch::FileWatch()
              this, SLOT( slotFileCreated( QString, bool ) ) );
     connect( m_dirWatch, SIGNAL( closedWrite( QString ) ),
              this, SLOT( slotFileClosedAfterWrite( QString ) ) );
-    connect( m_dirWatch, SIGNAL( watchUserLimitReached() ),
-             this, SLOT( slotInotifyWatchUserLimitReached() ) );
+    connect( m_dirWatch, SIGNAL( watchUserLimitReached( QString ) ),
+             this, SLOT( slotInotifyWatchUserLimitReached( QString ) ) );
 
     // recursively watch the whole home dir
 
@@ -323,15 +323,45 @@ void Nepomuk2::FileWatch::connectToKDirWatch()
 
 
 #ifdef BUILD_KINOTIFY
-void Nepomuk2::FileWatch::slotInotifyWatchUserLimitReached()
-{
-    // we do it the brutal way for now hoping with new kernels and defaults this will never happen
-    // Delete the KInotify and switch to KDirNotify dbus signals
-    if( m_dirWatch ) {
-        m_dirWatch->deleteLater();
-        m_dirWatch = 0;
+
+#include <syslog.h>
+#include <kauth.h>
+
+//Try to raise the inotify watch limit by executing
+//a helper which modifies /proc/sys/fs/inotify/max_user_watches
+bool raiseWatchLimit() {
+    KAuth::Action limitAction("org.kde.nepomuk.filewatch.raiselimit");
+    limitAction.setHelperID("org.kde.nepomuk.filewatch");
+
+    KAuth::ActionReply reply = limitAction.execute();
+    if (reply.failed()) {
+        return false;
     }
-    connectToKDirWatch();
+    return true;
+}
+
+//This slot is connected to a signal emitted in KInotify when
+//inotify_add_watch fails with ENOSPC.
+void Nepomuk2::FileWatch::slotInotifyWatchUserLimitReached( const QString& path )
+{
+    if ( raiseWatchLimit() ) {
+        kDebug() << "Successfully raised watch limit, re-adding " << path;
+        if( m_dirWatch )
+            m_dirWatch->resetUserLimit();
+        watchFolder( path );
+    }
+    else {
+        //If we got here, we hit the limit and couldn't authenticate to raise it,
+        // so put something in the syslog so someone notices.
+        syslog(LOG_USER | LOG_WARNING, "KDE Nepomuk Filewatch service reached the folder watch limit. File changes may be ignored.");
+        // we do it the brutal way for now hoping with new kernels and defaults this will never happen
+        // Delete the KInotify and switch to KDirNotify dbus signals
+        if( m_dirWatch ) {
+            m_dirWatch->deleteLater();
+            m_dirWatch = 0;
+        }
+        connectToKDirWatch();
+    }
 }
 #endif
 

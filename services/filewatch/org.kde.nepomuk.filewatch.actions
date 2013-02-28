@@ -1,0 +1,5 @@
+[org.kde.nepomuk.filewatch.raiselimit]
+Name=Folder Watch Limit
+Description=To avoid missing file changes, raise the folder watch limit
+Policy=auth_admin
+Persistence=session
