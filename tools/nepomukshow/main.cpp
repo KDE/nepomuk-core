@@ -69,6 +69,9 @@ int main( int argc, char *argv[] )
     QCoreApplication app( argc, argv );
     KComponentData comp( aboutData );
 
+    if( args->count() == 0 )
+        KCmdLineArgs::usage();
+
     QTextStream err( stdout );
 
     //
