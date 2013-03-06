@@ -256,7 +256,7 @@ void Nepomuk2::Indexer::setNiePlainTextContent(const QUrl& uri, QString& plainTe
     static const int maxSize = 3 * 1024 * 1024;
     if( plainText.size() > maxSize )  {
         kWarning() << "Trimming plain text content from " << plainText.size() << " to " << maxSize;
-        plainText = plainText.mid( 0, maxSize );
+        plainText.resize( maxSize );
     }
 
     QString uriN3 = Soprano::Node::resourceToN3( uri );
