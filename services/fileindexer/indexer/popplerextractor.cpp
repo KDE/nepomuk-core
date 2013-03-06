@@ -103,6 +103,14 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
         }
         plainTextContent.append( page->text( QRectF() ) );
         delete page;
+
+        // This number has been experimentally chosen. Virtuoso cannot handle more than this
+        static const int maxSize = 3 * 1024 * 1024;
+        if( plainTextContent.size() >= maxSize ) {
+            kWarning() << "Trimming plain text content from " << plainTextContent.size() << " to " << maxSize;
+            plainTextContent.resize( maxSize );
+            break;
+        }
     }
 
     if( !plainTextContent.isEmpty() ) {
