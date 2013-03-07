@@ -75,6 +75,8 @@ void DataManagementAdaptorTest::resetModel()
 
 
     m_classAndPropertyTree->rebuildTree(m_dmModel);
+    m_nrlModel->setEnableQueryPrefixExpansion(false);
+    m_nrlModel->setEnableQueryPrefixExpansion(true);
     m_dmModel->clearCache();
     QHash<QString, QString> prefixes;
     const QHash<QString, QUrl> namespaces = m_nrlModel->queryPrefixes();
@@ -96,6 +98,7 @@ void DataManagementAdaptorTest::initTestCase()
     // DataManagementModel relies on the ussage of a NRLModel in the storage service
     m_nrlModel = new Soprano::NRLModel(m_model);
     Nepomuk2::insertNamespaceAbbreviations(m_model);
+    m_nrlModel->setEnableQueryPrefixExpansion( true );
 
     m_classAndPropertyTree = new Nepomuk2::ClassAndPropertyTree(this);
 

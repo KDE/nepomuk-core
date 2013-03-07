@@ -135,6 +135,8 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NFO::fileName(), RDFS::range(), XMLSchema::string(), graph );
     model->addStatement( NCO::fullname(), RDF::type(), RDF::Property(), graph );
     model->addStatement( NCO::fullname(), RDFS::range(), XMLSchema::string(), graph );
+    model->addStatement( NCO::fullname(), RDFS::domain(), NCO::Contact(), graph );
+    model->addStatement( NCO::fullname(), NRL::maxCardinality(), LiteralValue(1), graph );
     model->addStatement( NIE::title(), RDF::type(), RDF::Property(), graph );
     model->addStatement( NIE::title(), RDFS::range(), XMLSchema::string(), graph );
     model->addStatement( NAO::created(), RDF::type(), RDF::Property(), graph );
