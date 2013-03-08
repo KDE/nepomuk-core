@@ -200,7 +200,7 @@ namespace Nepomuk2 {
 
         // Protect m_cache, m_cacheDirty but also m_uri, m_nieUrl, m_naoIdentifier, m_addedToWatcher.
         // Never lock the ResourceManager mutex after locking this one. Always before (or not at all).
-        mutable QMutex m_modificationMutex;
+        mutable QMutex m_dataMutex;
 
         QHash<QUrl, Variant> m_cache;
 

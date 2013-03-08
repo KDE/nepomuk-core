@@ -66,7 +66,7 @@ using namespace Nepomuk2::Vocabulary;
 Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, const QUrl& type, ResourceManagerPrivate* rm )
     : m_uri(uri),
       m_type(type.isEmpty() ? RDFS::Resource() : type),
-      m_modificationMutex(QMutex::Recursive),
+      m_dataMutex(QMutex::Recursive),
       m_cacheDirty(false),
       m_addedToWatcher(false),
       m_watchEnabled(false),
@@ -106,7 +106,7 @@ Nepomuk2::ResourceData::~ResourceData()
 
 bool Nepomuk2::ResourceData::isFile()
 {
-    QMutexLocker lock(&m_modificationMutex);
+    QMutexLocker lock(&m_dataMutex);
     return( m_uri.scheme() == QLatin1String("file") ||
             m_nieUrl.scheme() == QLatin1String("file") ||
             hasProperty( RDF::type(), NFO::FileDataObject() ) );
@@ -116,7 +116,7 @@ bool Nepomuk2::ResourceData::isFile()
 
 QUrl Nepomuk2::ResourceData::uri() const
 {
-    QMutexLocker lock(&m_modificationMutex);
+    QMutexLocker lock(&m_dataMutex);
     return m_uri;
 }
 
@@ -128,6 +128,7 @@ QUrl Nepomuk2::ResourceData::type()
     if( !load() )
         return mainType;
 
+    QMutexLocker lock(&m_dataMutex);
     QList<QUrl> types = m_cache.value(RDF::type()).toUrlList();
     foreach(const QUrl& t, types) {
         Types::Class currentTypeClass = mainType;
@@ -158,7 +159,7 @@ QUrl Nepomuk2::ResourceData::type()
 
 void Nepomuk2::ResourceData::resetAll( bool isDelete )
 {
-    QMutexLocker locker(&m_modificationMutex);
+    QMutexLocker locker(&m_dataMutex);
     // remove us from all caches (store() will re-insert us later if necessary)
     m_rm->mutex.lock();
 
@@ -192,8 +193,10 @@ QHash<QUrl, Nepomuk2::Variant> Nepomuk2::ResourceData::allProperties()
 {
     if( !load() )
         return QHash<QUrl, Nepomuk2::Variant>();
-    else
+    else {
+        QMutexLocker lock(&m_dataMutex);
         return m_cache;
+    }
 }
 
 
@@ -202,6 +205,7 @@ bool Nepomuk2::ResourceData::hasProperty( const QUrl& uri )
     if( !load() )
         return false;
 
+    QMutexLocker lock(&m_dataMutex);
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( uri );
     if( it == m_cache.constEnd() )
         return false;
@@ -215,6 +219,7 @@ bool Nepomuk2::ResourceData::hasProperty( const QUrl& p, const Variant& v )
     if( !load() )
         return false;
 
+    QMutexLocker lock(&m_dataMutex);
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( p );
     if( it == m_cache.constEnd() )
         return false;
@@ -236,7 +241,7 @@ Nepomuk2::Variant Nepomuk2::ResourceData::property( const QUrl& uri )
 
     // we need to protect the reading, too. load my be triggered from another thread's
     // connection to a Soprano statement signal
-    QMutexLocker lock(&m_modificationMutex);
+    QMutexLocker lock(&m_dataMutex);
 
     QHash<QUrl, Variant>::const_iterator it = m_cache.constFind( uri );
     if ( it == m_cache.constEnd() ) {
@@ -250,7 +255,7 @@ Nepomuk2::Variant Nepomuk2::ResourceData::property( const QUrl& uri )
 
 bool Nepomuk2::ResourceData::store()
 {
-    QMutexLocker lock(&m_modificationMutex);
+    QMutexLocker lock(&m_dataMutex);
 
     if ( m_uri.isEmpty() ) {
         QMutexLocker rmlock(&m_rm->mutex);
@@ -310,7 +315,7 @@ bool Nepomuk2::ResourceData::store()
     return true;
 }
 
-// Caller must hold m_modificationMutex
+// Caller must hold m_dataMutex
 void Nepomuk2::ResourceData::addToWatcher()
 {
     if( m_watchEnabled && !m_addedToWatcher ) {
@@ -330,39 +335,42 @@ void Nepomuk2::ResourceData::removeFromWatcher()
 
 bool Nepomuk2::ResourceData::load()
 {
-    QMutexLocker rmlock(&m_rm->mutex); // for updateKickOffLists, but must be locked first
-    QMutexLocker lock(&m_modificationMutex);
-
-    if ( m_cacheDirty ) {
-
-        if ( !m_uri.isValid() )
-            return false;
-
-        const QString oldNaoIdentifier = m_cache[NAO::identifier()].toString();
-        const QUrl oldNieUrl = m_cache[NIE::url()].toUrl();
-
-        m_cache.clear();
-        addToWatcher();
-
-        //
-        // We exclude properties that are part of the inference graph
-        // It would only pollute the user interface
-        //
-        Soprano::QueryResultIterator it = MAINMODEL->executeQuery(QString("select distinct ?p ?o where { "
-                                                                          "%1 ?p ?o . }").arg(Soprano::Node::resourceToN3(m_uri)),
-                                                                  Soprano::Query::QueryLanguageSparqlNoInference);
-        while ( it.next() ) {
-            QUrl p = it["p"].uri();
-            m_cache[p].append( Variant::fromNode( it["o"] ) );
-        }
-
-        const QString newNaoIdentifier = m_cache.value(NAO::identifier()).toString();
-        const QUrl newNieUrl = m_cache.value(NIE::url()).toUrl();
-        updateIdentifierLists( oldNaoIdentifier, newNaoIdentifier );
-        updateUrlLists( oldNieUrl, newNieUrl );
-
-        m_cacheDirty = false;
+    QMutexLocker lock(&m_dataMutex);
+    if (!m_cacheDirty) {
+        // Fast path: nothing to do.
+        return false;
     }
+    if ( !m_uri.isValid() )
+        return false;
+
+    lock.unlock();
+    QMutexLocker rmlock(&m_rm->mutex); // for updateKickOffLists, but must be locked first
+    lock.relock(); // we must respect the lock ordering!
+
+    const QString oldNaoIdentifier = m_cache[NAO::identifier()].toString();
+    const QUrl oldNieUrl = m_cache[NIE::url()].toUrl();
+
+    m_cache.clear();
+    addToWatcher();
+
+    //
+    // We exclude properties that are part of the inference graph
+    // It would only pollute the user interface
+    //
+    Soprano::QueryResultIterator it = MAINMODEL->executeQuery(QString("select distinct ?p ?o where { "
+                                                                      "%1 ?p ?o . }").arg(Soprano::Node::resourceToN3(m_uri)),
+                                                              Soprano::Query::QueryLanguageSparqlNoInference);
+    while ( it.next() ) {
+        QUrl p = it["p"].uri();
+        m_cache[p].append( Variant::fromNode( it["o"] ) );
+    }
+
+    const QString newNaoIdentifier = m_cache.value(NAO::identifier()).toString();
+    const QUrl newNieUrl = m_cache.value(NIE::url()).toUrl();
+    updateIdentifierLists( oldNaoIdentifier, newNaoIdentifier );
+    updateUrlLists( oldNieUrl, newNieUrl );
+
+    m_cacheDirty = false;
 
     return true;
 }
@@ -375,7 +383,7 @@ void Nepomuk2::ResourceData::setProperty( const QUrl& uri, const Nepomuk2::Varia
     if( store() ) {
         // step 0: make sure this resource is in the store
         QMutexLocker rmlock(&m_rm->mutex); // for updateKickOffLists, but must be locked first
-        QMutexLocker lock(&m_modificationMutex);
+        QMutexLocker lock(&m_dataMutex);
 
         // update the store
         QVariantList varList;
@@ -433,7 +441,7 @@ void Nepomuk2::ResourceData::addProperty( const QUrl& uri, const Nepomuk2::Varia
     if( value.isValid() && store() ) {
         // step 0: make sure this resource is in the store
         QMutexLocker rmlock(&m_rm->mutex); // for updateKickOffLists, but must be locked first
-        QMutexLocker lock(&m_modificationMutex);
+        QMutexLocker lock(&m_dataMutex);
 
         // update the store
         QVariantList varList;
@@ -484,7 +492,7 @@ void Nepomuk2::ResourceData::removeProperty( const QUrl& uri )
 {
     Q_ASSERT( uri.isValid() );
     QMutexLocker rmlock(&m_rm->mutex); // for updateKickOffLists, but must be locked first
-    QMutexLocker lock(&m_modificationMutex);
+    QMutexLocker lock(&m_dataMutex);
 
     if( !m_uri.isEmpty() ) {
         QDBusMessage msg = QDBusMessage::createMethodCall( QLatin1String("org.kde.nepomuk.DataManagement"),
@@ -517,7 +525,7 @@ void Nepomuk2::ResourceData::removeProperty( const QUrl& uri )
 void Nepomuk2::ResourceData::remove( bool recursive )
 {
     Q_UNUSED(recursive)
-    QMutexLocker lock(&m_modificationMutex);
+    QMutexLocker lock(&m_dataMutex);
 
     if( !m_uri.isEmpty() ) {
         QDBusMessage msg = QDBusMessage::createMethodCall( QLatin1String("org.kde.nepomuk.DataManagement"),
@@ -544,6 +552,7 @@ void Nepomuk2::ResourceData::remove( bool recursive )
 
 bool Nepomuk2::ResourceData::exists()
 {
+    QMutexLocker lock(&m_dataMutex);
     if( m_uri.isValid() ) {
         const QString query = QString::fromLatin1("ask { %1 ?p ?o . }")
                               .arg( Soprano::Node::resourceToN3(m_uri) );
@@ -557,13 +566,14 @@ bool Nepomuk2::ResourceData::exists()
 
 bool Nepomuk2::ResourceData::isValid() const
 {
+    QMutexLocker lock(&m_dataMutex);
     return !m_uri.isEmpty() || !m_nieUrl.isEmpty() || !m_naoIdentifier.isEmpty();
 }
 
 // Caller must hold the ResourceManager mutex (since the RM owns the returned ResourceData pointer)
 Nepomuk2::ResourceData* Nepomuk2::ResourceData::determineUri()
 {
-    QMutexLocker lock(&m_modificationMutex);
+    QMutexLocker lock(&m_dataMutex);
 
     // We have the following possible situations:
     // 1. m_uri is already valid
@@ -652,6 +662,7 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceData::determineUri()
 
 void Nepomuk2::ResourceData::invalidateCache()
 {
+    QMutexLocker lock(&m_dataMutex);
     m_cacheDirty = true;
 }
 
@@ -718,7 +729,7 @@ void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& uri, const Nepomuk2:
 
 void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const QVariant &value_ )
 {
-    QMutexLocker lock(&m_modificationMutex);
+    QMutexLocker lock(&m_dataMutex);
     QHash<QUrl, Variant>::iterator cacheIt = m_cache.find(prop.uri());
     if(cacheIt != m_cache.end()) {
         Variant v = *cacheIt;
@@ -752,7 +763,7 @@ void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const
 
 void Nepomuk2::ResourceData::propertyAdded( const Types::Property &prop, const QVariant &value )
 {
-    QMutexLocker lock(&m_modificationMutex);
+    QMutexLocker lock(&m_dataMutex);
     const Variant var(value);
     QHash<QUrl, Variant>::iterator cacheIt = m_cache.find(prop.uri());
     if( cacheIt != m_cache.end() ) {
@@ -772,7 +783,7 @@ void Nepomuk2::ResourceData::propertyAdded( const Types::Property &prop, const Q
 
 void Nepomuk2::ResourceData::setWatchEnabled(bool status)
 {
-    QMutexLocker lock(&m_modificationMutex);
+    QMutexLocker lock(&m_dataMutex);
     if( m_watchEnabled != status ) {
         if( status )
             addToWatcher();

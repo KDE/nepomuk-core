@@ -50,13 +50,20 @@ Nepomuk2::Storage::Storage( QObject* parent, const QList<QVariant>& )
              this, SLOT( slotNepomukCoreInitialized(bool) ) );
     m_core->init();
 
-    connect( QCoreApplication::instance(), SIGNAL(aboutToQuit()),
-             m_core, SLOT(deleteLater()) );
 }
 
 
 Nepomuk2::Storage::~Storage()
 {
+    // Delete the QApplication after m_core goes,
+    // so that if the socket receives an error message
+    // we can handle it without crashing.
+    // Signal is connected in Nepomuk2::ServiceControl::start, in the servicestub.
+    disconnect( this, SIGNAL( destroyed() ),
+             QCoreApplication::instance(), SLOT( quit() ) );
+    connect( m_core, SIGNAL( destroyed() ),
+             QCoreApplication::instance(), SLOT( quit() ) );
+    m_core->deleteLater();
 }
 
 
