@@ -40,7 +40,7 @@ macro_optional_find_package(Taglib)
 macro_log_feature(TAGLIB_FOUND "Taglib" "Id3 tag reader" "taglib-website" FALSE "" "Support for music metadata")
 
 macro_optional_find_package(Exiv2)
-macro_log_feature(EXIV2_FOUND "Exiv2" "Image Tag reader" "http://www.exiv2.org" FALSE "" "Support for image metadata")
+macro_log_feature(EXIV2_FOUND "Exiv2" "Image Tag reader" "http://www.exiv2.org" FALSE "0.21" "Support for image metadata")
 
 macro_optional_find_package(FFmpeg)
 macro_log_feature(FFMPEG_FOUND "FFmpeg" "Video Tag reader" "http://ffmpeg.org" FALSE "" "Support for video metadata")
