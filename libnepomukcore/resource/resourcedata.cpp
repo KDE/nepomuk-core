@@ -106,6 +106,7 @@ Nepomuk2::ResourceData::~ResourceData()
 
 bool Nepomuk2::ResourceData::isFile()
 {
+    QMutexLocker lock(&m_modificationMutex);
     return( m_uri.scheme() == QLatin1String("file") ||
             m_nieUrl.scheme() == QLatin1String("file") ||
             hasProperty( RDF::type(), NFO::FileDataObject() ) );
@@ -115,6 +116,7 @@ bool Nepomuk2::ResourceData::isFile()
 
 QUrl Nepomuk2::ResourceData::uri() const
 {
+    QMutexLocker lock(&m_modificationMutex);
     return m_uri;
 }
 
@@ -156,6 +158,7 @@ QUrl Nepomuk2::ResourceData::type()
 
 void Nepomuk2::ResourceData::resetAll( bool isDelete )
 {
+    QMutexLocker locker(&m_modificationMutex);
     // remove us from all caches (store() will re-insert us later if necessary)
     m_rm->mutex.lock();
 
@@ -176,7 +179,6 @@ void Nepomuk2::ResourceData::resetAll( bool isDelete )
     m_rm->mutex.unlock();
 
     // reset all variables
-    QMutexLocker locker(&m_modificationMutex);
     m_uri.clear();
     m_nieUrl.clear();
     m_naoIdentifier.clear();

@@ -696,6 +696,10 @@ Nepomuk2::Resource Nepomuk2::Resource::fromResourceUri( const KUrl& uri, const N
 
 void Nepomuk2::Resource::determineFinalResourceData() const
 {
+    if (!m_data->uri().isEmpty()) {
+        return;
+    }
+
     QMutexLocker lock( &m_data->rm()->mutex );
 
     // Get an initialized ResourceData instance
