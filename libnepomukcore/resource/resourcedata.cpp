@@ -100,7 +100,7 @@ Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, c
 
 Nepomuk2::ResourceData::~ResourceData()
 {
-    resetAll(true);
+    resetAll();
 }
 
 
@@ -157,7 +157,7 @@ QUrl Nepomuk2::ResourceData::type()
 }
 
 
-void Nepomuk2::ResourceData::resetAll( bool isDelete )
+void Nepomuk2::ResourceData::resetAll()
 {
     QMutexLocker locker(&m_dataMutex);
     // remove us from all caches (store() will re-insert us later if necessary)

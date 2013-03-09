@@ -177,7 +177,7 @@ namespace Nepomuk2 {
 
         /// Will reset this instance to 0 as if constructed without parameters
         /// Used by remove() and deleteData()
-        void resetAll( bool isDelete = false );
+        void resetAll();
 
         /// Contains a list of resources which use this ResourceData
         QList<Resource*> m_resources;
