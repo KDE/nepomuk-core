@@ -158,7 +158,7 @@ namespace Nepomuk2 {
         ResourceManagerPrivate* rm() const { return m_rm; }
 
         /// Updates ResourceManagerPrivate's list
-        void updateKickOffLists( const QUrl& uri, const Variant& variant );
+        void updateKickOffLists( const QUrl& uri, const Variant& oldvariant, const Variant& newvariant );
 
         /// Called by ResourceManager (with the RM mutex locked)
         void propertyRemoved( const Types::Property &prop, const QVariant &value );

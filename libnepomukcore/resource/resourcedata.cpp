@@ -258,8 +258,6 @@ bool Nepomuk2::ResourceData::store()
     QMutexLocker lock(&m_dataMutex);
 
     if ( m_uri.isEmpty() ) {
-        QMutexLocker rmlock(&m_rm->mutex);
-
         QList<QUrl> types;
         if ( m_nieUrl.isValid() && m_nieUrl.isLocalFile() ) {
             types << NFO::FileDataObject();
@@ -295,10 +293,6 @@ bool Nepomuk2::ResourceData::store()
                 types << node.uri();
             m_cache.insert(RDF::type(), types);
         }
-
-        // Add us to the initialized data, i.e. make us "valid"
-        m_rm->m_initializedData.insert( m_uri, this );
-
         if( !m_naoIdentifier.isEmpty() ) {
             setProperty( NAO::identifier(), m_naoIdentifier );
             setProperty( NAO::prefLabel(), m_naoIdentifier );
@@ -310,6 +304,12 @@ bool Nepomuk2::ResourceData::store()
         }
 
         addToWatcher();
+        lock.unlock();
+        QMutexLocker rmlock(&m_rm->mutex);
+        // Add us to the initialized data, i.e. make us "valid"
+        //Note: once m_uri is non-empty, it doesn't change
+        m_rm->m_initializedData.insert( m_uri, this );
+
     }
 
     return true;
@@ -343,10 +343,6 @@ bool Nepomuk2::ResourceData::load()
     if ( !m_uri.isValid() )
         return false;
 
-    lock.unlock();
-    QMutexLocker rmlock(&m_rm->mutex); // for updateKickOffLists, but must be locked first
-    lock.relock(); // we must respect the lock ordering!
-
     const QString oldNaoIdentifier = m_cache[NAO::identifier()].toString();
     const QUrl oldNieUrl = m_cache[NIE::url()].toUrl();
 
@@ -367,10 +363,13 @@ bool Nepomuk2::ResourceData::load()
 
     const QString newNaoIdentifier = m_cache.value(NAO::identifier()).toString();
     const QUrl newNieUrl = m_cache.value(NIE::url()).toUrl();
+    m_cacheDirty = false;
+
+    lock.unlock();
+
+    QMutexLocker rmlock(&m_rm->mutex); // for updating the lists. Must be locked first
     updateIdentifierLists( oldNaoIdentifier, newNaoIdentifier );
     updateUrlLists( oldNieUrl, newNieUrl );
-
-    m_cacheDirty = false;
 
     return true;
 }
@@ -382,8 +381,6 @@ void Nepomuk2::ResourceData::setProperty( const QUrl& uri, const Nepomuk2::Varia
 
     if( store() ) {
         // step 0: make sure this resource is in the store
-        QMutexLocker rmlock(&m_rm->mutex); // for updateKickOffLists, but must be locked first
-        QMutexLocker lock(&m_dataMutex);
 
         // update the store
         QVariantList varList;
@@ -401,6 +398,7 @@ void Nepomuk2::ResourceData::setProperty( const QUrl& uri, const Nepomuk2::Varia
             }
         }
 
+        QMutexLocker lock(&m_dataMutex);
         // update the store
         QDBusMessage msg = QDBusMessage::createMethodCall( QLatin1String("org.kde.nepomuk.DataManagement"),
                                                            QLatin1String("/datamanagement"),
@@ -421,15 +419,15 @@ void Nepomuk2::ResourceData::setProperty( const QUrl& uri, const Nepomuk2::Varia
             return;
         }
 
-        // update the kickofflists
-        // IMPORTANT: Must be called before the cache is updated. They use the value from the cache
-        updateKickOffLists( uri, value );
-
+        const Nepomuk2::Variant oldvalue = m_cache.value(uri);
         // update the cache for now
         if( value.isValid() )
             m_cache[uri] = value;
         else
             m_cache.remove(uri);
+        lock.unlock();
+        // update the kickofflists
+        updateKickOffLists( uri, m_cache.value(uri), value );
     }
 }
 
@@ -440,8 +438,6 @@ void Nepomuk2::ResourceData::addProperty( const QUrl& uri, const Nepomuk2::Varia
 
     if( value.isValid() && store() ) {
         // step 0: make sure this resource is in the store
-        QMutexLocker rmlock(&m_rm->mutex); // for updateKickOffLists, but must be locked first
-        QMutexLocker lock(&m_dataMutex);
 
         // update the store
         QVariantList varList;
@@ -459,6 +455,7 @@ void Nepomuk2::ResourceData::addProperty( const QUrl& uri, const Nepomuk2::Varia
             }
         }
 
+        QMutexLocker lock(&m_dataMutex);
         QDBusMessage msg = QDBusMessage::createMethodCall( QLatin1String("org.kde.nepomuk.DataManagement"),
                                                            QLatin1String("/datamanagement"),
                                                            QLatin1String("org.kde.nepomuk.DataManagement"),
@@ -477,13 +474,13 @@ void Nepomuk2::ResourceData::addProperty( const QUrl& uri, const Nepomuk2::Varia
             return;
         }
 
-        // update the kickofflists
-        // IMPORTANT: Must be called before the cache is updated. They use the value from the cache
-        updateKickOffLists( uri, value );
-
+        const Nepomuk2::Variant oldvalue = m_cache.value(uri);
         // update the cache for now
         if( value.isValid() )
             m_cache[uri].append(value);
+        lock.unlock();
+        // update the kickofflists
+        updateKickOffLists( uri, oldvalue, value );
     }
 }
 
@@ -491,7 +488,6 @@ void Nepomuk2::ResourceData::addProperty( const QUrl& uri, const Nepomuk2::Varia
 void Nepomuk2::ResourceData::removeProperty( const QUrl& uri )
 {
     Q_ASSERT( uri.isValid() );
-    QMutexLocker rmlock(&m_rm->mutex); // for updateKickOffLists, but must be locked first
     QMutexLocker lock(&m_dataMutex);
 
     if( !m_uri.isEmpty() ) {
@@ -512,12 +508,12 @@ void Nepomuk2::ResourceData::removeProperty( const QUrl& uri )
             return;
         }
 
-        // update the kickofflists
-        // IMPORTANT: Must be called before the cache is updated. They use the value from the cache
-        updateKickOffLists( uri, Variant() );
-
+        const Nepomuk2::Variant oldvalue = m_cache.value(uri);
         // Update the cache
         m_cache.remove( uri );
+        // update the kickofflists
+        lock.unlock();
+        updateKickOffLists( uri, oldvalue, Variant() );
     }
 }
 
@@ -718,13 +714,18 @@ void Nepomuk2::ResourceData::updateIdentifierLists(const QString& oldIdentifier,
     }
 }
 
-// Caller must lock RM mutex  first
-void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& uri, const Nepomuk2::Variant& variant)
+// Be very careful never to call this when m_dataMutex is held,
+// unless the RM mutex was taken first, because the RM mutex must be taken
+// before the dataMutex.
+void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& uri, const Nepomuk2::Variant &oldvalue, const Nepomuk2::Variant& newvalue)
 {
-    if( uri == NIE::url() )
-        updateUrlLists( m_cache.value(NIE::url()).toUrl(), variant.toUrl() );
-    else if( uri == NAO::identifier() )
-        updateIdentifierLists( m_cache.value(NAO::identifier()).toString(), variant.toString() );
+    if( uri == NIE::url() || uri == NAO::identifier() ){
+        QMutexLocker rmlock(&m_rm->mutex);
+        if( uri == NIE::url() )
+            updateUrlLists( oldvalue.toUrl(), newvalue.toUrl() );
+        else if( uri == NAO::identifier() )
+            updateIdentifierLists( oldvalue.toString(), newvalue.toString() );
+    }
 }
 
 void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const QVariant &value_ )
@@ -747,14 +748,14 @@ void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const
                     it.remove();
             }
             if(vl.isEmpty()) {
-                updateKickOffLists(prop.uri(), Variant());
+                updateKickOffLists(prop.uri(), m_cache.value(prop.uri()), Variant());
                 m_cache.erase(cacheIt);
             }
             else {
                 // The kickoff properties (nao:identifier and nie:url) both have a cardinality of 1
                 // If we have more than one value, then the properties must not be any of them
                 if( vl.size() == 1 )
-                    updateKickOffLists(prop.uri(), vl.first());
+                    updateKickOffLists(prop.uri(), m_cache.value(prop.uri()), vl.first());
                 cacheIt.value() = vl;
             }
         }
@@ -771,12 +772,12 @@ void Nepomuk2::ResourceData::propertyAdded( const Types::Property &prop, const Q
         QList<Variant> vl = v.toVariantList();
         if( !vl.contains( var ) ) {
             vl.append( var );
-            updateKickOffLists(prop.uri(), var);
+            updateKickOffLists(prop.uri(), m_cache.value(prop.uri()), var);
             cacheIt.value() = vl;
         }
     }
     else {
-        updateKickOffLists(prop.uri(), var);
+        updateKickOffLists(prop.uri(), m_cache.value(prop.uri()), var);
         m_cache[prop.uri()].append(var);
     }
 }
