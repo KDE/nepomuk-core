@@ -117,7 +117,9 @@ namespace Nepomuk2 {
             if( !service->createDBusInterfaces() )
                 return 1;
 
-            return app.exec();
+            int rv = app.exec();
+            delete service;
+            return rv;
         }
 
         /**
@@ -147,7 +149,9 @@ namespace Nepomuk2 {
             if( !service->createDBusInterfaces() )
                 return 1;
 
-            return app.exec();
+            int rv = app.exec();
+            delete service;
+            return rv;
         }
 
         /**
