@@ -142,6 +142,14 @@ bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
     if( m_mode == IdentifyNone )
         return false;
 
+    // Never identify data objects
+    foreach(const QUrl& t, res.property( RDF::type() )) {
+        QSet<QUrl> allT = ClassAndPropertyTree::self()->allParents(t);
+        allT << t;
+        if( allT.contains(NIE::DataObject()) )
+            return false;
+    }
+
     // Run the normal identification procedure
     return Sync::ResourceIdentifier::runIdentification( uri );
 }
