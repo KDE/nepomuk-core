@@ -143,9 +143,9 @@ bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
         return false;
 
     // Never identify data objects
-    foreach(const QUrl& t, res.property( RDF::type() )) {
-        QSet<QUrl> allT = ClassAndPropertyTree::self()->allParents(t);
-        allT << t;
+    foreach(const Soprano::Node& t, res.property(RDF::type())) {
+        QSet<QUrl> allT = ClassAndPropertyTree::self()->allParents(t.uri());
+        allT << t.uri();
         if( allT.contains(NIE::DataObject()) )
             return false;
     }
