@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Service
-X-KDE-ServiceTypes=NepomukService
-X-KDE-Library=nepomukfileindexer
+X-KDE-ServiceTypes=NepomukService2
 X-KDE-Nepomuk-autostart=true
 X-KDE-Nepomuk-start-on-demand=false
+Exec=nepomukfileindexer
 Name=File Indexer Service
 Name[bs]=Usluga za indeksiranje datoteka
 Name[ca]=Servei indexador de fitxers

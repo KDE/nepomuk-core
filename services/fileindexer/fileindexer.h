@@ -20,7 +20,7 @@
 #ifndef _NEPOMUK_FILEINDEXER_SERVICE_H_
 #define _NEPOMUK_FILEINDEXER_SERVICE_H_
 
-#include "nepomukservice.h"
+#include "service2.h"
 #include <QtCore/QTimer>
 
 namespace Nepomuk2 {
@@ -30,15 +30,16 @@ namespace Nepomuk2 {
     /**
      * Service controlling the file indexer
      */
-    class FileIndexer : public Nepomuk2::Service
+    class FileIndexer : public Nepomuk2::Service2
     {
         Q_OBJECT
         Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.FileIndexer")
 
     public:
-        FileIndexer( QObject* parent = 0, const QList<QVariant>& args = QList<QVariant>() );
+        FileIndexer();
         ~FileIndexer();
 
+        virtual QString name() { return QLatin1String("nepomukfileindexer"); }
     Q_SIGNALS:
         void statusStringChanged();
 

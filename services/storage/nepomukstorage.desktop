@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Service
-X-KDE-ServiceTypes=NepomukService
-X-KDE-Library=nepomukstorage
+X-KDE-ServiceTypes=NepomukService2
 X-KDE-Nepomuk-autostart=true
 X-KDE-Nepomuk-start-on-demand=true
+Exec=nepomukstorage
 Name=Nepomuk Data Storage
 Name[bs]=Nepomukovo skladište
 Name[ca]=Emmagatzematge de dades del Nepomuk

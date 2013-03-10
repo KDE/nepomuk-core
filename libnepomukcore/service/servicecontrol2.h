@@ -1,5 +1,6 @@
 /* This file is part of the KDE Project
-   Copyright (c) 2008 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2008-2011 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2013 Vishesh Handa <me@vhanda.in>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -16,34 +17,38 @@
    Boston, MA 02110-1301, USA.
 */
 
-#ifndef _NEPOMUK_STORAGE_H_
-#define _NEPOMUK_STORAGE_H_
+#ifndef _NEPOMUK_SERVICE_CONTROL2_H_
+#define _NEPOMUK_SERVICE_CONTROL2_H_
 
-#include "service2.h"
+#include <QtCore/QObject>
 
 namespace Nepomuk2 {
+    class Service2;
 
-    class Core;
-
-    class Storage : public Service2
+    class ServiceControl2 : public QObject
     {
         Q_OBJECT
-        Q_CLASSINFO( "D-Bus Interface", "org.kde.nepomuk.Storage" )
 
     public:
-        Storage();
-        ~Storage();
+        ServiceControl2( Service2* service );
+        ~ServiceControl2();
 
-        QString name() { return QLatin1String("nepomukstorage"); }
+        bool failedToStart();
+
+    Q_SIGNALS:
+        void serviceInitialized( bool success );
 
     public Q_SLOTS:
-        Q_SCRIPTABLE QString usedSopranoBackend() const;
-
-    private Q_SLOTS:
-        void slotNepomukCoreInitialized( bool success );
+        void setServiceInitialized( bool success );
+        bool isInitialized() const;
+        void shutdown();
+        QString name() const;
+        QString description() const;
 
     private:
-        Nepomuk2::Core* m_core;
+        Service2 *m_service;
+        bool m_initialized;
+        bool m_failed;
     };
 }
 

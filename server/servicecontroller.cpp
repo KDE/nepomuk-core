@@ -204,9 +204,17 @@ void Nepomuk2::ServiceController::start()
             }
 
             // we wait for the service to be registered with DBus before creating the service interface
-            d->processControl->start( KStandardDirs::findExe( "nepomukservicestub" ),
-                                      QStringList() << name(),
-                                      ProcessControl::RestartOnCrash );
+            QString exec = d->service->exec();
+            if( exec.isEmpty() ) {
+                d->processControl->start( KStandardDirs::findExe( "nepomukservicestub" ),
+                                          QStringList() << name(),
+                                          ProcessControl::RestartOnCrash );
+            }
+            else {
+                d->processControl->start( KStandardDirs::findExe( exec ),
+                                          QStringList(),
+                                          ProcessControl::RestartOnCrash );
+            }
         }
     }
 }

@@ -19,20 +19,13 @@
 #ifndef _NEPOMUK_FILE_WATCH_H_
 #define _NEPOMUK_FILE_WATCH_H_
 
-#include "nepomukservice.h"
+#include "service2.h"
 
 #include <QtCore/QUrl>
 #include <QtCore/QVariant>
 #include <QtCore/QSet>
 
 #include "removablemediacache.h"
-
-namespace Soprano {
-    class Model;
-    namespace Client {
-        class DBusClient;
-    }
-}
 
 class KInotify;
 class KUrl;
@@ -44,13 +37,13 @@ namespace Nepomuk2 {
 
     class MetadataMover;
 
-    class FileWatch : public Service
+    class FileWatch : public Service2
     {
         Q_OBJECT
         Q_CLASSINFO( "D-Bus Interface", "org.kde.nepomuk.FileWatch" )
 
     public:
-        FileWatch( QObject* parent, const QVariantList& );
+        FileWatch();
         ~FileWatch();
 
         /**
@@ -64,6 +57,8 @@ namespace Nepomuk2 {
          * containing \p path in case it is a file.
          */
         static void updateFolderViaFileIndexer( const QString& path );
+
+        virtual QString name() { return QLatin1String("nepomukfilewatch"); }
 
     Q_SIGNALS:
         /**

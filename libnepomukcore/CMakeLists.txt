@@ -21,7 +21,15 @@ set(nepomuk_resource_SRCS
 
 set(nepomuk_service_SRCS
   service/nepomukservice.cpp
+  service/service2.cpp
+  service/servicecontrol2.cpp
+  ../servicestub/priority.cpp
 )
+
+qt4_add_dbus_adaptor(nepomuk_service_SRCS
+  ../interfaces/org.kde.nepomuk.ServiceControl.xml
+  servicecontrol2.h
+  Nepomuk2::ServiceControl2)
 
 set(nepomuk_types_SRCS
   types/entity.cpp
@@ -152,6 +160,7 @@ install(FILES
   resource/tag.h
   resource/file.h
   service/nepomukservice.h
+  service/service2.h
   types/entity.h
   types/class.h
   types/property.h
@@ -206,6 +215,10 @@ install(FILES
 
 install(
   FILES service/nepomukservice.desktop
+  DESTINATION ${SERVICETYPES_INSTALL_DIR})
+
+install(
+  FILES service/nepomukservice2.desktop
   DESTINATION ${SERVICETYPES_INSTALL_DIR})
 
 # API docs
