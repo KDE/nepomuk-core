@@ -17,7 +17,10 @@ set(nepomuk_resource_SRCS
   resource/resource.cpp
   resource/file.cpp
   resource/tag.cpp
-  resource/nepomukservice.cpp
+)
+
+set(nepomuk_service_SRCS
+  service/nepomukservice.cpp
 )
 
 set(nepomuk_types_SRCS
@@ -96,6 +99,7 @@ qt4_add_dbus_interface(nepomuk_datamanagement_SRCS
 
 set(nepomuk_LIB_SRCS
   ${nepomuk_resource_SRCS}
+  ${nepomuk_service_SRCS}
   ${nepomuk_misc_SRCS}
   ${nepomuk_types_SRCS}
   ${nepomuk_query_SRCS}
@@ -144,10 +148,10 @@ install(FILES
   nepomuk_export.h
   resource/variant.h
   resource/resourcemanager.h
-  resource/nepomukservice.h
   resource/resource.h
   resource/tag.h
   resource/file.h
+  service/nepomukservice.h
   types/entity.h
   types/class.h
   types/property.h
@@ -199,6 +203,10 @@ install(FILES
 
   DESTINATION ${INCLUDE_INSTALL_DIR}/nepomuk2 COMPONENT Devel
 )
+
+install(
+  FILES service/nepomukservice.desktop
+  DESTINATION ${SERVICETYPES_INSTALL_DIR})
 
 # API docs
 find_package(Doxygen)
