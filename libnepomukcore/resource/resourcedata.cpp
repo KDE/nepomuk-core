@@ -338,7 +338,7 @@ bool Nepomuk2::ResourceData::load()
     QMutexLocker lock(&m_dataMutex);
     if (!m_cacheDirty) {
         // Fast path: nothing to do.
-        return false;
+        return true;
     }
     if ( !m_uri.isValid() )
         return false;

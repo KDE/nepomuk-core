@@ -142,6 +142,16 @@ bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
     if( m_mode == IdentifyNone )
         return false;
 
+    // Never identify data objects
+    foreach(const Soprano::Node& t, res.property(RDF::type())) {
+        QSet<QUrl> allT = ClassAndPropertyTree::self()->allParents(t.uri());
+        allT << t.uri();
+        if( allT.contains(NIE::DataObject()) ) {
+            kDebug() << "Not identifying" << res.uri() << " - DataObject";
+            return false;
+        }
+    }
+
     // Run the normal identification procedure
     return Sync::ResourceIdentifier::runIdentification( uri );
 }
