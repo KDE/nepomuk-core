@@ -29,16 +29,50 @@
 #include <KAboutData>
 #include <KDebug>
 
+#include <signal.h>
+
+namespace {
+#ifndef Q_OS_WIN
+    void signalHandler( int signal )
+    {
+        switch( signal ) {
+        case SIGHUP:
+        case SIGQUIT:
+        case SIGINT:
+            QCoreApplication::exit( 0 );
+        }
+    }
+#endif
+
+    void installSignalHandler() {
+#ifndef Q_OS_WIN
+        struct sigaction sa;
+        ::memset( &sa, 0, sizeof( sa ) );
+        sa.sa_handler = signalHandler;
+        sigaction( SIGHUP, &sa, 0 );
+        sigaction( SIGINT, &sa, 0 );
+        sigaction( SIGQUIT, &sa, 0 );
+#endif
+    }
+}
+
 class Nepomuk2::Service2::Private
 {
 public:
+    Private( Service2* s ) : q(s) {}
+
+    Service2* q;
     ServiceControl2* m_serviceControl;
+
+    bool alreadyRunning();
+    bool configurePriority();
+    bool createDBusInterfaces();
 };
 
 
 Nepomuk2::Service2::Service2( QObject* parent, bool delayedInitialization )
     : QObject( parent ),
-      d( new Private() )
+      d( new Private(this) )
 {
     d->m_serviceControl = 0;
     if ( !delayedInitialization ) {
@@ -66,20 +100,20 @@ void Nepomuk2::Service2::setServiceInitialized( bool success )
                                Q_ARG(bool, success) );
 }
 
-bool Nepomuk2::Service2::alreadyRunning()
+bool Nepomuk2::Service2::Private::alreadyRunning()
 {
     QTextStream s( stderr );
 
     QDBusConnectionInterface* busInt = QDBusConnection::sessionBus().interface();
-    if( busInt->isServiceRegistered( dbusServiceName() ) ) {
-        s << "Service " << name() << " already running." << endl;
+    if( busInt->isServiceRegistered( q->dbusServiceName() ) ) {
+        s << "Service " << q->name() << " already running." << endl;
         return true;
     }
 
     return false;
 }
 
-bool Nepomuk2::Service2::configurePriority()
+bool Nepomuk2::Service2::Private::configurePriority()
 {
     // Lower our priority by default which makes sense for most services since Nepomuk
     // does not want to get in the way of the user
@@ -101,26 +135,26 @@ bool Nepomuk2::Service2::configurePriority()
     return true;
 }
 
-bool Nepomuk2::Service2::createDBusInterfaces()
+bool Nepomuk2::Service2::Private::createDBusInterfaces()
 {
     QTextStream s( stderr );
 
     // register the service
     // ====================================
     QDBusConnection bus = QDBusConnection::sessionBus();
-    if( !bus.registerService( dbusServiceName() ) ) {
-        s << "Failed to register dbus service " << dbusServiceName() << "." << endl;
+    if( !bus.registerService( q->dbusServiceName() ) ) {
+        s << "Failed to register dbus service " << q->dbusServiceName() << "." << endl;
         return false;
     }
 
-    bus.registerObject( '/' + name(), this,
+    bus.registerObject( '/' + q->name(), q,
                         QDBusConnection::ExportScriptableSlots |
                         QDBusConnection::ExportScriptableSignals |
                         QDBusConnection::ExportScriptableProperties |
                         QDBusConnection::ExportAdaptors);
 
-    d->m_serviceControl = new ServiceControl2( this );
-    if( d->m_serviceControl->failedToStart() )
+    m_serviceControl = new ServiceControl2( q );
+    if( m_serviceControl->failedToStart() )
         return false;
 
     return true;
@@ -135,6 +169,22 @@ QString Nepomuk2::Service2::dbusServiceName()
 QString Nepomuk2::Service2::dbusServiceName(const QString& serviceName)
 {
     return QString("org.kde.nepomuk.services.%1").arg(serviceName);
+}
+
+bool Nepomuk2::Service2::initCommon()
+{
+    if( d->alreadyRunning() )
+        return false;
+
+    if( !d->configurePriority() )
+        return false;
+
+    if( !d->createDBusInterfaces() )
+        return false;
+
+    installSignalHandler();
+
+    return true;
 }
 
 

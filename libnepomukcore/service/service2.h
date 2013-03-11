@@ -108,13 +108,7 @@ namespace Nepomuk2 {
             KComponentData data( aboutData, KComponentData::RegisterAsMainComponent );
 
             T* service = new T();
-            if( service->alreadyRunning() )
-                return 1;
-
-            if( !service->configurePriority() )
-                return 1;
-
-            if( !service->createDBusInterfaces() )
+            if( !service->initCommon() )
                 return 1;
 
             int rv = app.exec();
@@ -140,13 +134,7 @@ namespace Nepomuk2 {
             con.unregisterObject( QLatin1String("/MainApplication"), QDBusConnection::UnregisterNode );
 
             T* service = new T();
-            if( service->alreadyRunning() )
-                return 1;
-
-            if( !service->configurePriority() )
-                return 1;
-
-            if( !service->createDBusInterfaces() )
+            if( !service->initCommon() )
                 return 1;
 
             int rv = app.exec();
@@ -206,9 +194,7 @@ namespace Nepomuk2 {
          */
         void setServiceInitialized( bool success );
 
-        bool alreadyRunning();
-        bool configurePriority();
-        bool createDBusInterfaces();
+        bool initCommon();
     private:
         class Private;
         Private* const d;
