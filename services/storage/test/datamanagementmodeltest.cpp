@@ -5038,19 +5038,19 @@ void DataManagementModelTest::testStoreResources_correctDomainInStore2()
 {
     SimpleResource res;
     res.addType( NMM::MusicPiece() );
-    res.addType( NFO::FileDataObject() );
+    res.addType( QUrl("class:/typeA") );
     res.addProperty( NIE::title(), QLatin1String("Music") );
 
     m_dmModel->storeResources( SimpleResourceGraph() << res, QLatin1String("testApp") );
     QVERIFY( !m_dmModel->lastError() );
 
-    QList<Soprano::Statement> stList = m_model->listStatements( Node(), RDF::type(), NFO::FileDataObject() ).allStatements();
+    QList<Soprano::Statement> stList = m_model->listStatements( Node(), RDF::type(), QUrl("class:/typeA") ).allStatements();
     QCOMPARE( stList.size(), 1 );
 
     const QUrl resUri = stList.first().subject().uri();
 
     SimpleResource musicPiece;
-    musicPiece.addType( NFO::FileDataObject() );
+    musicPiece.addType( QUrl("class:/typeA") );
     // We're not giving it a nmm:MusicPiece type
     musicPiece.addProperty( NIE::title(), QLatin1String("Music") );
 
@@ -5066,7 +5066,7 @@ void DataManagementModelTest::testStoreResources_correctDomainInStore2()
     QVERIFY( !m_dmModel->lastError() );
 
     // musicPiece should have gotten identified as res
-    stList = m_model->listStatements( Node(), RDF::type(), NFO::FileDataObject() ).allStatements();
+    stList = m_model->listStatements( Node(), RDF::type(), QUrl("class:/typeA") ).allStatements();
     QCOMPARE( stList.size(), 1 );
 
     const QUrl musicPieceUri = stList.first().subject().uri();
@@ -5110,13 +5110,13 @@ void DataManagementModelTest::testStoreResources_correctRangeInStore2()
 {
     SimpleResource res;
     res.addType( NCO::Contact() );
-    res.addType( NFO::FileDataObject() );
+    res.addType( QUrl("class:/typeA") );
     res.addProperty( NCO::fullname(), QLatin1String("Jack Black") );
 
     m_dmModel->storeResources( SimpleResourceGraph() << res, QLatin1String("testApp") );
     QVERIFY( !m_dmModel->lastError() );
 
-    QList<Soprano::Statement> stList = m_model->listStatements( Node(), RDF::type(), NFO::FileDataObject() ).allStatements();
+    QList<Soprano::Statement> stList = m_model->listStatements( Node(), RDF::type(), QUrl("class:/typeA") ).allStatements();
     QCOMPARE( stList.size(), 1 );
 
     const QUrl resUri = stList.first().subject().uri();
@@ -5127,7 +5127,7 @@ void DataManagementModelTest::testStoreResources_correctRangeInStore2()
     musicPiece.addProperty( NIE::title(), QLatin1String("Music") );
 
     SimpleResource artist;
-    artist.addType( NFO::FileDataObject() );
+    artist.addType( QUrl("class:/typeA") );
     // We're not giving it the type NCO::Contact - should be inferred from the store
     artist.addProperty( NCO::fullname(), QLatin1String("Jack Black") );
 
