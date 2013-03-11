@@ -102,16 +102,7 @@ namespace {
      */
     bool ensureDataLayout( Soprano::Model* tmpModel, const QUrl& ns )
     {
-        // 1. all statements need to have a proper context set
-        StatementIterator it = tmpModel->listStatements();
-        while ( it.next() ) {
-            if ( !it.current().context().isValid() ) {
-                kDebug() << "Invalid data in ontology" << ns << *it;
-                return false;
-            }
-        }
-
-        // 2. make sure we have a proper relation between the data and metadata graphs
+        // make sure we have a proper relation between the data and metadata graphs
         QUrl dataGraphUri, metaDataGraphUri;
         if ( !findGraphUris( tmpModel, ns, dataGraphUri, metaDataGraphUri ) ) {
             kDebug() << "Invalid data in ontology" << ns << "Could not find datagraph and metadatagraph relation.";
@@ -282,6 +273,19 @@ bool Nepomuk2::OntologyManagerModel::updateOntology( Soprano::StatementIterator 
 
     // import the data into our tmp model
     while ( data.next() ) {
+        Soprano::Statement st = *data;
+        if( !st.context().isValid() ) {
+            QString errorString = QString::fromLatin1("Invalid data in ontology %1 - %2 %3 %4 %5")
+                                  .arg( Soprano::Node::resourceToN3(ns),
+                                        st.subject().toN3(),
+                                        st.predicate().toN3(),
+                                        st.object().toN3(),
+                                        st.context().toN3() );
+
+            kDebug() << errorString;
+            setError( errorString );
+            return false;
+        }
         tmpModel->addStatement( *data );
     }
 
