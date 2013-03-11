@@ -93,6 +93,7 @@ void CrappyInferenceData::execute()
 
     model->removeContext(QUrl::fromEncoded("urn:crappyinference:inferredtriples"));
     model->removeContext(QUrl::fromEncoded("urn:crappyinference2:inferredtriples"));
+    model->removeContext(QUrl::fromEncoded("nepomuk:/ctx/typevisibility"));
 }
 
 //
