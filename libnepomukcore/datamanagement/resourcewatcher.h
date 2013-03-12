@@ -126,6 +126,16 @@ namespace Nepomuk2 {
         void addResource( const QUrl& resUri );
 
         /**
+         * \brief Add a resource to be watched and maybe stop.
+         *
+         * As addResource, but if the added resource is the last first one,
+         * (re)-start the watcher.
+         *
+         * \sa addResource()
+         */
+        void addResourceStart(const QUrl& resUri);
+
+        /**
          * \brief Add a property to be watched.
          *
          * Every change to a value of this property
@@ -163,6 +173,16 @@ namespace Nepomuk2 {
          * \sa setResources()
          */
         void removeResource( const QUrl& resUri );
+
+        /**
+         * \brief Remove a resource to be watched and maybe stop.
+         *
+         * As removeResource, but if the removed resource is the last one,
+         * stop the watcher.
+         *
+         * \sa removeResource()
+         */
+        void removeResourceStop(const QUrl& resUri);
 
         /**
          * \brief Remove a property to be watched.
