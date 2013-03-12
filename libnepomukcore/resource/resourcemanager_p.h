@@ -22,6 +22,7 @@
 #define _NEPOMUK2_RESOURCE_MANAGER_P_H_
 
 #include <QtCore/QMutex>
+#include <QtCore/QReadWriteLock>
 
 #include <kurl.h>
 
@@ -52,7 +53,7 @@ namespace Nepomuk2 {
         Soprano::Model* overrideModel;
 
         /// used to protect the initialization
-        QMutex initMutex;
+        QReadWriteLock initMutex;
 
         /// used to protect all data in ResourceManager
         QMutex mutex;

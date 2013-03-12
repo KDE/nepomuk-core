@@ -284,7 +284,7 @@ Nepomuk2::ResourceManager* Nepomuk2::ResourceManager::instance()
 
 int Nepomuk2::ResourceManager::init()
 {
-    QMutexLocker lock( &d->initMutex );
+    QWriteLocker lock( &d->initMutex );
 
     if( d->overrideModel ) {
         return true;
@@ -302,7 +302,7 @@ int Nepomuk2::ResourceManager::init()
 
 bool Nepomuk2::ResourceManager::initialized() const
 {
-    QMutexLocker lock( &d->initMutex );
+    QReadLocker lock( &d->initMutex );
     if( d->overrideModel )
         return true;
 
@@ -409,21 +409,30 @@ void Nepomuk2::ResourceManagerPrivate::addToWatcher( const QUrl& uri )
 {
     if( uri.isEmpty() )
         return;
-
+    // Lock the init mutex to make sure we don't create multiple watchers
+    initMutex.lockForRead();
     if( !m_watcher ) {
-        m_watcher = new ResourceWatcher(m_manager);
-        //
-        // The ResourceWatcher is not thread-safe. Thus, we need to ensure the safety ourselves.
-        // We do that by simply handling all RW related operations in the manager thread.
-        // This also means to invoke methods on the watcher through QMetaObject to make sure they
-        // get queued in case of calls between different threads.
-        //
-        m_watcher->moveToThread(m_manager->thread());
-        QObject::connect( m_watcher, SIGNAL(propertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
+        // Lock the initMutex for write
+        initMutex.unlock();
+        initMutex.lockForWrite();
+        // check that nothing stole in and created
+        // a ResourceWatcher while we were unlocked.
+        if( !m_watcher ) {
+          m_watcher = new ResourceWatcher(m_manager);
+          //
+          // The ResourceWatcher is not thread-safe. Thus, we need to ensure the safety ourselves.
+          // We do that by simply handling all RW related operations in the manager thread.
+          // This also means to invoke methods on the watcher through QMetaObject to make sure they
+          // get queued in case of calls between different threads.
+          //
+          m_watcher->moveToThread(m_manager->thread());
+          QObject::connect( m_watcher, SIGNAL(propertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
                           m_manager, SLOT(slotPropertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
-        QObject::connect( m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
+          QObject::connect( m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
                           m_manager, SLOT(slotPropertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
+        }
     }
+    initMutex.unlock();
     // add a resource and (re-)start the watcher in case this resource is the only one in the list of watched
     QMetaObject::invokeMethod( m_watcher, "addResourceStart", Qt::AutoConnection, Q_ARG(QUrl, uri) );
 }
