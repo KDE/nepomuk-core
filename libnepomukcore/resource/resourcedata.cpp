@@ -578,6 +578,9 @@ bool Nepomuk2::ResourceData::isValid() const
 Nepomuk2::ResourceData* Nepomuk2::ResourceData::determineUri()
 {
     QMutexLocker lock(&m_dataMutex);
+    if( !m_uri.isEmpty() ) {
+        return this;
+    }
 
     // We have the following possible situations:
     // 1. m_uri is already valid
@@ -602,61 +605,59 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceData::determineUri()
     //        -> use r as m_uri
     //
 
-    if( m_uri.isEmpty() ) {
-        Soprano::Model* model = MAINMODEL;
+    Soprano::Model* model = MAINMODEL;
 
-        if( !m_naoIdentifier.isEmpty() ) {
-            //
-            // Not valid. Checking for nao:identifier
-            //
-            QString query = QString::fromLatin1("select distinct ?r where { ?r %1 %2. } LIMIT 1")
-                            .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::identifier()) )
-                            .arg( Soprano::Node::literalToN3( m_naoIdentifier ) );
-
-            Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-            if( it.next() ) {
-                m_uri = it["r"].uri();
-                it.close();
-            }
-        }
-        else {
-            //
-            // In one query determine if the URI is already used as resource URI or as
-            // nie:url
-            //
-            QString query = QString::fromLatin1("select distinct ?r ?o where { "
-                                                "{ ?r %1 %2 . FILTER(?r!=%2) . } "
-                                                "UNION "
-                                                "{ %2 ?p ?o . } "
-                                                "} LIMIT 1")
-                            .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ) )
-                            .arg( Soprano::Node::resourceToN3( m_nieUrl ) );
-            Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-            if( it.next() ) {
-                QUrl uri = it["r"].uri();
-                if( uri.isEmpty() ) {
-                    // FIXME: Find a way to avoid this
-                    // The url is actually the uri - legacy data
-                    m_uri = m_nieUrl;
-                }
-                else {
-                    m_uri = uri;
-                }
-            }
-        }
-
+    if( !m_naoIdentifier.isEmpty() ) {
         //
-        // Move us to the final data hash now that the URI is known
+        // Not valid. Checking for nao:identifier
         //
-        if( !m_uri.isEmpty() ) {
-            m_cacheDirty = true;
-            ResourceDataHash::iterator it = m_rm->m_initializedData.find(m_uri);
-            if( it == m_rm->m_initializedData.end() ) {
-                m_rm->m_initializedData.insert( m_uri, this );
+        QString query = QString::fromLatin1("select distinct ?r where { ?r %1 %2. } LIMIT 1")
+                        .arg( Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::identifier()) )
+                        .arg( Soprano::Node::literalToN3( m_naoIdentifier ) );
+
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        if( it.next() ) {
+            m_uri = it["r"].uri();
+            it.close();
+        }
+    }
+    else {
+        //
+        // In one query determine if the URI is already used as resource URI or as
+        // nie:url
+        //
+        QString query = QString::fromLatin1("select distinct ?r ?o where { "
+                                            "{ ?r %1 %2 . FILTER(?r!=%2) . } "
+                                            "UNION "
+                                            "{ %2 ?p ?o . } "
+                                            "} LIMIT 1")
+                        .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ) )
+                        .arg( Soprano::Node::resourceToN3( m_nieUrl ) );
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        if( it.next() ) {
+            QUrl uri = it["r"].uri();
+            if( uri.isEmpty() ) {
+                // FIXME: Find a way to avoid this
+                // The url is actually the uri - legacy data
+                m_uri = m_nieUrl;
             }
             else {
-                return it.value();
+                m_uri = uri;
             }
+        }
+    }
+
+    //
+    // Move us to the final data hash now that the URI is known
+    //
+    if( !m_uri.isEmpty() ) {
+        m_cacheDirty = true;
+        ResourceDataHash::iterator it = m_rm->m_initializedData.find(m_uri);
+        if( it == m_rm->m_initializedData.end() ) {
+            m_rm->m_initializedData.insert( m_uri, this );
+        }
+        else {
+            return it.value();
         }
     }
 
