@@ -573,12 +573,11 @@ bool Nepomuk2::ResourceData::isValid() const
     return !m_uri.isEmpty() || !m_nieUrl.isEmpty() || !m_naoIdentifier.isEmpty();
 }
 
-// Caller must hold the ResourceManager mutex (since the RM owns the returned ResourceData pointer)
-Nepomuk2::ResourceData* Nepomuk2::ResourceData::determineUri()
+void Nepomuk2::ResourceData::determineUri()
 {
     QMutexLocker lock(&m_dataMutex);
     if( !m_uri.isEmpty() ) {
-        return this;
+        return;
     }
 
     // We have the following possible situations:
@@ -650,17 +649,27 @@ Nepomuk2::ResourceData* Nepomuk2::ResourceData::determineUri()
     // Move us to the final data hash now that the URI is known
     //
     if( !m_uri.isEmpty() ) {
+        lock.unlock(); // respect mutex order
+        QMutexLocker locker(&m_rm->mutex);
+        lock.relock();
         m_cacheDirty = true;
         ResourceDataHash::iterator it = m_rm->m_initializedData.find(m_uri);
         if( it == m_rm->m_initializedData.end() ) {
             m_rm->m_initializedData.insert( m_uri, this );
         }
         else {
-            return it.value();
+            ResourceData* foundData = it.value();
+
+            // in case we get an already existing one we update all instances
+            // using the old ResourceData to avoid the overhead of calling
+            // determineUri over and over
+            Q_FOREACH (Resource* res, m_resources) {
+                res->m_data = foundData; // this can include our caller
+                this->deref( res );
+                foundData->ref( res );
+            }
         }
     }
-
-    return this;
 }
 
 
