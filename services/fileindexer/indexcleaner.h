@@ -40,8 +40,6 @@ namespace Nepomuk2 {
         IndexCleaner(QObject* parent=0);
 
         virtual void start();
-        virtual bool doSuspend();
-        virtual bool doResume();
 
         /**
          * Construct a SPARQL filter which matches all URLs (variable ?url) that should
@@ -75,6 +73,10 @@ namespace Nepomuk2 {
          * \sa IndexScheduler::setIndexingSpeed()
          */
         void setDelay(int msecs);
+
+    protected:
+        virtual bool doSuspend();
+        virtual bool doResume();
 
     private slots:
         void clearNextBatch();
