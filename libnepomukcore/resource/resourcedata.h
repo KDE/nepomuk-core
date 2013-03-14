@@ -138,13 +138,9 @@ namespace Nepomuk2 {
          * and add m_data into ResourceManagerPrivate::m_initializedData
          * or it will find another ResourceData instance in m_initializedData
          * which represents the same resource. The ResourceData that should be
-         * used is returned.
-         *
-         * \returns The initialized ResourceData object representing the actual resource.
-         *
-         * The resource manager mutex needs to be locked before calling this method
+         * used is set in all the associated resources.
          */
-        ResourceData* determineUri();
+        void determineUri();
 
         void invalidateCache();
 

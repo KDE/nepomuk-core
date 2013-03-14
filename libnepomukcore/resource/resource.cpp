@@ -700,25 +700,10 @@ void Nepomuk2::Resource::determineFinalResourceData() const
         return;
     }
 
-    QMutexLocker lock( &m_data->rm()->mutex );
-
     // Get an initialized ResourceData instance
     ResourceData* oldData = m_data;
-    ResourceData* newData = m_data->determineUri();
 
-    Q_ASSERT(oldData);
-    Q_ASSERT(newData);
-
-    // in case we get an already existing one we update all instances
-    // using the old ResourceData to avoid the overhead of calling
-    // determineUri over and over
-    if( newData != oldData ) {
-        Q_FOREACH( Resource* res, m_data->resources() ) {
-            res->m_data = newData; // one of these resources is "this", so this updates our m_data.
-            oldData->deref( res );
-            newData->ref( res );
-        }
-    }
+    m_data->determineUri(); // note that this can change the value of m_data
 
     if ( !oldData->cnt() )
         delete oldData;
