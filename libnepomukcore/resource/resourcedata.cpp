@@ -159,9 +159,9 @@ QUrl Nepomuk2::ResourceData::type()
 
 void Nepomuk2::ResourceData::resetAll()
 {
+    QMutexLocker rmMutexLocker(&m_rm->mutex);
     QMutexLocker locker(&m_dataMutex);
     // remove us from all caches (store() will re-insert us later if necessary)
-    m_rm->mutex.lock();
 
     // IMPORTANT:
     // Remove from the kickOffList before removing from the resource watcher
@@ -177,7 +177,6 @@ void Nepomuk2::ResourceData::resetAll()
         m_rm->m_initializedData.remove( m_uri );
         removeFromWatcher();
     }
-    m_rm->mutex.unlock();
 
     // reset all variables
     m_uri.clear();
