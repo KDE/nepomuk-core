@@ -750,33 +750,29 @@ void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& uri, const Nepomuk2:
 void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const QVariant &value_ )
 {
     QMutexLocker lock(&m_dataMutex);
-    QHash<QUrl, Variant>::iterator cacheIt = m_cache.find(prop.uri());
-    if(cacheIt != m_cache.end()) {
-        Variant v = *cacheIt;
-        const Variant value(value_);
-        QList<Variant> vl = v.toVariantList();
-        if(vl.contains(value)) {
-            //
-            // Remove that element and and also remove all empty elements
-            // This is required because the value maybe have been a resource
-            // which has now been deleted, and no longer has a value
-            QMutableListIterator<Variant> it(vl);
-            while( it.hasNext() ) {
-                Variant var = it.next();
-                if( (var.isResource() && var.toUrl().isEmpty()) || var == value )
-                    it.remove();
-            }
-            if(vl.isEmpty()) {
-                updateKickOffLists(prop.uri(), m_cache.value(prop.uri()), Variant());
-                m_cache.erase(cacheIt);
-            }
-            else {
-                // The kickoff properties (nao:identifier and nie:url) both have a cardinality of 1
-                // If we have more than one value, then the properties must not be any of them
-                if( vl.size() == 1 )
-                    updateKickOffLists(prop.uri(), m_cache.value(prop.uri()), vl.first());
-                cacheIt.value() = vl;
-            }
+    const Variant value(value_);
+    QList<Variant> vl = m_cache.value(prop.uri()).toVariantList();
+    if( vl.contains(value) ) {
+        //
+        // Remove that element and and also remove all empty elements
+        // This is required because the value maybe have been a resource
+        // which has now been deleted, and no longer has a value
+        QMutableListIterator<Variant> it(vl);
+        while( it.hasNext() ) {
+            Variant var = it.next();
+            if( (var.isResource() && var.toUrl().isEmpty()) || var == value )
+                it.remove();
+        }
+        if(vl.isEmpty()) {
+            updateKickOffLists(prop.uri(), m_cache.value(prop.uri()), Variant());
+            m_cache.remove(prop.uri());
+        }
+        else {
+            // The kickoff properties (nao:identifier and nie:url) both have a cardinality of 1
+            // If we have more than one value, then the properties must not be any of them
+            if( vl.size() == 1 )
+                updateKickOffLists(prop.uri(), m_cache.value(prop.uri()), vl.first());
+            m_cache[prop.uri()] = vl;
         }
     }
 }
@@ -785,20 +781,11 @@ void Nepomuk2::ResourceData::propertyAdded( const Types::Property &prop, const Q
 {
     QMutexLocker lock(&m_dataMutex);
     const Variant var(value);
-    QHash<QUrl, Variant>::iterator cacheIt = m_cache.find(prop.uri());
-    if( cacheIt != m_cache.end() ) {
-        Variant v = *cacheIt;
-        QList<Variant> vl = v.toVariantList();
-        if( !vl.contains( var ) ) {
-            vl.append( var );
-            updateKickOffLists(prop.uri(), m_cache.value(prop.uri()), var);
-            cacheIt.value() = vl;
-        }
-    }
-    else {
-        updateKickOffLists(prop.uri(), m_cache.value(prop.uri()), var);
+    const Variant oldvalue = m_cache.value(prop.uri());
+    if( !oldvalue.toVariantList().contains(var) ) {
         m_cache[prop.uri()].append(var);
     }
+    updateKickOffLists(prop.uri(), oldvalue, var);
 }
 
 void Nepomuk2::ResourceData::setWatchEnabled(bool status)
