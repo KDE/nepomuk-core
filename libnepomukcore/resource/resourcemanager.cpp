@@ -430,11 +430,15 @@ void Nepomuk2::ResourceManagerPrivate::addToWatcher( const QUrl& uri )
                           m_manager, SLOT(slotPropertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
           QObject::connect( m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
                           m_manager, SLOT(slotPropertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
-        }
+        m_watcher->addResource( uri );
     }
-    initMutex.unlock();
-    // add a resource and (re-)start the watcher in case this resource is the only one in the list of watched
-    QMetaObject::invokeMethod( m_watcher, "addResourceStart", Qt::AutoConnection, Q_ARG(QUrl, uri) );
+    else {
+        QMetaObject::invokeMethod( m_watcher, "addResource", Qt::AutoConnection, Q_ARG(QUrl, uri) );
+    }
+    // (re-)start the watcher in case this resource is the only one in the list of watched
+    if( m_watcher->resourceCount() <= 1 ) {
+        QMetaObject::invokeMethod(m_watcher, "start", Qt::AutoConnection);
+    }
 }
 
 void Nepomuk2::ResourceManagerPrivate::removeFromWatcher( const QUrl& uri )
@@ -442,8 +446,12 @@ void Nepomuk2::ResourceManagerPrivate::removeFromWatcher( const QUrl& uri )
     if( uri.isEmpty() || !m_watcher )
         return;
 
-    // remove a resource and stop the watcher since we do not want to watch all changes in case there is no ResourceData left
-    QMetaObject::invokeMethod( m_watcher, "removeResourceStop", Qt::AutoConnection, Q_ARG(QUrl, uri) );
+    m_watcher->removeResource( uri );
+
+    // stop the watcher since we do not want to watch all changes in case there is no ResourceData left
+    if( !m_watcher->resourceCount() ) {
+        QMetaObject::invokeMethod(m_watcher, "stop", Qt::AutoConnection);
+    }
 }
 
 #include "resourcemanager.moc"
