@@ -318,7 +318,10 @@ bool Nepomuk2::ResourceData::store()
 void Nepomuk2::ResourceData::addToWatcher()
 {
     if( m_watchEnabled && !m_addedToWatcher ) {
+        //Obey the locking rules: the rm mutex gets locked before the dataMutex.
+        m_dataMutex.unlock();
         m_rm->addToWatcher( m_uri );
+        m_dataMutex.lock();
         m_addedToWatcher = true;
     }
 }
@@ -326,7 +329,10 @@ void Nepomuk2::ResourceData::addToWatcher()
 void Nepomuk2::ResourceData::removeFromWatcher()
 {
     if( m_addedToWatcher ) {
+        //Obey the locking rules: the rm mutex gets locked before the dataMutex.
+        m_dataMutex.unlock();
         m_rm->removeFromWatcher( m_uri );
+        m_dataMutex.lock();
         m_addedToWatcher = false;
     }
 }
