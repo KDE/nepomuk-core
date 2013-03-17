@@ -80,7 +80,13 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
 
     SimpleResourceGraph graph;
     SimpleResource fileRes( resUri );
-    fileRes.addType( NMM::MusicPiece() );
+
+    TagLib::Tag* tags = file.tag();
+    if( !tags->isEmpty() ) {
+        fileRes.addType( NMM::MusicPiece() );
+    } else {
+        fileRes.addType( NFO::Audio() );
+    }
 
     TagLib::String artists = "";
     TagLib::StringList genres;
@@ -160,8 +166,7 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
         }
     }
 
-    TagLib::Tag* tags = file.tag();
-    if( tags ) {
+    if( !tags->isEmpty() ) {
         QString title = QString::fromUtf8( tags->title().toCString( true ) );
         if( !title.isEmpty() ) {
             fileRes.addProperty( NIE::title(), title );
