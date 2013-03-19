@@ -76,6 +76,8 @@ public:
 
     ~Private() {
         close();
+        while( !dirIterators.isEmpty() )
+            delete dirIterators.takeFirst();
     }
 
     QHash<int, QPair<QByteArray, WatchFlags> > cookies;
