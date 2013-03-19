@@ -22,38 +22,20 @@
 #ifndef ASYNCCLIENTAPITEST_H
 #define ASYNCCLIENTAPITEST_H
 
-#include <QObject>
+#include <QtCore/QObject>
+#include "../lib/testbase.h"
 
-class QProcess;
-namespace Soprano {
-class Model;
-}
-class AsyncClientApiTest : public QObject
+class AsyncClientApiTest : public Nepomuk2::TestBase
 {
     Q_OBJECT
 
 private slots:
-    void initTestCase();
-    void cleanupTestCase();
-    void init();
-
     void testAddProperty();
     void testSetProperty();
     void testCreateResource();
     void testRemoveProperty();
-    void testRemoveProperties();
     void testRemoveResources();
-    void testRemoveDataByApplication();
-    void testStoreResources();
-    void testMergeResources();
-    void testDescribeResources();
-    void testImportResources();
-
 private:
-    void resetModel();
-
-    QProcess* m_fakeDms;
-    Soprano::Model* m_model;
 };
 
 #endif

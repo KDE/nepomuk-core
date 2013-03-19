@@ -142,6 +142,19 @@ target_link_libraries(simpleresourceclassestest
   ${QT_QTCORE_LIBRARY}
 )
 
+kde4_add_unit_test(asyncclientapitest
+  asyncclientapitest.cpp
+)
+target_link_libraries(asyncclientapitest
+  ${QT_QTCORE_LIBRARY}
+  ${QT_QTDBUS_LIBRARY}
+  ${QT_QTTEST_LIBRARY}
+  ${SOPRANO_LIBRARIES}
+  ${KDE4_KDECORE_LIBS}
+  nepomuktestlib
+  nepomukcore
+)
+
 #
 # Store Resources Benchmark
 #
