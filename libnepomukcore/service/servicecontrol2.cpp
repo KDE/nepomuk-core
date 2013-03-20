@@ -80,7 +80,7 @@ bool ServiceControl2::failedToStart()
 
 void ServiceControl2::shutdown()
 {
-    m_service->deleteLater();
+    QCoreApplication::instance()->quit();
 }
 
 #include "servicecontrol2.moc"
