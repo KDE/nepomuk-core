@@ -101,6 +101,25 @@ target_link_libraries(backuptests
 add_nepomuk_test(BackupTests ${CMAKE_CURRENT_BINARY_DIR}/backuptests)
 
 #
+# Async Tests
+#
+kde4_add_executable(asyncclientapitest 
+    asyncclientapitest.cpp
+)
+
+target_link_libraries(asyncclientapitest
+  ${QT_QTCORE_LIBRARY}
+  ${QT_QTDBUS_LIBRARY}
+  ${QT_QTTEST_LIBRARY}
+  ${SOPRANO_LIBRARIES}
+  ${KDE4_KDECORE_LIBS}
+  nepomuktestlib
+  nepomukcore
+)
+
+add_nepomuk_test(AsyncClientApiTest ${CMAKE_CURRENT_BINARY_DIR}/asyncclientapitest)
+
+#
 # Normal Tests ( Do not require the testing environment )
 #
 
@@ -140,19 +159,6 @@ target_link_libraries(simpleresourceclassestest
   nepomukcore
   ${QT_QTTEST_LIBRARY}
   ${QT_QTCORE_LIBRARY}
-)
-
-kde4_add_unit_test(asyncclientapitest
-  asyncclientapitest.cpp
-)
-target_link_libraries(asyncclientapitest
-  ${QT_QTCORE_LIBRARY}
-  ${QT_QTDBUS_LIBRARY}
-  ${QT_QTTEST_LIBRARY}
-  ${SOPRANO_LIBRARIES}
-  ${KDE4_KDECORE_LIBS}
-  nepomuktestlib
-  nepomukcore
 )
 
 #
