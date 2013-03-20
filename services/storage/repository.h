@@ -21,6 +21,7 @@
 
 #include <Soprano/BackendSettings>
 #include <Soprano/FilterModel>
+#include <Soprano/Util/DummyModel>
 
 
 namespace Soprano {
@@ -103,6 +104,8 @@ namespace Nepomuk2 {
         DataManagementModel* m_dataManagementModel;
         Nepomuk2::DataManagementAdaptor* m_dataManagementAdaptor;
         const Soprano::Backend* m_backend;
+
+        Soprano::Util::DummyModel* m_dummyModel;
 
         // only used during opening
         // ------------------------------------------

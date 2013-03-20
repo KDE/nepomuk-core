@@ -181,12 +181,6 @@ namespace Nepomuk2 {
         State m_state;
 
         bool m_shouldSuspendFileIQOnNormal;
-
-        /**
-         * Contains a list of folders that needs to be updated. They have not
-         * been pushed into the basicIQ cause the index cleaner is still running
-         */
-        QList< QPair<QString, UpdateDirFlags> > m_foldersToQueue;
     };
 }
 

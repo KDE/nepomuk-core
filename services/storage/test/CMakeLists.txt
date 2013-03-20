@@ -91,37 +91,6 @@ target_link_libraries(datamanagementadaptortest
 )
 
 
-configure_file(nepomuk_dms_test_config.h.cmake ${CMAKE_CURRENT_BINARY_DIR}/nepomuk_dms_test_config.h)
-
-kde4_add_executable(fakedms
-  fakedatamanagementservice.cpp
-)
-
-target_link_libraries(fakedms
-  ${QT_QTTEST_LIBRARY}
-  ${SOPRANO_LIBRARIES}
-  ${SOPRANO_SERVER_LIBRARIES}
-  ${KDE4_KDECORE_LIBS}
-  ${KDE4_KIO_LIBS}
-  ${KDE4_SOLID_LIBS}
-  nepomukcore
-  datamanagementtestlib
-)
-
-
-kde4_add_unit_test(asyncclientapitest
-  asyncclientapitest.cpp
-  qtest_dms.cpp
-)
-
-target_link_libraries(asyncclientapitest
-  ${QT_QTTEST_LIBRARY}
-  ${SOPRANO_LIBRARIES}
-  ${SOPRANO_CLIENT_LIBRARIES}
-  ${KDE4_KDECORE_LIBS}
-  nepomukcore
-)
-
 kde4_add_unit_test(identificationtest
   identificationtests.cpp
 )

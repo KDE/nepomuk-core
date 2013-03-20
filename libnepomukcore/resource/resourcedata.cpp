@@ -796,5 +796,6 @@ void Nepomuk2::ResourceData::setWatchEnabled(bool status)
 
 bool Nepomuk2::ResourceData::watchEnabled()
 {
+    QMutexLocker lock(&m_dataMutex);
     return m_watchEnabled;
 }

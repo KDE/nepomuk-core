@@ -108,8 +108,6 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
 
     m_cleaner = new IndexCleaner(this);
     connect( m_cleaner, SIGNAL(finished(KJob*)), this, SLOT(slotCleaningDone()) );
-    m_cleaner->start();
-    m_state = State_Cleaning;
 
     // Special settings for the queues
     KConfig config( "nepomukstrigirc" );
@@ -126,6 +124,7 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     else if( value == "resume" )
         m_shouldSuspendFileIQOnNormal = false;
 
+    m_state = State_Normal;
     slotScheduleIndexing();
 }
 
@@ -141,11 +140,7 @@ void Nepomuk2::IndexScheduler::suspend()
         m_state = State_Suspended;
         slotScheduleIndexing();
 
-        if( m_cleaner ) {
-            m_cleaner->suspend();
-        }
         m_eventMonitor->disable();
-
         emit indexingSuspended( true );
     }
 }
@@ -157,11 +152,7 @@ void Nepomuk2::IndexScheduler::resume()
         m_state = State_Normal;
         slotScheduleIndexing();
 
-        if( m_cleaner ) {
-            m_cleaner->resume();
-        }
         m_eventMonitor->enable();
-
         emit indexingSuspended( false );
     }
 }
@@ -230,11 +221,6 @@ void Nepomuk2::IndexScheduler::slotCleaningDone()
 {
     m_cleaner = 0;
 
-    for( int i=0; i<m_foldersToQueue.size(); i++ ) {
-        QPair< QString, UpdateDirFlags > pair = m_foldersToQueue[i];
-        m_basicIQ->enqueue( pair.first, pair.second );
-    }
-
     m_state = State_Normal;
     slotScheduleIndexing();
 }
@@ -260,13 +246,8 @@ void Nepomuk2::IndexScheduler::queueAllFoldersForUpdate( bool forceUpdate )
         flags |= ForceUpdate;
 
     // update everything again in case the folders changed
-    // If the cleaner is running, then we do not add the folders, instead they will be added
-    // in slotCleaningDone
     foreach( const QString& f, FileIndexerConfig::self()->includeFolders() ) {
-        if( m_cleaner )
-            m_foldersToQueue.append( qMakePair( f, flags ) );
-        else
-            m_basicIQ->enqueue( f, flags );
+        m_basicIQ->enqueue( f, flags );
     }
 }
 
@@ -282,10 +263,7 @@ void Nepomuk2::IndexScheduler::slotIncludeFolderListChanged(const QStringList& a
     restartCleaner();
 
     foreach( const QString& path, added ) {
-        if( m_cleaner )
-            m_foldersToQueue.append( qMakePair( path, UpdateDirFlags(UpdateRecursive) ) );
-        else
-            m_basicIQ->enqueue( path, UpdateRecursive );
+        m_basicIQ->enqueue( path, UpdateRecursive );
     }
 }
 
@@ -300,10 +278,7 @@ void Nepomuk2::IndexScheduler::slotExcludeFolderListChanged(const QStringList& a
     restartCleaner();
 
     foreach( const QString& path, removed ) {
-        if( m_cleaner )
-            m_foldersToQueue.append( qMakePair( path, UpdateDirFlags(UpdateRecursive) ) );
-        else
-            m_basicIQ->enqueue( path, UpdateRecursive );
+        m_basicIQ->enqueue( path, UpdateRecursive );
     }
 }
 
@@ -317,9 +292,8 @@ void Nepomuk2::IndexScheduler::restartCleaner()
     // TODO: only clean the filters that were changed from the config
     m_cleaner = new IndexCleaner( this );
     connect( m_cleaner, SIGNAL(finished(KJob*)), this, SLOT(slotCleaningDone()) );
-    m_cleaner->start();
 
-    m_state = State_Cleaning;
+    m_state = State_Normal;
     slotScheduleIndexing();
 }
 
@@ -366,12 +340,6 @@ void Nepomuk2::IndexScheduler::slotEndIndexingFile(const QUrl&)
 void Nepomuk2::IndexScheduler::slotTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry)
 {
     const QString path = entry->mountPath();
-    QMutableListIterator< QPair<QString, UpdateDirFlags> > it( m_foldersToQueue );
-    while( it.hasNext() ) {
-        it.next();
-        if( it.value().first.startsWith( path ) )
-            it.remove();
-    }
 
     m_basicIQ->clear( path );
     m_fileIQ->clear( path );
@@ -379,14 +347,23 @@ void Nepomuk2::IndexScheduler::slotTeardownRequested(const Nepomuk2::RemovableMe
 
 void Nepomuk2::IndexScheduler::slotScheduleIndexing()
 {
-    if( m_state == State_Suspended || m_state == State_Cleaning ) {
-        kDebug() << "Cleaning | Suspended";
+    if( m_state == State_Suspended ) {
+        kDebug() << "Suspended";
         m_basicIQ->suspend();
         m_fileIQ->suspend();
-        return;
+        if( m_cleaner )
+            m_cleaner->suspend();
     }
 
-    if( m_eventMonitor->isDiskSpaceLow() ) {
+    else if( m_state == State_Cleaning ) {
+        kDebug() << "Cleaning";
+        m_basicIQ->suspend();
+        m_fileIQ->suspend();
+        if( m_cleaner )
+            m_cleaner->resume();
+    }
+
+    else if( m_eventMonitor->isDiskSpaceLow() ) {
         kDebug() << "Disk Space";
         m_state = State_LowDiskSpace;
 
@@ -400,14 +377,22 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
 
         m_basicIQ->resume();
         m_fileIQ->suspend();
+        if( m_cleaner )
+            m_cleaner->suspend();
     }
 
     else if( m_eventMonitor->isIdle() ) {
         kDebug() << "Idle";
-        m_state = State_UserIdle;
-
-        m_basicIQ->resume();
-        m_fileIQ->resume();
+        if( m_cleaner ) {
+            m_state = State_Cleaning;
+            m_cleaner->start();
+            slotScheduleIndexing();
+        }
+        else {
+            m_state = State_UserIdle;
+            m_basicIQ->resume();
+            m_fileIQ->resume();
+        }
     }
 
     else {
@@ -417,8 +402,17 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
         m_basicIQ->resume();
         if( m_shouldSuspendFileIQOnNormal )
             m_fileIQ->suspend();
-        else
-            m_fileIQ->resume();
+        else {
+            if( m_cleaner ) {
+                // We need to run the cleaner
+                m_state = State_Cleaning;
+                m_cleaner->start();
+                slotScheduleIndexing();
+            }
+            else {
+                m_fileIQ->resume();
+            }
+        }
     }
 }
 
@@ -426,7 +420,7 @@ QString Nepomuk2::IndexScheduler::userStatusString() const
 {
     bool indexing = isIndexing();
     bool suspended = isSuspended();
-    bool cleaning = ( m_cleaner != 0 );
+    bool cleaning = isCleaning();
     bool processing = !m_basicIQ->isEmpty();
 
     if ( suspended ) {
