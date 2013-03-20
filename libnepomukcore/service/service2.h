@@ -120,7 +120,7 @@ namespace Nepomuk2 {
             }
 
             T* service = new T();
-            if( !service->initCommon() )
+            if( !service->initCommon(name) )
                 return 1;
 
             int rv = app.exec();
@@ -156,7 +156,7 @@ namespace Nepomuk2 {
             }
 
             T* service = new T();
-            if( !service->initCommon() )
+            if( !service->initCommon(name) )
                 return 1;
 
             int rv = app.exec();
@@ -186,15 +186,14 @@ namespace Nepomuk2 {
         virtual ~Service2();
 
         /**
-         * Return the service name. It's used to identify the service
-         * and set its about data
+         * Return the generic service name.
          */
-        virtual QString name() = 0;
+        QString name();
 
         /**
-         * An optional description of the service
+         * Returns the description of the service
          */
-        virtual QString description();
+        QString description();
 
         /**
          * Returns the DBus Service Name
@@ -216,7 +215,7 @@ namespace Nepomuk2 {
          */
         void setServiceInitialized( bool success );
 
-        bool initCommon();
+        bool initCommon( const QString& name );
     private:
         class Private;
         Private* const d;

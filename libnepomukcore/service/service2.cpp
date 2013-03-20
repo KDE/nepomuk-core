@@ -28,6 +28,7 @@
 
 #include <KAboutData>
 #include <KDebug>
+#include <KService>
 
 #include <signal.h>
 
@@ -63,8 +64,14 @@ public:
 
     Service2* q;
     ServiceControl2* m_serviceControl;
+
     bool delayedInitialization;
 
+    QString serviceName;
+    QString readableName;
+    QString description;
+
+    bool loadDetails();
     bool configurePriority();
     bool createDBusInterfaces();
 };
@@ -84,9 +91,15 @@ Nepomuk2::Service2::~Service2()
     delete d;
 }
 
+
+QString Nepomuk2::Service2::name()
+{
+    return d->readableName;
+}
+
 QString Nepomuk2::Service2::description()
 {
-    return name();
+    return d->description;
 }
 
 
@@ -96,6 +109,18 @@ void Nepomuk2::Service2::setServiceInitialized( bool success )
                                "setServiceInitialized",
                                Qt::QueuedConnection,  // needs to be queued to give the service time to register with DBus
                                Q_ARG(bool, success) );
+}
+
+bool Nepomuk2::Service2::Private::loadDetails()
+{
+    KService::Ptr servicePtr = KService::serviceByDesktopName( serviceName );
+    if( servicePtr.isNull() )
+        return false;
+
+    readableName = servicePtr->name();
+    description = servicePtr->comment();
+
+    return true;
 }
 
 
@@ -133,7 +158,7 @@ bool Nepomuk2::Service2::Private::createDBusInterfaces()
         return false;
     }
 
-    bus.registerObject( '/' + q->name(), q,
+    bus.registerObject( '/' + serviceName, q,
                         QDBusConnection::ExportScriptableSlots |
                         QDBusConnection::ExportScriptableSignals |
                         QDBusConnection::ExportScriptableProperties |
@@ -148,17 +173,21 @@ bool Nepomuk2::Service2::Private::createDBusInterfaces()
 
 QString Nepomuk2::Service2::dbusServiceName()
 {
-    return dbusServiceName( name() );
+    return dbusServiceName( d->serviceName );
 }
 
 // static
 QString Nepomuk2::Service2::dbusServiceName(const QString& serviceName)
 {
-    return QString("org.kde.nepomuk.services.%1").arg(serviceName);
+    return QString("org.kde.nepomuk.services.%1").arg(serviceName.toLower());
 }
 
-bool Nepomuk2::Service2::initCommon()
+bool Nepomuk2::Service2::initCommon(const QString& name)
 {
+    d->serviceName = name;
+
+    if( !d->loadDetails() )
+        return false;
 
     if( !d->configurePriority() )
         return false;

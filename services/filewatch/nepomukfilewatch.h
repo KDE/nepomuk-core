@@ -58,8 +58,6 @@ namespace Nepomuk2 {
          */
         static void updateFolderViaFileIndexer( const QString& path );
 
-        virtual QString name() { return QLatin1String("nepomukfilewatch"); }
-
     Q_SIGNALS:
         /**
          * Emitted each time the status/activity of the FileWatcher changes

@@ -39,7 +39,6 @@ namespace Nepomuk2 {
         FileIndexer();
         ~FileIndexer();
 
-        virtual QString name() { return QLatin1String("nepomukfileindexer"); }
     Q_SIGNALS:
         void statusStringChanged();
 

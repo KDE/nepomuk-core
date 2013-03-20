@@ -34,8 +34,6 @@ namespace Nepomuk2 {
         Storage();
         ~Storage();
 
-        QString name() { return QLatin1String("nepomukstorage"); }
-
     public Q_SLOTS:
         Q_SCRIPTABLE QString usedSopranoBackend() const;
 
