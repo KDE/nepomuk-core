@@ -65,7 +65,6 @@ public:
     ServiceControl2* m_serviceControl;
     bool delayedInitialization;
 
-    bool alreadyRunning();
     bool configurePriority();
     bool createDBusInterfaces();
 };
@@ -99,18 +98,6 @@ void Nepomuk2::Service2::setServiceInitialized( bool success )
                                Q_ARG(bool, success) );
 }
 
-bool Nepomuk2::Service2::Private::alreadyRunning()
-{
-    QTextStream s( stderr );
-
-    QDBusConnectionInterface* busInt = QDBusConnection::sessionBus().interface();
-    if( busInt->isServiceRegistered( q->dbusServiceName() ) ) {
-        s << "Service " << q->name() << " already running." << endl;
-        return true;
-    }
-
-    return false;
-}
 
 bool Nepomuk2::Service2::Private::configurePriority()
 {
@@ -172,8 +159,6 @@ QString Nepomuk2::Service2::dbusServiceName(const QString& serviceName)
 
 bool Nepomuk2::Service2::initCommon()
 {
-    if( d->alreadyRunning() )
-        return false;
 
     if( !d->configurePriority() )
         return false;

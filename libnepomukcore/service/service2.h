@@ -25,7 +25,9 @@
 
 #include <QtCore/QObject>
 #include <QtCore/QCoreApplication>
+#include <QtCore/QTextStream>
 #include <QtDBus/QDBusConnection>
+#include <QtDBus/QDBusConnectionInterface>
 
 #include <KAboutData>
 #include <KComponentData>
@@ -107,6 +109,16 @@ namespace Nepomuk2 {
             QCoreApplication app( argc, argv );
             KComponentData data( aboutData, KComponentData::RegisterAsMainComponent );
 
+            const QString name = aboutData.appName();
+            const QString dbusName = dbusServiceName( name );
+
+            QTextStream s( stderr );
+            QDBusConnectionInterface* busInt = QDBusConnection::sessionBus().interface();
+            if( busInt->isServiceRegistered( dbusName ) ) {
+                s << "Service " << name << " already running." << endl;
+                return 1;
+            }
+
             T* service = new T();
             if( !service->initCommon() )
                 return 1;
@@ -132,6 +144,16 @@ namespace Nepomuk2 {
             // properly shut down the nepomuk services
             QDBusConnection con = QDBusConnection::sessionBus();
             con.unregisterObject( QLatin1String("/MainApplication"), QDBusConnection::UnregisterNode );
+
+            const QString name = aboutData.appName();
+            const QString dbusName = dbusServiceName( name );
+
+            QTextStream s( stderr );
+            QDBusConnectionInterface* busInt = QDBusConnection::sessionBus().interface();
+            if( busInt->isServiceRegistered( dbusName ) ) {
+                s << "Service " << name << " already running." << endl;
+                return 1;
+            }
 
             T* service = new T();
             if( !service->initCommon() )
