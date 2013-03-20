@@ -63,6 +63,7 @@ public:
 
     Service2* q;
     ServiceControl2* m_serviceControl;
+    bool delayedInitialization;
 
     bool alreadyRunning();
     bool configurePriority();
@@ -75,9 +76,7 @@ Nepomuk2::Service2::Service2( QObject* parent, bool delayedInitialization )
       d( new Private(this) )
 {
     d->m_serviceControl = 0;
-    if ( !delayedInitialization ) {
-        setServiceInitialized( true );
-    }
+    d->delayedInitialization = delayedInitialization;
 }
 
 
@@ -181,6 +180,9 @@ bool Nepomuk2::Service2::initCommon()
 
     if( !d->createDBusInterfaces() )
         return false;
+
+    if ( !d->delayedInitialization )
+        setServiceInitialized( true );
 
     installSignalHandler();
 
