@@ -149,6 +149,10 @@ void loadAllServiceNames()
     const QString serviceNamePrefix( "nepomuk" );
     allServiceNames = QStringList();
 
+    const KService::List newModules = KServiceTypeTrader::self()->query( "NepomukService2" );
+    for( KService::List::ConstIterator it = newModules.constBegin(); it != newModules.constEnd(); ++it )
+        allServiceNames << (*it)->desktopEntryName().remove( 0, serviceNamePrefix.size() );
+
     const KService::List modules = KServiceTypeTrader::self()->query( "NepomukService" );
     for( KService::List::ConstIterator it = modules.constBegin(); it != modules.constEnd(); ++it )
         allServiceNames << (*it)->desktopEntryName().remove( 0, serviceNamePrefix.size() );
