@@ -29,7 +29,7 @@ qt4_add_dbus_adaptor(nepomukfileindexer_SRCS ../../interfaces/org.kde.nepomuk.Fi
 
 qt4_add_dbus_interface(nepomukfileindexer_SRCS ../../interfaces/org.kde.nepomuk.FileWatch.xml filewatchserviceinterface)
 
-kde4_add_plugin(nepomukfileindexer ${nepomukfileindexer_SRCS})
+kde4_add_executable(nepomukfileindexer ${nepomukfileindexer_SRCS})
 
 target_link_libraries(nepomukfileindexer
   nepomukcommon
@@ -51,7 +51,7 @@ install(
 
 install(
   TARGETS nepomukfileindexer
-  DESTINATION ${PLUGIN_INSTALL_DIR})
+  DESTINATION ${INSTALL_TARGETS_DEFAULT_ARGS})
 
 add_subdirectory(indexer)
 add_subdirectory(test)

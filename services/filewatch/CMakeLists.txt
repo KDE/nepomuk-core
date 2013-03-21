@@ -33,15 +33,15 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
 add_definitions(-DBUILD_KINOTIFY)
 endif(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
-kde4_add_plugin(nepomukfilewatch ${SRCS})
+kde4_add_executable(nepomukfilewatch ${SRCS})
 
 target_link_libraries(nepomukfilewatch
   nepomukcommon
   nepomukcore
   ${SOPRANO_CLIENT_LIBRARIES}
   ${SOPRANO_LIBRARIES}
+  ${KDE4_KDECORE_LIBS}
   ${KDE4_KDEUI_LIBS}
-  ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}
   )
 
@@ -50,7 +50,7 @@ install(
   DESTINATION ${SERVICES_INSTALL_DIR})
 install(
   TARGETS nepomukfilewatch
-  DESTINATION ${PLUGIN_INSTALL_DIR})
+  DESTINATION ${INSTALL_TARGETS_DEFAULT_ARGS})
 install(
   FILES nepomukfilewatch.notifyrc
   DESTINATION ${DATA_INSTALL_DIR}/nepomukfilewatch)

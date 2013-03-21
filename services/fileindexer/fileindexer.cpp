@@ -31,8 +31,8 @@
 
 #include <QtCore/QTimer>
 
-Nepomuk2::FileIndexer::FileIndexer( QObject* parent, const QList<QVariant>& )
-    : Service( parent )
+Nepomuk2::FileIndexer::FileIndexer()
+    : Service2()
 {
     // Create the configuration instance singleton (for thread-safety)
     // ==============================================================
@@ -239,11 +239,20 @@ void Nepomuk2::FileIndexer::indexFolder(const QString& path, bool recursive, boo
 }
 
 
+int main( int argc, char **argv ) {
+    KAboutData aboutData( "nepomukfileindexer",
+                          "nepomukfileindexer",
+                          ki18n("Nepomuk File Indexer"),
+                          NEPOMUK_VERSION_STRING,
+                          ki18n("Nepomuk File Indexer"),
+                          KAboutData::License_GPL,
+                          ki18n("(c) 2008-2013, Sebastian Trüg"),
+                          KLocalizedString(),
+                          "http://nepomuk.kde.org" );
+    aboutData.addAuthor(ki18n("Sebastian Trüg"),ki18n("Developer"), "trueg@kde.org");
+    aboutData.addAuthor(ki18n("Vishesh Handa"),ki18n("Maintainer"), "me@vhanda.in");
 
-#include <kpluginfactory.h>
-#include <kpluginloader.h>
-
-NEPOMUK_EXPORT_SERVICE( Nepomuk2::FileIndexer, "nepomukfileindexer" )
-
+    Nepomuk2::Service2::initUI<Nepomuk2::FileIndexer>( argc, argv, aboutData );
+}
 #include "fileindexer.moc"
 

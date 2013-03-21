@@ -182,7 +182,7 @@ private:
 void Nepomuk2::ServiceManager::Private::buildServiceMap()
 {
     if( !m_initialized ) {
-        const KService::List modules = KServiceTypeTrader::self()->query( "NepomukService" );
+        KService::List modules = KServiceTypeTrader::self()->query( "NepomukService" );
         for( KService::List::ConstIterator it = modules.constBegin(); it != modules.constEnd(); ++it ) {
             KService::Ptr service = *it;
             QStringList deps = service->property( "X-KDE-Nepomuk-dependencies", QVariant::StringList ).toStringList();
@@ -193,7 +193,22 @@ void Nepomuk2::ServiceManager::Private::buildServiceMap()
             dependencyTree.insert( service->desktopEntryName(), deps );
         }
 
+        //
+        // Services2
+        //
+        const KService::List newModules = KServiceTypeTrader::self()->query( "NepomukService2" );
+        for( KService::List::ConstIterator it = newModules.constBegin(); it != newModules.constEnd(); ++it ) {
+            KService::Ptr service = *it;
+            QStringList deps = service->property( "X-KDE-Nepomuk-dependencies", QVariant::StringList ).toStringList();
+            if ( deps.isEmpty() ) {
+                deps.append( "nepomukstorage" );
+            }
+            deps.removeAll( service->desktopEntryName() );
+            dependencyTree.insert( service->desktopEntryName(), deps );
+        }
+
         dependencyTree.cleanup();
+        modules.append( newModules );
 
         for( KService::List::ConstIterator it = modules.constBegin(); it != modules.constEnd(); ++it ) {
             KService::Ptr service = *it;

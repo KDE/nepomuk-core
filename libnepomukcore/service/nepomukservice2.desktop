@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=ServiceType
+X-KDE-ServiceType=NepomukService2
+Comment=Nepomuk Service Version 2
+[PropertyDef::X-KDE-Nepomuk-autostart]
+Type=bool
+[PropertyDef::X-KDE-Nepomuk-start-on-demand]
+Type=bool
+[PropertyDef::X-KDE-Nepomuk-run-once]
+Type=bool

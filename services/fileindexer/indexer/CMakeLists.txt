@@ -24,7 +24,7 @@ kde4_add_executable( nepomukindexer ${indexer_SRCS} )
 target_link_libraries( nepomukindexer
   nepomukcommon
   nepomukcore
-  ${KDE4_KIO_LIBS}
+  ${KDE4_KDECORE_LIBS}
   ${SOPRANO_LIBRARIES}
   )
 

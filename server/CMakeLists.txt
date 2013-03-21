@@ -49,10 +49,6 @@ target_link_libraries(nepomukserver
 )
 
 install(
-  FILES nepomukservice.desktop
-  DESTINATION ${SERVICETYPES_INSTALL_DIR})
-
-install(
   FILES nepomukserver.desktop
   DESTINATION ${AUTOSTART_INSTALL_DIR})
 

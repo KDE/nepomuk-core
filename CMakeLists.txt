@@ -58,6 +58,7 @@ include_directories(
   ${SOPRANO_INCLUDE_DIR}
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/resource
+  ${nepomuk-core_SOURCE_DIR}/libnepomukcore/service
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/query
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/types
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/datamanagement

@@ -42,16 +42,17 @@
 #include <KService>
 #include <KServiceTypeTrader>
 
-QStringList allServiceNames;
+KService::List allServices;
 
 void loadAllServiceNames();
 void startNepomukServer();
 void stopNepomukServer();
-void startService( const QString& );
-void stopService( const QString& );
 void showStatus();
-bool isServiceRunning( const QString& );
 bool isServerRunning();
+
+bool isServiceRunning( const KService::Ptr& ptr );
+void startService( const KService::Ptr& ptr );
+void stopService( const KService::Ptr& ptr );
 
 QTextStream out ( stdout );
 
@@ -93,16 +94,23 @@ int main( int argc, char* argv[] )
     QString serviceName;
     bool specificService = false;
 
+    KService::Ptr service;
     if( args->count() == 2 ) {
-        serviceName = args->arg( 1 );
+        serviceName = args->arg( 1 ).toLower();
 
-        if( !allServiceNames.contains( serviceName ) ) {
+        foreach( const KService::Ptr servicePtr, allServices ) {
+            QString name = servicePtr->desktopEntryName().toLower();
+            if( name == serviceName || name == QLatin1String("nepomuk") + serviceName ) {
+                service = servicePtr;
+                specificService = true;
+            }
+        }
+
+        if( service.isNull() ) {
             out << "Error: service '" << serviceName << "' does not exist.\n";
             out.flush();
             KCmdLineArgs::usage();
         }
-
-        specificService = true;
     }
 
     QString command = args->arg( 0 );
@@ -112,21 +120,21 @@ int main( int argc, char* argv[] )
 
    if( stop ) {
         if( specificService )
-            stopService( serviceName );
+            stopService( service );
         else
             stopNepomukServer();
     }
 
     if( start ) {
         if( stop ) {
-            while( ( specificService &&  isServiceRunning( serviceName ) ) ||
+            while( ( specificService &&  isServiceRunning( service ) ) ||
                    ( !specificService && isServerRunning() ) ) {
                 sleep(1);
             }
         }
 
         if( specificService )
-            startService( serviceName );
+            startService( service );
         else
             startNepomukServer();
     }
@@ -146,18 +154,16 @@ int main( int argc, char* argv[] )
 
 void loadAllServiceNames()
 {
-    const QString serviceNamePrefix( "nepomuk" );
-    allServiceNames = QStringList();
-
-    const KService::List modules = KServiceTypeTrader::self()->query( "NepomukService" );
-    for( KService::List::ConstIterator it = modules.constBegin(); it != modules.constEnd(); ++it )
-        allServiceNames << (*it)->desktopEntryName().remove( 0, serviceNamePrefix.size() );
+    allServices.clear();
+    allServices << KServiceTypeTrader::self()->query( "NepomukService2" );
+    allServices << KServiceTypeTrader::self()->query( "NepomukService" );
 }
 
-bool isServiceRunning( const QString& serviceName )
+bool isServiceRunning( const KService::Ptr& ptr )
 {
+    QString serviceName = ptr->desktopEntryName();
     return QDBusConnection::sessionBus().interface()->isServiceRegistered(
-            QLatin1String( "org.kde.nepomuk.services.nepomuk" ) + serviceName );
+            QLatin1String( "org.kde.nepomuk.services." ) + serviceName );
 }
 
 bool isServerRunning()
@@ -188,7 +194,7 @@ void stopNepomukServer()
         out << "Couldn't stop the Nepomuk Server: " << interface.lastError().message() << "\n";
 }
 
-void startService( const QString& serviceName )
+void startService(const KService::Ptr& ptr)
 {
     if( !isServerRunning() ) {
         out << "Nepomuk Server is not running. Starting it...\n";
@@ -196,23 +202,30 @@ void startService( const QString& serviceName )
         return;
     }
 
-    if( isServiceRunning( serviceName ) ) {
-        out << serviceName << " already running.\n";
+    if( isServiceRunning( ptr ) ) {
+        out << ptr->desktopEntryName() << " already running.\n";
     }
     else {
-        QString fullName = QLatin1String( "nepomuk" ) + serviceName;
+        QString program = ptr->exec();
+        QStringList args;
 
-        if( QProcess::startDetached( "nepomukservicestub", QStringList( fullName ) ) )
-            out << serviceName << " started succesfully.\n";
+        if( program.isEmpty() ) {
+            program = QLatin1String("nepomukservicestub");
+            args << ptr->desktopEntryName();
+        }
+
+        if( QProcess::startDetached( program, args ) )
+            out << ptr->desktopEntryName() << " started succesfully.\n";
         else
-            out << serviceName << " could not be started.\n";
+            out << ptr->desktopEntryName() << " could not be started.\n";
     }
 }
 
 
-void stopService( const QString& serviceName )
+void stopService( const KService::Ptr& ptr )
 {
-    QDBusInterface interface( "org.kde.nepomuk.services.nepomuk" + serviceName,
+    QString serviceName = ptr->desktopEntryName();
+    QDBusInterface interface( "org.kde.nepomuk.services." + serviceName,
                               "/servicecontrol" );
 
     QDBusReply<void> reply = interface.call( "shutdown" );
@@ -229,9 +242,14 @@ void showStatus()
     if( isServerRunning() ) {
         out << "Nepomuk Server is running.\n";
 
-        Q_FOREACH( const QString& serviceName, allServiceNames ) {
-            if( isServiceRunning( serviceName ) )
-                out << "Service " << serviceName << " is running.\n";
+        foreach( const KService::Ptr& ptr, allServices ) {
+            if( isServiceRunning( ptr ) ) {
+                QString name = ptr->desktopEntryName();
+                if( name.startsWith(QLatin1String("nepomuk")) ) {
+                    name = name.mid( 7 );
+                }
+                out << "Service " << name << " is running.\n";
+            }
         }
     }
     else

@@ -1,9 +1,9 @@
 [Desktop Entry]
 Type=Service
-ServiceTypes=NepomukService
-X-KDE-Library=nepomukfilewatch
+ServiceTypes=NepomukService2
 X-KDE-Nepomuk-autostart=true
 X-KDE-Nepomuk-start-on-demand=false
+Exec=nepomukfilewatch
 Name=NepomukFileWatch
 Name[bs]=Nepomukov nadzor datoteka
 Name[ca]=NepomukFileWatch
