@@ -33,10 +33,7 @@ ProcessControl::ProcessControl( QObject *parent )
              this, SLOT( slotError( QProcess::ProcessError ) ) );
     connect( &mProcess, SIGNAL( finished( int, QProcess::ExitStatus ) ),
              this, SLOT( slotFinished( int, QProcess::ExitStatus ) ) );
-    connect( &mProcess, SIGNAL( readyReadStandardError() ),
-             this, SLOT( slotErrorMessages() ) );
-    connect( &mProcess, SIGNAL( readyReadStandardOutput() ),
-             this, SLOT( slotStdoutMessages() ) );
+    mProcess.setProcessChannelMode( QProcess::ForwardedChannels );
 }
 
 ProcessControl::~ProcessControl()
@@ -111,22 +108,9 @@ void ProcessControl::slotFinished( int exitCode, QProcess::ExitStatus exitStatus
     }
 }
 
-void ProcessControl::slotErrorMessages()
-{
-    QString message = QString::fromUtf8( mProcess.readAllStandardError() );
-    emit processErrorMessages( message );
-    qDebug( "[%s] %s", qPrintable( mApplication ), qPrintable( message.trimmed() ) );
-}
-
 void ProcessControl::start()
 {
     mProcess.start( mApplication, mArguments );
-}
-
-void ProcessControl::slotStdoutMessages()
-{
-    QString message = QString::fromUtf8( mProcess.readAllStandardOutput() );
-    qDebug() << mApplication << "[out]" << message;
 }
 
 bool ProcessControl::isRunning() const
