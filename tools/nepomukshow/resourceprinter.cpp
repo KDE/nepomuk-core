@@ -221,6 +221,12 @@ namespace {
 
 }
 
+Nepomuk2::ResourcePrinter::ResourcePrinter()
+{
+    m_printGraphs = false;
+    m_inference = false;
+}
+
 
 void Nepomuk2::ResourcePrinter::print(QTextStream& stream, const QUrl& uri)
 {

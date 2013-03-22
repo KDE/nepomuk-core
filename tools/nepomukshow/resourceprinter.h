@@ -28,6 +28,8 @@ namespace Nepomuk2 {
     class ResourcePrinter
     {
     public:
+        ResourcePrinter();
+
         void print(QTextStream& stream, const QUrl& uri);
 
         void setGraphs(bool status);
