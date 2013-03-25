@@ -2,6 +2,8 @@
 Type=ServiceType
 X-KDE-ServiceType=NepomukService2
 Comment=Nepomuk Service Version 2
+Comment[de]=Nepomuk-Dienst Version 2
+Comment[el]=Υπηρεσία Nepomuk έκδοση 2
 Comment[es]=Servicio Nepomuk versión 2
 Comment[mr]=नेपोमुक सेवा आवृत्ती २
 Comment[nl]=Nepomuk-service versie 2
