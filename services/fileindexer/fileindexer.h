@@ -68,6 +68,9 @@ namespace Nepomuk2 {
         QString currentFolder() const;
         QString currentFile() const;
 
+        Q_SCRIPTABLE int indexedFiles() const;
+        Q_SCRIPTABLE int totalFiles() const;
+
         /**
          * Update folder \a path if it is configured to be indexed.
          */
