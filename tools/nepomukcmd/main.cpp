@@ -87,23 +87,29 @@ int main( int argc, char *argv[] )
     Soprano::Model* model = rm->mainModel();
     QTextStream stream( stdout );
 
-    int resultCount = 0;
     QTime timer;
     timer.start();
     Soprano::QueryResultIterator it = model->executeQuery( query, lang );
     int queryTime = timer.elapsed();
-    while( it.next() ) {
-        QStringList bindValues;
-        foreach(const QString& binding, it.bindingNames()) {
-            bindValues << QString::fromLatin1("%1 -> %2").arg( binding, it[binding].toN3() );
-        }
 
-        stream << bindValues.join("; ") << endl;
-        resultCount++;
+    if( it.isBool() ) {
+        stream << (it.boolValue() ? "true" : "false") << endl;
+    }
+    else {
+        int resultCount = 0;
+        while( it.next() ) {
+            QStringList bindValues;
+            foreach(const QString& binding, it.bindingNames()) {
+                bindValues << QString::fromLatin1("%1 -> %2").arg( binding, it[binding].toN3() );
+            }
+
+            stream << bindValues.join("; ") << endl;
+            resultCount++;
+        }
+        stream << "Total Results: " << resultCount << endl;
     }
     int totalTime = timer.elapsed();
 
-    stream << "Total Results: " << resultCount << endl;
     stream << "Execution Time: " << QTime().addMSecs( queryTime ).toString( "hh:mm:ss.zz" ) << endl;
     stream << "Total Time: " << QTime().addMSecs( totalTime ).toString( "hh:mm:ss.zz" ) << endl;
 
