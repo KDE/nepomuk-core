@@ -127,7 +127,7 @@ Nepomuk2::FileWatch::FileWatch()
     // start the mover thread
     m_metadataMoverThread = new QThread(this);
     m_metadataMoverThread->start();
-    m_metadataMover = new MetadataMover( mainModel, this );
+    m_metadataMover = new MetadataMover( ResourceManager::instance()->mainModel() );
     connect( m_metadataMover, SIGNAL(movedWithoutData(QString)),
              this, SLOT(slotMovedWithoutData(QString)),
              Qt::QueuedConnection );
@@ -190,6 +190,7 @@ Nepomuk2::FileWatch::~FileWatch()
     kDebug();
     m_metadataMoverThread->quit();
     m_metadataMoverThread->wait();
+    delete m_metadataMover;
 }
 
 

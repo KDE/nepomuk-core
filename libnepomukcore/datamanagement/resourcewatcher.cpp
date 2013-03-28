@@ -23,6 +23,7 @@
 #include "resourcewatcherconnectioninterface.h"
 #include "resourcewatchermanagerinterface.h"
 #include "resourcemanager.h"
+#include "kdbusconnectionpool.h"
 
 #include "resource.h"
 #include "variant.h"
@@ -76,7 +77,7 @@ Nepomuk2::ResourceWatcher::ResourceWatcher(QObject* parent)
     d->m_watchManagerInterface
             = new org::kde::nepomuk::ResourceWatcher( "org.kde.nepomuk.DataManagement",
                                                       "/resourcewatcher",
-                                                      QDBusConnection::sessionBus() );
+                                                      KDBusConnectionPool::threadConnection() );
     d->m_connectionInterface = 0;
 }
 
@@ -113,7 +114,7 @@ bool Nepomuk2::ResourceWatcher::start()
     if(!path.path().isEmpty()) {
         d->m_connectionInterface = new org::kde::nepomuk::ResourceWatcherConnection( "org.kde.nepomuk.DataManagement",
                                                                                      path.path(),
-                                                                                     QDBusConnection::sessionBus() );
+                                                                                     KDBusConnectionPool::threadConnection() );
         connect( d->m_connectionInterface, SIGNAL(propertyChanged(QString,QString,QVariantList,QVariantList)),
                  this, SLOT(slotPropertyChanged(QString,QString,QVariantList,QVariantList)) );
         connect( d->m_connectionInterface, SIGNAL(resourceCreated(QString,QStringList)),
