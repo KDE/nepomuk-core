@@ -42,22 +42,22 @@ QStringList Exiv2Extractor::mimetypes()
 {
     QStringList types;
 
-    types << QLatin1String("image/jpeg")
+    types << QLatin1String("image/jp2")
+          << QLatin1String("image/jpeg")
+          << QLatin1String("image/pgf")
+          << QLatin1String("image/png")
+          << QLatin1String("image/tiff")
           << QLatin1String("image/x-exv")
           << QLatin1String("image/x-canon-cr2")
           << QLatin1String("image/x-canon-crw")
-          << QLatin1String("image/x-minolta-mrw")
-          << QLatin1String("image/tiff")
-          << QLatin1String("image/x-nikon-nef")
-          << QLatin1String("image/x-pentax-pef")
-          << QLatin1String("image/x-panasonic-rw2")
-          << QLatin1String("image/x-samsung-srw")
-          << QLatin1String("image/x-olympus-orf")
-          << QLatin1String("image/png")
-          << QLatin1String("image/pgf")
           << QLatin1String("image/x-fuji-raf")
+          << QLatin1String("image/x-minolta-mrw")
+          << QLatin1String("image/x-nikon-nef")
+          << QLatin1String("image/x-olympus-orf")
+          << QLatin1String("image/x-panasonic-rw2")
+          << QLatin1String("image/x-pentax-pef")
           << QLatin1String("image/x-photoshop")
-          << QLatin1String("image/jp2");
+          << QLatin1String("image/x-samsung-srw");
 
     return types;
 }
@@ -85,7 +85,7 @@ namespace {
 
     QVariant toVariantFloat(const Exiv2::Value& value) {
         // WARNING: Dbus does not recognize float, cast to double
-        if( value.typeId() == Exiv2::tiffFloat || value.typeId() == Exiv2::tiffDouble )
+        if( value.typeId() == Exiv2::tiffFloat || value.typeId() == Exiv2::tiffDouble || value.typeId() == Exiv2::unsignedRational || value.typeId() == Exiv2::signedRational )
             return QVariant( static_cast<double>(value.toFloat()) );
 
         QString str( toString(value) );
@@ -227,6 +227,13 @@ SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& file
         QVariant value = toVariantFloat( it->value() );
         if( !value.isNull() )
             fileRes.setProperty( NEXIF::exposureTime(), value );
+    }
+
+    it = data.findKey( Exiv2::ExifKey("Exif.Photo.FNumber") );
+    if( it != data.end() ) {
+        QVariant value = toVariantFloat( it->value() );
+        if( !value.isNull() )
+            fileRes.setProperty( NEXIF::fNumber(), value );
     }
 
     it = data.findKey( Exiv2::ExifKey("Exif.Photo.ApertureValue") );
