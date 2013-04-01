@@ -68,6 +68,7 @@ Nepomuk2::Repository::Repository( const QString& name )
       m_modelCopyJob( 0 ),
       m_oldStorageBackend( 0 )
 {
+    m_dummyModel = new Soprano::Util::DummyModel();
 }
 
 
@@ -75,6 +76,7 @@ Nepomuk2::Repository::~Repository()
 {
     kDebug() << m_name;
     close();
+    delete m_dummyModel;
 }
 
 
@@ -90,7 +92,7 @@ void Nepomuk2::Repository::close()
     delete m_dataManagementAdaptor;
     m_dataManagementAdaptor = 0;
 
-    setParentModel(0);
+    setParentModel(m_dummyModel);
     delete m_dataManagementModel;
     m_dataManagementModel = 0;
 

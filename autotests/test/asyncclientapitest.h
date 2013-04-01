@@ -19,43 +19,23 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef FAKEDATAMANAGEMENTSERVICE_H
-#define FAKEDATAMANAGEMENTSERVICE_H
+#ifndef ASYNCCLIENTAPITEST_H
+#define ASYNCCLIENTAPITEST_H
 
-#include <QObject>
+#include <QtCore/QObject>
+#include "../lib/testbase.h"
 
-namespace Soprano {
-class Model;
-class NRLModel;
-}
-namespace Nepomuk2 {
-class DataManagementModel;
-class DataManagementAdaptor;
-class ClassAndPropertyTree;
-class VirtuosoInferenceModel;
-}
-class KTempDir;
-
-class FakeDataManagementService : public QObject
+class AsyncClientApiTest : public Nepomuk2::TestBase
 {
     Q_OBJECT
-    Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.FakeDataManagement")
 
-public:
-    FakeDataManagementService(QObject *parent = 0);
-    ~FakeDataManagementService();
-
-public Q_SLOTS:
-    void updateClassAndPropertyTree();
-
+private slots:
+    void testAddProperty();
+    void testSetProperty();
+    void testCreateResource();
+    void testRemoveProperty();
+    void testRemoveResources();
 private:
-    KTempDir* m_storageDir;
-    Soprano::Model* m_model;
-    Soprano::NRLModel* m_nrlModel;
-    Nepomuk2::ClassAndPropertyTree* m_classAndPropertyTree;
-    Nepomuk2::VirtuosoInferenceModel* m_inferenceModel;
-    Nepomuk2::DataManagementModel* m_dmModel;
-    Nepomuk2::DataManagementAdaptor* m_dmAdaptor;
 };
 
 #endif

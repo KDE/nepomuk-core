@@ -91,6 +91,7 @@ Nepomuk2::IndexCleaner::IndexCleaner(QObject* parent)
 
 void Nepomuk2::IndexCleaner::start()
 {
+    kDebug() << "CLEANING!!";
     const QString folderFilter = constructExcludeFolderFilter(Nepomuk2::FileIndexerConfig::self());
 
     const int limit = 20;
@@ -250,7 +251,9 @@ void Nepomuk2::IndexCleaner::start()
     // Start the removal
     //
     m_query = m_removalQueries.dequeue();
-    clearNextBatch();
+    if( !m_suspended ) {
+        QTimer::singleShot(m_delay, this, SLOT(clearNextBatch()));
+    }
 }
 
 void Nepomuk2::IndexCleaner::slotRemoveResourcesDone(KJob* job)

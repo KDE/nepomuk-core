@@ -39,7 +39,7 @@ set_package_properties(PopplerQt4 PROPERTIES DESCRIPTION "A PDF rendering librar
 find_package(Taglib)
 set_package_properties(Taglib PROPERTIES DESCRIPTION "Id3 tag reader" URL "http://developer.kde.org/~wheeler/taglib.html" TYPE OPTIONAL PURPOSE "Support for music metadata")
 
-find_package(Exiv2)
+find_package(Exiv2 0.21)
 set_package_properties(Exiv2 PROPERTIES DESCRIPTION "Image Tag reader" URL "http://www.exiv2.org" TYPE OPTIONAL PURPOSE "Support for image metadata")
 
 find_package(FFmpeg)
@@ -58,6 +58,7 @@ include_directories(
   ${SOPRANO_INCLUDE_DIR}
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/resource
+  ${nepomuk-core_SOURCE_DIR}/libnepomukcore/service
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/query
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/types
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/datamanagement
@@ -78,6 +79,7 @@ add_subdirectory(cleaner)
 add_subdirectory(interfaces)
 add_subdirectory(removed-services)
 add_subdirectory(includes)
+add_subdirectory(tools)
 if(KDE4_BUILD_TESTS)
   add_subdirectory(tests)
   add_subdirectory(autotests)

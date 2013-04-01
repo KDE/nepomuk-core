@@ -125,9 +125,9 @@ void QueryParserTest::testQueryParser_data()
                                              << Query( OrTerm( ComparisonTerm( QUrl("onto:/hasTag"), ComparisonTerm( QUrl("onto:/label"), LiteralTerm( "nepomuk" ) ) ),
                                                                ComparisonTerm( QUrl("onto:/tag"), ComparisonTerm( QUrl("onto:/label"), LiteralTerm( "nepomuk" ) ) ) ) );
     QTest::newRow( "int property query" ) << QString( "'int value':42" )
-                                          << Query( ComparisonTerm( QUrl("onto:/int"), LiteralTerm( 42 ) ) );
+                                          << Query( ComparisonTerm( QUrl("onto:/int"), LiteralTerm( 42 ), ComparisonTerm::Equal ) );
     QTest::newRow( "int property query 2" ) << QString( "int:\"42\"" )
-                                            << Query( ComparisonTerm( QUrl("onto:/int"), LiteralTerm( 42 ) ) );
+                                            << Query( ComparisonTerm( QUrl("onto:/int"), LiteralTerm( 42 ), ComparisonTerm::Equal ) );
 
 
     // negation

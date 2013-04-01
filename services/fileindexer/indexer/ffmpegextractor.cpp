@@ -72,6 +72,7 @@ QStringList FFmpegExtractor::mimetypes()
     types << QLatin1String("video/x-ms-wmv");
     types << QLatin1String("video/mp4");
     types << QLatin1String("video/x-matroska");
+    types << QLatin1String("video/webm");
 
     return types;
 }
@@ -156,8 +157,13 @@ SimpleResourceGraph FFmpegExtractor::extract(const QUrl& resUri, const QUrl& fil
                 subRes.addProperty( NFO::width(), codec->width );
                 subRes.addProperty( NFO::height(), codec->height );
 
-                int aspectRatio = codec->sample_aspect_ratio.num / codec->sample_aspect_ratio.den;
-                int frameRate = stream->r_frame_rate.num / stream->r_frame_rate.den;
+                int aspectRatio = codec->sample_aspect_ratio.num;
+                int frameRate = stream->r_frame_rate.num;
+
+                if( codec->sample_aspect_ratio.den )
+                    aspectRatio /= codec->sample_aspect_ratio.den;
+                if( stream->r_frame_rate.den )
+                    frameRate /= stream->r_frame_rate.den;
 
                 subRes.addProperty( NFO::aspectRatio(), aspectRatio );
                 subRes.addProperty( NFO::frameRate(), frameRate );

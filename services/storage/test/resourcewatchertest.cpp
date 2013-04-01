@@ -68,6 +68,8 @@ void ResourceWatcherTest::resetModel()
 
     // rebuild the internals of the data management model
     m_classAndPropertyTree->rebuildTree(m_dmModel);
+    m_inferenceModel->updateOntologyGraphs(true);
+    m_dmModel->clearCache();
 }
 
 
@@ -212,9 +214,45 @@ void ResourceWatcherTest::testStoreResources_createResources()
 
     const QUrl resUri = stList.first().subject().uri();
     QCOMPARE(args[0].toString(), resUri.toString());
-    QCOMPARE(args[1].toStringList(), QStringList() << NCO::Contact().toString() );
 
-    con->deleteLater();
+    QStringList types = args[1].toStringList();
+    QVERIFY( types.contains( NCO::Contact().toString() ) );
+
+    delete con;
+}
+
+void ResourceWatcherTest::testStoreResources_createSubResources()
+{
+    ResourceWatcherManager *rvm = m_dmModel->resourceWatcherManager();
+    ResourceWatcherConnection* con = rvm->createConnection( QList<QUrl>(), QList<QUrl>(),
+                                                            QList<QUrl>() << NCO::Contact() );
+    QVERIFY(!m_dmModel->lastError());
+
+    SimpleResource res;
+    //add subtype of nco:Contact
+    res.addType( NCO::PersonContact() );
+    res.addProperty( NCO::fullname(), QLatin1String("Haruki Musterman") );
+
+    QSignalSpy spy(con, SIGNAL(resourceCreated(QString, QStringList)));
+
+    m_dmModel->storeResources( SimpleResourceGraph() << res, QLatin1String("testApp") );
+    QVERIFY(!m_dmModel->lastError());
+
+    QCOMPARE( spy.count(), 1 );
+
+    QList<QVariant> args = spy.takeFirst();
+
+    QList< Statement > stList = m_model->listStatements( Node(), RDF::type(), NCO::PersonContact() ).allStatements();
+    QCOMPARE( stList.size(), 1 );
+
+    const QUrl resUri = stList.first().subject().uri();
+    QCOMPARE(args[0].toString(), resUri.toString());
+
+    QStringList types = args[1].toStringList();
+    QVERIFY( types.contains( NCO::PersonContact().toString() ) );
+    QVERIFY( types.contains( NCO::Contact().toString() ) );
+
+    delete con;
 }
 
 void ResourceWatcherTest::testSetProperty()
@@ -701,8 +739,10 @@ void ResourceWatcherTest::testStoreResources_resourceCreated()
     // test that we got the resourceCreated signal
     QCOMPARE(typeWrCreateSpy.count(), 1);
     QVariantList args = typeWrCreateSpy.takeFirst();
-    QCOMPARE(args[1].toStringList().count(), 1);
-    QCOMPARE(args[1].toStringList().first(), QString::fromLatin1("class:/typeA"));
+    QStringList types = args[1].toStringList();
+    QCOMPARE(types.size(), 2);
+    QVERIFY(types.contains(QString::fromLatin1("class:/typeA")));
+    QVERIFY(types.contains(RDFS::Resource().toString()));
 
 
     // now add some new information to an existing resource

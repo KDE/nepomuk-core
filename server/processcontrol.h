@@ -96,8 +96,6 @@ Q_SIGNALS:
 private Q_SLOTS:
     void slotError( QProcess::ProcessError );
     void slotFinished( int, QProcess::ExitStatus );
-    void slotErrorMessages();
-    void slotStdoutMessages();
 
 private:
     void start();

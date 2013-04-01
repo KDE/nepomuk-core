@@ -1,6 +1,6 @@
 /*
    This file is part of the Nepomuk KDE project.
-   Copyright (C) 2011 Sebastian Trueg <trueg@kde.org>
+   Copyright (C) 2013 David Edmundson <davidedmundson@kde.org>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -19,9 +19,9 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef NEPOMUK_DMS_TEST_CONFIG_H_CMAKE
-#define NEPOMUK_DMS_TEST_CONFIG_H_CMAKE
+#ifndef INDEXEREXTRACTORTESTSCONFIG_H
+#define INDEXEREXTRACTORTESTSCONFIG_H
 
-#define FAKEDMS_BIN "${EXECUTABLE_OUTPUT_PATH}/fakedms"
+#define NEPOMUK_INDEXER_TESTS_SAMPLE_FILES_PATH "@CMAKE_CURRENT_SOURCE_DIR@/samplefiles"
 
-#endif // NEPOMUK_DMS_TEST_CONFIG_H_CMAKE
+#endif

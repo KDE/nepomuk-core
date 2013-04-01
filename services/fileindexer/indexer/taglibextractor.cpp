@@ -26,9 +26,15 @@
 #include "nfo.h"
 #include <KDebug>
 
-#include <taglib/taglib.h>
 #include <taglib/fileref.h>
+#include <taglib/flacfile.h>
+#include <taglib/id3v2tag.h>
+#include <taglib/mpegfile.h>
+#include <taglib/oggfile.h>
+#include <taglib/taglib.h>
 #include <taglib/tag.h>
+#include <taglib/vorbisfile.h>
+#include <taglib/xiphcomment.h>
 #include <QDateTime>
 
 using namespace Nepomuk2::Vocabulary;
@@ -74,10 +80,93 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
 
     SimpleResourceGraph graph;
     SimpleResource fileRes( resUri );
-    fileRes.addType( NMM::MusicPiece() );
 
     TagLib::Tag* tags = file.tag();
-    if( tags ) {
+    if( !tags->isEmpty() ) {
+        fileRes.addType( NMM::MusicPiece() );
+    } else {
+        fileRes.addType( NFO::Audio() );
+    }
+
+    TagLib::String artists = "";
+    TagLib::StringList genres;
+
+    // Handling multiple tags in mpeg files.
+    if( (mimeType == "audio/mpeg") || (mimeType == "audio/mpeg3") || (mimeType == "audio/x-mpeg") ) {
+        TagLib::MPEG::File mpegFile( fileUrl.toLocalFile().toUtf8().data(), true );
+        if( !mpegFile.ID3v2Tag()->isEmpty() ) {
+            TagLib::ID3v2::FrameList lstID3v2;
+
+            // Artist.
+            lstID3v2 = mpegFile.ID3v2Tag()->frameListMap()["TPE1"];
+            if ( !lstID3v2.isEmpty() ) {
+                for (TagLib::ID3v2::FrameList::ConstIterator it = lstID3v2.begin(); it != lstID3v2.end(); ++it) {
+                    if( !artists.isEmpty() ) {
+                        artists += ", ";
+                    }
+                    artists += (*it)->toString();
+                }
+            }
+
+            // Genre.
+            lstID3v2 = mpegFile.ID3v2Tag()->frameListMap()["TCON"];
+            if ( !lstID3v2.isEmpty() ) {
+                for (TagLib::ID3v2::FrameList::ConstIterator it = lstID3v2.begin(); it != lstID3v2.end(); ++it) {
+                    genres.append((*it)->toString());
+                }
+            }
+        }
+    }
+
+    // Handling multiple tags in FLAC files.
+    if( mimeType == "audio/flac" ) {
+        TagLib::FLAC::File flacFile( fileUrl.toLocalFile().toUtf8().data(), true );
+        if( !flacFile.xiphComment()->isEmpty() ) {
+            TagLib::Ogg::FieldListMap lstFLAC = flacFile.xiphComment()->fieldListMap();
+            TagLib::Ogg::FieldListMap::ConstIterator itFLAC;
+
+            // Artist.
+            itFLAC = lstFLAC.find("ARTIST");
+            if( itFLAC != lstFLAC.end() ) {
+                if( !artists.isEmpty() ) {
+                    artists += ", ";
+                }
+                artists += (*itFLAC).second.toString(", ");
+            }
+
+            // Genre.
+            itFLAC = lstFLAC.find("GENRE");
+            if( itFLAC != lstFLAC.end() ) {
+                genres.append((*itFLAC).second);
+            }
+        }
+    }
+
+    // Handling multiple tags in OGG files.
+    if( mimeType == "audio/ogg" || mimeType == "audio/x-vorbis+ogg" ) {
+        TagLib::Ogg::Vorbis::File oggFile( fileUrl.toLocalFile().toUtf8().data(), true );
+        if( !oggFile.tag()->isEmpty() ) {
+            TagLib::Ogg::FieldListMap lstOGG = oggFile.tag()->fieldListMap();
+            TagLib::Ogg::FieldListMap::ConstIterator itOGG;
+
+            // Artist.
+            itOGG = lstOGG.find("ARTIST");
+            if( itOGG != lstOGG.end() ) {
+                if( !artists.isEmpty() ) {
+                    artists += ", ";
+                }
+                artists += (*itOGG).second.toString(", ");
+            }
+
+            // Genre.
+            itOGG = lstOGG.find("GENRE");
+            if( itOGG != lstOGG.end() ) {
+                genres.append((*itOGG).second);
+            }
+        }
+    }
+
+    if( !tags->isEmpty() ) {
         QString title = QString::fromUtf8( tags->title().toCString( true ) );
         if( !title.isEmpty() ) {
             fileRes.addProperty( NIE::title(), title );
@@ -88,13 +177,26 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
             fileRes.addProperty( NIE::comment(), comment );
         }
 
-        // TODO: Split genres
-        QString genre = QString::fromUtf8( tags->genre().toCString( true ) );
-        if( !genre.isEmpty() ) {
-            fileRes.addProperty( NMM::genre(), genre );
+        if( genres.isEmpty() ) {
+            // TODO: Split genres.
+            QString genre = QString::fromUtf8( tags->genre().toCString( true ) );
+            if( !genre.isEmpty() ) {
+                fileRes.addProperty( NMM::genre(), genre );
+            }
+        } else {
+            for( uint i = 0; i < genres.size(); i++ ) {
+                QString genre = QString::fromUtf8( genres[i].toCString( true ) ).trimmed();
+                fileRes.addProperty( NMM::genre(), genre );
+            }
         }
 
-        QString artistString = QString::fromUtf8( tags->artist().toCString( true ) );
+        QString artistString;
+        if( artists.isEmpty() ) {
+            artistString = QString::fromUtf8( tags->artist().toCString( true ) );
+        } else {
+            artistString = QString::fromUtf8( artists.toCString( true ) ).trimmed();
+        }
+
         QList< SimpleResource > artists = contactsFromString( artistString );
         foreach( const SimpleResource& res, artists ) {
             fileRes.addProperty( NMM::performer(), res );
@@ -150,6 +252,29 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
     // - Codec
     // - Album Artist
     // - Publisher
+
+    // TAG information (incomplete).
+    // A good reference: http://qoobar.sourceforge.net/en/documentation.htm
+    // -- FLAC/OGG --
+    // Artist:          ARTIST, PERFORMER
+    // Album artist:    ALBUMARTIST
+    // Composer:        COMPOSER
+    // Lyricist:        LYRICIST
+    // Conductor:       CONDUCTOR
+    // Disc number:     DISCNUMBER
+    // Total discs:     TOTALDISCS, DISCTOTAL
+    // Track number:    TRACKNUMBER
+    // Total tracks:    TOTALTRACKS, TRACKTOTAL
+    // Genre: GENRE
+    // -- ID3v2 --
+    // Artist:                          TPE1
+    // Album artist:                    TPE2
+    // Composer:                        TCOM
+    // Lyricist:                        TEXT
+    // Conductor:                       TPE3
+    // Disc number[/total dics]:        TPOS
+    // Track number[/total tracks]:     TRCK
+    // Genre:                           TCON
 
     graph << fileRes;
     return graph;

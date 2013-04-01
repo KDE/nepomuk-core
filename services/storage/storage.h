@@ -19,19 +19,19 @@
 #ifndef _NEPOMUK_STORAGE_H_
 #define _NEPOMUK_STORAGE_H_
 
-#include "nepomukservice.h"
+#include "service2.h"
 
 namespace Nepomuk2 {
 
     class Core;
 
-    class Storage : public Service
+    class Storage : public Service2
     {
         Q_OBJECT
         Q_CLASSINFO( "D-Bus Interface", "org.kde.nepomuk.Storage" )
 
     public:
-        Storage( QObject* parent, const QList<QVariant>& args = QList<QVariant>() );
+        Storage();
         ~Storage();
 
     public Q_SLOTS:

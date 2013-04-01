@@ -229,7 +229,7 @@ void Nepomuk2::ResourceWatcherManager::changeProperty(const QMultiHash< QUrl, So
     }
 }
 
-void Nepomuk2::ResourceWatcherManager::createResource(const QUrl &uri, const QList<QUrl> &types)
+void Nepomuk2::ResourceWatcherManager::createResource(const QUrl& uri, const QSet<QUrl>& types)
 {
     QMutexLocker locker( &m_mutex );
     QSet<ResourceWatcherConnection*> connections(m_watchAllConnections);

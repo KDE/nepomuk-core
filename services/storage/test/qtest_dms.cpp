@@ -135,6 +135,8 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NFO::fileName(), RDFS::range(), XMLSchema::string(), graph );
     model->addStatement( NCO::fullname(), RDF::type(), RDF::Property(), graph );
     model->addStatement( NCO::fullname(), RDFS::range(), XMLSchema::string(), graph );
+    model->addStatement( NCO::fullname(), RDFS::domain(), NCO::Contact(), graph );
+    model->addStatement( NCO::fullname(), NRL::maxCardinality(), LiteralValue(1), graph );
     model->addStatement( NIE::title(), RDF::type(), RDF::Property(), graph );
     model->addStatement( NIE::title(), RDFS::range(), XMLSchema::string(), graph );
     model->addStatement( NAO::created(), RDF::type(), RDF::Property(), graph );
@@ -203,16 +205,11 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NIE::lastModified(), RDF::type(), RDF::Property(), graph );
     model->addStatement( NIE::lastModified(), RDFS::range(), XMLSchema::dateTime(), graph );
 
-    model->addStatement( NCO::fullname(), RDF::type(), RDF::Property(), graph );
-    model->addStatement( NCO::fullname(), RDFS::range(), XMLSchema::string(), graph );
-    model->addStatement( NCO::fullname(), RDFS::domain(), NCO::Contact(), graph );
-    model->addStatement( NCO::fullname(), NRL::maxCardinality(), LiteralValue(1), graph );
-    model->addStatement( NCO::Contact(), RDF::type(), RDFS::Resource(), graph );
-    model->addStatement( NCO::Contact(), RDF::type(), RDFS::Class(), graph );
-    model->addStatement( NCO::Role(), RDF::type(), RDFS::Class(), graph );
-    model->addStatement( NCO::Contact(), RDFS::subClassOf(), NCO::Role(), graph );
-    model->addStatement( NCO::Contact(), RDFS::subClassOf(), NAO::Party(), graph );
-    model->addStatement( NCO::Contact(), RDFS::subClassOf(), NIE::InformationElement(), graph );
+    addType( model, graph, NCO::Contact(), QList<QUrl>() << NCO::Role() << NAO::Party() << NIE::InformationElement() );
+    addType( model, graph, NCO::PersonContact(), QList<QUrl>() << NCO::Contact() );
+    addProperty( model, graph, NCO::fullname(), NCO::Contact(), XMLSchema::string() );
+    addProperty( model, graph, NCO::nickname(), NCO::Contact(), XMLSchema::string() );
+    addProperty( model, graph, NCO::birthDate(), NCO::Contact(), XMLSchema::date() );
 
     model->addStatement( NCO::gender(), RDF::type(), RDF::Property(), graph );
     model->addStatement( NCO::gender(), RDFS::range(), NCO::Gender(), graph );
@@ -225,10 +222,6 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     model->addStatement( NCO::male(), RDF::type(), RDFS::Resource(), graph );
     model->addStatement( NCO::female(), RDF::type(), NCO::Gender(), graph );
     model->addStatement( NCO::female(), RDF::type(), RDFS::Resource(), graph );
-
-    model->addStatement( NCO::PersonContact(), RDF::type(), RDFS::Resource(), graph );
-    model->addStatement( NCO::PersonContact(), RDF::type(), RDFS::Class(), graph );
-    model->addStatement( NCO::PersonContact(), RDFS::subClassOf(), NCO::Contact(), graph );
 
     model->addStatement( NAO::Tag(), RDF::type(), RDFS::Class(), graph );
     model->addStatement( NFO::FileDataObject(), RDF::type(), RDFS::Class(), graph );

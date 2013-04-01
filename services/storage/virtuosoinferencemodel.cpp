@@ -33,7 +33,6 @@
 using namespace Soprano::Vocabulary;
 
 namespace {
-    const char* s_typeVisibilityGraph = "nepomuk:/ctx/typevisibility";
     const char* s_nepomukInferenceRuleSetName = "nepomukinference";
     const char* s_nepomukOntologyGroup = "nepomuk-ontology-group";
 }
@@ -126,10 +125,6 @@ void Nepomuk2::VirtuosoInferenceModel::updateOntologyGraphs(bool forced)
     }
 
     m_haveInferenceRule = (ontologyCount > 0);
-
-    // Remove all type visibility stuff
-    const QUrl visibilityGraph = QUrl::fromEncoded(s_typeVisibilityGraph);
-    removeContext( visibilityGraph );
 }
 
 #include "virtuosoinferencemodel.moc"

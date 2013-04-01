@@ -67,7 +67,7 @@ qt4_add_dbus_adaptor(queryservice_SRCS
   query/folderconnection.h
   Nepomuk2::Query::FolderConnection)
 
-kde4_add_plugin(nepomukstorage ${storage_SRCS} ${queryservice_SRCS} ${Backup_SRCS})
+kde4_add_executable(nepomukstorage ${storage_SRCS} ${queryservice_SRCS} ${Backup_SRCS})
 
 target_link_libraries(nepomukstorage
   ${SOPRANO_LIBRARIES}
@@ -89,7 +89,7 @@ install(
 
 install(
   TARGETS nepomukstorage
-  DESTINATION ${PLUGIN_INSTALL_DIR})
+  DESTINATION ${INSTALL_TARGETS_DEFAULT_ARGS})
 # -----------------------------
 
 add_subdirectory(backup)

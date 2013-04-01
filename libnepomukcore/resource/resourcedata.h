@@ -138,13 +138,9 @@ namespace Nepomuk2 {
          * and add m_data into ResourceManagerPrivate::m_initializedData
          * or it will find another ResourceData instance in m_initializedData
          * which represents the same resource. The ResourceData that should be
-         * used is returned.
-         *
-         * \returns The initialized ResourceData object representing the actual resource.
-         *
-         * The resource manager mutex needs to be locked before calling this method
+         * used is set in all the associated resources.
          */
-        ResourceData* determineUri();
+        void determineUri();
 
         void invalidateCache();
 
@@ -158,7 +154,7 @@ namespace Nepomuk2 {
         ResourceManagerPrivate* rm() const { return m_rm; }
 
         /// Updates ResourceManagerPrivate's list
-        void updateKickOffLists( const QUrl& uri, const Variant& variant );
+        void updateKickOffLists( const QUrl& uri, const Variant& oldvariant, const Variant& newvariant );
 
         /// Called by ResourceManager (with the RM mutex locked)
         void propertyRemoved( const Types::Property &prop, const QVariant &value );
@@ -177,7 +173,7 @@ namespace Nepomuk2 {
 
         /// Will reset this instance to 0 as if constructed without parameters
         /// Used by remove() and deleteData()
-        void resetAll( bool isDelete = false );
+        void resetAll();
 
         /// Contains a list of resources which use this ResourceData
         QList<Resource*> m_resources;
@@ -200,7 +196,7 @@ namespace Nepomuk2 {
 
         // Protect m_cache, m_cacheDirty but also m_uri, m_nieUrl, m_naoIdentifier, m_addedToWatcher.
         // Never lock the ResourceManager mutex after locking this one. Always before (or not at all).
-        mutable QMutex m_modificationMutex;
+        mutable QMutex m_dataMutex;
 
         QHash<QUrl, Variant> m_cache;
 

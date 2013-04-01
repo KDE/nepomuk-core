@@ -38,7 +38,6 @@
 
 #include <KDebug>
 #include <KUrl>
-#include <KPluginFactory>
 #include <KConfigGroup>
 #include <KLocale>
 
@@ -50,8 +49,6 @@
 #include <Soprano/Node>
 
 using namespace Nepomuk2::Vocabulary;
-
-NEPOMUK_EXPORT_SERVICE( Nepomuk2::FileWatch, "nepomukfilewatch")
 
 
 #ifdef BUILD_KINOTIFY
@@ -104,8 +101,8 @@ namespace {
 #endif // BUILD_KINOTIFY
 
 
-Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
-    : Service( parent )
+Nepomuk2::FileWatch::FileWatch()
+    : Service2()
 #ifdef BUILD_KINOTIFY
     , m_dirWatch( 0 )
 #endif
@@ -125,10 +122,12 @@ Nepomuk2::FileWatch::FileWatch( QObject* parent, const QList<QVariant>& )
     m_pathExcludeRegExpCache = new RegExpCache();
     m_pathExcludeRegExpCache->rebuildCacheFromFilterList( defaultExcludeFilterList() );
 
+    Soprano::Model* mainModel = ResourceManager::instance()->mainModel();
+
     // start the mover thread
     m_metadataMoverThread = new QThread(this);
     m_metadataMoverThread->start();
-    m_metadataMover = new MetadataMover( mainModel(), this );
+    m_metadataMover = new MetadataMover( ResourceManager::instance()->mainModel() );
     connect( m_metadataMover, SIGNAL(movedWithoutData(QString)),
              this, SLOT(slotMovedWithoutData(QString)),
              Qt::QueuedConnection );
@@ -191,6 +190,7 @@ Nepomuk2::FileWatch::~FileWatch()
     kDebug();
     m_metadataMoverThread->quit();
     m_metadataMoverThread->wait();
+    delete m_metadataMover;
 }
 
 
@@ -492,6 +492,22 @@ void Nepomuk2::FileWatch::resetStatusMessage()
 
     emit metadataUpdateStopped();
     emit status( 0, m_statusMessage );
+}
+
+int main( int argc, char **argv ) {
+    KAboutData aboutData( "nepomukfilewatch",
+                          "nepomukfilewatch",
+                          ki18n("Nepomuk File Watch"),
+                          NEPOMUK_VERSION_STRING,
+                          ki18n("Nepomuk File Watch"),
+                          KAboutData::License_GPL,
+                          ki18n("(c) 2008-2013, Sebastian Trüg"),
+                          KLocalizedString(),
+                          "http://nepomuk.kde.org" );
+    aboutData.addAuthor(ki18n("Sebastian Trüg"),ki18n("Developer"), "trueg@kde.org");
+    aboutData.addAuthor(ki18n("Vishesh Handa"),ki18n("Maintainer"), "me@vhanda.in");
+
+    Nepomuk2::Service2::init<Nepomuk2::FileWatch>( argc, argv, aboutData );
 }
 
 #include "nepomukfilewatch.moc"

@@ -24,11 +24,7 @@
 
 #include <QtGlobal>
 
-#ifndef NDEBUG
-#define DMS_DBUS_SERVICE (qgetenv("NEPOMUK_FAKE_DMS_DBUS_SERVICE").isEmpty() ? "org.kde.nepomuk.DataManagement" : qgetenv("NEPOMUK_FAKE_DMS_DBUS_SERVICE").constData())
-#else
 #define DMS_DBUS_SERVICE "org.kde.nepomuk.DataManagement"
-#endif
 
 #include <KJob>
 

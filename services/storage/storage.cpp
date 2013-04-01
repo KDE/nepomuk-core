@@ -30,14 +30,9 @@
 
 #include <Soprano/Backend>
 
-#include <kpluginfactory.h>
-#include <kpluginloader.h>
 
-NEPOMUK_EXPORT_SERVICE( Nepomuk2::Storage, "nepomukstorage" )
-
-
-Nepomuk2::Storage::Storage( QObject* parent, const QList<QVariant>& )
-    : Service( parent, true /* delayed initialization */ )
+Nepomuk2::Storage::Storage()
+    : Service2( 0, true /* delayed initialization */ )
 {
     // register the fancier name for this important service
     QDBusConnection::sessionBus().registerService( "org.kde.NepomukStorage" );
@@ -49,9 +44,6 @@ Nepomuk2::Storage::Storage( QObject* parent, const QList<QVariant>& )
     connect( m_core, SIGNAL( initializationDone(bool) ),
              this, SLOT( slotNepomukCoreInitialized(bool) ) );
     m_core->init();
-
-    connect( QCoreApplication::instance(), SIGNAL(aboutToQuit()),
-             m_core, SLOT(deleteLater()) );
 }
 
 
@@ -84,6 +76,22 @@ QString Nepomuk2::Storage::usedSopranoBackend() const
         return rep->usedSopranoBackend();
     else
         return QString();
+}
+
+int main( int argc, char **argv ) {
+    KAboutData aboutData( "nepomukstorage",
+                          "nepomukstorage",
+                          ki18n("Nepomuk Storage"),
+                          NEPOMUK_VERSION_STRING,
+                          ki18n("Nepomuk Storage"),
+                          KAboutData::License_GPL,
+                          ki18n("(c) 2008-2013, Sebastian Trüg"),
+                          KLocalizedString(),
+                          "http://nepomuk.kde.org" );
+    aboutData.addAuthor(ki18n("Sebastian Trüg"),ki18n("Developer"), "trueg@kde.org");
+    aboutData.addAuthor(ki18n("Vishesh Handa"),ki18n("Maintainer"), "me@vhanda.in");
+
+    Nepomuk2::Service2::init<Nepomuk2::Storage>( argc, argv, aboutData );
 }
 
 #include "storage.moc"

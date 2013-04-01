@@ -909,7 +909,8 @@ QUrl Nepomuk2::DataManagementModel::createResource(const QList<QUrl> &types, con
     executeQuery( command, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 
     // inform interested parties
-    d->m_watchManager->createResource(resUri, newTypes.toList());
+    QSet<QUrl> allTypes = d->m_classAndPropertyTree->allParents( types );
+    d->m_watchManager->createResource(resUri, allTypes);
     d->m_watchManager->changeSomething();
 
     return resUri;

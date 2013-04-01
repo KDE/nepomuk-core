@@ -24,7 +24,7 @@ kde4_add_executable( nepomukindexer ${indexer_SRCS} )
 target_link_libraries( nepomukindexer
   nepomukcommon
   nepomukcore
-  ${KDE4_KIO_LIBS}
+  ${KDE4_KDECORE_LIBS}
   ${SOPRANO_LIBRARIES}
   )
 
@@ -144,3 +144,5 @@ DESTINATION ${SERVICES_INSTALL_DIR})
 install(
 TARGETS nepomukplaintextextractor
 DESTINATION ${PLUGIN_INSTALL_DIR})
+
+add_subdirectory(test)
