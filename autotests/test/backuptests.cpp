@@ -26,6 +26,7 @@
 
 #include <KDebug>
 #include <KJob>
+#include <Soprano/Graph>
 #include <qtest_kde.h>
 #include <Soprano/Model>
 
@@ -94,7 +95,10 @@ void BackupTests::simpleData()
     backup();
 
     // Save all statements in memory
-    QList< Soprano::Statement > origNepomukData = outputNepomukData();
+    Soprano::Graph origNepomukDataGraph( outputNepomukData() );
+    origNepomukDataGraph.removeAllStatements( QUrl("nepomuk:/me"), QUrl(), QUrl() );
+
+    QSet< Soprano::Statement > origNepomukData = origNepomukDataGraph.toSet();
 
     // Reset the repo
     resetRepository();
@@ -102,7 +106,7 @@ void BackupTests::simpleData()
     // Restore the backup
     restore();
 
-    QList< Soprano::Statement > finalNepomukData = outputNepomukData();
+    QSet< Soprano::Statement > finalNepomukData = outputNepomukData().toSet();
 
     // We can't check all the data cause some of the ontology data would have changed
     // eg - nao:lastModified
@@ -113,10 +117,6 @@ void BackupTests::simpleData()
 
     // The Agent should still exist
     query = QString::fromLatin1("ask where { ?r a nao:Agent . }");
-    QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
-
-    // The pimo:Person - nepomuk:/me should still exist
-    query = QString::fromLatin1("ask where { <nepomuk:/me> ?p ?o . }");
     QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
 }
 
@@ -153,14 +153,6 @@ void BackupTests::indexedData()
     // Contacts - Should not exist
     query = QString::fromLatin1("ask where { ?r a nco:Contact . }");
     QVERIFY( !model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
-
-    // The Agent should still exist
-    query = QString::fromLatin1("ask where { ?r a nao:Agent . }");
-    QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
-
-    // The pimo:Person - nepomuk:/me should still exist
-    query = QString::fromLatin1("ask where { <nepomuk:/me> ?p ?o . }");
-    QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
 }
 
 void BackupTests::nonExistingData()

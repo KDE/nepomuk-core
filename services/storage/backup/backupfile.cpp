@@ -19,7 +19,6 @@
 
 
 #include "backupfile.h"
-#include "backupstatementiterator.h"
 
 #include <QtCore/QFile>
 #include <QtCore/QMutableListIterator>
@@ -45,57 +44,6 @@ BackupFile::BackupFile()
 Soprano::StatementIterator BackupFile::iterator()
 {
     return m_stIter;
-}
-
-bool BackupFile::createBackupFile(const QUrl& url, BackupStatementIterator& it)
-{
-    KTemporaryFile dataFile;
-    dataFile.open();
-
-    QFile file( dataFile.fileName() );
-    if( !file.open( QIODevice::ReadWrite | QIODevice::Append | QIODevice::Text ) ) {
-        kWarning() << "File couldn't be opened for saving : " << url;
-        return false;
-    }
-
-    QTextStream out( &file );
-
-    const Soprano::Serializer * serializer = Soprano::PluginManager::instance()->discoverSerializerForSerialization( Soprano::SerializationNQuads );
-    int numStatements = 0;
-    while( it.next() ) {
-        numStatements++;
-
-        QList<Soprano::Statement> stList;
-        stList << it.current();
-
-        Soprano::Util::SimpleStatementIterator iter( stList );
-        serializer->serialize( iter, out, Soprano::SerializationNQuads );
-    }
-    file.close();
-
-    // Metadata
-    KTemporaryFile tmpFile;
-    tmpFile.open();
-    tmpFile.setAutoRemove( false );
-    QString metdataFile = tmpFile.fileName();
-    tmpFile.close();
-
-    QSettings iniFile( metdataFile, QSettings::IniFormat );
-    iniFile.setValue("NumStatements", numStatements);
-    iniFile.setValue("Created", QDateTime::currentDateTime().toString() );
-    iniFile.sync();
-
-    // Push to tar file
-    KTar tarFile( url.toLocalFile(), QString::fromLatin1("application/x-gzip") );
-    if( !tarFile.open( QIODevice::WriteOnly ) ) {
-        kWarning() << "File could not be opened : " << url.toLocalFile();
-        return false;
-    }
-
-    tarFile.addLocalFile( dataFile.fileName(), "data" );
-    tarFile.addLocalFile( metdataFile, "metadata" );
-
-    return true;
 }
 
 BackupFile BackupFile::fromUrl(const QUrl& url)

@@ -47,7 +47,6 @@ set( Backup_SRCS
   backup/backupfile.cpp
   backup/backupgenerationjob.cpp
   backup/backuprestorationjob.cpp
-  backup/backupstatementiterator.cpp
   )
 
 qt4_add_dbus_adaptor( Backup_SRCS
