@@ -35,9 +35,10 @@
 
 Nepomuk2::Server* Nepomuk2::Server::s_self = 0;
 
-Nepomuk2::Server::Server( QObject* parent )
+Nepomuk2::Server::Server( bool noServices, QObject* parent )
     : QObject( parent ),
       m_fileIndexerServiceName( "nepomukfileindexer" ),
+      m_noServices(noServices),
       m_currentState(StateDisabled)
 {
     s_self = this;
@@ -91,7 +92,8 @@ void Nepomuk2::Server::enableNepomuk( bool enabled )
             m_currentState = StateEnabling;
 
             // start all autostart services
-            m_serviceManager->startAllServices();
+            if( !m_noServices )
+                m_serviceManager->startAllServices();
 
             // register the service manager interface
             QDBusConnection::sessionBus().registerObject( "/servicemanager", m_serviceManager );
