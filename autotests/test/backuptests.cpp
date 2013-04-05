@@ -110,7 +110,8 @@ void BackupTests::simpleData()
 
     // We can't check all the data cause some of the ontology data would have changed
     // eg - nao:lastModified
-    QCOMPARE( origNepomukData, finalNepomukData );
+
+    QVERIFY( origNepomukData == finalNepomukData );
 
     QString query;
     Soprano::Model* model = ResourceManager::instance()->mainModel();
