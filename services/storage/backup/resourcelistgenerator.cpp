@@ -44,14 +44,30 @@ void ResourceListGenerator::start()
     QTimer::singleShot( 0, this, SLOT(doJob()) );
 }
 
+namespace {
+    QUrl nepomukGraph(Soprano::Model* model) {
+        QString query = QString::fromLatin1("select ?r where { ?r a nrl:Graph ; nao:maintainedBy ?app ."
+                                            " ?app nao:identifier %1 . } LIMIT 1")
+                        .arg( Soprano::Node::literalToN3(QLatin1String("nepomuk")) );
+
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        if( it.next() )
+            return it[0].uri();
+
+        return QUrl();
+    }
+}
+
 void ResourceListGenerator::doJob()
 {
     // FIXME: Emit some kind of %?
-    // FIXME: Do not include the nepomuk graph!
+
+    QUrl ng = nepomukGraph(m_model);
     QString query = QString::fromLatin1("select distinct ?r where { graph ?g { ?r ?p ?o }"
                                         " ?g a nrl:InstanceBase ."
-                                        " FILTER(!(?p in (nao:lastModified, nao:created))) ."
-                                        " FILTER NOT EXISTS { ?g a nrl:DiscardableInstanceBase . } }");
+                                        " FILTER( ?g!=%1 ) ."
+                                        " FILTER NOT EXISTS { ?g a nrl:DiscardableInstanceBase . } }")
+                    .arg( Soprano::Node::resourceToN3(ng) );
 
     kDebug() << "Fetching URI list";
     Soprano::QueryResultIterator rit = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
