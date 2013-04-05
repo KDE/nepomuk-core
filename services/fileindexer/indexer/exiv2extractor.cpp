@@ -68,6 +68,19 @@ namespace {
         return QString::fromUtf8( str.c_str(), str.length() );
     }
 
+    QVariant toVariantDateTime(const Exiv2::Value& value) {
+        if( value.typeId() == Exiv2::asciiString ) {
+            QDateTime val = ExtractorPlugin::dateTimeFromString( value.toString().c_str() );
+            if( val.isValid() ) {
+                // Datetime is stored in exif as local time.
+                val.setUtcOffset(0);
+                return QVariant( val );
+            }
+        }
+
+        return QVariant();
+    }
+
     QVariant toVariantLong(const Exiv2::Value& value) {
         if( value.typeId() == Exiv2::unsignedLong || value.typeId() == Exiv2::signedLong ) {
             qlonglong val = value.toLong();
@@ -197,8 +210,9 @@ SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& file
 
     it = data.findKey( Exiv2::ExifKey("Exif.Image.DateTime") );
     if( it != data.end() ) {
-        //FIXME: Convert to date time
-        //fileRes.setProperty( NIE::contentCreated(), toVariantString( it->value() ) );
+        QVariant value = toVariantDateTime( it->value() );
+        if( !value.isNull() )
+            fileRes.setProperty( NIE::contentCreated(), value );
     }
 
     it = data.findKey( Exiv2::ExifKey("Exif.Image.Orientation") );
