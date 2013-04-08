@@ -27,6 +27,7 @@
 #include <KLocalizedString>
 #include <KComponentData>
 #include <KAboutData>
+#include <KTemporaryFile>
 
 #include <QBoxLayout>
 #include <QRadioButton>
@@ -107,18 +108,110 @@ int MainPage::nextId() const
 // Backup Restore Page
 //
 
-// FIXME!!
-BackupRestorePage::BackupRestorePage(QWidget* parent): QWizardPage(parent)
+BackupRestorePage::BackupRestorePage(QWidget* parent)
+    : QWizardPage(parent)
+    , m_restoreDone( false )
+    , m_error( false )
 {
     setTitle( i18n("Backup Tags and Ratings") );
     setSubTitle( i18n("This will backup only the tags, and ratings and then restore that data") );
 
+    KTemporaryFile tempFile;
+    tempFile.setAutoRemove( false );
+    tempFile.open();
+    m_url = tempFile.fileName();
+    tempFile.close();
+
+    m_backupManager = new BackupManager( QLatin1String("org.kde.NepomukStorage"),
+                                         QLatin1String("/backupmanager"),
+                                         QDBusConnection::sessionBus(), this);
+    connect( m_backupManager, SIGNAL(backupDone()), this, SLOT(slotBackupDone()) );
+    connect( m_backupManager, SIGNAL(backupPercent(int)), this, SLOT(slotBackupProgress(int)) );
+    connect( m_backupManager, SIGNAL(backupError(QString)), this, SLOT(slotBackupError(QString)));
+    connect( m_backupManager, SIGNAL(restoreDone()), this, SLOT(slotRestoneDone()) );
+    connect( m_backupManager, SIGNAL(restorePercent(int)), this, SLOT(slotRestoreProgress(int)) );
+    connect( m_backupManager, SIGNAL(backupError(QString)), this, SLOT(slotRestoreError(QString)));
+
+    m_backupGroup = new QGroupBox( i18n("Backup"), this );
+    m_restoreGroup = new QGroupBox( i18n("Restore"), this );
+    m_restoreGroup->setEnabled( false );
+
     QVBoxLayout* vLayout = new QVBoxLayout( this );
+    vLayout->addWidget( m_backupGroup );
+    vLayout->addWidget( m_restoreGroup );
+
+    m_backupProgress = new QProgressBar( this );
+    m_restoreProgress = new QProgressBar( this );
+
+    QLabel* backupLabel = new QLabel( i18n("Performing backup of tags and ratings") );
+    QVBoxLayout* backupLayout = new QVBoxLayout();
+    backupLayout->addWidget( backupLabel );
+    backupLayout->addWidget( m_backupProgress );
+    m_backupGroup->setLayout( backupLayout );
+
+    QLabel* restoreLabel = new QLabel( i18n("Restoring data") );
+    QVBoxLayout* restoreLayout = new QVBoxLayout();
+    restoreLayout->addWidget( restoreLabel );
+    restoreLayout->addWidget( m_restoreProgress );
+    m_restoreGroup->setLayout( restoreLayout );
+}
+
+void BackupRestorePage::initializePage()
+{
+    m_backupManager->backupTagsAndRatings( m_url );
+}
+
+void BackupRestorePage::slotBackupDone()
+{
+    m_backupGroup->setEnabled( false );
+    m_backupGroup->setEnabled( true );
+
+    m_backupManager->restore( m_url );
+}
+
+void BackupRestorePage::slotBackupProgress(int percent)
+{
+    m_backupProgress->setValue( percent );
+}
+
+void BackupRestorePage::slotBackupError(const QString& error)
+{
+    m_errorMessage = error;
+    m_error = true;
+    wizard()->next();
+}
+
+void BackupRestorePage::slotRestoneDone()
+{
+    m_restoreDone = true;
+}
+
+void BackupRestorePage::slotRestoreProgress(int percent)
+{
+    m_restoreProgress->setValue( percent );
+}
+
+void BackupRestorePage::slotRestoreError(const QString& error)
+{
+    m_errorMessage = error;
+    m_error = true;
+    wizard()->next();
+}
+
+
+bool BackupRestorePage::isComplete() const
+{
+    return m_restoreDone;
 }
 
 int BackupRestorePage::nextId() const
 {
-    return MigrationWizard::Id_FinishPage;
+    if( m_error ) {
+        wizard()->setField(QLatin1String("errorMessage"), m_errorMessage);
+        return MigrationWizard::Id_ErrorPage;
+    }
+    else
+        return MigrationWizard::Id_FinishPage;
 }
 
 //
