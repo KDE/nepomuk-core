@@ -40,12 +40,13 @@ private Q_SLOTS:
 
     void nonExistingData();
 
+    void tagsAndRatings();
 private:
     typedef org::kde::nepomuk::BackupManager BackupManager;
     BackupManager* m_backupManager;
     QString m_backupLocation;
 
-    void backup();
+    void backup(bool tags=false);
     void restore();
 };
 

@@ -39,15 +39,21 @@
 #include <KTempDir>
 
 Nepomuk2::BackupGenerationJob::BackupGenerationJob(Soprano::Model *model, const QUrl& url, QObject* parent)
-    : KJob(parent),
-      m_model(model),
-      m_url( url )
+    : KJob(parent)
+    , m_model(model)
+    , m_url( url )
+    , m_filter( Filter_None )
 {
 }
 
 void Nepomuk2::BackupGenerationJob::start()
 {
     QTimer::singleShot( 0, this, SLOT(doWork()) );
+}
+
+void Nepomuk2::BackupGenerationJob::setFilter(Nepomuk2::BackupGenerationJob::Filter filter)
+{
+    m_filter = filter;
 }
 
 
@@ -57,6 +63,8 @@ void Nepomuk2::BackupGenerationJob::doWork()
     uriListFile.open();
 
     Backup::ResourceListGenerator* uriListGen = new Backup::ResourceListGenerator( m_model, uriListFile.fileName(), this );
+    if( m_filter == Filter_TagsAndRatings )
+        uriListGen->setFilter( Backup::ResourceListGenerator::Filter_FilesAndTags );
     uriListGen->exec();
 
     if( uriListGen->error() ) {

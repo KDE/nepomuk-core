@@ -36,12 +36,18 @@ ResourceListGenerator::ResourceListGenerator(Soprano::Model* model, const QStrin
     : KJob(parent)
     , m_model(model)
     , m_outputFile(outputFile)
+    , m_filter(Filter_None)
 {
 }
 
 void ResourceListGenerator::start()
 {
     QTimer::singleShot( 0, this, SLOT(doJob()) );
+}
+
+void ResourceListGenerator::setFilter(ResourceListGenerator::Filter filter)
+{
+    m_filter = filter;
 }
 
 namespace {
@@ -63,15 +69,6 @@ void ResourceListGenerator::doJob()
     // FIXME: Emit some kind of %?
 
     QUrl ng = nepomukGraph(m_model);
-    QString query = QString::fromLatin1("select distinct ?r where { graph ?g { ?r ?p ?o }"
-                                        " ?g a nrl:InstanceBase ."
-                                        " FILTER( ?g!=%1 ) ."
-                                        " FILTER NOT EXISTS { ?g a nrl:DiscardableInstanceBase . } }")
-                    .arg( Soprano::Node::resourceToN3(ng) );
-
-    kDebug() << "Fetching URI list";
-    Soprano::QueryResultIterator rit = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
-
     QFile file( m_outputFile );
     if( !file.open( QIODevice::ReadWrite | QIODevice::Append | QIODevice::Text ) ) {
         setErrorText( QString::fromLatin1("Could not open file %1").arg( m_outputFile ) );
@@ -80,8 +77,35 @@ void ResourceListGenerator::doJob()
 
     QTextStream out( &file );
 
-    while( rit.next() ) {
-        out << rit[0].uri().toString() << "\n";
+    if( m_filter == Filter_None ) {
+        QString query = QString::fromLatin1("select distinct ?r where { graph ?g { ?r ?p ?o }"
+                                            " ?g a nrl:InstanceBase ."
+                                            " FILTER( ?g!=%1 ) ."
+                                            " FILTER NOT EXISTS { ?g a nrl:DiscardableInstanceBase . } }")
+                        .arg( Soprano::Node::resourceToN3(ng) );
+
+        kDebug() << "Fetching URI list";
+        Soprano::QueryResultIterator rit = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+
+        while( rit.next() ) {
+            out << rit[0].uri().toString() << "\n";
+        }
+    }
+    else if( m_filter == Filter_FilesAndTags ) {
+        QString query = QString::fromLatin1("select distinct ?r where { ?r a nao:Tag . }");
+        Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+
+        while( it.next() ) {
+            out << it[0].uri().toString() << "\n";
+        }
+
+        query = QString::fromLatin1("select distinct ?r where { ?r a nfo:FileDataObject . "
+                                    " ?r nao:hasTag ?t . }");
+        it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+
+        while( it.next() ) {
+            out << it[0].uri().toString() << "\n";
+        }
     }
 
     emitResult();

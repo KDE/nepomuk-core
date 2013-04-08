@@ -34,12 +34,20 @@ namespace Nepomuk2 {
         BackupGenerationJob(Soprano::Model *model, const QUrl& url, QObject* parent = 0);
         virtual void start();
 
+        enum Filter {
+            Filter_None,
+            Filter_TagsAndRatings
+        };
+
+        void setFilter(Filter filter);
     private slots:
         void doWork();
 
     private:
         Soprano::Model* m_model;
         QUrl m_url;
+
+        Filter m_filter;
     };
 }
 

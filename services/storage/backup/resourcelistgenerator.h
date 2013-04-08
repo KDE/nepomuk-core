@@ -43,12 +43,21 @@ public:
     ResourceListGenerator(Soprano::Model* model, const QString& outputFile, QObject* parent = 0);
 
     virtual void start();
+
+    enum Filter {
+        Filter_None,
+        Filter_FilesAndTags
+    };
+
+    void setFilter(Filter filter);
 private slots:
     void doJob();
 
 private:
     Soprano::Model *m_model;
     QString m_outputFile;
+
+    Filter m_filter;
 };
 
 }

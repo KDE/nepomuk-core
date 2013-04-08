@@ -47,6 +47,7 @@ namespace Nepomuk2 {
 
     public slots:
         void backup( const QString & url = QString() );
+        void backupTagsAndRatings( const QString & url = QString() );
         void restore(const QString & url );
 
     signals:

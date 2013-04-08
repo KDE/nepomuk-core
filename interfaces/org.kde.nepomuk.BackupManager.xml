@@ -4,6 +4,9 @@
     <method name="backup">
         <arg name="url" type="s" direction="in"/>
     </method>
+    <method name="backupTagsAndRatings">
+        <arg name="url" type="s" direction="in"/>
+    </method>
     <method name="restore">
         <arg name="url" type="s" direction="in"/>
     </method>
