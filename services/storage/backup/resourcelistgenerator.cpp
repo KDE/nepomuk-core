@@ -70,7 +70,9 @@ void ResourceListGenerator::doJob()
 
     QFile file( m_outputFile );
     if( !file.open( QIODevice::ReadWrite | QIODevice::Append | QIODevice::Text ) ) {
+        setError(1);
         setErrorText( QString::fromLatin1("Could not open file %1").arg( m_outputFile ) );
+        emitResult();
         return;
     }
 

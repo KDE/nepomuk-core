@@ -66,13 +66,17 @@ void StatementGenerator::doJob()
     QFile input( m_inputFile );
     kDebug() << "INPUT: " << m_inputFile;
     if( !input.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
+        setError(1);
         setErrorText( QString::fromLatin1("Could not open file %1").arg( m_inputFile ) );
+        emitResult();
         return;
     }
 
     QFile output( m_outputFile );
     if( !output.open( QIODevice::ReadWrite | QIODevice::Append | QIODevice::Text ) ) {
+        setError(1);
         setErrorText( QString::fromLatin1("Could not open file %1").arg( m_outputFile ) );
+        emitResult();
         return;
     }
 

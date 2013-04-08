@@ -97,7 +97,9 @@ void GraphGenerator::doJob()
 
     QFile output( m_outputFile );
     if( !output.open( QIODevice::ReadWrite | QIODevice::Append | QIODevice::Text ) ) {
+        setError(1);
         setErrorText( QString::fromLatin1("Could not open file %1").arg( m_outputFile ) );
+        emitResult();
         return;
     }
 
@@ -105,7 +107,16 @@ void GraphGenerator::doJob()
 
     QHash<QUrl, QUrl> appGraphHash;
 
+    kDebug() << "Input:" << m_inputFile;
     Soprano::StatementIterator it = parser->parseFile( m_inputFile, QUrl(), Soprano::SerializationNQuads );
+    if( parser->lastError() ) {
+        QString error = QString::fromLatin1("Failed to generate backup: %1").arg( parser->lastError().message() );
+        setError(1);
+        setErrorText( error );
+        emitResult();
+        return;
+    }
+
     while( it.next() ) {
         Soprano::Statement st = it.current();
         kDebug() << st;

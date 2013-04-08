@@ -53,10 +53,12 @@ namespace Nepomuk2 {
     signals:
         void backupStarted();
         void backupDone();
+        void backupError(const QString& error);
         void backupPercent(ulong percent);
 
         void restoreStarted();
         void restoreDone();
+        void restoreError(const QString& error);
         void restorePercent(ulong percent);
 
     private:

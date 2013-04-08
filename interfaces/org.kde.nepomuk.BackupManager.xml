@@ -14,12 +14,18 @@
     </signal>
     <signal name="backupDone">
     </signal>
+    <signal name="backupError">
+        <arg name="error" type="s" direction="out"/>
+    </signal>
     <signal name="backupPercent">
         <arg name="percent" type="i" direction="out"/>
     </signal>
     <signal name="restoreStarted">
     </signal>
     <signal name="restoreDone">
+    </signal>
+    <signal name="restoreError">
+        <arg name="error" type="s" direction="out"/>
     </signal>
     <signal name="restorePercent">
         <arg name="percent" type="i" direction="out"/>

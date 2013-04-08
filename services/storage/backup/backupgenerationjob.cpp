@@ -68,7 +68,9 @@ void Nepomuk2::BackupGenerationJob::doWork()
     uriListGen->exec();
 
     if( uriListGen->error() ) {
+        setError(1);
         setErrorText( uriListGen->errorString() );
+        emitResult();
         return;
     }
 
@@ -81,7 +83,9 @@ void Nepomuk2::BackupGenerationJob::doWork()
 
     stGen->exec();
     if( stGen->error() ) {
+        setError(1);
         setErrorText( stGen->errorString() );
+        emitResult();
         return;
     }
 
@@ -93,7 +97,9 @@ void Nepomuk2::BackupGenerationJob::doWork()
 
     graphGen->exec();
     if( graphGen->error() ) {
+        setError(1);
         setErrorText( graphGen->errorString() );
+        emitResult();
         return;
     }
 

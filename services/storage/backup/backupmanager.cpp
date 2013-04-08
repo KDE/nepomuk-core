@@ -236,6 +236,9 @@ void Nepomuk2::BackupManager::slotBackupDone(KJob* job)
     if( !job->error() ) {
         emit backupDone();
     }
+    else {
+        emit backupError(job->errorString());
+    }
 }
 
 void Nepomuk2::BackupManager::slotBackupPercent(KJob* job, ulong percent)
@@ -265,6 +268,9 @@ void Nepomuk2::BackupManager::slotRestorationDone(KJob* job)
 {
     if( !job->error() ) {
         emit restoreDone();
+    }
+    else {
+        emit restoreError(job->errorString());
     }
 }
 
