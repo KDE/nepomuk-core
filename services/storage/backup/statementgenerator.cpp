@@ -106,7 +106,15 @@ void StatementGenerator::doJob()
                 stList << fetchProperties(uri, fileProperties);
             }
             else {
-                stList << fetchAllStatements(uri);
+                QList<Soprano::Statement> tagStatements = fetchAllStatements(uri);
+                foreach(const Soprano::Statement& st, tagStatements) {
+                    // Do not link to other Nepmouk objects
+                    // FIXME: What about the symbols for tags?
+                    if( st.object().isResource() && st.object().uri().scheme() == QLatin1String("nepomuk") )
+                        continue;
+
+                    stList << st;
+                }
             }
         }
 
