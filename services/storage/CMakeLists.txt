@@ -97,3 +97,4 @@ install(
 add_subdirectory(backup)
 add_subdirectory(rcgen)
 add_subdirectory(test)
+add_subdirectory(migrator)
