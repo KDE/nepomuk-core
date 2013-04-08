@@ -120,6 +120,37 @@ void StatementGenerator::doJob()
     emitResult();
 }
 
+namespace {
+    /**
+     * A very comprehensive validity check
+     */
+    bool isValid(const Soprano::Statement& st) {
+        if( !st.isValid() )
+            return false;
+
+        if( !st.subject().isResource() )
+            return false;
+
+        if( !st.context().isResource() )
+            return false;
+
+        Soprano::Node object = st.object();
+        if( !object.isResource() && !object.isLiteral() )
+            return false;
+
+        if( object.isLiteral() ) {
+            Soprano::LiteralValue lv = object.literal();
+            if( lv.dataTypeUri().isEmpty() )
+                return false;
+
+            if( lv.isString() && lv.toString().isEmpty() )
+                return false;
+        }
+
+        return true;
+    }
+}
+
 bool StatementGenerator::hasType(const QUrl& uri, const QUrl& type)
 {
     QString query = QString::fromLatin1("ask where { %1 a %2 . }")
@@ -140,7 +171,7 @@ QList<Soprano::Statement> StatementGenerator::fetchProperties(const QUrl& uri, Q
     Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
     while( it.next() ) {
         Soprano::Statement st( uri, it[0], it[1], it[2] );
-        if( st.isValid() )
+        if( isValid(st) )
             stList << st;
     }
 
@@ -159,7 +190,7 @@ QList< Soprano::Statement > StatementGenerator::fetchNonDiscardableStatements(co
     Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
     while( it.next() ) {
         Soprano::Statement st( uri, it[0], it[1], it[2] );
-        if( st.isValid() )
+        if( isValid(st) )
             stList << st;
     }
 
@@ -175,7 +206,7 @@ QList< Soprano::Statement > StatementGenerator::fetchAllStatements(const QUrl& u
     Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
     while( it.next() ) {
         Soprano::Statement st( uri, it[0], it[1], it[2] );
-        if( st.isValid() )
+        if( isValid(st) )
             stList << st;
     }
 
