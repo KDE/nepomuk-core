@@ -94,7 +94,7 @@ void ResourceListGenerator::doJob()
         }
     }
     else if( m_filter == Filter_FilesAndTags ) {
-        QString query = QString::fromLatin1("select distinct ?r where { ?r a nao:Tag . }");
+        QString query = QString::fromLatin1("select distinct ?r where { ?r a nao:Tag . ?f nao:hasTag ?r . }");
         Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
 
         while( it.next() ) {
