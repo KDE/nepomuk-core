@@ -23,6 +23,8 @@
 #ifndef NEPOMUK2_MIGRATIONWIZARD_H
 #define NEPOMUK2_MIGRATIONWIZARD_H
 
+#include "ui_errorpage.h"
+
 #include <QtGui/QWizard>
 #include <QtGui/QWizardPage>
 #include <QRadioButton>
@@ -81,10 +83,15 @@ public:
     virtual int nextId() const;
 };
 
-class ErrorPage : public QWizardPage {
+class ErrorPage : public QWizardPage, public Ui::ErrorPage {
+    Q_OBJECT
+    Q_PROPERTY(QString errorMessage READ message WRITE setMessage)
 public:
     ErrorPage(QWidget* parent = 0);
-    virtual int nextId() const;
+
+    QString message() const;
+public slots:
+    void setMessage(const QString& message);
 };
 
 }

@@ -18,6 +18,10 @@ qt4_add_dbus_interface( MIGRATOR_SRCS
                         ../../../interfaces/org.kde.nepomuk.BackupManager.xml
                         backupmanagerinterface )
 
+kde4_add_ui_files( MIGRATOR_SRCS
+  errorpage.ui
+)
+
 kde4_add_executable(nepomukmigrator ${MIGRATOR_SRCS})
 
 target_link_libraries(nepomukmigrator

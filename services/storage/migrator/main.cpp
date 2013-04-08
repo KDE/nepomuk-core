@@ -52,7 +52,7 @@ int main( int argc, char** argv )
     Nepomuk2::MigrationWizard wizard;
 
     if( !QDBusConnection::sessionBus().interface()->isServiceRegistered("org.kde.NepomukStorage") ) {
-        wizard.showError(i18nc("@info", "Nepomuk does not seem to be running. Cannot migrate the data without it") );
+        wizard.showError(i18nc("@info", "Nepomuk does not seem to be running. <br/>Cannot migrate the data without it") );
     }
 
     wizard.show();

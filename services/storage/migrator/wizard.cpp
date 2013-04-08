@@ -50,7 +50,7 @@ MigrationWizard::MigrationWizard(QWidget* parent, Qt::WindowFlags flags)
     setPage( Id_MigrationPage, new MigrationPage(this) );
     setPage( Id_DeletionPage, new DeletionPage(this) );
     setPage( Id_FinishPage, new FinishPage(this) );
-    //setPage( Id_ErrorPage, new ErrorPage(this) );
+    setPage( Id_ErrorPage, new ErrorPage(this) );
 
 
     setStartId( Id_MainPage );
@@ -169,13 +169,21 @@ int FinishPage::nextId() const
 
 ErrorPage::ErrorPage(QWidget* parent): QWizardPage(parent)
 {
-
+    setupUi(this);
+    setFinalPage(true);
+    m_labelPixmap->setPixmap(KIcon(QLatin1String("dialog-error")).pixmap(48,48));
+    registerField( QLatin1String("errorMessage"), this, "errorMessage" );
 }
 
-int ErrorPage::nextId() const
+QString Nepomuk2::ErrorPage::message() const
 {
-    return QWizardPage::nextId();
+    return m_labelMessage->text();
+}
+
+void Nepomuk2::ErrorPage::setMessage(const QString& s)
+{
+    m_labelMessage->setText(s);
 }
 
 
-
+#include "wizard.moc"
