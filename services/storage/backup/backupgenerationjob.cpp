@@ -76,6 +76,8 @@ void Nepomuk2::BackupGenerationJob::doWork()
     stListFile.open();
     Backup::StatementGenerator* stGen = new Backup::StatementGenerator( m_model, uriListFile.fileName(),
                                                                         stListFile.fileName(), this );
+    if( m_filter == Filter_TagsAndRatings )
+        stGen->setFilter( Backup::StatementGenerator::Filter_TagsAndRatings );
 
     stGen->exec();
     if( stGen->error() ) {

@@ -42,6 +42,13 @@ public:
 
     virtual void start();
 
+    enum Filter {
+        Filter_None,
+        Filter_TagsAndRatings
+    };
+
+    void setFilter( Filter filter );
+
 private slots:
     void doJob();
 
@@ -50,6 +57,13 @@ private:
     
     QString m_inputFile;
     QString m_outputFile;
+    Filter m_filter;
+
+    QList<Soprano::Statement> fetchNonDiscardableStatements(const QUrl& uri);
+    QList<Soprano::Statement> fetchAllStatements(const QUrl& uri);
+    QList<Soprano::Statement> fetchProperties(const QUrl& uri, QStringList properties);
+
+    bool hasType(const QUrl& uri, const QUrl& type);
 };
 }
 }

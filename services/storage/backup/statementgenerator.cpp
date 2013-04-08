@@ -32,8 +32,11 @@
 #include <Soprano/Serializer>
 #include <Soprano/Util/SimpleStatementIterator>
 
+#include "nfo.h"
+
 using namespace Nepomuk2;
 using namespace Nepomuk2::Backup;
+using namespace Nepomuk2::Vocabulary;
 
 StatementGenerator::StatementGenerator(Soprano::Model* model, const QString& inputFile,
                                        const QString& outputFile, QObject* parent)
@@ -41,12 +44,18 @@ StatementGenerator::StatementGenerator(Soprano::Model* model, const QString& inp
     , m_model(model)
     , m_inputFile(inputFile)
     , m_outputFile(outputFile)
+    , m_filter(Filter_None)
 {
 }
 
 void StatementGenerator::start()
 {
     QTimer::singleShot( 0, this, SLOT(doJob()) );
+}
+
+void StatementGenerator::setFilter(StatementGenerator::Filter filter)
+{
+    m_filter = filter;
 }
 
 void StatementGenerator::doJob()
@@ -73,31 +82,32 @@ void StatementGenerator::doJob()
     while( !inputStream.atEnd() ) {
         const QUrl uri( inputStream.readLine() );
         kDebug() << "Processing" << uri;
-
-        QString query = QString::fromLatin1("select distinct ?p ?o ?g where { graph ?g { %1 ?p ?o. } "
-                                            " FILTER(!(?p in (nao:lastModified, nao:created, rdf:type, nie:url))) ."
-                                            " ?g a nrl:InstanceBase ."
-                                            " FILTER NOT EXISTS { ?g a nrl:DiscardableInstanceBase . } }")
-                        .arg( Soprano::Node::resourceToN3(uri) );
-
-        Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
         QList<Soprano::Statement> stList;
-        while( it.next() ) {
-            Soprano::Statement st( uri, it[0], it[1], it[2]);
-            stList << st;
+
+        if( m_filter == Filter_None ) {
+            stList << fetchNonDiscardableStatements(uri);
+            if( stList.count() ) {
+                QStringList properties;
+                properties << "nao:lastModified" << "nao:created" << "rdf:type" << "nie:url";
+
+                stList << fetchProperties(uri, properties);
+            }
+        }
+        else if( m_filter == Filter_TagsAndRatings ) {
+            if( hasType(uri, NFO::FileDataObject()) ) {
+                QList<QString> fileProperties;
+                fileProperties << "rdf:type" << "nao:lastModified" << "nao:created"
+                               << "nie:url" << "nao:numericRating" << "nao:hasTag";
+
+                stList << fetchProperties(uri, fileProperties);
+            }
+            else {
+                stList << fetchAllStatements(uri);
+            }
         }
 
-        if( stList.count() ) {
-            QString query = QString::fromLatin1("select distinct ?p ?o ?g where { graph ?g { %1 ?p ?o. } "
-                                                " FILTER(?p in (nao:lastModified, nao:created, rdf:type, nie:url)) . }")
-                            .arg( Soprano::Node::resourceToN3(uri) );
-
-            Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
-            while( it.next() ) {
-                Soprano::Statement st( uri, it[0], it[1], it[2] );
-                stList << st;
-            }
-
+        if( !stList.isEmpty() ) {
+            kDebug() << stList;
             Soprano::Util::SimpleStatementIterator iter( stList );
             serializer->serialize( iter, outputStream, Soprano::SerializationNQuads );
         }
@@ -106,4 +116,64 @@ void StatementGenerator::doJob()
     emitResult();
 }
 
+bool StatementGenerator::hasType(const QUrl& uri, const QUrl& type)
+{
+    QString query = QString::fromLatin1("ask where { %1 a %2 . }")
+                    .arg( Soprano::Node::resourceToN3(uri),
+                          Soprano::Node::resourceToN3(type) );
 
+    return m_model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+}
+
+QList<Soprano::Statement> StatementGenerator::fetchProperties(const QUrl& uri, QStringList properties)
+{
+    QList<Soprano::Statement> stList;
+    QString query = QString::fromLatin1("select distinct ?p ?o ?g where { graph ?g { %1 ?p ?o. } "
+                                        " FILTER(?p in (%2)) . }")
+                    .arg( Soprano::Node::resourceToN3(uri),
+                          properties.join(",") );
+
+    Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    while( it.next() ) {
+        Soprano::Statement st( uri, it[0], it[1], it[2] );
+        if( st.isValid() )
+            stList << st;
+    }
+
+    return stList;
+}
+
+QList< Soprano::Statement > StatementGenerator::fetchNonDiscardableStatements(const QUrl& uri)
+{
+    QString query = QString::fromLatin1("select distinct ?p ?o ?g where { graph ?g { %1 ?p ?o. } "
+                                        " FILTER(!(?p in (nao:lastModified, nao:created, rdf:type, nie:url))) ."
+                                        " ?g a nrl:InstanceBase ."
+                                        " FILTER NOT EXISTS { ?g a nrl:DiscardableInstanceBase . } }")
+                    .arg( Soprano::Node::resourceToN3(uri) );
+
+    QList<Soprano::Statement> stList;
+    Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    while( it.next() ) {
+        Soprano::Statement st( uri, it[0], it[1], it[2] );
+        if( st.isValid() )
+            stList << st;
+    }
+
+    return stList;
+}
+
+QList< Soprano::Statement > StatementGenerator::fetchAllStatements(const QUrl& uri)
+{
+    QString query = QString::fromLatin1("select distinct ?p ?o ?g where { graph ?g { %1 ?p ?o. } }")
+                    .arg( Soprano::Node::resourceToN3(uri) );
+
+    QList<Soprano::Statement> stList;
+    Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    while( it.next() ) {
+        Soprano::Statement st( uri, it[0], it[1], it[2] );
+        if( st.isValid() )
+            stList << st;
+    }
+
+    return stList;
+}
