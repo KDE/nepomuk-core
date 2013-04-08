@@ -68,7 +68,6 @@ void ResourceListGenerator::doJob()
 {
     // FIXME: Emit some kind of %?
 
-    QUrl ng = nepomukGraph(m_model);
     QFile file( m_outputFile );
     if( !file.open( QIODevice::ReadWrite | QIODevice::Append | QIODevice::Text ) ) {
         setErrorText( QString::fromLatin1("Could not open file %1").arg( m_outputFile ) );
@@ -78,6 +77,7 @@ void ResourceListGenerator::doJob()
     QTextStream out( &file );
 
     if( m_filter == Filter_None ) {
+        QUrl ng = nepomukGraph(m_model);
         QString query = QString::fromLatin1("select distinct ?r where { graph ?g { ?r ?p ?o }"
                                             " ?g a nrl:InstanceBase ."
                                             " FILTER( ?g!=%1 ) ."
