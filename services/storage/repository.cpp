@@ -184,10 +184,9 @@ void Nepomuk2::Repository::open()
     // =================================
     m_inferenceModel = new VirtuosoInferenceModel(m_model);
 
-    // create the DataManagementModel on top of everything
-    // =================================
-    m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
-    setParentModel(m_dataManagementModel);
+    // Set the parent as the main model for now. Once the ontologies have been loaded it will
+    // be set to the data management model
+    setParentModel( m_model );
 
     // save the settings
     repoConfig.writeEntry( "Used Soprano Backend", m_backend->pluginName() );
@@ -249,6 +248,31 @@ Soprano::BackendSettings Nepomuk2::Repository::readVirtuosoSettings() const
     return settings;
 }
 
+void Nepomuk2::Repository::slotOpened(Nepomuk2::Repository* , bool success)
+{
+    if( !success ) {
+        emit loaded(this, false);
+        return;
+    }
+
+    m_ontologyLoader = new OntologyLoader( this, this );
+    connect( m_ontologyLoader, SIGNAL(ontologyUpdateFinished(bool)),
+             this, SLOT(slotOntologiesLoaded(bool)) );
+    m_ontologyLoader->updateLocalOntologies();
+}
+
+void Nepomuk2::Repository::slotOntologiesLoaded(bool somethingChanged)
+{
+    updateInference(somethingChanged);
+
+    // create the DataManagementModel on top of everything
+    // =================================
+    m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
+    setParentModel(m_dataManagementModel);
+
+    emit loaded(this, true);
+}
+
 void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
 {
     // Update the query prefixes
@@ -281,26 +305,6 @@ void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
     m_classAndPropertyTree->rebuildTree(this);
     m_inferenceModel->updateOntologyGraphs(ontologiesChanged);
 }
-
-void Nepomuk2::Repository::slotOpened(Nepomuk2::Repository* , bool success)
-{
-    if( !success ) {
-        emit loaded(this, false);
-        return;
-    }
-
-    m_ontologyLoader = new OntologyLoader( this, this );
-    connect( m_ontologyLoader, SIGNAL(ontologyUpdateFinished(bool)),
-             this, SLOT(slotOntologiesLoaded(bool)) );
-    m_ontologyLoader->updateLocalOntologies();
-}
-
-void Nepomuk2::Repository::slotOntologiesLoaded(bool somethingChanged)
-{
-    updateInference(somethingChanged);
-    emit loaded(this, true);
-}
-
 
 void Nepomuk2::Repository::slotVirtuosoStopped(bool normalExit)
 {
