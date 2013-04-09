@@ -20,7 +20,7 @@
 #define _NEPOMUK_CORE_H_
 
 #include <Soprano/Server/ServerCore>
-#include "repository.h"
+#include <Soprano/BackendSetting>
 
 #include <QtCore/QStringList>
 
@@ -28,8 +28,8 @@ namespace Nepomuk2 {
     namespace Query {
         class QueryService;
     }
-    class OntologyLoader;
     class BackupManager;
+    class Repository;
 
     class Core : public Soprano::Server::ServerCore
     {
@@ -45,7 +45,8 @@ namespace Nepomuk2 {
         Soprano::Model* model( const QString& name );
 
         /**
-         * Open all repositories.
+         * Open all repositories. This does not open the public interfaces
+         * required to communicate with the models.
          */
         void init();
 
@@ -60,9 +61,8 @@ namespace Nepomuk2 {
         void initializationDone( bool success );
 
     private Q_SLOTS:
-        void slotRepositoryOpened( Repository* repo, bool success );
+        void slotRepositoryLoaded( Repository* repo, bool success );
         void slotRepositoryClosed( Repository* repo );
-        void slotOntologiesLoaded(bool somethingChanged);
 
     private:
         Soprano::Model* createModel( const Soprano::BackendSettings& );
@@ -70,7 +70,6 @@ namespace Nepomuk2 {
         /// the one single "main" repository Nepomuk uses
         Repository* m_repository;
 
-        OntologyLoader* m_ontologyLoader;
         Query::QueryService* m_queryService;
         BackupManager* m_backupManager;
 

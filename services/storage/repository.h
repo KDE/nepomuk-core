@@ -36,6 +36,7 @@ namespace Nepomuk2 {
     class DataManagementAdaptor;
     class ClassAndPropertyTree;
     class VirtuosoInferenceModel;
+    class OntologyLoader;
 
     /**
      * Represents the main Nepomuk model. While it looks as if there could be more than
@@ -46,9 +47,6 @@ namespace Nepomuk2 {
      *
      * \li The DataManagementModel provides the actual data modification interface. For this
      *     purpose it is exported via DBus.
-     * \li RemovableMediaModel is used to automatically convert the URLs of files
-     *     on USB keys, network shares, and so on from and into mount-point independant URLs
-     *     like nfs://<HOST>/<HOST-PATH>/local/path.ext.
      *
      * \author Sebastian Trueg <trueg@kde.org>
      */
@@ -72,14 +70,14 @@ namespace Nepomuk2 {
 
         QString usedSopranoBackend() const;
 
+        OntologyLoader* ontologyLoader() { return m_ontologyLoader; }
+
     public Q_SLOTS:
         /**
          * Will emit the opened signal. This will NOT open the public interface.
          */
         void open();
         void close();
-
-        void updateInference(bool ontologiesChanged);
 
         /**
          * Switches off the datamanagement interface that is used to communicate
@@ -94,11 +92,17 @@ namespace Nepomuk2 {
         void openPublicInterface();
 
     Q_SIGNALS:
+        /// Emitted when the Repository successfully opened.
         void opened( Repository*, bool success );
+
+        /// Emitted when the ontologies have been loaded, and the repo may be used
+        void loaded( Repository*, bool success );
         void closed( Repository* );
 
     private Q_SLOTS:
         void slotVirtuosoStopped( bool normalExit );
+        void slotOpened( Repository*, bool success );
+        void slotOntologiesLoaded( bool somethingChanged );
 
     private:
         Soprano::BackendSettings readVirtuosoSettings() const;
@@ -120,6 +124,9 @@ namespace Nepomuk2 {
         QString m_basePath;
         QString m_storagePath;
         // ------------------------------------------
+
+        OntologyLoader* m_ontologyLoader;
+        void updateInference(bool ontologiesChanged);
     };
 
     typedef QMap<QString, Repository*> RepositoryMap;

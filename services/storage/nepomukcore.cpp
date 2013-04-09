@@ -18,7 +18,6 @@
 
 #include "nepomukcore.h"
 #include "repository.h"
-#include "ontologyloader.h"
 #include "query/queryservice.h"
 #include "backup/backupmanager.h"
 #include "resourcemanager.h"
@@ -30,14 +29,11 @@
 
 #include <QtCore/QTimer>
 
-#include <Soprano/BackendSetting>
-
 static const char s_repositoryName[] = "main";
 
 Nepomuk2::Core::Core( QObject* parent )
     : Soprano::Server::ServerCore( parent ),
       m_repository( 0 ),
-      m_ontologyLoader( 0 ),
       m_queryService( 0 ),
       m_backupManager( 0 ),
       m_initialized( false )
@@ -69,63 +65,40 @@ bool Nepomuk2::Core::initialized() const
 }
 
 
-void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
+void Nepomuk2::Core::slotRepositoryLoaded( Repository* repo, bool success )
 {
     if( !success ) {
         emit initializationDone( false );
     }
-    else if( !m_ontologyLoader ) {
+    else if( !m_initialized ) {
         // We overide the main model cause certain classes utilize the Resource class, and we
         // don't want them using the NepomukMainModel which communicates over a local socket.
         ResourceManager::instance()->setOverrideMainModel( repo );
 
-        // create the ontology loader, let it update all the ontologies,
-        // and only then mark the service as initialized
-        // TODO: fail the initialization in case loading the ontologies
-        // failed.
-        m_ontologyLoader = new OntologyLoader( repo, this );
-        connect( m_ontologyLoader, SIGNAL(ontologyUpdateFinished(bool)),
-                 this, SLOT(slotOntologiesLoaded(bool)) );
-        m_ontologyLoader->updateLocalOntologies();
-
-    }
-}
-
-
-void Nepomuk2::Core::slotRepositoryClosed(Nepomuk2::Repository*)
-{
-    delete m_ontologyLoader;
-    m_ontologyLoader = 0;
-
-    delete m_queryService;
-    m_queryService = 0;
-
-    delete m_backupManager;
-    m_backupManager = 0;
-}
-
-
-void Nepomuk2::Core::slotOntologiesLoaded(bool somethingChanged)
-{
-    if ( !m_initialized ) {
         // Query Service
         m_queryService = new Query::QueryService( m_repository, this );
 
         // Backup Service
-        m_backupManager = new BackupManager( m_ontologyLoader, m_repository, this );
+        m_backupManager = new BackupManager( m_repository->ontologyLoader(), m_repository, this );
 
         // DataManagement
         m_repository->openPublicInterface();
-        m_repository->updateInference(somethingChanged);
         kDebug() << "Registered QueryService and DataManagement interface";
 
         // and finally we are done: the repository is online and the ontologies are loaded.
         m_initialized = true;
         emit initializationDone( true );
     }
-    else {
-        m_repository->updateInference(somethingChanged);
-    }
+}
+
+
+void Nepomuk2::Core::slotRepositoryClosed(Nepomuk2::Repository*)
+{
+    delete m_queryService;
+    m_queryService = 0;
+
+    delete m_backupManager;
+    m_backupManager = 0;
 }
 
 
@@ -148,8 +121,8 @@ Soprano::Model* Nepomuk2::Core::createModel( const Soprano::BackendSettings& )
 {
     if ( !m_repository ) {
         m_repository = new Repository( QLatin1String( s_repositoryName ) );
-        connect( m_repository, SIGNAL( opened( Repository*, bool ) ),
-                 this, SLOT( slotRepositoryOpened( Repository*, bool ) ) );
+        connect( m_repository, SIGNAL( loaded( Repository*, bool ) ),
+                 this, SLOT( slotRepositoryLoaded( Repository*, bool ) ) );
         connect( m_repository, SIGNAL( closed( Repository* ) ),
                  this, SLOT( slotRepositoryClosed( Repository* ) ) );
         QTimer::singleShot( 0, m_repository, SLOT( open() ) );

@@ -17,6 +17,7 @@
 #include "datamanagementadaptor.h"
 #include "classandpropertytree.h"
 #include "virtuosoinferencemodel.h"
+#include "ontologyloader.h"
 
 #include <Soprano/Backend>
 #include <Soprano/PluginManager>
@@ -66,6 +67,8 @@ Nepomuk2::Repository::Repository( const QString& name )
       m_backend( 0 )
 {
     m_dummyModel = new Soprano::Util::DummyModel();
+
+    connect( this, SIGNAL(opened(Repository*,bool)), this, SLOT(slotOpened(Repository*,bool)) );
 }
 
 
@@ -279,6 +282,26 @@ void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
     m_inferenceModel->updateOntologyGraphs(ontologiesChanged);
 }
 
+void Nepomuk2::Repository::slotOpened(Nepomuk2::Repository* , bool success)
+{
+    if( !success ) {
+        emit loaded(this, false);
+        return;
+    }
+
+    m_ontologyLoader = new OntologyLoader( this, this );
+    connect( m_ontologyLoader, SIGNAL(ontologyUpdateFinished(bool)),
+             this, SLOT(slotOntologiesLoaded(bool)) );
+    m_ontologyLoader->updateLocalOntologies();
+}
+
+void Nepomuk2::Repository::slotOntologiesLoaded(bool somethingChanged)
+{
+    updateInference(somethingChanged);
+    emit loaded(this, true);
+}
+
+
 void Nepomuk2::Repository::slotVirtuosoStopped(bool normalExit)
 {
     if(!normalExit) {
@@ -305,7 +328,5 @@ void Nepomuk2::Repository::openPublicInterface()
     con.registerObject(QLatin1String("/datamanagement"), m_dataManagementAdaptor,
                        QDBusConnection::ExportScriptableContents);
 }
-
-
 
 #include "repository.moc"
