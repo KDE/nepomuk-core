@@ -20,10 +20,15 @@
 #define _NEPOMUK_STORAGE_H_
 
 #include "service2.h"
+#include <Soprano/Server/ServerCore>
 
 namespace Nepomuk2 {
 
-    class Core;
+    namespace Query {
+        class QueryService;
+    }
+    class BackupManager;
+    class Repository;
 
     class Storage : public Service2
     {
@@ -38,10 +43,15 @@ namespace Nepomuk2 {
         Q_SCRIPTABLE QString usedSopranoBackend() const;
 
     private Q_SLOTS:
-        void slotNepomukCoreInitialized( bool success );
+        void slotRepositoryLoaded( Repository* repo, bool success );
+        void slotRepositoryClosed();
 
     private:
-        Nepomuk2::Core* m_core;
+        Soprano::Server::ServerCore* m_localServer;
+        Repository* m_repository;
+
+        Query::QueryService* m_queryService;
+        BackupManager* m_backupManager;
     };
 }
 

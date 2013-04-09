@@ -1,5 +1,6 @@
 /* This file is part of the KDE Project
-   Copyright (c) 2008 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2007-10 Sebastian Trueg <trueg@kde.org>
+   Copyright (c) 2013 Vishesh Handa <me@vhanda.in>
 
    This library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Library General Public
@@ -17,19 +18,45 @@
 */
 
 #include "storage.h"
-#include "nepomukcore.h"
 #include "repository.h"
+#include "query/queryservice.h"
+#include "backup/backupmanager.h"
+#include "resourcemanager.h"
 
 #include <QtDBus/QDBusConnection>
 #include <QtCore/QFile>
-#include <QCoreApplication>
+#include <QtCore/QCoreApplication>
+#include <QtCore/QTimer>
 
 #include <KDebug>
 #include <KGlobal>
 #include <KStandardDirs>
 
-#include <Soprano/Backend>
+namespace {
+    static const char s_repositoryName[] = "main";
 
+    /**
+     * A light wrapper over ServerCore which just deals with one
+     * model
+     */
+    class LocalSever : public Soprano::Server::ServerCore {
+    public:
+        LocalSever(Soprano::Model* model, QObject* parent = 0)
+            : ServerCore(parent), m_model(model)
+        {
+            setMaximumConnectionCount( 80 );
+        }
+
+        // The LocalSocketClient calls the createModel function which calls this function
+        virtual Soprano::Model* model(const QString& name) {
+            if( name == s_repositoryName )
+                return m_model;
+            return 0;
+        }
+    private:
+        Soprano::Model* m_model;
+    };
+}
 
 Nepomuk2::Storage::Storage()
     : Service2( 0, true /* delayed initialization */ )
@@ -40,42 +67,64 @@ Nepomuk2::Storage::Storage()
     // TODO: remove this one
     QDBusConnection::sessionBus().registerService(QLatin1String("org.kde.nepomuk.DataManagement"));
 
-    m_core = new Core( this );
-    connect( m_core, SIGNAL( initializationDone(bool) ),
-             this, SLOT( slotNepomukCoreInitialized(bool) ) );
-    m_core->init();
+    m_repository = new Repository( QLatin1String( s_repositoryName ) );
+    connect( m_repository, SIGNAL( loaded( Repository*, bool ) ),
+                this, SLOT( slotRepositoryLoaded( Repository*, bool ) ) );
+    connect( m_repository, SIGNAL( closed( Repository* ) ),
+                this, SLOT( slotRepositoryClosed() ) );
+    QTimer::singleShot( 0, m_repository, SLOT( open() ) );
 }
 
 
 Nepomuk2::Storage::~Storage()
 {
+    slotRepositoryClosed();
+
+    delete m_repository;
+    m_repository = 0;
 }
 
-
-void Nepomuk2::Storage::slotNepomukCoreInitialized( bool success )
+void Nepomuk2::Storage::slotRepositoryLoaded(Nepomuk2::Repository* repo, bool success)
 {
-    if ( success ) {
-        kDebug() << "Successfully initialized nepomuk core";
+    // We overide the main model cause certain classes utilize the Resource class, and we
+    // don't want them using the NepomukMainModel which communicates over a local socket.
+    ResourceManager::instance()->setOverrideMainModel( repo );
 
-        // the faster local socket interface
-        QString socketPath = KGlobal::dirs()->locateLocal( "socket", "nepomuk-socket" );
-        QFile::remove( socketPath ); // in case we crashed
-        m_core->start( socketPath );
-    }
-    else {
-        kDebug() << "Failed to initialize nepomuk core";
-    }
+    // Query Service
+    m_queryService = new Query::QueryService( m_repository, this );
 
+    // Backup Service
+    m_backupManager = new BackupManager( m_repository->ontologyLoader(), m_repository, this );
+
+    // DataManagement interface
+    m_repository->openPublicInterface();
+
+    // the faster local socket interface
+    QString socketPath = KGlobal::dirs()->locateLocal( "socket", "nepomuk-socket" );
+    QFile::remove( socketPath ); // in case we crashed
+    m_localServer = new LocalSever( repo, this );
+    m_localServer->start( socketPath );
+
+    kDebug() << "Registered QueryService and DataManagement interface";
     setServiceInitialized( success );
+}
+
+void Nepomuk2::Storage::slotRepositoryClosed()
+{
+    delete m_localServer;
+    m_localServer = 0;
+
+    delete m_queryService;
+    m_queryService = 0;
+
+    delete m_backupManager;
+    m_backupManager = 0;
 }
 
 
 QString Nepomuk2::Storage::usedSopranoBackend() const
 {
-    if ( Repository* rep = static_cast<Repository*>( m_core->model( QLatin1String( "main" ) ) ) )
-        return rep->usedSopranoBackend();
-    else
-        return QString();
+    return m_repository->usedSopranoBackend();
 }
 
 int main( int argc, char **argv ) {
