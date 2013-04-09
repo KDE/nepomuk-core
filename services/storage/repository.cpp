@@ -209,8 +209,6 @@ void Nepomuk2::Repository::open()
     // create the DataManagementModel on top of everything
     // =================================
     m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
-    m_dataManagementAdaptor = new Nepomuk2::DataManagementAdaptor(m_dataManagementModel);
-    QDBusConnection::sessionBus().registerObject(QLatin1String("/datamanagement"), m_dataManagementAdaptor, QDBusConnection::ExportScriptableContents);
     setParentModel(m_dataManagementModel);
 
     // check if we have to convert
@@ -422,7 +420,8 @@ void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
     }
 
     // update the prefixes in the DMS adaptor for script convenience
-    m_dataManagementAdaptor->setPrefixes(prefixes);
+    if( m_dataManagementAdaptor )
+        m_dataManagementAdaptor->setPrefixes(prefixes);
 
     // update the rest
     m_classAndPropertyTree->rebuildTree(this);
@@ -439,6 +438,23 @@ void Nepomuk2::Repository::slotVirtuosoStopped(bool normalExit)
         open();
     }
 }
+
+void Nepomuk2::Repository::closePublicInterface()
+{
+    delete m_dataManagementAdaptor;
+    m_dataManagementAdaptor = 0;
+}
+
+void Nepomuk2::Repository::openPublicInterface()
+{
+    closePublicInterface();
+    m_dataManagementAdaptor = new Nepomuk2::DataManagementAdaptor(m_dataManagementModel);
+
+    QDBusConnection con = QDBusConnection::sessionBus();
+    con.registerObject(QLatin1String("/datamanagement"), m_dataManagementAdaptor,
+                       QDBusConnection::ExportScriptableContents);
+}
+
 
 
 #include "repository.moc"

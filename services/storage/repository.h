@@ -77,12 +77,24 @@ namespace Nepomuk2 {
 
     public Q_SLOTS:
         /**
-         * Will emit the opened signal
+         * Will emit the opened signal. This will NOT open the public interface.
          */
         void open();
         void close();
 
         void updateInference(bool ontologiesChanged);
+
+        /**
+         * Switches off the datamanagement interface that is used to communicate
+         * with the rest of the world
+         */
+        void closePublicInterface();
+
+        /**
+         * Registers the datamangement interface this is used to communicate with
+         * the rest of world
+         */
+        void openPublicInterface();
 
     Q_SIGNALS:
         void opened( Repository*, bool success );

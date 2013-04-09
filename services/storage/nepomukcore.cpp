@@ -72,7 +72,7 @@ bool Nepomuk2::Core::initialized() const
 void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
 {
     if( !success ) {
-        emit initializationDone( success );
+        emit initializationDone( false );
     }
     else if( !m_ontologyLoader ) {
         // We overide the main model cause certain classes utilize the Resource class, and we
@@ -88,11 +88,6 @@ void Nepomuk2::Core::slotRepositoryOpened( Repository* repo, bool success )
                  this, SLOT(slotOntologiesLoaded(bool)) );
         m_ontologyLoader->updateLocalOntologies();
 
-        // Query Service
-        m_queryService = new Query::QueryService( repo, this );
-
-        // Backup Service
-        m_backupManager = new BackupManager( m_ontologyLoader, repo, this );
     }
 }
 
@@ -112,12 +107,24 @@ void Nepomuk2::Core::slotRepositoryClosed(Nepomuk2::Repository*)
 
 void Nepomuk2::Core::slotOntologiesLoaded(bool somethingChanged)
 {
-    m_repository->updateInference(somethingChanged);
-
     if ( !m_initialized ) {
+        // Query Service
+        m_queryService = new Query::QueryService( m_repository, this );
+
+        // Backup Service
+        m_backupManager = new BackupManager( m_ontologyLoader, m_repository, this );
+
+        // DataManagement
+        m_repository->openPublicInterface();
+        m_repository->updateInference(somethingChanged);
+        kDebug() << "Registered QueryService and DataManagement interface";
+
         // and finally we are done: the repository is online and the ontologies are loaded.
         m_initialized = true;
         emit initializationDone( true );
+    }
+    else {
+        m_repository->updateInference(somethingChanged);
     }
 }
 
