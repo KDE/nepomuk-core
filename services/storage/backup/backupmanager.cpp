@@ -94,6 +94,7 @@ void Nepomuk2::BackupManager::backup(const QString& oldUrl)
     connect( job, SIGNAL(finished(KJob*)), backupThread, SLOT(quit()), Qt::QueuedConnection );
     connect( backupThread, SIGNAL(finished()), backupThread, SLOT(deleteLater()) );
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotBackupDone(KJob*)), Qt::QueuedConnection );
+    connect( job, SIGNAL(finished(KJob*)), backupThread, SLOT(deleteLater()), Qt::QueuedConnection );
     connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotBackupPercent(KJob*,ulong)), Qt::QueuedConnection );
     job->start();
 
@@ -120,6 +121,7 @@ void Nepomuk2::BackupManager::backupTagsAndRatings(const QString& oldUrl)
     connect( job, SIGNAL(finished(KJob*)), backupThread, SLOT(quit()), Qt::QueuedConnection );
     connect( backupThread, SIGNAL(finished()), backupThread, SLOT(deleteLater()) );
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotBackupDone(KJob*)), Qt::QueuedConnection );
+    connect( job, SIGNAL(finished(KJob*)), backupThread, SLOT(deleteLater()), Qt::QueuedConnection );
     connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotBackupPercent(KJob*,ulong)), Qt::QueuedConnection );
     job->start();
 
