@@ -32,9 +32,6 @@ namespace Soprano {
 class KJob;
 
 namespace Nepomuk2 {
-    class RemovableMediaModel;
-    class ResourceWatcherModel;
-    class ModelCopyJob;
     class DataManagementModel;
     class DataManagementAdaptor;
     class ClassAndPropertyTree;
@@ -101,7 +98,6 @@ namespace Nepomuk2 {
         void closed( Repository* );
 
     private Q_SLOTS:
-        void copyFinished( KJob* job );
         void slotVirtuosoStopped( bool normalExit );
 
     private:
@@ -119,15 +115,10 @@ namespace Nepomuk2 {
 
         Soprano::Util::DummyModel* m_dummyModel;
 
-        // only used during opening
-        // ------------------------------------------
-        ModelCopyJob* m_modelCopyJob;
-        const Soprano::Backend* m_oldStorageBackend;
-        QString m_oldStoragePath;
-
         // the base path for the data. Will contain subfolder:
         // "data" for the data
         QString m_basePath;
+        QString m_storagePath;
         // ------------------------------------------
     };
 

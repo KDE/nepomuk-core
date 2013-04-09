@@ -10,7 +10,6 @@ include_directories(
 set(storage_SRCS
   storage.cpp
   nepomukcore.cpp
-  modelcopyjob.cpp
   repository.cpp
   ontologyloader.cpp
   ontologymanagermodel.cpp
