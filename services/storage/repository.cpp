@@ -270,6 +270,9 @@ void Nepomuk2::Repository::slotOntologiesLoaded(bool somethingChanged)
     m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
     setParentModel(m_dataManagementModel);
 
+    // setParentModel disconnects all signals from the previous parent
+    connect(m_model, SIGNAL(virtuosoStopped(bool)), this, SLOT(slotVirtuosoStopped(bool)));
+
     emit loaded(this, true);
 }
 
