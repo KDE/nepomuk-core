@@ -265,15 +265,17 @@ void Nepomuk2::Repository::slotOntologiesLoaded(bool somethingChanged)
 {
     updateInference(somethingChanged);
 
-    // create the DataManagementModel on top of everything
-    // =================================
-    m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
-    setParentModel(m_dataManagementModel);
+    if( !m_dataManagementModel ) {
+        // =================================
+        // create the DataManagementModel on top of everything
+        m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
+        setParentModel(m_dataManagementModel);
 
-    // setParentModel disconnects all signals from the previous parent
-    connect(m_model, SIGNAL(virtuosoStopped(bool)), this, SLOT(slotVirtuosoStopped(bool)));
+        // setParentModel disconnects all signals from the previous parent
+        connect(m_model, SIGNAL(virtuosoStopped(bool)), this, SLOT(slotVirtuosoStopped(bool)));
 
-    emit loaded(this, true);
+        emit loaded(this, true);
+    }
 }
 
 void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
