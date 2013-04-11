@@ -39,18 +39,4 @@ echo "Started..."
 echo "Starting nepomukserver"
 nepomukserver 2> $KDETMP/nepomuk-server.log &
 
-waitForNepomukService () {
-    echo "Waiting for $1 service to be initialized."
-
-    qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null
-    while [ $? -ne 0 ]
-    do
-        sleep 1
-        qdbus $1 /servicecontrol org.kde.nepomuk.ServiceControl.isInitialized 2> /dev/null
-    done
-}
-
-waitForNepomukService "org.kde.NepomukStorage"
-waitForNepomukService "org.kde.nepomuk.services.nepomukqueryservice"
-
 export NEPOMUK_TESTLIB_RUNNING=true
