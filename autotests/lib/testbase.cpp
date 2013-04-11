@@ -21,6 +21,7 @@
 
 #include "testbase.h"
 #include "nepomukservicemanagerinterface.h"
+#include "resourcemanager.h"
 
 #include <QtCore/QFile>
 #include <QtCore/QDir>
@@ -43,7 +44,6 @@
 class Nepomuk2::TestBase::Private {
 public:
     org::kde::nepomuk::ServiceManager* m_serviceManager;
-    QString m_repoLocation;
     KTempDir m_tempDir;
 };
 
@@ -61,13 +61,19 @@ Nepomuk2::TestBase::TestBase(QObject* parent)
 
     d->m_serviceManager = new org::kde::nepomuk::ServiceManager( "org.kde.NepomukServer", "/servicemanager", QDBusConnection::sessionBus() );
 
-    d->m_repoLocation = KStandardDirs::locateLocal( "data", "nepomuk/repository/" );
+    // Wait for Nepomuk to get initialized
+    ResourceManager* rm = ResourceManager::instance();
+    if( !rm->initialized() ) {
+        QEventLoop loop;
+        connect( rm, SIGNAL(nepomukSystemStarted()), &loop, SLOT(quit()) );
+        kDebug() << "Waiting for Nepomuk to start";
+        loop.exec();
+    }
 
     // Stop all the other servies
     QSet<QString> services = runningServices().toSet();
     kDebug() << "Running Services : " << services;
     services.remove( "nepomukstorage" );
-    services.remove( "nepomukqueryservice" );
 
     Q_FOREACH( const QString & service, services )
         stopService( service );
