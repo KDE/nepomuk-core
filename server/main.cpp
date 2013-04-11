@@ -35,8 +35,6 @@
 
 
 namespace {
-    Nepomuk2::Server* s_server = 0;
-
 #ifndef Q_OS_WIN
     void signalHandler( int signal )
     {
@@ -45,9 +43,7 @@ namespace {
         case SIGQUIT:
         case SIGTERM:
         case SIGINT:
-            if ( s_server ) {
-                s_server->quit();
-            }
+            QCoreApplication::instance()->quit();
         }
     }
 
@@ -96,7 +92,10 @@ extern "C" NEPOMUK_SERVER_EXPORT int kdemain( int argc, char** argv )
     QCoreApplication app(argc, argv);
 
     const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
-    s_server = new Nepomuk2::Server(!args->isSet("services"), &app);
 
-    return app.exec();
+    Nepomuk2::Server* server = new Nepomuk2::Server(!args->isSet("services"), &app);
+    int rv = app.exec();
+
+    delete server;
+    return rv;
 }
