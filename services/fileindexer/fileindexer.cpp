@@ -30,6 +30,9 @@
 #include "resourcemanager.h"
 
 #include <QtCore/QTimer>
+#include <Soprano/QueryResultIterator>
+#include <Soprano/Model>
+#include <Soprano/Node>
 
 Nepomuk2::FileIndexer::FileIndexer()
     : Service2()
@@ -201,6 +204,32 @@ void Nepomuk2::FileIndexer::updateFolder(const QString& path, bool recursive, bo
             indexFolder(path, recursive, forced);
         }
     }
+}
+
+int Nepomuk2::FileIndexer::indexedFiles() const
+{
+    QString query = QString::fromLatin1("select count(distinct ?r) where { ?r kext:indexingLevel ?t. "
+                                        " FILTER(?t >= %1) . }")
+                    .arg( Soprano::Node::literalToN3( Soprano::LiteralValue(2) ) );
+
+    Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    if( it.next() )
+        return it[0].literal().toInt();
+
+    return 0;
+}
+
+int Nepomuk2::FileIndexer::totalFiles() const
+{
+    QString query = QString::fromLatin1("select count(distinct ?r) where { ?r kext:indexingLevel ?t. }");
+
+    Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
+    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    if( it.next() )
+        return it[0].literal().toInt();
+
+    return 0;
 }
 
 

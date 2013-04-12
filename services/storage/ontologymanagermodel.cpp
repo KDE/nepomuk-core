@@ -41,6 +41,7 @@
 
 
 using namespace Soprano;
+using namespace Soprano::Vocabulary;
 
 
 
@@ -72,13 +73,13 @@ namespace {
     bool findGraphUris( Soprano::Model* model, const QUrl& ns, QUrl& dataGraphUri, QUrl& metaDataGraphUri ) {
         // We use a FILTER(STR(?ns)...) to support both Soprano 2.3 (with plain literals) and earlier (with only typed ones)
         QString query = QString( "select ?dg ?mdg where { "
-                                 "?dg <%1> ?ns . "
-                                 "?mdg <%3> ?dg . "
+                                 "?dg %1 ?ns . "
+                                 "?mdg %3 ?dg . "
                                  "FILTER(REGEX(STR(?ns), \"^%2\")) . "
                                  "}" )
-                        .arg( Soprano::Vocabulary::NAO::hasDefaultNamespace().toString() )
-                        .arg( ns.toString() )
-                        .arg( Soprano::Vocabulary::NRL::coreGraphMetadataFor().toString() );
+                        .arg( Soprano::Node::resourceToN3(NAO::hasDefaultNamespace()),
+                              ns.toString(),
+                              Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor()) );
         QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
         if ( it.next() ) {
             metaDataGraphUri = it.binding("mdg").uri();
@@ -101,16 +102,7 @@ namespace {
      */
     bool ensureDataLayout( Soprano::Model* tmpModel, const QUrl& ns )
     {
-        // 1. all statements need to have a proper context set
-        StatementIterator it = tmpModel->listStatements();
-        while ( it.next() ) {
-            if ( !it.current().context().isValid() ) {
-                kDebug() << "Invalid data in ontology" << ns << *it;
-                return false;
-            }
-        }
-
-        // 2. make sure we have a proper relation between the data and metadata graphs
+        // make sure we have a proper relation between the data and metadata graphs
         QUrl dataGraphUri, metaDataGraphUri;
         if ( !findGraphUris( tmpModel, ns, dataGraphUri, metaDataGraphUri ) ) {
             kDebug() << "Invalid data in ontology" << ns << "Could not find datagraph and metadatagraph relation.";
@@ -281,6 +273,19 @@ bool Nepomuk2::OntologyManagerModel::updateOntology( Soprano::StatementIterator 
 
     // import the data into our tmp model
     while ( data.next() ) {
+        Soprano::Statement st = *data;
+        if( !st.context().isValid() ) {
+            QString errorString = QString::fromLatin1("Invalid data in ontology %1 - %2 %3 %4 %5")
+                                  .arg( Soprano::Node::resourceToN3(ns),
+                                        st.subject().toN3(),
+                                        st.predicate().toN3(),
+                                        st.object().toN3(),
+                                        st.context().toN3() );
+
+            kDebug() << errorString;
+            setError( errorString );
+            return false;
+        }
         tmpModel->addStatement( *data );
     }
 
@@ -388,18 +393,18 @@ QDateTime Nepomuk2::OntologyManagerModel::ontoModificationDate( const QUrl& uri 
 {
     // We use a FILTER(STR(?ns)...) to support both Soprano 2.3 (with plain literals) and earlier (with only typed ones)
     QString query = QString( "select ?date where { "
-                             "?onto <%1> ?ns . "
-                             "?onto <%3> ?date . "
+                             "?onto %1 ?ns . "
+                             "?onto %3 ?date . "
                              "FILTER(STR(?ns) = \"%2\") . "
-                             "FILTER(DATATYPE(?date) = <%4>) . } LIMIT 1" )
-                    .arg( Soprano::Vocabulary::NAO::hasDefaultNamespace().toString() )
-                    .arg( uri.toString() )
-                    .arg( Soprano::Vocabulary::NAO::lastModified().toString() )
-                    .arg( Soprano::Vocabulary::XMLSchema::dateTime().toString() );
+                             "FILTER(DATATYPE(?date) = %4) . } LIMIT 1" )
+                    .arg( Soprano::Node::resourceToN3(NAO::hasDefaultNamespace()),
+                          uri.toString(),
+                          Soprano::Node::resourceToN3(NAO::lastModified()),
+                          Soprano::Node::resourceToN3(XMLSchema::dateTime()) );
     QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageSparql );
     if ( it.next() ) {
         //kDebug() << "Found modification date for" << uri << it.binding( "date" ).literal().toDateTime();
-        return it.binding( "date" ).literal().toDateTime();
+        return it[0].literal().toDateTime();
     }
     else {
         return QDateTime();

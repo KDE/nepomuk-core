@@ -48,6 +48,9 @@ autostart=false
 [Service-digikamnepomukservice]
 autostart=false
 
+[Service-nepomuk-webminerservice]
+autostart=false
+
 [main Settings]
 Maximum memory=50
 Storage Dir=

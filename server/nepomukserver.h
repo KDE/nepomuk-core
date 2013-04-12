@@ -36,7 +36,7 @@ namespace Nepomuk2 {
         Q_OBJECT
 
     public:
-        Server( QObject* parent = 0 );
+        Server( bool noServices, QObject* parent = 0 );
         virtual ~Server();
 
         KSharedConfig::Ptr config() const;
@@ -80,6 +80,7 @@ namespace Nepomuk2 {
         KSharedConfigPtr m_config;
 
         const QString m_fileIndexerServiceName;
+        const bool m_noServices;
 
         enum State {
             StateDisabled,

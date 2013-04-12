@@ -35,8 +35,6 @@
 
 
 namespace {
-    Nepomuk2::Server* s_server = 0;
-
 #ifndef Q_OS_WIN
     void signalHandler( int signal )
     {
@@ -45,9 +43,7 @@ namespace {
         case SIGQUIT:
         case SIGTERM:
         case SIGINT:
-            if ( s_server ) {
-                s_server->quit();
-            }
+            QCoreApplication::instance()->quit();
         }
     }
 
@@ -77,6 +73,11 @@ extern "C" NEPOMUK_SERVER_EXPORT int kdemain( int argc, char** argv )
     aboutData.addAuthor(ki18n("Sebastian Trüg"),ki18n("Maintainer"), "trueg@kde.org");
 
     KCmdLineArgs::init( argc, argv, &aboutData );
+
+    KCmdLineOptions options;
+    options.add("noservices", ki18n("Start the nepomukserver without any services"));
+    KCmdLineArgs::addCmdLineOptions(options);
+
     KComponentData componentData( &aboutData );
 
     if ( QDBusConnection::sessionBus().interface()->isServiceRegistered(QLatin1String("org.kde.NepomukServer")) ) {
@@ -89,6 +90,12 @@ extern "C" NEPOMUK_SERVER_EXPORT int kdemain( int argc, char** argv )
 #endif
 
     QCoreApplication app(argc, argv);
-    s_server = new Nepomuk2::Server(&app);
-    return app.exec();
+
+    const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
+
+    Nepomuk2::Server* server = new Nepomuk2::Server(!args->isSet("services"), &app);
+    int rv = app.exec();
+
+    delete server;
+    return rv;
 }
