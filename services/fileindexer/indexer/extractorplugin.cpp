@@ -61,7 +61,7 @@ QDateTime ExtractorPlugin::dateTimeFromString(const QString& dateString)
     QDateTime dateTime;
 
     if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("yyyy-MM-dd")); dateTime.setTimeSpec(Qt::UTC); }
-    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("dd-MM-yyy")); dateTime.setTimeSpec(Qt::UTC); }
+    if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("dd-MM-yyyy")); dateTime.setTimeSpec(Qt::UTC); }
     if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("yyyy-MM")); dateTime.setTimeSpec(Qt::UTC); }
     if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("MM-yyyy")); dateTime.setTimeSpec(Qt::UTC); }
     if(!dateTime.isValid()) { dateTime = QDateTime::fromString(dateString, QLatin1String("yyyy.MM.dd")); dateTime.setTimeSpec(Qt::UTC); }
