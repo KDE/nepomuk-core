@@ -90,9 +90,19 @@ void BackupTests::restore()
     m_backupManager->restore( m_backupLocation );
     QEventLoop loop;
     connect( m_backupManager, SIGNAL(restoreDone()), &loop, SLOT(quit()) );
+    kDebug() << "Waiting for restore to finish";
     loop.exec();
 
     m_backupLocation.clear();
+
+    // Wait for Nepomuk to get initialized
+    ResourceManager* rm = ResourceManager::instance();
+    if( !rm->initialized() ) {
+        QEventLoop loop;
+        connect( rm, SIGNAL(nepomukSystemStarted()), &loop, SLOT(quit()) );
+        kDebug() << "Waiting for Nepomuk to start";
+        loop.exec();
+    }
 }
 
 void BackupTests::simpleData()

@@ -20,7 +20,9 @@
 
 #include "backuprestorationjob.h"
 #include "backupfile.h"
+#include "storage.h"
 #include "nie.h"
+#include <KDebug>
 
 #include <QtCore/QTimer>
 #include <QtCore/QDir>
@@ -29,11 +31,10 @@ using namespace Nepomuk2::Vocabulary;
 
 namespace Nepomuk2 {
 
-BackupRestorationJob::BackupRestorationJob(Soprano::Model* model, Nepomuk2::OntologyLoader* loader,
-                                           const QUrl& url, QObject* parent)
+BackupRestorationJob::BackupRestorationJob(Storage* storageService, const QUrl& url, QObject* parent)
     : KJob(parent)
-    , m_model( model )
-    , m_ontologyLoader( loader )
+    , m_model( storageService->model() )
+    , m_storageService( storageService )
     , m_url( url )
 {
 }
@@ -45,13 +46,11 @@ void BackupRestorationJob::start()
 
 void BackupRestorationJob::doWork()
 {
-    // Discard all existing data
-    m_model->removeAllStatements();
-
-    // Re-insert the ontologies
-    m_ontologyLoader->updateAllLocalOntologies();
-    connect( m_ontologyLoader, SIGNAL(ontologyUpdateFinished(bool)), this, SLOT(slotOntologyUpdateFinished(bool)));
+    kDebug() << "RESTORING!!!";
+    connect( m_storageService, SIGNAL(initialized()), this, SLOT(slotRestRepo()) );
+    m_storageService->resetRepository();
 }
+
 namespace {
 
     //
@@ -72,11 +71,12 @@ namespace {
     }
 }
 
-void BackupRestorationJob::slotOntologyUpdateFinished(bool)
+void BackupRestorationJob::slotRestRepo()
 {
     BackupFile bf = BackupFile::fromUrl( m_url );
     Soprano::StatementIterator it = bf.iterator();
 
+    kDebug() << "Restore Statements:" << bf.numStatements();
     // TODO: Optimize this
     int numStatements = 0;
     while( it.next() ) {

@@ -22,8 +22,8 @@
 
 #include "backupmanager.h"
 #include "backupmanageradaptor.h"
+#include "storage.h"
 
-#include "ontologyloader.h"
 #include "backupgenerationjob.h"
 #include "backuprestorationjob.h"
 
@@ -43,11 +43,11 @@
 #include <KCalendarSystem>
 
 
-Nepomuk2::BackupManager::BackupManager(Nepomuk2::OntologyLoader* loader, Soprano::Model* model, QObject* parent)
-    : QObject( parent ),
+Nepomuk2::BackupManager::BackupManager(Nepomuk2::Storage* storageService)
+    : QObject( storageService ),
       m_config( "nepomukbackuprc" ),
-      m_model( model ),
-      m_ontologyLoader( loader )
+      m_model( storageService->model() ),
+      m_storageService( storageService )
 {
     new BackupManagerAdaptor( this );
     // Register via DBUs
@@ -256,7 +256,7 @@ void Nepomuk2::BackupManager::restore(const QString& url)
     if( url.isEmpty() )
         return;
 
-    KJob* job = new BackupRestorationJob( m_model, m_ontologyLoader, QUrl::fromLocalFile(url) );
+    KJob* job = new BackupRestorationJob( m_storageService, QUrl::fromLocalFile(url) );
     job->start();
 
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotRestorationDone(KJob*)) );

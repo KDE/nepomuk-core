@@ -25,25 +25,25 @@
 #include <Soprano/Model>
 #include <QtCore/QUrl>
 
-#include "ontologyloader.h"
-
 namespace Nepomuk2 {
+
+    class Storage;
 
     class BackupRestorationJob : public KJob
     {
         Q_OBJECT
     public:
-        explicit BackupRestorationJob(Soprano::Model* model, OntologyLoader* loader,
-                                      const QUrl& url, QObject* parent = 0);
+        explicit BackupRestorationJob(Nepomuk2::Storage* storageService, const QUrl& url, QObject* parent = 0);
         virtual void start();
 
     private slots:
-        void slotOntologyUpdateFinished(bool);
+        void slotRestRepo();
         void doWork();
 
     private:
         Soprano::Model* m_model;
-        OntologyLoader* m_ontologyLoader;
+        Storage* m_storageService;
+
         QUrl m_url;
     };
 

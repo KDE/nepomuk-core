@@ -39,12 +39,30 @@ namespace Nepomuk2 {
         Storage();
         ~Storage();
 
+        Soprano::Model* model();
+
     public Q_SLOTS:
         Q_SCRIPTABLE QString usedSopranoBackend() const;
+
+        /**
+         * Switches off the Repository and DELETES ALL ITS DATA.
+         * Please use with caution.
+         *
+         * \warning This deletes all your Nepomuk data
+         */
+        Q_SCRIPTABLE void resetRepository();
+
+        Q_SCRIPTABLE void closePublicInterfaces();
+        Q_SCRIPTABLE void openPublicInterfaces();
+
+    signals:
+        // Used by the BackupManager to know we're back online after a reset
+        void initialized();
 
     private Q_SLOTS:
         void slotRepositoryLoaded( Repository* repo, bool success );
         void slotRepositoryClosed();
+        void slotRepositoryClosedAfterReset();
 
     private:
         Soprano::Server::ServerCore* m_localServer;

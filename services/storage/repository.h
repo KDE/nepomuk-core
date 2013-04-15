@@ -69,8 +69,7 @@ namespace Nepomuk2 {
         State state() const { return m_state; }
 
         QString usedSopranoBackend() const;
-
-        OntologyLoader* ontologyLoader() { return m_ontologyLoader; }
+        QString storagePath() const { return m_storagePath; }
 
     public Q_SLOTS:
         /**
