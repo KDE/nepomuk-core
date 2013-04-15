@@ -77,6 +77,9 @@ namespace Nepomuk2 {
 
         Query::QueryService* m_queryService;
         BackupManager* m_backupManager;
+
+        bool dataMigrationRequired();
+        void setDataMigrated();
     };
 }
 

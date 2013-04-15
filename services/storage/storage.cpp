@@ -34,6 +34,8 @@
 #include <KDebug>
 #include <KGlobal>
 #include <KStandardDirs>
+#include <KConfigGroup>
+#include <KProcess>
 
 namespace {
     static const char s_repositoryName[] = "main";
@@ -100,11 +102,17 @@ void Nepomuk2::Storage::slotRepositoryLoaded(Nepomuk2::Repository* repo, bool su
     if( !m_backupManager )
         m_backupManager = new BackupManager( this );
 
-    openPublicInterfaces();
-    kDebug() << "Registered QueryService and DataManagement interface";
+    if( !dataMigrationRequired() ) {
+        openPublicInterfaces();
+        kDebug() << "Registered QueryService and DataManagement interface";
 
-    setServiceInitialized( success );
-    emit initialized();
+        setServiceInitialized( success );
+        emit initialized();
+    }
+    else {
+        KProcess::execute( "nepomukmigrator" );
+        setServiceInitialized( false );
+    }
 }
 
 void Nepomuk2::Storage::openPublicInterfaces()
@@ -195,6 +203,7 @@ void Nepomuk2::Storage::slotRepositoryClosedAfterReset()
     connect( m_repository, SIGNAL( closed( Repository* ) ),
                 this, SLOT( slotRepositoryClosed() ) );
 
+    setDataMigrated();
     m_repository->open();
 }
 
@@ -218,6 +227,7 @@ void Nepomuk2::Storage::migrateGraphs()
 
 void Nepomuk2::Storage::slotMigrationDone()
 {
+    setDataMigrated();
     openPublicInterfaces();
     emit migrateGraphsDone();
 }
@@ -236,6 +246,18 @@ QString Nepomuk2::Storage::usedSopranoBackend() const
 Soprano::Model* Nepomuk2::Storage::model()
 {
     return m_repository;
+}
+
+bool Nepomuk2::Storage::dataMigrationRequired()
+{
+    KConfigGroup group = KSharedConfig::openConfig("nepomukserverrc")->group( m_repository->name() + " Settings" );
+    return group.readEntry( "GraphMigrationRequired", true );
+}
+
+void Nepomuk2::Storage::setDataMigrated()
+{
+    KConfigGroup group = KSharedConfig::openConfig("nepomukserverrc")->group( m_repository->name() + " Settings" );
+    group.writeEntry( "GraphMigrationRequired", false );
 }
 
 
