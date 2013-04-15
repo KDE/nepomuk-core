@@ -45,7 +45,11 @@ MigrationWizard::MigrationWizard(QWidget* parent, Qt::WindowFlags flags)
 
     setOption( HaveFinishButtonOnEarlyPages, false );
     setOption( HaveNextButtonOnLastPage, false );
-    setOption( DisabledBackButtonOnLastPage, true );
+
+    // No Back button
+    QList<QWizard::WizardButton> layout;
+    layout << QWizard::Stretch << QWizard::NextButton << QWizard::CancelButton << QWizard::FinishButton;
+    setButtonLayout( layout );
 
     setPage( Id_MainPage, new MainPage(this) );
     setPage( Id_BackupRestorePage, new BackupRestorePage(this) );
