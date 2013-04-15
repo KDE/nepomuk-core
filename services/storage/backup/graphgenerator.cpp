@@ -86,6 +86,19 @@ namespace {
         return stList;
     }
 }
+namespace {
+    QUrl fetchGraph(Soprano::Model* model, const QString& identifier) {
+        QString query = QString::fromLatin1("select ?r where { ?r a nrl:Graph ; nao:maintainedBy ?app ."
+                                            " ?app nao:identifier %1 . } LIMIT 1")
+                        .arg( Soprano::Node::literalToN3( identifier ) );
+
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        if( it.next() )
+            return it[0].uri();
+
+        return QUrl();
+    }
+}
 
 void GraphGenerator::doJob()
 {
@@ -117,13 +130,16 @@ void GraphGenerator::doJob()
         return;
     }
 
+    QUrl nepomukGraph = fetchGraph( m_model, QLatin1String("nepomuk") );
     while( it.next() ) {
         Soprano::Statement st = it.current();
-        kDebug() << st;
         const QUrl origGraph = st.context().uri();
 
         QList<Soprano::Statement> stList;
         QList<QUrl> apps = fetchGraphApps( m_model, origGraph );
+        if( apps.isEmpty() ) {
+            st.setContext( nepomukGraph );
+        }
         foreach(const QUrl& app, apps) {
             QHash< QUrl, QUrl >::iterator fit = appGraphHash.find( app );
             if( fit == appGraphHash.end() ) {
