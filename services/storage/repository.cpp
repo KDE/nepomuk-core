@@ -148,7 +148,14 @@ void Nepomuk2::Repository::open()
     KConfigGroup repoConfig = KSharedConfig::openConfig( "nepomukserverrc" )->group( name() + " Settings" );
     QString basePath = repoConfig.readPathEntry( "Storage Dir", QString() );
 
-    m_basePath = basePath.isEmpty() ? createStoragePath(name()) : basePath;
+    if( basePath.isEmpty() ) {
+        m_basePath = createStoragePath(name());
+        // First time run
+        repoConfig.writeEntry("GraphMigrationRequired", false);
+    }
+    else {
+        m_basePath = basePath;
+    }
     m_storagePath = m_basePath + "data/" + m_backend->pluginName();
     Soprano::BackendSettings settings = readVirtuosoSettings();
 
