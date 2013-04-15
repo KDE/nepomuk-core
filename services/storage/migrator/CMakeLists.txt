@@ -18,6 +18,10 @@ qt4_add_dbus_interface( MIGRATOR_SRCS
                         ../../../interfaces/org.kde.nepomuk.BackupManager.xml
                         backupmanagerinterface )
 
+qt4_add_dbus_interface( MIGRATOR_SRCS
+                        ../../../interfaces/org.kde.nepomuk.Storage.xml
+                        storageinterface )
+
 kde4_add_ui_files( MIGRATOR_SRCS
   errorpage.ui
 )

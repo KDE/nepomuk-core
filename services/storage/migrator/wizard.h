@@ -25,6 +25,7 @@
 
 #include "ui_errorpage.h"
 #include "backupmanagerinterface.h"
+#include "storageinterface.h"
 
 #include <QtGui/QWizard>
 #include <QtGui/QWizardPage>
@@ -33,6 +34,7 @@
 #include <QProgressBar>
 
 typedef org::kde::nepomuk::BackupManager BackupManager;
+typedef org::kde::nepomuk::Storage StorageService;
 
 namespace Nepomuk2 {
 
@@ -102,9 +104,18 @@ public:
 };
 
 class DeletionPage : public QWizardPage {
+    Q_OBJECT
 public:
     DeletionPage(QWidget* parent = 0);
     virtual int nextId() const;
+
+    virtual void initializePage();
+    virtual bool isComplete() const;
+private slots:
+    void slotDeletionDone();
+private:
+    bool m_done;
+    StorageService* m_storageService;
 };
 
 class FinishPage : public QWizardPage {

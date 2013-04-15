@@ -57,7 +57,7 @@ namespace Nepomuk2 {
 
     signals:
         // Used by the BackupManager to know we're back online after a reset
-        void initialized();
+        Q_SCRIPTABLE void initialized();
 
     private Q_SLOTS:
         void slotRepositoryLoaded( Repository* repo, bool success );

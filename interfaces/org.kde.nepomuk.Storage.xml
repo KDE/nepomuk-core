@@ -5,5 +5,9 @@
     <method name="usedSopranoBackend">
       <arg name="backendName" type="s" direction="out" />
     </method>
+    <method name="resetRepository">
+    </method>
+    <signal name="initialized">
+    </signal>
   </interface>
 </node>

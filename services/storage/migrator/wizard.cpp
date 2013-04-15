@@ -28,6 +28,7 @@
 #include <KComponentData>
 #include <KAboutData>
 #include <KTemporaryFile>
+#include <KDebug>
 
 #include <QBoxLayout>
 #include <QRadioButton>
@@ -232,14 +233,48 @@ int MigrationPage::nextId() const
 // Deletion Page
 //
 
-DeletionPage::DeletionPage(QWidget* parent): QWizardPage(parent)
+DeletionPage::DeletionPage(QWidget* parent)
+    : QWizardPage(parent)
+    , m_done( false )
 {
+}
 
+void DeletionPage::initializePage()
+{
+    setTitle( i18n("Removing all existing Metadata") );
+    setSubTitle( i18n("In the process of creating a fresh database") );
+
+    QVBoxLayout* layout = new QVBoxLayout( this );
+    QProgressBar* progress = new QProgressBar( this );
+    progress->setMinimum( 0 );
+    progress->setMaximum( 0 );
+
+    layout->addWidget( progress );
+
+    m_storageService = new StorageService( QLatin1String("org.kde.NepomukStorage"),
+                                           QLatin1String("/nepomukstorage"),
+                                           QDBusConnection::sessionBus(), this);
+    connect( m_storageService, SIGNAL(initialized()), this, SLOT(slotDeletionDone()) );
+
+    m_storageService->resetRepository();
+}
+
+void DeletionPage::slotDeletionDone()
+{
+    m_done = true;
+    emit completeChanged();
+
+    wizard()->next();
+}
+
+bool DeletionPage::isComplete() const
+{
+    return m_done;
 }
 
 int DeletionPage::nextId() const
 {
-    return QWizardPage::nextId();
+    return MigrationWizard::Id_FinishPage;
 }
 
 //
@@ -248,12 +283,12 @@ int DeletionPage::nextId() const
 
 FinishPage::FinishPage(QWidget* parent): QWizardPage(parent)
 {
-
+    setTitle( i18n("Data has been successfully migrated") );
 }
 
 int FinishPage::nextId() const
 {
-    return QWizardPage::nextId();
+    return -1;
 }
 
 //
