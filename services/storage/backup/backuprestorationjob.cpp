@@ -97,7 +97,13 @@ void BackupRestorationJob::slotRestRepo()
             }
         }
 
-        m_model->addStatement( st );
+        Soprano::Error::ErrorCode err = m_model->addStatement( st );
+        if( err ) {
+            kWarning() << m_model->lastError();
+            setErrorText( m_model->lastError().message() );
+            emitResult();
+            return;
+        }
 
         numStatements++;
         emitPercent( numStatements, bf.numStatements() );
