@@ -54,13 +54,12 @@ namespace Nepomuk2 {
         void backupStarted();
         void backupDone();
         void backupError(const QString& error);
-        void backupPercent(ulong percent);
+        void backupPercent(int percent);
 
         void restoreStarted();
         void restoreDone();
         void restoreError(const QString& error);
-        void restorePercent(ulong percent);
-
+        void restorePercent(int percent);
     private:
         QString m_backupLocation;
 

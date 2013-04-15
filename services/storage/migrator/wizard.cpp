@@ -168,8 +168,10 @@ void BackupRestorePage::initializePage()
 
 void BackupRestorePage::slotBackupDone()
 {
+    kDebug();
+    m_backupProgress->setValue( 100 );
     m_backupGroup->setEnabled( false );
-    m_backupGroup->setEnabled( true );
+    m_restoreGroup->setEnabled( true );
 
     m_backupManager->restore( m_url );
 }
@@ -181,6 +183,7 @@ void BackupRestorePage::slotBackupProgress(int percent)
 
 void BackupRestorePage::slotBackupError(const QString& error)
 {
+    kDebug() << error;
     m_errorMessage = error;
     m_error = true;
     wizard()->next();
@@ -189,15 +192,20 @@ void BackupRestorePage::slotBackupError(const QString& error)
 void BackupRestorePage::slotRestoneDone()
 {
     m_restoreDone = true;
+    emit completeChanged();
+
+    wizard()->next();
 }
 
 void BackupRestorePage::slotRestoreProgress(int percent)
 {
+    kDebug() << percent;
     m_restoreProgress->setValue( percent );
 }
 
 void BackupRestorePage::slotRestoreError(const QString& error)
 {
+    kDebug() << error;
     m_errorMessage = error;
     m_error = true;
     wizard()->next();

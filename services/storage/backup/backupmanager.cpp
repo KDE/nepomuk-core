@@ -245,7 +245,7 @@ void Nepomuk2::BackupManager::slotBackupDone(KJob* job)
     }
 }
 
-void Nepomuk2::BackupManager::slotBackupPercent(KJob* job, ulong percent)
+void Nepomuk2::BackupManager::slotBackupPercent(KJob*, ulong percent)
 {
     emit backupPercent( percent );
 }
@@ -260,11 +260,12 @@ void Nepomuk2::BackupManager::restore(const QString& url)
     job->start();
 
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotRestorationDone(KJob*)) );
-    connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotRestorationPercent(KJob*,ulong)) );
+    connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotRestorationPercent(KJob*,ulong)), Qt::QueuedConnection );
 }
 
 void Nepomuk2::BackupManager::slotRestorationPercent(KJob*, ulong percent)
 {
+    kDebug() << percent;
     emit restorePercent( percent );
 }
 
