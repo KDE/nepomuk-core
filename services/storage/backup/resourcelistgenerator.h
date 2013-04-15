@@ -50,6 +50,7 @@ public:
     };
 
     void setFilter(Filter filter);
+    int resourceCount() const { return m_resourceCount; }
 private slots:
     void doJob();
 
@@ -58,6 +59,7 @@ private:
     QString m_outputFile;
 
     Filter m_filter;
+    int m_resourceCount;
 };
 
 }

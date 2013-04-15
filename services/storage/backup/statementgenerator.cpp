@@ -45,6 +45,7 @@ StatementGenerator::StatementGenerator(Soprano::Model* model, const QString& inp
     , m_inputFile(inputFile)
     , m_outputFile(outputFile)
     , m_filter(Filter_None)
+    , m_statementCount(0)
 {
 }
 
@@ -83,6 +84,7 @@ void StatementGenerator::doJob()
     QTextStream inputStream( &input );
     QTextStream outputStream( &output );
 
+    int count = 0;
     while( !inputStream.atEnd() ) {
         const QUrl uri( inputStream.readLine() );
         kDebug() << "Processing" << uri;
@@ -122,6 +124,13 @@ void StatementGenerator::doJob()
             kDebug() << stList;
             Soprano::Util::SimpleStatementIterator iter( stList );
             serializer->serialize( iter, outputStream, Soprano::SerializationNQuads );
+
+            m_statementCount += stList.size();
+        }
+
+        if( m_resourceCount ) {
+            count++;
+            emitPercent( count, m_resourceCount );
         }
     }
 

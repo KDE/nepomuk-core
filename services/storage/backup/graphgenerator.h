@@ -44,6 +44,7 @@ public:
     virtual void start();
     int numStatements();
 
+    void setInputCount(int count) { m_inputCount = count; }
 private slots:
     void doJob();
 
@@ -54,6 +55,7 @@ private:
     QString m_outputFile;
 
     int m_numStatements;
+    int m_inputCount;
 };
 }
 }

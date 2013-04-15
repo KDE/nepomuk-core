@@ -37,6 +37,7 @@ ResourceListGenerator::ResourceListGenerator(Soprano::Model* model, const QStrin
     , m_model(model)
     , m_outputFile(outputFile)
     , m_filter(Filter_None)
+    , m_resourceCount(0)
 {
 }
 
@@ -91,6 +92,7 @@ void ResourceListGenerator::doJob()
 
         while( rit.next() ) {
             out << rit[0].uri().toString() << "\n";
+            m_resourceCount++;
         }
     }
     else if( m_filter == Filter_FilesAndTags ) {
@@ -100,7 +102,15 @@ void ResourceListGenerator::doJob()
 
         while( it.next() ) {
             out << it[0].uri().toString() << "\n";
+            m_resourceCount++;
         }
+
+        // file count
+        QString countQuery = QString::fromLatin1("select count(distinct ?r) where { ?r a nfo:FileDataObject ; nao:hasTag ?t. }");
+        Soprano::QueryResultIterator iter = m_model->executeQuery( countQuery, Soprano::Query::QueryLanguageSparqlNoInference );
+        int approxCount = 0;
+        if( iter.next() )
+            approxCount = iter[0].literal().toInt() + m_resourceCount;
 
         query = QString::fromLatin1("select distinct ?r where { ?r a nfo:FileDataObject . "
                                     " ?r nao:hasTag ?t . }");
@@ -108,8 +118,13 @@ void ResourceListGenerator::doJob()
 
         while( it.next() ) {
             out << it[0].uri().toString() << "\n";
+            m_resourceCount++;
+
+            if( m_resourceCount < approxCount )
+                emitPercent( m_resourceCount, approxCount );
         }
     }
 
+    emitPercent( m_resourceCount, m_resourceCount );
     emitResult();
 }

@@ -130,6 +130,7 @@ void GraphGenerator::doJob()
         return;
     }
 
+    int count=0;
     QUrl nepomukGraph = fetchGraph( m_model, QLatin1String("nepomuk") );
     while( it.next() ) {
         Soprano::Statement st = it.current();
@@ -143,6 +144,7 @@ void GraphGenerator::doJob()
         foreach(const QUrl& app, apps) {
             QHash< QUrl, QUrl >::iterator fit = appGraphHash.find( app );
             if( fit == appGraphHash.end() ) {
+                m_inputCount++;
                 fit = appGraphHash.insert( app, origGraph );
             }
 
@@ -152,7 +154,12 @@ void GraphGenerator::doJob()
 
         Soprano::Util::SimpleStatementIterator iter( stList );
         serializer->serialize( iter, outputStream, Soprano::SerializationNQuads );
+
         m_numStatements += stList.size();
+        if( m_inputCount ) {
+            count++;
+            emitPercent( count, m_inputCount );
+        }
     }
 
     // Push all the graphs
@@ -168,6 +175,10 @@ void GraphGenerator::doJob()
         serializer->serialize( iter, outputStream, Soprano::SerializationNQuads );
 
         m_numStatements += stList.size();
+        if( m_inputCount ) {
+            count++;
+            emitPercent( count, m_inputCount );
+        }
     }
 
     emitResult();

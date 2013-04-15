@@ -60,12 +60,31 @@ void Nepomuk2::BackupGenerationJob::setFilter(Nepomuk2::BackupGenerationJob::Fil
 void Nepomuk2::BackupGenerationJob::doWork()
 {
     KTemporaryFile uriListFile;
+    uriListFile.setAutoRemove( false );
     uriListFile.open();
 
     Backup::ResourceListGenerator* uriListGen = new Backup::ResourceListGenerator( m_model, uriListFile.fileName(), this );
+    uriListGen->setProperty( "filename", uriListFile.fileName() );
     if( m_filter == Filter_TagsAndRatings )
         uriListGen->setFilter( Backup::ResourceListGenerator::Filter_FilesAndTags );
-    uriListGen->exec();
+
+    connect( uriListGen, SIGNAL(finished(KJob*)), this, SLOT(slotResourceListFinished(KJob*)) );
+    connect( uriListGen, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotResourceListProgress(KJob*,ulong)) );
+    uriListGen->start();
+
+}
+
+void Nepomuk2::BackupGenerationJob::slotResourceListProgress(KJob*, ulong progress)
+{
+    // The ResourceListGeneration should take about 20% of the total time
+    float amt = progress * 0.20;
+    kDebug() << amt;
+    setPercent( amt );
+}
+
+void Nepomuk2::BackupGenerationJob::slotResourceListFinished(KJob* job)
+{
+    Backup::ResourceListGenerator* uriListGen = static_cast<Backup::ResourceListGenerator*>(job);
 
     if( uriListGen->error() ) {
         setError(1);
@@ -74,14 +93,35 @@ void Nepomuk2::BackupGenerationJob::doWork()
         return;
     }
 
+    const QString uriListFile = uriListGen->property( "filename" ).toString();
+
     KTemporaryFile stListFile;
+    stListFile.setAutoRemove( false );
     stListFile.open();
-    Backup::StatementGenerator* stGen = new Backup::StatementGenerator( m_model, uriListFile.fileName(),
+
+    Backup::StatementGenerator* stGen = new Backup::StatementGenerator( m_model, uriListFile,
                                                                         stListFile.fileName(), this );
+    stGen->setProperty( "filename", stListFile.fileName() );
+    stGen->setResourceCount( uriListGen->resourceCount() );
     if( m_filter == Filter_TagsAndRatings )
         stGen->setFilter( Backup::StatementGenerator::Filter_TagsAndRatings );
 
-    stGen->exec();
+    connect( stGen, SIGNAL(finished(KJob*)), this, SLOT(slotStatementListGenerationFinished(KJob*)) );
+    connect( stGen, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotStatementListGeneratorProgress(KJob*,ulong)) );
+    stGen->start();
+}
+
+void Nepomuk2::BackupGenerationJob::slotStatementListGeneratorProgress(KJob*, ulong progress)
+{
+    // The StatementGenerator should take about 40% of the time
+    float amt = 20 + (progress*0.40);
+    kDebug() << "FF" << amt;
+    setPercent( amt );
+}
+
+void Nepomuk2::BackupGenerationJob::slotStatementListGenerationFinished(KJob* job)
+{
+    Backup::StatementGenerator* stGen = static_cast<Backup::StatementGenerator*>(job);
     if( stGen->error() ) {
         setError(1);
         setErrorText( stGen->errorString() );
@@ -90,18 +130,39 @@ void Nepomuk2::BackupGenerationJob::doWork()
     }
 
     KTemporaryFile dataFile;
+    dataFile.setAutoRemove( false );
     dataFile.open();
 
-    Backup::GraphGenerator* graphGen = new Backup::GraphGenerator( m_model, stListFile.fileName(),
+    const QString stListFile = stGen->property( "filename" ).toString();
+    Backup::GraphGenerator* graphGen = new Backup::GraphGenerator( m_model, stListFile,
                                                                    dataFile.fileName(), this );
 
-    graphGen->exec();
+    connect( graphGen, SIGNAL(finished(KJob*)), this, SLOT(slotGraphGenerationFinished(KJob*)) );
+    connect( graphGen, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotGraphGeneratorProgress(KJob*,ulong)) );
+
+    graphGen->setInputCount( stGen->statementCount() );
+    graphGen->setProperty( "filename", dataFile.fileName() );
+    graphGen->start();
+}
+
+void Nepomuk2::BackupGenerationJob::slotGraphGeneratorProgress(KJob*, ulong progress)
+{
+    float amt = 60 + (progress*0.40);
+    kDebug() << amt;
+    setPercent( amt );
+}
+
+void Nepomuk2::BackupGenerationJob::slotGraphGenerationFinished(KJob* job)
+{
+    Backup::GraphGenerator* graphGen = static_cast<Backup::GraphGenerator*>(job);
     if( graphGen->error() ) {
         setError(1);
         setErrorText( graphGen->errorString() );
         emitResult();
         return;
     }
+
+    const QString dataFile = graphGen->property("filename").toString();
 
     // Metadata
     KTemporaryFile tmpFile;
@@ -122,11 +183,9 @@ void Nepomuk2::BackupGenerationJob::doWork()
         return;
     }
 
-    tarFile.addLocalFile( dataFile.fileName(), "data" );
+    tarFile.addLocalFile( dataFile, "data" );
     tarFile.addLocalFile( metdataFile, "metadata" );
 
     emitResult();
 }
-
-
 

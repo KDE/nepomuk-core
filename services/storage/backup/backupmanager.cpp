@@ -124,7 +124,6 @@ void Nepomuk2::BackupManager::backupTagsAndRatings(const QString& oldUrl)
     job->start();
 
     emit backupStarted();
-
 }
 
 
@@ -243,6 +242,7 @@ void Nepomuk2::BackupManager::slotBackupDone(KJob* job)
 
 void Nepomuk2::BackupManager::slotBackupPercent(KJob*, ulong percent)
 {
+    kDebug() << "WEEEEEE" << percent;
     emit backupPercent( percent );
 }
 

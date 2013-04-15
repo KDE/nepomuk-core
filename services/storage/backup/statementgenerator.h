@@ -49,6 +49,8 @@ public:
 
     void setFilter( Filter filter );
 
+    void setResourceCount( int count ) { m_resourceCount = count; }
+    int statementCount() const { return m_statementCount; }
 private slots:
     void doJob();
 
@@ -64,6 +66,9 @@ private:
     QList<Soprano::Statement> fetchProperties(const QUrl& uri, QStringList properties);
 
     bool hasType(const QUrl& uri, const QUrl& type);
+
+    int m_resourceCount;
+    int m_statementCount;
 };
 }
 }

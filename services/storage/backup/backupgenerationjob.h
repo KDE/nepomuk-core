@@ -43,6 +43,14 @@ namespace Nepomuk2 {
     private slots:
         void doWork();
 
+        void slotResourceListProgress(KJob* job, ulong progress);
+        void slotResourceListFinished(KJob* job);
+
+        void slotStatementListGeneratorProgress(KJob* job, ulong progress);
+        void slotStatementListGenerationFinished(KJob* job);
+
+        void slotGraphGeneratorProgress(KJob* job, ulong progress);
+        void slotGraphGenerationFinished(KJob* job);
     private:
         Soprano::Model* m_model;
         QUrl m_url;
