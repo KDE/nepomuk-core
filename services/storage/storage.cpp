@@ -126,7 +126,8 @@ void Nepomuk2::Storage::closePublicInterfaces()
 {
     setServiceInitialized( false );
     m_repository->closePublicInterface();
-    m_localServer->stop();
+    if( m_localServer )
+        m_localServer->stop();
 
     delete m_queryService;
     m_queryService = 0;
