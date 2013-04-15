@@ -231,15 +231,58 @@ int BackupRestorePage::nextId() const
 // Migration Page
 //
 
-MigrationPage::MigrationPage(QWidget* parent): QWizardPage(parent)
+MigrationPage::MigrationPage(QWidget* parent)
+    : QWizardPage(parent)
+    , m_done(false)
 {
+}
 
+void MigrationPage::initializePage()
+{
+    setTitle( i18n("The internal data is being migrated") );
+    setSubTitle( i18n("This process could take a while") );
+
+    QVBoxLayout* layout = new QVBoxLayout( this );
+    m_progressBar = new QProgressBar( this );
+    m_progressBar->setMaximum( 100 );
+
+    layout->addWidget( m_progressBar );
+
+    m_storageService = new StorageService( QLatin1String("org.kde.NepomukStorage"),
+                                           QLatin1String("/nepomukstorage"),
+                                           QDBusConnection::sessionBus(), this);
+    connect( m_storageService, SIGNAL(migrateGraphsDone()), this, SLOT(slotMigrationDone()) );
+    connect( m_storageService, SIGNAL(migrateGraphsPercent(int)), this, SLOT(slotMigrationPercent(int)) );
+
+    m_storageService->migrateGraphs();
+}
+
+
+void MigrationPage::slotMigrationDone()
+{
+    m_done = true;
+    emit completeChanged();
+
+    wizard()->next();
+}
+
+void MigrationPage::slotMigrationPercent(int percent)
+{
+    kDebug() << percent;
+    m_progressBar->setValue( percent );
+}
+
+
+bool MigrationPage::isComplete() const
+{
+    return m_done;
 }
 
 int MigrationPage::nextId() const
 {
-    return QWizardPage::nextId();
+    return MigrationWizard::Id_FinishPage;
 }
+
 
 //
 // Deletion Page

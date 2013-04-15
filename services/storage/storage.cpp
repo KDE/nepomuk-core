@@ -22,12 +22,14 @@
 #include "query/queryservice.h"
 #include "backup/backupmanager.h"
 #include "resourcemanager.h"
+#include "graphmigrationjob.h"
 
 #include <QtDBus/QDBusConnection>
 #include <QtCore/QFile>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
 #include <QtCore/QDir>
+#include <QtCore/QThread>
 
 #include <KDebug>
 #include <KGlobal>
@@ -197,6 +199,34 @@ void Nepomuk2::Storage::slotRepositoryClosedAfterReset()
 }
 
 
+void Nepomuk2::Storage::migrateGraphs()
+{
+    closePublicInterfaces();
+
+    KJob* job = new GraphMigrationJob( model() );
+
+    QThread* migrationThread = new QThread( this );
+    job->moveToThread( migrationThread );
+    migrationThread->start();
+
+    connect( job, SIGNAL(finished(KJob*)), migrationThread, SLOT(quit()), Qt::QueuedConnection );
+    connect( migrationThread, SIGNAL(finished()), migrationThread, SLOT(deleteLater()) );
+    connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotMigrationDone()), Qt::QueuedConnection );
+    connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotMigrationPercent(KJob*,ulong)), Qt::QueuedConnection );
+    job->start();
+}
+
+void Nepomuk2::Storage::slotMigrationDone()
+{
+    openPublicInterfaces();
+    emit migrateGraphsDone();
+}
+
+void Nepomuk2::Storage::slotMigrationPercent(KJob* , ulong percent)
+{
+    kDebug() << percent;
+    emit migrateGraphsPercent( percent );
+}
 
 QString Nepomuk2::Storage::usedSopranoBackend() const
 {

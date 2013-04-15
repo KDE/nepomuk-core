@@ -9,5 +9,12 @@
     </method>
     <signal name="initialized">
     </signal>
+    <method name="migrateGraphs">
+    </method>
+    <signal name="migrateGraphsDone">
+    </signal>
+    <signal name="migrateGraphsPercent">
+        <arg name="percent" type="i"/>
+    </signal>
   </interface>
 </node>

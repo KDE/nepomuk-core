@@ -98,9 +98,22 @@ private:
 };
 
 class MigrationPage : public QWizardPage {
+    Q_OBJECT
 public:
     MigrationPage(QWidget* parent = 0);
     virtual int nextId() const;
+
+    virtual void initializePage();
+    virtual bool isComplete() const;
+
+private slots:
+    void slotMigrationDone();
+    void slotMigrationPercent(int percent);
+
+private:
+    bool m_done;
+    StorageService* m_storageService;
+    QProgressBar* m_progressBar;
 };
 
 class DeletionPage : public QWizardPage {

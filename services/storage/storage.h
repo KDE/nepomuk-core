@@ -22,6 +22,8 @@
 #include "service2.h"
 #include <Soprano/Server/ServerCore>
 
+class KJob;
+
 namespace Nepomuk2 {
 
     namespace Query {
@@ -55,15 +57,20 @@ namespace Nepomuk2 {
         Q_SCRIPTABLE void closePublicInterfaces();
         Q_SCRIPTABLE void openPublicInterfaces();
 
+        Q_SCRIPTABLE void migrateGraphs();
     signals:
         // Used by the BackupManager to know we're back online after a reset
         Q_SCRIPTABLE void initialized();
+        Q_SCRIPTABLE void migrateGraphsDone();
+        Q_SCRIPTABLE void migrateGraphsPercent(int percent);
 
     private Q_SLOTS:
         void slotRepositoryLoaded( Repository* repo, bool success );
         void slotRepositoryClosed();
         void slotRepositoryClosedAfterReset();
 
+        void slotMigrationPercent(KJob*, ulong percent);
+        void slotMigrationDone();
     private:
         Soprano::Server::ServerCore* m_localServer;
         Repository* m_repository;
