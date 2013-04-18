@@ -39,7 +39,7 @@ PlainTextExtractor::PlainTextExtractor(QObject* parent, const QVariantList&)
 bool PlainTextExtractor::shouldExtract(const QUrl& url, const QString& mimeType)
 {
     Q_UNUSED( url );
-    return mimeType.startsWith( QLatin1String("text/") );
+    return mimeType.startsWith( QLatin1String("text/") ) || mimeType.endsWith( QLatin1String("/xml") );
 }
 
 SimpleResourceGraph PlainTextExtractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
