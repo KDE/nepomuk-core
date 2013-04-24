@@ -6,13 +6,21 @@ include_directories(
   ${SOPRANO_INCLUDE_DIR}
   )
 
+kde4_add_library(nepomukextractor SHARED extractorplugin.cpp)
+
+target_link_libraries(nepomukextractor
+  ${QT_QTCORE_LIBRARY}
+  ${KDE4_KDECORE_LIBS}
+  nepomukcore
+)
+
+install(TARGETS nepomukextractor EXPORT NepomukCoreLibraryTargets ${INSTALL_TARGETS_DEFAULT_ARGS})
+
 set(indexer_SRCS
   main.cpp
   indexer.cpp
   simpleindexer.cpp
-  extractorplugin.cpp
   extractorpluginmanager.cpp
-  plaintextextractor.cpp
   ../util.cpp
   ../../../servicestub/priority.cpp
   )
@@ -24,7 +32,8 @@ kde4_add_executable( nepomukindexer ${indexer_SRCS} )
 target_link_libraries( nepomukindexer
   nepomukcommon
   nepomukcore
-  ${KDE4_KIO_LIBS}
+  nepomukextractor
+  ${KDE4_KDECORE_LIBS}
   ${SOPRANO_LIBRARIES}
   )
 
@@ -43,10 +52,11 @@ install(
 if(POPPLER_QT4_FOUND)
     include_directories( ${POPPLER_QT4_INCLUDE_DIR} )
 
-    kde4_add_plugin( nepomukpopplerextractor popplerextractor.cpp extractorplugin.cpp )
+    kde4_add_plugin( nepomukpopplerextractor popplerextractor.cpp )
 
     target_link_libraries( nepomukpopplerextractor
         nepomukcore
+        nepomukextractor
         ${KDE4_KIO_LIBS}
         ${POPPLER_QT4_LIBRARIES}
     )
@@ -64,10 +74,11 @@ endif(POPPLER_QT4_FOUND)
 if(TAGLIB_FOUND)
     include_directories( ${TAGLIB_INCLUDES} )
 
-    kde4_add_plugin( nepomuktaglibextractor taglibextractor.cpp extractorplugin.cpp )
+    kde4_add_plugin( nepomuktaglibextractor taglibextractor.cpp )
 
     target_link_libraries( nepomuktaglibextractor
         nepomukcore
+        nepomukextractor
         ${KDE4_KIO_LIBS}
         ${TAGLIB_LIBRARIES}
     )
@@ -89,10 +100,11 @@ if(EXIV2_FOUND)
         COMPILE_FLAGS "${KDE4_ENABLE_EXCEPTIONS}"
         )
 
-    kde4_add_plugin( nepomukexiv2extractor exiv2extractor.cpp extractorplugin.cpp )
+    kde4_add_plugin( nepomukexiv2extractor exiv2extractor.cpp )
 
     target_link_libraries( nepomukexiv2extractor
         nepomukcore
+        nepomukextractor
         ${KDE4_KIO_LIBS}
         ${EXIV2_LIBRARIES}
     )
@@ -110,10 +122,11 @@ endif(EXIV2_FOUND)
 if(FFMPEG_FOUND)
     include_directories( ${FFMPEG_INCLUDE_DIRS} )
 
-    kde4_add_plugin( nepomukffmpegextractor ffmpegextractor.cpp extractorplugin.cpp )
+    kde4_add_plugin( nepomukffmpegextractor ffmpegextractor.cpp )
 
     target_link_libraries( nepomukffmpegextractor
         nepomukcore
+        nepomukextractor
         ${KDE4_KIO_LIBS}
         ${FFMPEG_LIBRARIES}
     )
@@ -129,10 +142,11 @@ if(FFMPEG_FOUND)
 endif(FFMPEG_FOUND)
 
 
-kde4_add_plugin( nepomukplaintextextractor plaintextextractor.cpp extractorplugin.cpp )
+kde4_add_plugin( nepomukplaintextextractor plaintextextractor.cpp )
 
 target_link_libraries( nepomukplaintextextractor
     nepomukcore
+    nepomukextractor
     ${KDE4_KIO_LIBS}
     ${FFMPEG_LIBRARIES}
 )
