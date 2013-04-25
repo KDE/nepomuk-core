@@ -88,7 +88,10 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
         fileRes.addType( NFO::Audio() );
     }
 
-    TagLib::String artists = "";
+    TagLib::String artists;
+    TagLib::String albumArtists;
+    TagLib::String composers;
+    TagLib::String lyricists;
     TagLib::StringList genres;
 
     // Handling multiple tags in mpeg files.
@@ -108,6 +111,39 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
                 }
             }
 
+            // Album Artist.
+            lstID3v2 = mpegFile.ID3v2Tag()->frameListMap()["TPE2"];
+            if ( !lstID3v2.isEmpty() ) {
+                for (TagLib::ID3v2::FrameList::ConstIterator it = lstID3v2.begin(); it != lstID3v2.end(); ++it) {
+                    if( !albumArtists.isEmpty() ) {
+                        albumArtists += ", ";
+                    }
+                    albumArtists += (*it)->toString();
+                }
+            }
+
+            // Composer.
+            lstID3v2 = mpegFile.ID3v2Tag()->frameListMap()["TCOM"];
+            if ( !lstID3v2.isEmpty() ) {
+                for (TagLib::ID3v2::FrameList::ConstIterator it = lstID3v2.begin(); it != lstID3v2.end(); ++it) {
+                    if( !composers.isEmpty() ) {
+                        composers += ", ";
+                    }
+                    composers += (*it)->toString();
+                }
+            }
+
+            // Lyricist.
+            lstID3v2 = mpegFile.ID3v2Tag()->frameListMap()["TEXT"];
+            if ( !lstID3v2.isEmpty() ) {
+                for (TagLib::ID3v2::FrameList::ConstIterator it = lstID3v2.begin(); it != lstID3v2.end(); ++it) {
+                    if( !lyricists.isEmpty() ) {
+                        lyricists += ", ";
+                    }
+                    lyricists += (*it)->toString();
+                }
+            }
+
             // Genre.
             lstID3v2 = mpegFile.ID3v2Tag()->frameListMap()["TCON"];
             if ( !lstID3v2.isEmpty() ) {
@@ -115,6 +151,7 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
                     genres.append((*it)->toString());
                 }
             }
+
         }
     }
 
@@ -132,6 +169,33 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
                     artists += ", ";
                 }
                 artists += (*itFLAC).second.toString(", ");
+            }
+
+            // Album Artist.
+            itFLAC = lstFLAC.find("ALBUMARTIST");
+            if( itFLAC != lstFLAC.end() ) {
+                if( !albumArtists.isEmpty() ) {
+                    albumArtists += ", ";
+                }
+                albumArtists += (*itFLAC).second.toString(", ");
+            }
+
+            // Composer.
+            itFLAC = lstFLAC.find("COMPOSER");
+            if( itFLAC != lstFLAC.end() ) {
+                if( !composers.isEmpty() ) {
+                    composers += ", ";
+                }
+                composers += (*itFLAC).second.toString(", ");
+            }
+
+            // Lyricist.
+            itFLAC = lstFLAC.find("LYRICIST");
+            if( itFLAC != lstFLAC.end() ) {
+                if( !lyricists.isEmpty() ) {
+                    lyricists += ", ";
+                }
+                lyricists += (*itFLAC).second.toString(", ");
             }
 
             // Genre.
@@ -156,6 +220,33 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
                     artists += ", ";
                 }
                 artists += (*itOGG).second.toString(", ");
+            }
+
+            // Album Artist.
+            itOGG = lstOGG.find("ALBUMARTIST");
+            if( itOGG != lstOGG.end() ) {
+                if( !albumArtists.isEmpty() ) {
+                    albumArtists += ", ";
+                }
+                albumArtists += (*itOGG).second.toString(", ");
+            }
+
+            // Composer.
+            itOGG = lstOGG.find("COMPOSER");
+            if( itOGG != lstOGG.end() ) {
+                if( !composers.isEmpty() ) {
+                    composers += ", ";
+                }
+                composers += (*itOGG).second.toString(", ");
+            }
+
+            // Lyricist.
+            itOGG = lstOGG.find("LYRICIST");
+            if( itOGG != lstOGG.end() ) {
+                if( !lyricists.isEmpty() ) {
+                    lyricists += ", ";
+                }
+                lyricists += (*itOGG).second.toString(", ");
             }
 
             // Genre.
@@ -203,11 +294,32 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
             graph << res;
         }
 
+        QString composersString = QString::fromUtf8( composers.toCString( true ) ).trimmed();
+        QList< SimpleResource > composers = contactsFromString( composersString );
+        foreach( const SimpleResource& res, composers ) {
+            fileRes.addProperty( NMM::composer(), res );
+            graph << res;
+        }
+
+        QString lyricistsString = QString::fromUtf8( lyricists.toCString( true ) ).trimmed();
+        QList< SimpleResource > lyricists = contactsFromString( lyricistsString );
+        foreach( const SimpleResource& res, lyricists ) {
+            fileRes.addProperty( NMM::lyricist(), res );
+            graph << res;
+        }
+
         QString album = QString::fromUtf8( tags->album().toCString( true ) );
         if( !album.isEmpty() ) {
             SimpleResource albumRes;
             albumRes.addType( NMM::MusicAlbum() );
             albumRes.setProperty( NIE::title(), album );
+
+            QString albumArtistsString = QString::fromUtf8( albumArtists.toCString( true ) ).trimmed();
+            QList< SimpleResource > albumArtists = contactsFromString( albumArtistsString );
+            foreach( const SimpleResource& res, albumArtists ) {
+                albumRes.addProperty( NMM::albumArtist(), res );
+                graph << res;
+            }
 
             fileRes.setProperty( NMM::musicAlbum(), albumRes );
             graph << albumRes;
