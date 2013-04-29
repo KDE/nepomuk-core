@@ -103,7 +103,7 @@ void StatementGenerator::doJob()
             if( hasType(uri, NFO::FileDataObject()) ) {
                 QList<QString> fileProperties;
                 fileProperties << "rdf:type" << "nao:lastModified" << "nao:created"
-                               << "nie:url" << "nao:numericRating" << "nao:hasTag";
+                               << "nie:url" << "nao:numericRating" << "nao:hasTag" << "nao:description";
 
                 stList << fetchProperties(uri, fileProperties);
             }
