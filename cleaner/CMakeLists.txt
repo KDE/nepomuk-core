@@ -25,7 +25,7 @@ set( cleaner_SRCS
 kde4_add_executable( nepomukcleaner-bin ${cleaner_SRCS} )
 
 SET_TARGET_PROPERTIES(nepomukcleaner-bin
-  PROPERTIES OUTPUT_NAME nepomukcleaner)
+  PROPERTIES RUNTIME_OUTPUT_NAME nepomukcleaner)
 
 target_link_libraries( nepomukcleaner-bin
   nepomukcleaner
