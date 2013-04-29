@@ -30,6 +30,19 @@
 
 #include <KService>
 
+#ifndef NEPOMUK_EXTRACTOR_EXPORT
+# if defined(KDELIBS_STATIC_LIBS)
+   /* No export/import for static libraries */
+#  define NEPOMUK_EXTRACTOR_EXPORT
+# elif defined(MAKE_NEPOMUKEXTRACTOR_LIB)
+   /* We are building this library */
+#  define NEPOMUK_EXTRACTOR_EXPORT KDE_EXPORT
+# else
+   /* We are using this library */
+#  define NEPOMUK_EXTRACTOR_EXPORT KDE_IMPORT
+# endif
+#endif
+
 namespace Nepomuk2 {
 
     /**
@@ -44,7 +57,7 @@ namespace Nepomuk2 {
      *
      * \author Vishesh Handa <me@vhanda.in>
      */
-    class NEPOMUK_EXPORT ExtractorPlugin : public QObject
+    class NEPOMUK_EXTRACTOR_EXPORT ExtractorPlugin : public QObject
     {
         Q_OBJECT
     public:

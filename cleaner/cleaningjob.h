@@ -30,8 +30,21 @@
 
 #include "nepomuk_export.h"
 
+#ifndef NEPOMUK_NEPOMUKCLEANER_EXPORT
+# if defined(KDELIBS_STATIC_LIBS)
+   /* No export/import for static libraries */
+#  define NEPOMUK_NEPOMUKCLEANER_EXPORT
+# elif defined(MAKE_NEPOMUKCLEANER_LIB)
+   /* We are building this library */
+#  define NEPOMUK_NEPOMUKCLEANER_EXPORT KDE_EXPORT
+# else
+   /* We are using this library */
+#  define NEPOMUK_NEPOMUKCLEANER_EXPORT KDE_IMPORT
+# endif
+#endif
+
 namespace Nepomuk2 {
-    class NEPOMUK_EXPORT CleaningJob : public KJob
+    class NEPOMUK_NEPOMUKCLEANER_EXPORT CleaningJob : public KJob
     {
         Q_OBJECT
     public:
