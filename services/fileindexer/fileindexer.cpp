@@ -21,7 +21,6 @@
 #include "fileindexeradaptor.h"
 #include "indexscheduler.h"
 #include "fileindexerconfig.h"
-#include "filewatchserviceinterface.h"
 #include "util.h"
 
 #include <KDebug>
@@ -45,10 +44,6 @@ Nepomuk2::FileIndexer::FileIndexer()
     // ==============================================================
     m_indexScheduler = new IndexScheduler(this);
 
-    // update the watches if the config changes
-    connect( FileIndexerConfig::self(), SIGNAL( configChanged() ),
-             this, SLOT( updateWatches() ) );
-
     // setup status connections
     connect( m_indexScheduler, SIGNAL(statusStringChanged()),
              this, SIGNAL(statusStringChanged()) );
@@ -57,12 +52,6 @@ Nepomuk2::FileIndexer::FileIndexer()
     if( FileIndexerConfig::self()->isInitialRun() || !FileIndexerConfig::self()->initialUpdateDisabled() ) {
         m_indexScheduler->updateAll();
     }
-
-    // Creation of watches is a memory intensive process as a large number of
-    // watch file descriptors need to be created ( one for each directory )
-    // So we start it after 2 minutes in order to reduce startup time
-    // FIXME: Add the watches in the file watcher
-    QTimer::singleShot( 2 * 60 * 1000, this, SLOT( updateWatches() ) );
 
     // Connect some signals used in the DBus interface
     connect( this, SIGNAL( statusStringChanged() ),
@@ -96,16 +85,6 @@ void Nepomuk2::FileIndexer::emitStatusMessage()
     QString message = m_indexScheduler->userStatusString();
 
     emit status((int)m_indexScheduler->currentStatus(), message);
-}
-
-void Nepomuk2::FileIndexer::updateWatches()
-{
-    org::kde::nepomuk::FileWatch filewatch( "org.kde.nepomuk.services.nepomukfilewatch",
-                                            "/nepomukfilewatch",
-                                            QDBusConnection::sessionBus() );
-    foreach( const QString& folder, FileIndexerConfig::self()->includeFolders() ) {
-        filewatch.watchFolder( folder );
-    }
 }
 
 QString Nepomuk2::FileIndexer::statusMessage() const

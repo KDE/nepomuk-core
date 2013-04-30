@@ -81,8 +81,6 @@ namespace Nepomuk2 {
         Q_SCRIPTABLE void metadataUpdateStopped();
 
     public Q_SLOTS:
-        Q_SCRIPTABLE void watchFolder( const QString& path );
-
         /**
          * Returns if the watcher is doing something
          *
@@ -146,6 +144,9 @@ namespace Nepomuk2 {
         void resetStatusMessage();
 
     private:
+        /** Watch a folder, provided it is not already watched*/
+        void watchFolder( const QString& path );
+
         /**
          * Adds watches for all mounted removable media.
          */

@@ -167,7 +167,16 @@ Nepomuk2::FileWatch::FileWatch()
     // One dummy solution would be a hybrid: watch the whole home dir plus all folders that
     // contain annotated files outside of the home dir and hope for the best
 
-    watchFolder( QDir::homePath() );
+    const QString home = QDir::homePath();
+    watchFolder( home );
+
+    //Watch all indexed folders unless they are subdirectories of home, which is already watched
+    QStringList folders = FileIndexerConfig::self()->includeFolders();
+    foreach( const QString & folder, folders ) {
+        if( !folder.startsWith( home ) ) {
+            watchFolder( folder );
+        }
+    }
 #else
     connectToKDirWatch();
 #endif

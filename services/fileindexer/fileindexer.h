@@ -124,7 +124,6 @@ namespace Nepomuk2 {
         Q_SCRIPTABLE void indexFile( const QString& path );
 
     private Q_SLOTS:
-        void updateWatches();
         void slotIndexingDone();
 
         /**

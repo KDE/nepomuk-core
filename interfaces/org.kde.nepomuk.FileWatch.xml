@@ -8,9 +8,6 @@
     </signal>
     <signal name="metadataUpdateStarted" />
     <signal name="metadataUpdateStoped" />
-    <method name="watchFolder">
-      <arg name="path" type="s" direction="in"/>
-    </method>
     <method name="isUpdatingMetaData">
       <arg type="b" direction="out" />
     </method>
