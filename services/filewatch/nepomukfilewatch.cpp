@@ -84,10 +84,25 @@ namespace {
     {
         Q_UNUSED( flags );
 
-        if( !Nepomuk2::FileIndexerConfig::self()->shouldFolderBeWatched( path ) )
+        QStringList cpts = path.split('/', QString::SkipEmptyParts);
+        if( cpts.isEmpty() )
             return false;
+
+        // We only check the final componenet instead of all the components cause the
+        // earlier ones would have already been tested by this function
+        QString file = cpts.last();
+
+        bool shouldFileNameBeIndexed = Nepomuk2::FileIndexerConfig::self()->shouldFileBeIndexed( file );
+        if( !shouldFileNameBeIndexed ) {
+            // If the path should not be indexed then we do not want to watch it
+            // This is an optimization
+            return false;
+        }
+
+        bool shouldFolderBeIndexed = Nepomuk2::FileIndexerConfig::self()->folderInFolderList( path );
+
         // Only watch the index folders for file creation and change.
-        if( Nepomuk2::FileIndexerConfig::self()->shouldFolderBeIndexed( path ) ) {
+        if( shouldFolderBeIndexed && shouldFileNameBeIndexed ) {
             modes |= KInotify::EventCloseWrite;
             modes |= KInotify::EventCreate;
         }
@@ -121,8 +136,6 @@ Nepomuk2::FileWatch::FileWatch()
     // too many users.
     m_pathExcludeRegExpCache = new RegExpCache();
     m_pathExcludeRegExpCache->rebuildCacheFromFilterList( defaultExcludeFilterList() );
-
-    Soprano::Model* mainModel = ResourceManager::instance()->mainModel();
 
     // start the mover thread
     m_metadataMoverThread = new QThread(this);

@@ -149,24 +149,18 @@ namespace Nepomuk2 {
         bool shouldMimeTypeBeIndexed( const QString& mimeType ) const;
 
         /**
-         * Check whether \p path should be watched. Most folders need
-         * watches installed on them, even if they are not indexed,
-         * otherwise moving files into a non-indexed directory would
-         * cause their metadata to be lost.
-         *
-         * This function does not check whether a function should be indexed.
-         * Since every indexed folder should be watched, this function should
-         * only be called on a non-indexed folder.
-         *
-         * \return \p true always for now.
-         */
-        bool shouldFolderBeWatched( const QString& path ) const;
-        /**
          * Check if the debug mode is enabled. The debug mode is a hidden
          * configuration option (without any GUI) that will make the indexer
          * log errors in a dedicated file.
          */
         bool isDebugModeEnabled() const;
+
+
+        /**
+         * Returns true if the folder is in the list indexed directories
+         * and not in the list of exclude directories
+         */
+        bool folderInFolderList( const QString& path );
 
     Q_SIGNALS:
         void configChanged();

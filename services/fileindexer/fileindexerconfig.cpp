@@ -171,14 +171,6 @@ bool Nepomuk2::FileIndexerConfig::shouldBeIndexed( const QString& path ) const
     }
 }
 
-bool Nepomuk2::FileIndexerConfig::shouldFolderBeWatched( const QString& path ) const
-{
-    // do not watch folders in the exclude filters
-    QStringList cmpts = path.split('/', QString::SkipEmptyParts);
-    if( cmpts.isEmpty() || !shouldFileBeIndexed( cmpts.last() ) )
-        return false;
-    return true;
-}
 
 bool Nepomuk2::FileIndexerConfig::shouldFolderBeIndexed( const QString& path ) const
 {
@@ -226,6 +218,12 @@ bool Nepomuk2::FileIndexerConfig::shouldMimeTypeBeIndexed(const QString& mimeTyp
     return !m_excludeMimetypes.contains( mimeType );
 }
 
+
+bool Nepomuk2::FileIndexerConfig::folderInFolderList(const QString& path)
+{
+    QString str;
+    return folderInFolderList( path, str );
+}
 
 bool Nepomuk2::FileIndexerConfig::folderInFolderList( const QString& path, QString& folder ) const
 {
