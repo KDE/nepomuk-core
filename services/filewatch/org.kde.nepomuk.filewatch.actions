@@ -1,16 +1,20 @@
 [org.kde.nepomuk.filewatch.raiselimit]
 Name=Folder Watch Limit
 Name[es]=Límite de vigilancia de carpetas
+Name[fi]=Kansioiden valvontaraja
 Name[nl]=Limiet op bewaakte mappen
 Name[pt]=Limite de Monitorização de Pastas
 Name[sk]=Limit sledovania priečinka
+Name[sv]=Övervakningsgräns för kataloger
 Name[uk]=Обмеження щодо нагляду за теками
 Name[x-test]=xxFolder Watch Limitxx
 Description=To avoid missing file changes, raise the folder watch limit
 Description[es]=Para evitar pérdidas en cambios de archivos, eleve el límite de vigilancia de carpetas
+Description[fi]=Nosta kansioiden valvontarajaa välttääksesi sitä, että Nepomuk ei huomaa joitain tiedostomuutoksia
 Description[nl]=Om wijzigingen in bestanden niet te missen vergroot u de limiet op bewaakte mappen
 Description[pt]=Para evitar a perda de alterações dos ficheiros, aumente o limite de monitorização das pastas
 Description[sk]=Na zabránenie zmene chýbajúcich súborov, zvýšte limit sledovania priečinku
+Description[sv]=För att undvika att missa filändringar, öka övervakningsgränsen för kataloger
 Description[uk]=Щоб не пропустити змін у файлах, збільшіть значення обмеження щодо кількості тек, за якими спостерігає система.
 Description[x-test]=xxTo avoid missing file changes, raise the folder watch limitxx
 Policy=auth_admin
