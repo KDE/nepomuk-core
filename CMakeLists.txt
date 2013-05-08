@@ -26,7 +26,7 @@ if(KDE_VERSION VERSION_LESS 4.10.00)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules" ${CMAKE_MODULE_PATH})
 endif()
 
-find_package(SharedDesktopOntologies 0.10)
+find_package(SharedDesktopOntologies 0.10.51)
 set_package_properties(SharedDesktopOntologies PROPERTIES DESCRIPTION "Shared Desktop Ontologies" URL "http://oscaf.sourceforge.net" TYPE REQUIRED PURPOSE "Ontologies necessary for the Nepomuk semantic desktop")
 
 find_package(Soprano 2.9.0 COMPONENTS PLUGIN_RAPTORPARSER PLUGIN_REDLANDBACKEND PLUGIN_VIRTUOSOBACKEND)
