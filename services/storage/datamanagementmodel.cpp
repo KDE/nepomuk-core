@@ -280,14 +280,30 @@ Soprano::Error::ErrorCode Nepomuk2::DataManagementModel::updateModificationDate(
         return Soprano::Error::ErrorNone;
     }
 
-    // TODO: Do this in one command?
-    foreach(const QUrl& resource, resources) {
-        Soprano::Error::ErrorCode c = removeAllStatements(resource, NAO::lastModified(), Soprano::Node());
-        if (c != Soprano::Error::ErrorNone)
-            return c;
-        addStatement(resource, NAO::lastModified(), Soprano::LiteralValue( date ), d->m_nepomukGraph);
-    }
+    // FIXME: It would be awesome if we could use 'using graph delete {} insert {} where {}'
+    // But virtuoso does not seem to insert the new statement if old one does not exist
+    // which might actually be okay, but lets stick with 2 statements for now
+    //
+    const QString graphN3 = Soprano::Node::resourceToN3(d->m_nepomukGraph);
+    const QStringList resN3 = urlSetToN3( resources );
 
+    QString delQ = QString::fromLatin1("sparql DELETE from %1 { ?res nao:lastModified ?mod . } "
+                                        "WHERE  { ?res nao:lastModified ?mod . "
+                                        "    FILTER(?res in (%3)) ."
+                                        "}")
+                    .arg( graphN3, resN3.join(",") );
+
+    executeQuery( delQ, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+
+    const QString dt = Soprano::Node::literalToN3(date);
+
+    QString iq = QString::fromLatin1("sparql insert into %1 {").arg( graphN3 );
+    foreach(const QString& res, resN3) {
+        iq += QString::fromLatin1(" %1 nao:lastModified %2 .").arg( res, dt );
+    }
+    iq += QLatin1String("} ");
+
+    executeQuery( iq, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
     return Soprano::Error::ErrorNone;
 }
 
