@@ -2,6 +2,7 @@
 Name=Folder Watch Limit
 Name[es]=Límite de vigilancia de carpetas
 Name[fi]=Kansioiden valvontaraja
+Name[fr]=Limite de surveillance de dossier
 Name[nl]=Limiet op bewaakte mappen
 Name[pt]=Limite de Monitorização de Pastas
 Name[pt_BR]=Limite de monitoramento de pastas
@@ -14,6 +15,7 @@ Name[zh_TW]=資料夾監看限制
 Description=To avoid missing file changes, raise the folder watch limit
 Description[es]=Para evitar pérdidas en cambios de archivos, eleve el límite de vigilancia de carpetas
 Description[fi]=Nosta kansioiden valvontarajaa välttääksesi sitä, että Nepomuk ei huomaa joitain tiedostomuutoksia
+Description[fr]=Pour éviter de passer à coté de modifications de fichiers, augmentez la limite de surveillance de dossier
 Description[nl]=Om wijzigingen in bestanden niet te missen vergroot u de limiet op bewaakte mappen
 Description[pt]=Para evitar a perda de alterações dos ficheiros, aumente o limite de monitorização das pastas
 Description[pt_BR]=Para evitar a perda de alterações dos arquivos, aumente o limite de monitoramento das pastas
