@@ -19,7 +19,8 @@
    License along with this library.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <KDebug>
+#include "wizard.h"
+#include "systray.h"
 
 #include <KUniqueApplication>
 #include <KAboutData>
@@ -29,7 +30,6 @@
 
 #include <QtDBus/QDBusConnection>
 
-#include "wizard.h"
 #include <QDBusConnectionInterface>
 
 int main( int argc, char** argv )
@@ -47,15 +47,28 @@ int main( int argc, char** argv )
 
     KCmdLineArgs::init( argc, argv, &aboutData );
 
+    KCmdLineOptions options;
+    options.add("advanced", ki18n("Opens the advanced menu for migration"));
+
+    KCmdLineArgs::addCmdLineOptions(options);
+    KUniqueApplication::addCmdLineOptions();
+
     KUniqueApplication app;
+    const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
 
-    Nepomuk2::MigrationWizard wizard;
+    bool nepomukRunning = QDBusConnection::sessionBus().interface()->isServiceRegistered("org.kde.NepomukStorage");
 
-    if( !QDBusConnection::sessionBus().interface()->isServiceRegistered("org.kde.NepomukStorage") ) {
-        wizard.showError(i18nc("@info", "Nepomuk does not seem to be running. <br/>Cannot migrate the data without it") );
+    if( args->isSet("advanced") ) {
+        Nepomuk2::MigrationWizard* wizard = new Nepomuk2::MigrationWizard();
+
+        if( !nepomukRunning ) {
+            wizard->showError(i18nc("@info", "Nepomuk does not seem to be running. <br/>Cannot migrate the data without it") );
+        }
+        wizard->show();
     }
-
-    wizard.show();
+    else {
+        Nepomuk2::SysTray* systray = new Nepomuk2::SysTray();
+    }
 
     return app.exec();
 }

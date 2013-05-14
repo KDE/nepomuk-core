@@ -11,6 +11,8 @@
     </signal>
     <method name="migrateGraphs">
     </method>
+    <method name="migrateGraphsByBackup">
+    </method>
     <signal name="migrateGraphsDone">
     </signal>
     <signal name="migrateGraphsPercent">

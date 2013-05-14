@@ -36,6 +36,7 @@
 #include <KStandardDirs>
 #include <KConfigGroup>
 #include <KProcess>
+#include <Soprano/QueryResultIterator>
 
 namespace {
     static const char s_repositoryName[] = "main";
@@ -207,6 +208,81 @@ void Nepomuk2::Storage::slotRepositoryClosedAfterReset()
     m_repository->open();
 }
 
+bool Nepomuk2::Storage::hasMigrationData()
+{
+    QString query = QString::fromLatin1("ask where { graph ?g { ?r rdf:type ?t . FILTER(?t in (nao:Tag, nfo:FileDataObject)) . }"
+                                        "FILTER NOT EXISTS { ?g a nrl:DiscardableInstanceBase . } }");
+
+    bool mg = m_repository->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue();
+    kDebug() << "HAS MIGRATION DATA:" << mg;
+    return mg;
+}
+
+void Nepomuk2::Storage::migrateGraphsByBackup()
+{
+    closePublicInterfaces();
+
+    if( !dataMigrationRequired() ) {
+        slotMigrationDone();
+        return;
+    }
+
+    if( !hasMigrationData() ) {
+        connect( this, SIGNAL(initialized()), this, SLOT(slotMigrationDeletionDone()) );
+        emit migrateGraphsPercent( -1 );
+        resetRepository();
+        return;
+    }
+
+    QString backupLocation = KStandardDirs::locateLocal( "data", "nepomuk/migrationBackup" );
+    if( !QFile::exists(backupLocation) ) {
+        connect( m_backupManager, SIGNAL(backupPercent(int)), this, SLOT(slotMigrationBackupProgress(int)) );
+        connect( m_backupManager, SIGNAL(backupDone()), this, SLOT(slotMigrationBackupDone()) );
+
+        m_backupManager->backupTagsAndRatings( backupLocation );
+        emit migrateGraphsPercent( 3 );
+    }
+    else {
+        slotMigrationBackupDone();
+        emit migrateGraphsPercent( 53 );
+    }
+}
+
+void Nepomuk2::Storage::slotMigrationDeletionDone()
+{
+    disconnect( this, SIGNAL(initialized()), this, SLOT(slotMigrationDeletionDone()) );
+    emit migrateGraphsDone();
+}
+
+void Nepomuk2::Storage::slotMigrationBackupDone()
+{
+    disconnect( m_backupManager, SIGNAL(backupPercent(int)), this, SLOT(slotMigrationBackupProgress(int)) );
+    disconnect( m_backupManager, SIGNAL(backupDone()), this, SLOT(slotMigrationBackupDone()) );
+
+    connect( m_backupManager, SIGNAL(restorePercent(int)), this, SLOT(slotMigrationRestoreProgress(int)) );
+    connect( m_backupManager, SIGNAL(restoreDone()), this, SLOT(slotMigrationRestoreDone()) );
+
+    QString backupLocation = KStandardDirs::locateLocal( "data", "nepomuk/migrationBackup" );
+    m_backupManager->restore( backupLocation );
+}
+
+void Nepomuk2::Storage::slotMigrationRestoreDone()
+{
+    disconnect( m_backupManager, SIGNAL(restorePercent(int)), this, SLOT(slotMigrationRestoreProgress(int)) );
+    disconnect( m_backupManager, SIGNAL(restoreDone()), this, SLOT(slotMigrationRestoreDone()) );
+
+    slotMigrationDone();
+}
+
+void Nepomuk2::Storage::slotMigrationBackupProgress(int percent)
+{
+    emit migrateGraphsPercent( 3 + percent/2 );
+}
+
+void Nepomuk2::Storage::slotMigrationRestoreProgress(int percent)
+{
+    emit migrateGraphsPercent( qMin( 53, 53 + percent/2 ) );
+}
 
 void Nepomuk2::Storage::migrateGraphs()
 {

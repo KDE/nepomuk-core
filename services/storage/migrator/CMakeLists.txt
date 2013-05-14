@@ -3,6 +3,7 @@ project(nepomukmigrator)
 set( MIGRATOR_SRCS
   wizard.cpp
   main.cpp
+  systray.cpp
 )
 
 #----- DBus interfaces --------
@@ -13,10 +14,6 @@ set_source_files_properties(
 set_source_files_properties(
   ../../../../interfaces/org.kde.nepomuk.BackupManager.xml
   PROPERTIES INCLUDE "QtCore/QString")
-
-qt4_add_dbus_interface( MIGRATOR_SRCS
-                        ../../../interfaces/org.kde.nepomuk.BackupManager.xml
-                        backupmanagerinterface )
 
 qt4_add_dbus_interface( MIGRATOR_SRCS
                         ../../../interfaces/org.kde.nepomuk.Storage.xml

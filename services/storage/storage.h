@@ -58,9 +58,11 @@ namespace Nepomuk2 {
         Q_SCRIPTABLE void openPublicInterfaces();
 
         Q_SCRIPTABLE void migrateGraphs();
+        Q_SCRIPTABLE void migrateGraphsByBackup();
     signals:
         // Used by the BackupManager to know we're back online after a reset
         Q_SCRIPTABLE void initialized();
+
         Q_SCRIPTABLE void migrateGraphsDone();
         Q_SCRIPTABLE void migrateGraphsPercent(int percent);
 
@@ -71,6 +73,13 @@ namespace Nepomuk2 {
 
         void slotMigrationPercent(KJob*, ulong percent);
         void slotMigrationDone();
+
+        void slotMigrationBackupProgress(int percent);
+        void slotMigrationRestoreProgress(int percent);
+        void slotMigrationBackupDone();
+        void slotMigrationRestoreDone();
+        void slotMigrationDeletionDone();
+
     private:
         Soprano::Server::ServerCore* m_localServer;
         Repository* m_repository;
@@ -80,6 +89,7 @@ namespace Nepomuk2 {
 
         bool dataMigrationRequired();
         void setDataMigrated();
+        bool hasMigrationData();
     };
 }
 

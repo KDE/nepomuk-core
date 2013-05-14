@@ -52,9 +52,7 @@ MigrationWizard::MigrationWizard(QWidget* parent, Qt::WindowFlags flags)
     setButtonLayout( layout );
 
     setPage( Id_MainPage, new MainPage(this) );
-    setPage( Id_BackupRestorePage, new BackupRestorePage(this) );
     setPage( Id_MigrationPage, new MigrationPage(this) );
-    setPage( Id_DeletionPage, new DeletionPage(this) );
     setPage( Id_FinishPage, new FinishPage(this) );
     setPage( Id_ErrorPage, new ErrorPage(this) );
 
@@ -75,157 +73,24 @@ void MigrationWizard::showError(const QString& error)
 MainPage::MainPage(QWidget* parent): QWizardPage(parent)
 {
     setTitle( i18n("Nepomuk Data Migration") );
-    setSubTitle( i18n("With this new release Nepomuk has migrated its internal data format. "
-                      "Therefore the old data needs to be migrated. There are many different ways "
-                      "in which this can be performed -") );
 
-    QVBoxLayout* vLayout = new QVBoxLayout( this );
+    QLabel* label = new QLabel( this );
+    label->setTextFormat( Qt::RichText );
+    label->setWordWrap( true );
+    label->setText( i18n("With this new release Nepomuk has migrated its internal data format. "
+                         "You have launched this wizard because you wish to migrate your data and"
+                         "not go with the recommended method of backup and restore."
+                         "This migration can take several hours") );
 
-    QString backupText = i18n("Backup existing tags and rating, and then restore the data");
-    m_backupOption = new QRadioButton( backupText, this );
-    m_backupOption->setChecked( true );
-
-    QString migrationText = i18n("Migrate all the existing data.");
-    m_migrateOption = new QRadioButton( migrationText, this );
-
-    QString deleteText = i18n("Delete existing metadata, and start with a fresh install");
-    m_deleteOption = new QRadioButton( deleteText, this );
-
-    vLayout->addWidget( m_backupOption );
-    vLayout->addWidget( m_migrateOption );
-    vLayout->addWidget( m_deleteOption );
+    QVBoxLayout* layout = new QVBoxLayout( this );
+    layout->addWidget( label );
 }
 
 int MainPage::nextId() const
 {
-    if( m_backupOption->isChecked() )
-        return MigrationWizard::Id_BackupRestorePage;
-    if( m_migrateOption->isChecked() )
-        return MigrationWizard::Id_MigrationPage;
-    if( m_deleteOption->isChecked() )
-        return MigrationWizard::Id_DeletionPage;
-
-    return -1;
+    return MigrationWizard::Id_MigrationPage;
 }
 
-
-//
-// Backup Restore Page
-//
-
-BackupRestorePage::BackupRestorePage(QWidget* parent)
-    : QWizardPage(parent)
-    , m_restoreDone( false )
-    , m_error( false )
-{
-    setTitle( i18n("Backup Tags and Ratings") );
-    setSubTitle( i18n("This will backup only the tags, and ratings and then restore that data") );
-
-    KTemporaryFile tempFile;
-    tempFile.setAutoRemove( false );
-    tempFile.open();
-    m_url = tempFile.fileName();
-    tempFile.close();
-
-    m_backupManager = new BackupManager( QLatin1String("org.kde.NepomukStorage"),
-                                         QLatin1String("/backupmanager"),
-                                         QDBusConnection::sessionBus(), this);
-    connect( m_backupManager, SIGNAL(backupDone()), this, SLOT(slotBackupDone()) );
-    connect( m_backupManager, SIGNAL(backupPercent(int)), this, SLOT(slotBackupProgress(int)) );
-    connect( m_backupManager, SIGNAL(backupError(QString)), this, SLOT(slotBackupError(QString)));
-    connect( m_backupManager, SIGNAL(restoreDone()), this, SLOT(slotRestoneDone()) );
-    connect( m_backupManager, SIGNAL(restorePercent(int)), this, SLOT(slotRestoreProgress(int)) );
-    connect( m_backupManager, SIGNAL(backupError(QString)), this, SLOT(slotRestoreError(QString)));
-
-    m_backupGroup = new QGroupBox( i18n("Backup"), this );
-    m_restoreGroup = new QGroupBox( i18n("Restore"), this );
-    m_restoreGroup->setEnabled( false );
-
-    QVBoxLayout* vLayout = new QVBoxLayout( this );
-    vLayout->addWidget( m_backupGroup );
-    vLayout->addWidget( m_restoreGroup );
-
-    m_backupProgress = new QProgressBar( this );
-    m_restoreProgress = new QProgressBar( this );
-
-    QLabel* backupLabel = new QLabel( i18n("Performing backup of tags and ratings") );
-    QVBoxLayout* backupLayout = new QVBoxLayout();
-    backupLayout->addWidget( backupLabel );
-    backupLayout->addWidget( m_backupProgress );
-    m_backupGroup->setLayout( backupLayout );
-
-    QLabel* restoreLabel = new QLabel( i18n("Restoring data") );
-    QVBoxLayout* restoreLayout = new QVBoxLayout();
-    restoreLayout->addWidget( restoreLabel );
-    restoreLayout->addWidget( m_restoreProgress );
-    m_restoreGroup->setLayout( restoreLayout );
-}
-
-void BackupRestorePage::initializePage()
-{
-    m_backupManager->backupTagsAndRatings( m_url );
-}
-
-void BackupRestorePage::slotBackupDone()
-{
-    kDebug();
-    m_backupProgress->setValue( 100 );
-    m_backupGroup->setEnabled( false );
-    m_restoreGroup->setEnabled( true );
-
-    m_backupManager->restore( m_url );
-}
-
-void BackupRestorePage::slotBackupProgress(int percent)
-{
-    m_backupProgress->setValue( percent );
-}
-
-void BackupRestorePage::slotBackupError(const QString& error)
-{
-    kDebug() << error;
-    m_errorMessage = error;
-    m_error = true;
-    wizard()->next();
-}
-
-void BackupRestorePage::slotRestoneDone()
-{
-    m_restoreDone = true;
-    emit completeChanged();
-
-    wizard()->next();
-}
-
-void BackupRestorePage::slotRestoreProgress(int percent)
-{
-    kDebug() << percent;
-    m_restoreProgress->setValue( percent );
-}
-
-void BackupRestorePage::slotRestoreError(const QString& error)
-{
-    kDebug() << error;
-    m_errorMessage = error;
-    m_error = true;
-    wizard()->next();
-}
-
-
-bool BackupRestorePage::isComplete() const
-{
-    return m_restoreDone;
-}
-
-int BackupRestorePage::nextId() const
-{
-    if( m_error ) {
-        wizard()->setField(QLatin1String("errorMessage"), m_errorMessage);
-        return MigrationWizard::Id_ErrorPage;
-    }
-    else
-        return MigrationWizard::Id_FinishPage;
-}
 
 //
 // Migration Page
@@ -283,54 +148,6 @@ int MigrationPage::nextId() const
     return MigrationWizard::Id_FinishPage;
 }
 
-
-//
-// Deletion Page
-//
-
-DeletionPage::DeletionPage(QWidget* parent)
-    : QWizardPage(parent)
-    , m_done( false )
-{
-}
-
-void DeletionPage::initializePage()
-{
-    setTitle( i18n("Removing all existing Metadata") );
-    setSubTitle( i18n("In the process of creating a fresh database") );
-
-    QVBoxLayout* layout = new QVBoxLayout( this );
-    QProgressBar* progress = new QProgressBar( this );
-    progress->setMinimum( 0 );
-    progress->setMaximum( 0 );
-
-    layout->addWidget( progress );
-
-    m_storageService = new StorageService( QLatin1String("org.kde.NepomukStorage"),
-                                           QLatin1String("/nepomukstorage"),
-                                           QDBusConnection::sessionBus(), this);
-    connect( m_storageService, SIGNAL(initialized()), this, SLOT(slotDeletionDone()) );
-
-    m_storageService->resetRepository();
-}
-
-void DeletionPage::slotDeletionDone()
-{
-    m_done = true;
-    emit completeChanged();
-
-    wizard()->next();
-}
-
-bool DeletionPage::isComplete() const
-{
-    return m_done;
-}
-
-int DeletionPage::nextId() const
-{
-    return MigrationWizard::Id_FinishPage;
-}
 
 //
 // Finish Page

@@ -24,7 +24,6 @@
 #define NEPOMUK2_MIGRATIONWIZARD_H
 
 #include "ui_errorpage.h"
-#include "backupmanagerinterface.h"
 #include "storageinterface.h"
 
 #include <QtGui/QWizard>
@@ -33,7 +32,6 @@
 #include <QGroupBox>
 #include <QProgressBar>
 
-typedef org::kde::nepomuk::BackupManager BackupManager;
 typedef org::kde::nepomuk::Storage StorageService;
 
 namespace Nepomuk2 {
@@ -46,9 +44,7 @@ public:
 
     enum PageIds {
         Id_MainPage = 0,
-        Id_BackupRestorePage,
         Id_MigrationPage,
-        Id_DeletionPage,
         Id_FinishPage,
         Id_ErrorPage
     };
@@ -61,40 +57,6 @@ public:
     MainPage(QWidget* parent = 0);
     virtual int nextId() const;
 private:
-    QRadioButton* m_backupOption;
-    QRadioButton* m_migrateOption;
-    QRadioButton* m_deleteOption;
-};
-
-class BackupRestorePage : public QWizardPage {
-    Q_OBJECT
-public:
-    BackupRestorePage(QWidget* parent = 0);
-    virtual int nextId() const;
-
-    virtual void initializePage();
-    virtual bool isComplete() const;
-private slots:
-    void slotBackupDone();
-    void slotRestoneDone();
-    void slotBackupProgress(int percent);
-    void slotRestoreProgress(int percent);
-    void slotBackupError(const QString& error);
-    void slotRestoreError(const QString& error);
-
-private:
-    BackupManager* m_backupManager;
-    QString m_url;
-
-    QGroupBox* m_backupGroup;
-    QGroupBox* m_restoreGroup;
-
-    QProgressBar* m_backupProgress;
-    QProgressBar* m_restoreProgress;
-
-    bool m_restoreDone;
-    bool m_error;
-    QString m_errorMessage;
 };
 
 class MigrationPage : public QWizardPage {
@@ -114,21 +76,6 @@ private:
     bool m_done;
     StorageService* m_storageService;
     QProgressBar* m_progressBar;
-};
-
-class DeletionPage : public QWizardPage {
-    Q_OBJECT
-public:
-    DeletionPage(QWidget* parent = 0);
-    virtual int nextId() const;
-
-    virtual void initializePage();
-    virtual bool isComplete() const;
-private slots:
-    void slotDeletionDone();
-private:
-    bool m_done;
-    StorageService* m_storageService;
 };
 
 class FinishPage : public QWizardPage {
