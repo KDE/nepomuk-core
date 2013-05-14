@@ -2151,21 +2151,7 @@ QUrl Nepomuk2::DataManagementModel::createUri(Nepomuk2::DataManagementModel::Uri
         uuid = uuid.mid(1, uuid.length()-2);
 
         QString uriString = QString::fromLatin1("nepomuk:/%1/%2").arg( typeToken, uuid );
-        const QUrl uri( uriString );
-
-        // The iri_to_id command returns an id of the form "#num" if the uri exists in the database
-        // and NULL if it doesn't. This method is a LOT faster than checking if the uri exists
-        // as a subject / predicate / object or graph.
-        QString query = QString::fromLatin1("select iri_to_id( '%1', 0 )") .arg( uriString );
-        Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
-        //Don't loop forever if there was an error executing the query.
-        if( lastError() ){
-            return QUrl();
-        }
-        if( it.next() ) {
-            if( it[0].literal().toString().isEmpty() )
-                return uri;
-        }
+        return QUrl( uriString );
     }
 }
 
