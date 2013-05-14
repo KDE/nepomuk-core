@@ -76,7 +76,14 @@ void DataManagementModelTest::initTestCase()
     const Soprano::Backend* backend = Soprano::PluginManager::instance()->discoverBackendByName( "virtuosobackend" );
     QVERIFY( backend );
     m_storageDir = new KTempDir();
-    m_model = backend->createModel( Soprano::BackendSettings() << Soprano::BackendSetting(Soprano::BackendOptionStorageDir, m_storageDir->name()) );
+
+    Soprano::BackendSettings settings;
+    settings << Soprano::BackendSetting( "noStatementSignals", true );
+    settings << Soprano::BackendSetting( "fakeBooleans", false );
+    settings << Soprano::BackendSetting( "emptyGraphs", false );
+    settings << Soprano::BackendSetting( Soprano::BackendOptionStorageDir, m_storageDir->name() );
+
+    m_model = backend->createModel( settings );
     QVERIFY( m_model );
 
     // DataManagementModel relies on the usage of a NRLModel in the storage service
