@@ -2210,14 +2210,19 @@ QHash< QUrl, QList< Soprano::Node > > DataManagementModel::addProperty(const QLi
             finalProperties << qMakePair(resUri, node);
 
     // add all the data
-    // TODO: Add in one go, instead of multiple addStatement calls
     QHash<QUrl, QList<Soprano::Node> > finalValuesPerResource;
+    QString insertQ = QString::fromLatin1("sparql insert into %1 {").arg( Soprano::Node::resourceToN3(graph) );
+    const QString propN3 = Soprano::Node::resourceToN3(property);
+
     foreach(const QUrl& resUri, resources) {
+        const QString resN3 = Soprano::Node::resourceToN3(resUri);
         foreach(const Soprano::Node& node, nodes) {
-            addStatement(resUri, property, node, graph);
+            insertQ += QString::fromLatin1(" %1 %2 %3 . ").arg( resN3, propN3, node.toN3() );
             finalValuesPerResource[resUri].append(node);
         }
     }
+    insertQ += QLatin1String("}");
+    executeQuery( insertQ, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 
     // inform interested parties
     if(signalPropertyChanged) {
