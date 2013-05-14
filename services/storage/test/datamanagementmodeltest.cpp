@@ -457,41 +457,6 @@ void DataManagementModelTest::testAddProperty_invalid_args()
     // TODO: try setting protected properties like nie:url, nfo:fileName, nie:isPartOf (only applies to files)
 }
 
-void DataManagementModelTest::testAddProperty_protectedTypes()
-{
-    // remember current state to compare later on
-    Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
-
-    // property
-    m_dmModel->addProperty(QList<QUrl>() << QUrl("prop:/res"), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // class
-    m_dmModel->addProperty(QList<QUrl>() << NRL::Graph(), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // graph
-    m_dmModel->addProperty(QList<QUrl>() << QUrl("graph:/onto"), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-}
 
 void DataManagementModelTest::testAddProperty_akonadi()
 {
@@ -899,41 +864,6 @@ void DataManagementModelTest::testSetProperty_nieUrl6()
     QVERIFY(!haveMetadataInOtherGraphs());
 }
 
-void DataManagementModelTest::testSetProperty_protectedTypes()
-{
-    // remember current state to compare later on
-    Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
-
-    // property
-    m_dmModel->setProperty(QList<QUrl>() << QUrl("prop:/res"), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // class
-    m_dmModel->setProperty(QList<QUrl>() << NRL::Graph(), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // graph
-    m_dmModel->setProperty(QList<QUrl>() << QUrl("graph:/onto"), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-}
 
 // make sure we reuse legacy resource URIs
 void DataManagementModelTest::testSetProperty_legacyData()
@@ -1231,45 +1161,6 @@ void DataManagementModelTest::testRemoveProperty_invalid_args()
     QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
 }
 
-// it is not allowed to change properties, classes or graphs through this API
-void DataManagementModelTest::testRemoveProperty_protectedTypes()
-{
-    // Using add property so that the graph and app are created
-    m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/blankres"), QUrl("prop:/string"), QVariantList() << QLatin1String("foobar"), QLatin1String("testapp"));
-
-    // remember current state to compare later on
-    Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
-
-    // property
-    m_dmModel->removeProperty(QList<QUrl>() << QUrl("prop:/res"), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // class
-    m_dmModel->removeProperty(QList<QUrl>() << NRL::Graph(), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // graph
-    m_dmModel->removeProperty(QList<QUrl>() << QUrl("graph:/onto"), QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-}
 
 // make sure that sub-resources are removed as soon as nothing related to them anymore, ie. as soon as the nao:hasSubResource relation is removed
 void DataManagementModelTest::testRemoveProperty_subResource()
@@ -1511,45 +1402,6 @@ void DataManagementModelTest::testRemoveProperties_invalid_args()
 }
 
 
-void DataManagementModelTest::testRemoveProperties_protectedTypes()
-{
-    // Using add property so that the graph and app are created
-    m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/blankres"), QUrl("prop:/string"), QVariantList() << QLatin1String("foobar"), QLatin1String("testapp"));
-
-    // remember current state to compare later on
-    Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
-
-    // property
-    m_dmModel->removeProperties(QList<QUrl>() << QUrl("prop:/res"), QList<QUrl>() << QUrl("prop:/int"), QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // class
-    m_dmModel->removeProperties(QList<QUrl>() << NRL::Graph(), QList<QUrl>() << QUrl("prop:/int"), QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // graph
-    m_dmModel->removeProperties(QList<QUrl>() << QUrl("graph:/onto"), QList<QUrl>() << QUrl("prop:/int"), QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-}
-
 // make sure that sub-resources are removed as soon as nothing related to them anymore, ie. as soon as the nao:hasSubResource relation is removed
 void DataManagementModelTest::testRemoveProperties_subResource()
 {
@@ -1765,45 +1617,6 @@ void DataManagementModelTest::testRemoveResources_invalid_args()
     QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
 }
 
-// make sure we do not allow to remove classes, properties, and graphs
-void DataManagementModelTest::testRemoveResources_protectedTypes()
-{
-    // Using add property so that the graph and app are created
-    m_dmModel->addProperty(QList<QUrl>() << QUrl("nepomuk:/blankres"), QUrl("prop:/string"), QVariantList() << QLatin1String("foobar"), QLatin1String("testapp"));
-
-    // remember current state to compare later on
-    Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
-
-    // property
-    m_dmModel->removeResources(QList<QUrl>() << QUrl("prop:/res"), Nepomuk2::NoRemovalFlags, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // class
-    m_dmModel->removeResources(QList<QUrl>() << NRL::Graph(), Nepomuk2::NoRemovalFlags, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // graph
-    m_dmModel->removeResources(QList<QUrl>() << QUrl("graph:/onto"), Nepomuk2::NoRemovalFlags, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-}
 
 // make sure the mtime of related resources is updated properly
 void DataManagementModelTest::testRemoveResources_mtimeRelated()
@@ -3771,53 +3584,6 @@ void DataManagementModelTest::testStoreResources_metadata()
     QVERIFY(!haveMetadataInOtherGraphs());
 }
 
-void DataManagementModelTest::testStoreResources_protectedTypes()
-{
-    // remember current state to compare later on
-    Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
-
-    // property
-    SimpleResource propertyRes(QUrl("prop:/res"));
-    propertyRes.addProperty(QUrl("prop:/int"), 42);
-
-    // store the resource
-    m_dmModel->storeResources(SimpleResourceGraph() << propertyRes, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // class
-    SimpleResource classRes(NRL::Graph());
-    classRes.addProperty(QUrl("prop:/int"), 42);
-
-    // store the resource
-    m_dmModel->storeResources(SimpleResourceGraph() << classRes, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // graph
-    SimpleResource graphRes(QUrl("graph:/onto"));
-    propertyRes.addProperty(QUrl("prop:/int"), 42);
-
-    // store the resource
-    m_dmModel->storeResources(SimpleResourceGraph() << graphRes, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-}
 
 // make sure storeResources ignores supertypes
 void DataManagementModelTest::testStoreResources_superTypes()
@@ -5137,82 +4903,6 @@ void DataManagementModelTest::testMergeResources()
     QVERIFY(!haveMetadataInOtherGraphs());
 }
 
-void DataManagementModelTest::testMergeResources_protectedTypes()
-{
-    // create one resource to be merged with something else
-    QUrl mg1;
-    const QUrl g1 = m_nrlModel->createGraph(NRL::InstanceBase(), &mg1);
-
-    QUrl resA("res:/A");
-    m_model->addStatement(resA, RDF::type(), NAO::Tag(), g1);
-    m_model->addStatement(resA, QUrl("prop:/int"), LiteralValue(42), g1);
-    m_model->addStatement(resA, QUrl("prop:/string"), LiteralValue(QLatin1String("Foobar")), g1);
-    m_model->addStatement(resA, NAO::created(), LiteralValue(QDateTime::currentDateTime()), g1);
-
-
-    // remember current state to compare later on
-    Soprano::Graph existingStatements = m_model->listStatements().allStatements();
-
-
-    // property 1
-    m_dmModel->mergeResources(QList<QUrl>() << resA << QUrl("prop:/int"), QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // property 2
-    m_dmModel->mergeResources(QList<QUrl>() << QUrl("prop:/int") << resA, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // class 1
-    m_dmModel->mergeResources(QList<QUrl>() << resA << NRL::Graph(), QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // property 2
-    m_dmModel->mergeResources(QList<QUrl>() << NRL::Graph() << resA, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // graph 1
-    m_dmModel->mergeResources(QList<QUrl>() << resA << QUrl("graph:/onto"), QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-
-
-    // graph 2
-    m_dmModel->mergeResources(QList<QUrl>() << QUrl("graph:/onto") << resA, QLatin1String("testapp"));
-
-    // this call should fail
-    QVERIFY(m_dmModel->lastError());
-
-    // no data should have been changed
-    QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
-}
 
 void DataManagementModelTest::testDescribeResources()
 {

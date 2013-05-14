@@ -52,7 +52,6 @@ private Q_SLOTS:
     void testAddProperty_file();
     void testAddProperty_invalidFile();
     void testAddProperty_invalid_args();
-    void testAddProperty_protectedTypes();
     void testAddProperty_akonadi();
 
     void testSetProperty();
@@ -64,27 +63,23 @@ private Q_SLOTS:
     void testSetProperty_nieUrl4();
     void testSetProperty_nieUrl5();
     void testSetProperty_nieUrl6();
-    void testSetProperty_protectedTypes();
     void testSetProperty_legacyData();
     void testSetProperty_file();
 
     void testRemoveProperty();
     void testRemoveProperty_file();
     void testRemoveProperty_invalid_args();
-    void testRemoveProperty_protectedTypes();
     void testRemoveProperty_subResource();
     void testRemoveProperty_subResource2();
 
     void testRemoveProperties();
     void testRemoveProperties_invalid_args();
-    void testRemoveProperties_protectedTypes();
     void testRemoveProperties_subResource();
     void testRemoveProperties_subResource2();
 
     void testRemoveResources();
     void testRemoveResources_subresources();
     void testRemoveResources_invalid_args();
-    void testRemoveResources_protectedTypes();
     void testRemoveResources_mtimeRelated();
     void testRemoveResources_deletedFile();
 
@@ -129,7 +124,6 @@ private Q_SLOTS:
     void testStoreResources_fileExists();
     void testStoreResources_sameNieUrl();
     void testStoreResources_metadata();
-    void testStoreResources_protectedTypes();
     void testStoreResources_superTypes();
     void testStoreResources_missingMetadata();
     void testStoreResources_multiMerge();
@@ -166,7 +160,6 @@ private Q_SLOTS:
     void testStoreResources_objectExistsIdentification();
 
     void testMergeResources();
-    void testMergeResources_protectedTypes();
 
     void testDescribeResources();
     void testDescribeResources_relatedResources();

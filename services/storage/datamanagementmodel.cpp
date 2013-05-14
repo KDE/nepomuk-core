@@ -350,17 +350,6 @@ void Nepomuk2::DataManagementModel::addProperty(const QList<QUrl> &resources, co
         return;
     }
 
-
-    //
-    // We need to ensure that no client removes any ontology constructs or graphs,
-    // we can check this before resolving file URLs since no protected resource will
-    // ever have a nie:url
-    //
-    if(containsResourceWithProtectedType(QSet<QUrl>::fromList(resources))) {
-        return;
-    }
-
-
     clearError();
 
 
@@ -503,17 +492,6 @@ void Nepomuk2::DataManagementModel::setProperty(const QList<QUrl> &resources, co
         setError(d->m_classAndPropertyTree->lastError());
         return;
     }
-
-
-    //
-    // We need to ensure that no client removes any ontology constructs or graphs,
-    // we can check this before resolving file URLs since no protected resource will
-    // ever have a nie:url
-    //
-    if(containsResourceWithProtectedType(QSet<QUrl>::fromList(resources))) {
-        return;
-    }
-
 
     clearError();
 
@@ -685,15 +663,6 @@ void Nepomuk2::DataManagementModel::removeProperty(const QList<QUrl> &resources,
         return;
     }
 
-
-    //
-    // We need to ensure that no client removes any ontology constructs or graphs
-    //
-    if(containsResourceWithProtectedType(resolvedResources)) {
-        return;
-    }
-
-
     //
     // Actually change data
     //
@@ -778,14 +747,6 @@ void Nepomuk2::DataManagementModel::removeProperties(const QList<QUrl> &resource
     //
     QSet<QUrl> resolvedResources = QSet<QUrl>::fromList(resolveUrls(resources, app));
     if(resolvedResources.isEmpty() || lastError()) {
-        return;
-    }
-
-
-    //
-    // We need to ensure that no client removes any ontology constructs or graphs
-    //
-    if(containsResourceWithProtectedType(resolvedResources)) {
         return;
     }
 
@@ -966,17 +927,7 @@ void Nepomuk2::DataManagementModel::removeResources(const QList<QUrl> &resources
         return;
     }
 
-
-    //
-    // We need to ensure that no client removes any ontology constructs or graphs
-    //
-    if(containsResourceWithProtectedType(resolvedResources)) {
-        return;
-    }
-
-
     clearError();
-
 
     //
     // Actually remove the data
@@ -1666,15 +1617,6 @@ void Nepomuk2::DataManagementModel::mergeResources(const QList<QUrl>& resources,
                      Soprano::Error::ErrorInvalidArgument);
             return;
         }
-    }
-
-    //
-    // We need to ensure that no client removes any ontology constructs or graphs,
-    // we can check this before resolving file URLs since no protected resource will
-    // ever have a nie:url
-    //
-    if(containsResourceWithProtectedType(resSet)) {
-        return;
     }
 
     clearError();
@@ -2578,25 +2520,6 @@ bool Nepomuk2::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource
 Nepomuk2::ClassAndPropertyTree* Nepomuk2::DataManagementModel::classAndPropertyTree()
 {
     return d->m_classAndPropertyTree;
-}
-
-bool Nepomuk2::DataManagementModel::containsResourceWithProtectedType(const QSet<QUrl> &resources) const
-{
-    if(resources.isEmpty())
-        return false;
-
-    if(executeQuery(QString::fromLatin1("ask where { ?r a ?t . FILTER(?r in (%1)) . FILTER(?t in (%2,%3,%4)) . }")
-            .arg(resourcesToN3(resources).join(QLatin1String(",")),
-                 Soprano::Node::resourceToN3(RDFS::Class()),
-                 Soprano::Node::resourceToN3(RDF::Property()),
-                 Soprano::Node::resourceToN3(NRL::Graph())),
-                    Soprano::Query::QueryLanguageSparql).boolValue()) {
-        setError(QLatin1String("It is not allowed to remove classes, properties, or graphs through this API."), Soprano::Error::ErrorInvalidArgument);
-        return true;
-    }
-    else {
-        return false;
-    }
 }
 
 bool Nepomuk2::DataManagementModel::isProtectedProperty(const QUrl &prop) const
