@@ -2193,21 +2193,11 @@ QHash< QUrl, QList< Soprano::Node > > DataManagementModel::addProperty(const QLi
 
     clearError();
 
-    //
-    // Temporary duplication
-    // FIXME: Remove all of this!
-    //
-    QList<QUrl> knownResources = resources;
-    QList<Soprano::Node> resolvedNodes = nodes;
-    QUrl graph = fetchGraph(app);
+    QUrl graph;
     if( property == NIE::url() )
         graph = d->m_nepomukGraph;
-
-    const QUrl appRes = findApplicationResource(app);
-    QSet<QPair<QUrl, Soprano::Node> > finalProperties;
-    foreach(const QUrl& resUri, resources)
-        foreach(const Soprano::Node& node, nodes)
-            finalProperties << qMakePair(resUri, node);
+    else
+        graph = fetchGraph(app);
 
     // add all the data
     QHash<QUrl, QList<Soprano::Node> > finalValuesPerResource;
