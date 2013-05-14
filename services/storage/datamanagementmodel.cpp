@@ -2044,6 +2044,9 @@ QUrl DataManagementModel::fetchGraph(const QString& app, bool discardable)
         return uri;
     }
     else {
+        if( app == QLatin1String("nepomuk") )
+            return createNepomukGraph();
+
         QMultiHash<QUrl, Soprano::Node> hash;
         if( discardable )
             hash.insert( RDF::type(), NRL::DiscardableInstanceBase() );
@@ -2075,7 +2078,7 @@ QUrl Nepomuk2::DataManagementModel::findApplicationResource(const QString &app, 
         return newUri;
     }
     else if(create) {
-        const QUrl graph = createGraph(QString(), QMultiHash<QUrl, Soprano::Node>());
+        const QUrl graph = d->m_nepomukGraph;
         const QUrl uri = createUri(ResourceUri);
 
         // the app itself
@@ -2095,6 +2098,28 @@ QUrl Nepomuk2::DataManagementModel::findApplicationResource(const QString &app, 
         return QUrl();
     }
 }
+
+QUrl DataManagementModel::createNepomukGraph()
+{
+    // The Nepomuk Graph is special since it contains Nepomuk agent
+    const QUrl graph = createGraph( QString(), QMultiHash<QUrl, Soprano::Node>() );
+    const QUrl uri = createUri(ResourceUri);
+
+    // the app itself
+    addStatement( uri, RDF::type(), NAO::Agent(), graph );
+    addStatement( uri, NAO::identifier(), Soprano::LiteralValue(QLatin1String("nepomuk")), graph );
+
+    // Fetch the meta graph
+    QString query = QString::fromLatin1("select ?g where { ?g nrl:coreGraphMetadataFor %1 . }")
+                    .arg( Soprano::Node::resourceToN3(graph) );
+
+    Soprano::QueryResultIterator it = executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+    it.next();
+    addStatement( graph, NAO::maintainedBy(), uri, it[0] );
+
+    return graph;
+}
+
 
 QUrl Nepomuk2::DataManagementModel::createUri(Nepomuk2::DataManagementModel::UriType type)
 {

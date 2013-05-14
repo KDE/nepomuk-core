@@ -147,9 +147,8 @@ void DataManagementModelTest::testAddProperty()
                                        Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor())),
                                   Soprano::Query::QueryLanguageSparql).boolValue());
 
-    // check the number of graphs (two for the app, two for the actual data, and the initial count)
-    // and 1 for the nepomuk graph
-    QCOMPARE(m_model->listContexts().allElements().count(), initialGraphCount + 5);
+    // extra graphs = 2 for TestApp
+    QCOMPARE(m_model->listContexts().allElements().count(), initialGraphCount + 2);
 
     //
     // add another property value on top of the existing one
@@ -532,9 +531,8 @@ void DataManagementModelTest::testSetProperty()
                                        Soprano::Node::resourceToN3(NRL::coreGraphMetadataFor())),
                                   Soprano::Query::QueryLanguageSparql).boolValue());
 
-    // check the number of graphs (two for the app, two for the actual data, and the initial count)
-    // and 1 for the nepomuk graph
-    QCOMPARE(m_model->listContexts().allElements().count(), initialGraphCount + 5);
+    // 2 extra graphs for the TestApp
+    QCOMPARE(m_model->listContexts().allElements().count(), initialGraphCount + 2);
 
     QVERIFY(!haveDataInDefaultGraph());
     QVERIFY(!haveMetadataInOtherGraphs());
@@ -996,8 +994,9 @@ void DataManagementModelTest::testRemoveProperty()
     QVERIFY(!m_model->containsAnyStatement(resA, Soprano::Node(), Soprano::Node()));
 
     // nothing except the ontology and the Testapp Agent should be left
-    // the +5 = appGraph type, appGraph maintained, appMetaGraph, appGraphCoreGraphFor, appGraph created
-    QCOMPARE(m_model->statementCount(), cleanCount+6+5);
+    // The +7 is for - rdf:type Agent, rdf:type GraphMetata, rdf:type InstanceBase
+    //               - identifier "TestApp", created, coreGraphMetadataFor, maintainedBy
+    QCOMPARE(m_model->statementCount(), cleanCount+7);
 
     QVERIFY(!haveDataInDefaultGraph());
     QVERIFY(!haveMetadataInOtherGraphs());
@@ -1848,14 +1847,13 @@ void DataManagementModelTest::testRemoveDataByApplication2()
     m_dmModel->removeDataByApplication(QList<QUrl>() << QUrl("res:/A"), Nepomuk2::NoRemovalFlags, QLatin1String("A"));
 
     // only two statements left: the one in the second graph and the last modification date
-    kDebug() << m_model->listStatements(QUrl("res:/A"), Node(), Node()).allStatements();
     QCOMPARE(m_model->listStatements(QUrl("res:/A"), Node(), Node()).allStatements().count(), 2);
     QVERIFY(m_model->containsStatement(QUrl("res:/A"), QUrl("prop:/string"), LiteralValue(QLatin1String("hello world")), g2));
     QVERIFY(m_model->containsAnyStatement(QUrl("res:/A"), NAO::lastModified(), Node()));
 
     // four graphs: g2, the 2 app graphs, and the mtime graph
-    // and 2 for the nepomuk graph
-    QCOMPARE(m_model->listStatements(Node(), RDF::type(), NRL::InstanceBase()).allStatements().count(), 6);
+    // and 1 for the nepomuk graph
+    QCOMPARE(m_model->listStatements(Node(), RDF::type(), NRL::InstanceBase()).allStatements().count(), 5);
 
     QVERIFY(!haveDataInDefaultGraph());
     QVERIFY(!haveMetadataInOtherGraphs());

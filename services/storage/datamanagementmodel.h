@@ -255,6 +255,7 @@ public Q_SLOTS:
 
     QUrl nepomukGraph();
 private:
+    QUrl createNepomukGraph();
     QUrl createGraph(const QString& app, const QMultiHash<QUrl, Soprano::Node>& additionalMetadata);
     QUrl fetchGraph(const QString& app, bool discardable = false);
 
