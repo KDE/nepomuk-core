@@ -256,6 +256,12 @@ void Nepomuk2::DataManagementModel::clearCache()
 
     d->m_typeCache->clear();
     d->m_nepomukGraph = fetchGraph(QLatin1String("nepomuk"));
+
+    // Specially add <nepomuk:/me> cause the clients cannot
+    // TODO: Add the fullname, email and other details
+    if( !containsAnyStatement( QUrl("nepomuk:/me"), Soprano::Node(), Soprano::Node() ) ) {
+        addStatement( QUrl("nepomuk:/me"), RDF::type(), PIMO::Person(), d->m_nepomukGraph );
+    }
 }
 
 

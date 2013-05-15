@@ -115,8 +115,6 @@ void BackupTests::simpleData()
 
     // Save all statements in memory
     Soprano::Graph origNepomukDataGraph( outputNepomukData() );
-    origNepomukDataGraph.removeAllStatements( QUrl("nepomuk:/me"), QUrl(), QUrl() );
-
     QSet< Soprano::Statement > origNepomukData = origNepomukDataGraph.toSet();
 
     // Reset the repo
@@ -127,10 +125,18 @@ void BackupTests::simpleData()
 
     QSet< Soprano::Statement > finalNepomukData = outputNepomukData().toSet();
 
-    // We can't check all the data cause some of the ontology data would have changed
-    // eg - nao:lastModified
-
-    QVERIFY( origNepomukData == finalNepomukData );
+    foreach(const Soprano::Statement&st, origNepomukData) {
+        if( !finalNepomukData.contains(st) ) {
+            kDebug() << "Restore does not contains" << st;
+            QVERIFY( 0 );
+        }
+    }
+    foreach(const Soprano::Statement&st, finalNepomukData) {
+        if( !origNepomukData.contains(st) ) {
+            kDebug() << "Restore contains extra" << st;
+            QVERIFY( 0 );
+        }
+    }
 
     QString query;
     Soprano::Model* model = ResourceManager::instance()->mainModel();
