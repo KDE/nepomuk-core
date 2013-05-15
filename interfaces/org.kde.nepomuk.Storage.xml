@@ -5,10 +5,6 @@
     <method name="usedSopranoBackend">
       <arg name="backendName" type="s" direction="out" />
     </method>
-    <method name="resetRepository">
-    </method>
-    <signal name="resetRepositoryDone">
-    </signal>
     <method name="migrateGraphs">
     </method>
     <method name="migrateGraphsByBackup">

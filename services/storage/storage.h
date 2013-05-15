@@ -55,7 +55,7 @@ namespace Nepomuk2 {
          *
          * \warning This deletes all your Nepomuk data
          */
-        Q_SCRIPTABLE void resetRepository();
+        void resetRepository();
 
         Q_SCRIPTABLE void closePublicInterfaces();
         Q_SCRIPTABLE void openPublicInterfaces();
@@ -64,7 +64,7 @@ namespace Nepomuk2 {
         Q_SCRIPTABLE void migrateGraphsByBackup();
     signals:
         // Used by the BackupManager to know we're back online after a reset
-        Q_SCRIPTABLE void resetRepositoryDone();
+        void resetRepositoryDone();
 
         Q_SCRIPTABLE void migrateGraphsDone();
         Q_SCRIPTABLE void migrateGraphsPercent(int percent);
