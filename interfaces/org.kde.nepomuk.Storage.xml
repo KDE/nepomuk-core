@@ -7,7 +7,7 @@
     </method>
     <method name="resetRepository">
     </method>
-    <signal name="initialized">
+    <signal name="resetRepositoryDone">
     </signal>
     <method name="migrateGraphs">
     </method>

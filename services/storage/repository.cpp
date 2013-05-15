@@ -84,7 +84,7 @@ void Nepomuk2::Repository::close()
 {
     kDebug() << m_name;
 
-    if(m_dataManagementModel) {
+    if( m_model ) {
         emit closed(this);
     }
 
@@ -104,6 +104,9 @@ void Nepomuk2::Repository::close()
 
     delete m_model;
     m_model = 0;
+
+    delete m_ontologyLoader;
+    m_ontologyLoader = 0;
 
     m_state = CLOSED;
 }
@@ -271,18 +274,7 @@ void Nepomuk2::Repository::slotOpened(Nepomuk2::Repository* , bool success)
 void Nepomuk2::Repository::slotOntologiesLoaded(bool somethingChanged)
 {
     updateInference(somethingChanged);
-
-    if( !m_dataManagementModel ) {
-        // =================================
-        // create the DataManagementModel on top of everything
-        m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
-        setParentModel(m_dataManagementModel);
-
-        // setParentModel disconnects all signals from the previous parent
-        connect(m_model, SIGNAL(virtuosoStopped(bool)), this, SLOT(slotVirtuosoStopped(bool)));
-
-        emit loaded(this, true);
-    }
+    emit loaded(this, true);
 }
 
 void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
@@ -333,11 +325,28 @@ void Nepomuk2::Repository::closePublicInterface()
 {
     delete m_dataManagementAdaptor;
     m_dataManagementAdaptor = 0;
+
+    setParentModel( m_inferenceModel );
+    connect(m_model, SIGNAL(virtuosoStopped(bool)), this, SLOT(slotVirtuosoStopped(bool)));
+
+    if( m_dataManagementModel ) {
+        m_dataManagementModel->deleteLater();
+        m_dataManagementModel = 0;
+    }
 }
 
 void Nepomuk2::Repository::openPublicInterface()
 {
     closePublicInterface();
+
+    // =================================
+    // create the DataManagementModel on top of everything
+    m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
+    setParentModel(m_dataManagementModel);
+
+    // setParentModel disconnects all signals from the previous parent
+    connect(m_model, SIGNAL(virtuosoStopped(bool)), this, SLOT(slotVirtuosoStopped(bool)));
+
     m_dataManagementAdaptor = new Nepomuk2::DataManagementAdaptor(m_dataManagementModel);
 
     QDBusConnection con = QDBusConnection::sessionBus();

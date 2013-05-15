@@ -50,6 +50,9 @@ namespace Nepomuk2 {
          * Switches off the Repository and DELETES ALL ITS DATA.
          * Please use with caution.
          *
+         * After deleting the repository it does not open the interfaces again, you
+         * need to manually call openPublicInterfaces
+         *
          * \warning This deletes all your Nepomuk data
          */
         Q_SCRIPTABLE void resetRepository();
@@ -61,7 +64,7 @@ namespace Nepomuk2 {
         Q_SCRIPTABLE void migrateGraphsByBackup();
     signals:
         // Used by the BackupManager to know we're back online after a reset
-        Q_SCRIPTABLE void initialized();
+        Q_SCRIPTABLE void resetRepositoryDone();
 
         Q_SCRIPTABLE void migrateGraphsDone();
         Q_SCRIPTABLE void migrateGraphsPercent(int percent);
@@ -86,6 +89,8 @@ namespace Nepomuk2 {
 
         Query::QueryService* m_queryService;
         BackupManager* m_backupManager;
+
+        bool m_resetInProgress;
 
         bool dataMigrationRequired();
         void setDataMigrated();

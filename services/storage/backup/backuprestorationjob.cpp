@@ -47,7 +47,7 @@ void BackupRestorationJob::start()
 void BackupRestorationJob::doWork()
 {
     kDebug() << "RESTORING!!!";
-    connect( m_storageService, SIGNAL(initialized()), this, SLOT(slotRestRepo()) );
+    connect( m_storageService, SIGNAL(resetRepositoryDone()), this, SLOT(slotRestRepo()) );
     m_storageService->resetRepository();
 }
 
@@ -109,6 +109,7 @@ void BackupRestorationJob::slotRestRepo()
         emitPercent( numStatements, bf.numStatements() );
     }
 
+    m_storageService->openPublicInterfaces();
     emitResult();
 }
 

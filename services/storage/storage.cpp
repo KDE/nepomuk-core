@@ -69,6 +69,7 @@ Nepomuk2::Storage::Storage()
     , m_localServer( 0 )
     , m_queryService( 0 )
     , m_backupManager( 0 )
+    , m_resetInProgress( false )
 {
     // register the fancier name for this important service
     QDBusConnection::sessionBus().registerService( "org.kde.NepomukStorage" );
@@ -103,12 +104,14 @@ void Nepomuk2::Storage::slotRepositoryLoaded(Nepomuk2::Repository* repo, bool su
     if( !m_backupManager )
         m_backupManager = new BackupManager( this );
 
+    if( m_resetInProgress ) {
+        m_resetInProgress = false;
+        emit resetRepositoryDone();
+        return;
+    }
+
     if( !dataMigrationRequired() ) {
         openPublicInterfaces();
-        kDebug() << "Registered QueryService and DataManagement interface";
-
-        setServiceInitialized( success );
-        emit initialized();
     }
     else {
         KProcess::execute( "nepomukmigrator" );
@@ -131,11 +134,15 @@ void Nepomuk2::Storage::openPublicInterfaces()
     QString socketPath = KGlobal::dirs()->locateLocal( "socket", "nepomuk-socket" );
     QFile::remove( socketPath ); // in case we crashed
     m_localServer->start( socketPath );
+
+    setServiceInitialized( true );
+    kDebug() << "Registered QueryService and DataManagement interface";
 }
 
 void Nepomuk2::Storage::closePublicInterfaces()
 {
     setServiceInitialized( false );
+
     m_repository->closePublicInterface();
     if( m_localServer )
         m_localServer->stop();
@@ -184,6 +191,7 @@ namespace {
 void Nepomuk2::Storage::resetRepository()
 {
     closePublicInterfaces();
+    m_resetInProgress = true;
     m_repository->disconnect( this );
 
     connect( m_repository, SIGNAL(closed(Repository*)),
@@ -228,7 +236,7 @@ void Nepomuk2::Storage::migrateGraphsByBackup()
     }
 
     if( !hasMigrationData() ) {
-        connect( this, SIGNAL(initialized()), this, SLOT(slotMigrationDeletionDone()) );
+        connect( this, SIGNAL(resetRepositoryDone()), this, SLOT(slotMigrationDeletionDone()) );
         emit migrateGraphsPercent( -1 );
         resetRepository();
         return;
@@ -251,6 +259,8 @@ void Nepomuk2::Storage::migrateGraphsByBackup()
 void Nepomuk2::Storage::slotMigrationDeletionDone()
 {
     disconnect( this, SIGNAL(initialized()), this, SLOT(slotMigrationDeletionDone()) );
+    openPublicInterfaces();
+
     emit migrateGraphsDone();
 }
 
