@@ -64,7 +64,10 @@ namespace {
         return apps;
     }
 
-    QList<Soprano::Statement> fetchStatements(Soprano::Model* model, const QUrl& uri) {
+    QList<Soprano::Statement> fetchStatements(QSet<QUrl>& pushedUris, Soprano::Model* model, const QUrl& uri) {
+        if( pushedUris.contains(uri) )
+            return QList<Soprano::Statement>();
+
         QString query = QString::fromLatin1("select ?p ?o ?g where { graph ?g { %1 ?p ?o. } }")
                         .arg( Soprano::Node::resourceToN3(uri) );
 
@@ -77,10 +80,10 @@ namespace {
 
             graphs << st.context().uri();
         }
+        pushedUris.insert( uri );
 
-        graphs.remove( uri );
         foreach(const QUrl& g, graphs) {
-            stList << fetchStatements( model, g );
+            stList << fetchStatements( pushedUris, model, g );
         }
 
         return stList;
@@ -120,7 +123,7 @@ void GraphGenerator::doJob()
 
     QHash<QUrl, QUrl> appGraphHash;
 
-    kDebug() << "Input:" << m_inputFile;
+    kDebug() << "output:" << m_outputFile;
     Soprano::StatementIterator it = parser->parseFile( m_inputFile, QUrl(), Soprano::SerializationNQuads );
     if( parser->lastError() ) {
         QString error = QString::fromLatin1("Failed to generate backup: %1").arg( parser->lastError().message() );
@@ -162,14 +165,16 @@ void GraphGenerator::doJob()
         }
     }
 
+    QSet<QUrl> pushedUris;
+
     // Push all the graphs
     QHashIterator<QUrl, QUrl> hit( appGraphHash );
     while( hit.hasNext() ) {
         hit.next();
 
         QList<Soprano::Statement> stList;
-        stList << fetchStatements( m_model, hit.key() );
-        stList << fetchStatements( m_model, hit.value() );
+        stList << fetchStatements( pushedUris, m_model, hit.key() );
+        stList << fetchStatements( pushedUris, m_model, hit.value() );
 
         Soprano::Util::SimpleStatementIterator iter( stList );
         serializer->serialize( iter, outputStream, Soprano::SerializationNQuads );
