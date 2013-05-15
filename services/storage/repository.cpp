@@ -274,7 +274,10 @@ void Nepomuk2::Repository::slotOpened(Nepomuk2::Repository* , bool success)
 void Nepomuk2::Repository::slotOntologiesLoaded(bool somethingChanged)
 {
     updateInference(somethingChanged);
-    emit loaded(this, true);
+    if( m_state == OPEN ) {
+        m_state = LOADED;
+        emit loaded(this, true);
+    }
 }
 
 void Nepomuk2::Repository::updateInference(bool ontologiesChanged)

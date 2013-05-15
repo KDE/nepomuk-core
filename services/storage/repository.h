@@ -60,14 +60,6 @@ namespace Nepomuk2 {
 
         QString name() const { return m_name; }
 
-        enum State {
-            CLOSED,
-            OPENING,
-            OPEN
-        };
-
-        State state() const { return m_state; }
-
         QString usedSopranoBackend() const;
         QString storagePath() const { return m_storagePath; }
 
@@ -105,6 +97,13 @@ namespace Nepomuk2 {
 
     private:
         Soprano::BackendSettings readVirtuosoSettings() const;
+
+        enum State {
+            CLOSED,
+            OPENING,
+            OPEN,
+            LOADED,
+        };
 
         QString m_name;
         State m_state;
