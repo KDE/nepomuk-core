@@ -148,7 +148,30 @@ void GraphGenerator::doJob()
             QHash< QUrl, QUrl >::iterator fit = appGraphHash.find( app );
             if( fit == appGraphHash.end() ) {
                 m_inputCount++;
-                fit = appGraphHash.insert( app, origGraph );
+                // If there is only one app, then you can take assume origGraph
+                // to only be maintained by app
+                if( apps.size() == 1 ) {
+                    fit = appGraphHash.insert( app, origGraph );
+                }
+                else {
+                    // We will need to find a graph for each app which is only
+                    // maintained by 'app' and not other applications
+                    QString gq = QString::fromLatin1("select ?g where { ?g nao:maintainedBy %1. "
+                                                     "FILTER NOT EXISTS { ?g nao:maintainedBy ?app. FILTER(?app!=%1) .}"
+                                                     "} LIMIT 1")
+                                 .arg( Soprano::Node::resourceToN3(app) );
+
+                    Soprano::QueryResultIterator iter = m_model->executeQuery( gq, Soprano::Query::QueryLanguageSparql );
+                    if( iter.next() ) {
+                        const QUrl graph = iter[0].uri();
+                        fit = appGraphHash.insert( app, graph );
+                    }
+                    else {
+                        // The app only exists in graphs shared by others. Now what?
+                        Q_ASSERT(0);
+                        fit = appGraphHash.insert( app, origGraph );
+                    }
+                }
             }
 
             st.setContext( fit.value() );
