@@ -36,8 +36,10 @@ namespace Nepomuk2 {
         explicit BackupRestorationJob(Nepomuk2::Storage* storageService, const QUrl& url, QObject* parent = 0);
         virtual void start();
 
+        QString oldRepositoryPath() const { return m_oldRepoPath; }
+
     private slots:
-        void slotRestRepo();
+        void slotRestRepo(const QString& old, const QString& newPath);
         void doWork();
 
     private:
@@ -45,6 +47,7 @@ namespace Nepomuk2 {
         Storage* m_storageService;
 
         QUrl m_url;
+        QString m_oldRepoPath;
     };
 
 }

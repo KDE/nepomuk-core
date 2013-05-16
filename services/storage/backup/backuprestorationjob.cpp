@@ -47,7 +47,7 @@ void BackupRestorationJob::start()
 void BackupRestorationJob::doWork()
 {
     kDebug() << "RESTORING!!!";
-    connect( m_storageService, SIGNAL(resetRepositoryDone()), this, SLOT(slotRestRepo()) );
+    connect( m_storageService, SIGNAL(resetRepositoryDone(QString, QString)), this, SLOT(slotRestRepo(QString, QString)) );
     m_storageService->resetRepository();
 }
 
@@ -71,13 +71,14 @@ namespace {
     }
 }
 
-void BackupRestorationJob::slotRestRepo()
+void BackupRestorationJob::slotRestRepo(const QString&, const QString& newPath)
 {
+    m_oldRepoPath = newPath;
+
     BackupFile bf = BackupFile::fromUrl( m_url );
     Soprano::StatementIterator it = bf.iterator();
 
     kDebug() << "Restore Statements:" << bf.numStatements();
-    // TODO: Optimize this
     int numStatements = 0;
     while( it.next() ) {
         Soprano::Statement st = it.current();

@@ -47,13 +47,11 @@ namespace Nepomuk2 {
         Q_SCRIPTABLE QString usedSopranoBackend() const;
 
         /**
-         * Switches off the Repository and DELETES ALL ITS DATA.
-         * Please use with caution.
+         * Switches off the Repository and renames the database directory to
+         * a new name. This new name is then emitted via resetRepositoryDone
          *
-         * After deleting the repository it does not open the interfaces again, you
+         * After renaming the repository it does not open the interfaces again, you
          * need to manually call openPublicInterfaces
-         *
-         * \warning This deletes all your Nepomuk data
          */
         void resetRepository();
 
@@ -64,7 +62,7 @@ namespace Nepomuk2 {
         Q_SCRIPTABLE void migrateGraphsByBackup();
     signals:
         // Used by the BackupManager to know we're back online after a reset
-        void resetRepositoryDone();
+        void resetRepositoryDone(const QString& oldPath, const QString& newPath);
 
         Q_SCRIPTABLE void migrateGraphsDone();
         Q_SCRIPTABLE void migrateGraphsPercent(int percent);
@@ -81,7 +79,7 @@ namespace Nepomuk2 {
         void slotMigrationRestoreProgress(int percent);
         void slotMigrationBackupDone();
         void slotMigrationRestoreDone();
-        void slotMigrationDeletionDone();
+        void slotMigrationResetDone(const QString& old, const QString& newPath);
 
     private:
         Soprano::Server::ServerCore* m_localServer;
@@ -91,6 +89,8 @@ namespace Nepomuk2 {
         BackupManager* m_backupManager;
 
         bool m_resetInProgress;
+        QString m_oldPath;
+        QString m_newPath;
 
         bool dataMigrationRequired();
         void setDataMigrated();

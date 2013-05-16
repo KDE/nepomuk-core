@@ -106,7 +106,7 @@ void Nepomuk2::Storage::slotRepositoryLoaded(Nepomuk2::Repository* repo, bool su
 
     if( m_resetInProgress ) {
         m_resetInProgress = false;
-        emit resetRepositoryDone();
+        emit resetRepositoryDone( m_oldPath, m_newPath );
         return;
     }
 
@@ -202,9 +202,10 @@ void Nepomuk2::Storage::resetRepository()
 void Nepomuk2::Storage::slotRepositoryClosedAfterReset()
 {
     // Remove the damn repo
-    QString path = m_repository->storagePath();
-    kWarning() << "Deleting" << path;
-    removeDir(path);
+    m_oldPath = m_repository->storagePath();
+    m_newPath = m_oldPath + QDateTime::currentDateTime().toString(Qt::ISODate);
+
+    QFile::rename( m_oldPath, m_newPath );
 
     m_repository->disconnect( this );
     connect( m_repository, SIGNAL( loaded( Repository*, bool ) ),
@@ -236,7 +237,7 @@ void Nepomuk2::Storage::migrateGraphsByBackup()
     }
 
     if( !hasMigrationData() ) {
-        connect( this, SIGNAL(resetRepositoryDone()), this, SLOT(slotMigrationDeletionDone()) );
+        connect( this, SIGNAL(resetRepositoryDone(QString, QString)), this, SLOT(slotMigrationResetDone(QString, QString)) );
         emit migrateGraphsPercent( -1 );
         resetRepository();
         return;
@@ -256,9 +257,11 @@ void Nepomuk2::Storage::migrateGraphsByBackup()
     }
 }
 
-void Nepomuk2::Storage::slotMigrationDeletionDone()
+void Nepomuk2::Storage::slotMigrationResetDone(const QString&, const QString& newPath)
 {
-    disconnect( this, SIGNAL(initialized()), this, SLOT(slotMigrationDeletionDone()) );
+    disconnect( this, SIGNAL(resetRepositoryDone(QString, QString)), this, SLOT(slotMigrationResetDone(QString, QString)) );
+
+    removeDir( newPath );
     openPublicInterfaces();
 
     emit migrateGraphsDone();

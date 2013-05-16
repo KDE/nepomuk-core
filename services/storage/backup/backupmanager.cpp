@@ -265,13 +265,40 @@ void Nepomuk2::BackupManager::slotRestorationPercent(KJob*, ulong percent)
     emit restorePercent( percent );
 }
 
+namespace {
+    bool removeDir(const QString & dirName) {
+        bool result;
+        QDir dir(dirName);
+
+        if (dir.exists(dirName)) {
+            QFileInfoList list = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden |
+                                                   QDir::AllDirs | QDir::Files, QDir::DirsFirst);
+            foreach(QFileInfo info, list) {
+                if( info.isDir() )
+                    result = removeDir(info.absoluteFilePath());
+                else
+                    result = QFile::remove(info.absoluteFilePath());
+
+                if( !result )
+                    return result;
+            }
+            result = dir.rmdir(dirName);
+        }
+        return result;
+    }
+}
 void Nepomuk2::BackupManager::slotRestorationDone(KJob* job)
 {
-    if( !job->error() ) {
-        emit restoreDone();
+    if( job->error() ) {
+        emit restoreError(job->errorString());
     }
     else {
-        emit restoreError(job->errorString());
+        // Restoration was successful we can safely remove the old repository
+        BackupRestorationJob* brjob = qobject_cast<Nepomuk2::BackupRestorationJob*>(job);
+        if( brjob ) {
+            removeDir( brjob->oldRepositoryPath() );
+        }
+        emit restoreDone();
     }
 }
 
