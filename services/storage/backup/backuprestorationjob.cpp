@@ -90,10 +90,15 @@ void BackupRestorationJob::slotRestRepo(const QString&, const QString& newPath)
                 //
                 if( !QFile::exists( url.toLocalFile() ) ) {
                     url = translateHomeUri( url );
-                    if( !QFile::exists( url.toLocalFile() ) ) {
-                        url.setScheme("nepomuk-backup");
-                    }
-                    st.setObject( url );
+
+                    // REMOVING THIS CHANGE TO nepomuk-backup because one can have removablemedia
+                    // files which are currently not mounted. This change sucks but the restore
+                    // utility will have to manually check each file
+                    // if( !QFile::exists( url.toLocalFile() ) ) {
+                    //    url.setScheme("nepomuk-backup");
+                    // }
+                    if( QFile::exists( url.toLocalFile() ) )
+                        st.setObject( url );
                 }
             }
         }
