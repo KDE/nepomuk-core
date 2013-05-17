@@ -284,7 +284,8 @@ void Nepomuk2::Storage::slotMigrationRestoreDone()
     disconnect( m_backupManager, SIGNAL(restorePercent(int)), this, SLOT(slotMigrationRestoreProgress(int)) );
     disconnect( m_backupManager, SIGNAL(restoreDone()), this, SLOT(slotMigrationRestoreDone()) );
 
-    slotMigrationDone();
+    setDataMigrated();
+    emit migrateGraphsDone();
 }
 
 void Nepomuk2::Storage::slotMigrationBackupProgress(int percent)
