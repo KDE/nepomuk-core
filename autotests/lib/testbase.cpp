@@ -53,7 +53,7 @@ Nepomuk2::TestBase::TestBase(QObject* parent)
 {
     char* value = getenv("NEPOMUK_TESTLIB_RUNNING");
     if( !value ) {
-        QString message("The Nepomuk Test Environment is not running. Running these tests without the"
+        QString message("The Nepomuk Test Environment is not running. Running these tests without the "
                         "test environment will delete your Nepomuk database. Aborting");
         kError() << message;
         QFAIL(message.toLatin1().data());
