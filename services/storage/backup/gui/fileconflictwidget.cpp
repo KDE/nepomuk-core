@@ -56,12 +56,19 @@ Nepomuk2::FileConflictWidget::FileConflictWidget(QWidget* parent, Qt::WindowFlag
     layout->addItem( hLayout );
 
     // Fill with data
-    QLatin1String query("select ?r ?url where { ?r nie:url ?url. FILTER(REGEX(STR(?url), '^nepomuk-backup')) . }");
+    // TODO: Do this in a separate thread
+    QLatin1String query("select distinct ?r ?url where { ?r a nfo:FileDataObject ; nie:url ?url . }");
 
     Soprano::Model* model = ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
     while( it.next() ) {
-        add( it[0].uri(), it[1].uri() );
+        const QUrl uri = it[0].uri();
+        const QUrl nieUrl = it[1].uri();
+
+        if( !QFile::exists(nieUrl.toLocalFile()) ) {
+            kDebug() << uri << nieUrl;
+            add( uri, nieUrl );
+        }
     }
 }
 
@@ -149,5 +156,10 @@ void Nepomuk2::FileConflictWidget::slotIdentifyButtonClicked()
     }
 
     removeItem( item );
+}
+
+bool Nepomuk2::FileConflictWidget::isEmpty()
+{
+    return !m_treeWidget->model()->rowCount();
 }
 

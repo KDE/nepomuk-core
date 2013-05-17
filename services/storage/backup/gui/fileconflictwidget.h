@@ -35,6 +35,8 @@ namespace Nepomuk2 {
     public:
         explicit FileConflictWidget(QWidget* parent = 0, Qt::WindowFlags f = 0);
 
+        bool isEmpty();
+
     private slots:
         void slotDiscardButtonClicked();
         void slotIdentifyButtonClicked();

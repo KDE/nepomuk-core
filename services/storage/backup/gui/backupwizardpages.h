@@ -160,10 +160,6 @@ namespace Nepomuk2 {
         void initializePage();
         int nextId() const;
 
-        /**
-         * Returns true if there are conflicts that need to be solved
-         */
-        static bool hasConflicts();
     private:
         FileConflictWidget* m_conflictWidget;
     };
