@@ -31,12 +31,14 @@
 #include <Soprano/PluginManager>
 #include <Soprano/Serializer>
 #include <Soprano/Util/SimpleStatementIterator>
+#include <Soprano/Vocabulary/NAO>
 
 #include "nfo.h"
 
 using namespace Nepomuk2;
 using namespace Nepomuk2::Backup;
 using namespace Nepomuk2::Vocabulary;
+using namespace Soprano::Vocabulary;
 
 StatementGenerator::StatementGenerator(Soprano::Model* model, const QString& inputFile,
                                        const QString& outputFile, QObject* parent)
@@ -108,6 +110,9 @@ void StatementGenerator::doJob()
                 stList << fetchProperties(uri, fileProperties);
             }
             else {
+                bool hasPrefLabel = false;
+                Soprano::Statement identifierSt;
+
                 QList<Soprano::Statement> tagStatements = fetchAllStatements(uri);
                 foreach(const Soprano::Statement& st, tagStatements) {
                     // Do not link to other Nepmouk objects
@@ -115,7 +120,17 @@ void StatementGenerator::doJob()
                     if( st.object().isResource() && st.object().uri().scheme() == QLatin1String("nepomuk") )
                         continue;
 
+                    if( st.predicate().uri() == NAO::prefLabel() )
+                        hasPrefLabel = true;
+                    else if( st.predicate().uri() == NAO::identifier() )
+                        identifierSt = st;
+
                     stList << st;
+                }
+
+                if( !hasPrefLabel ) {
+                    identifierSt.setPredicate( NAO::prefLabel() );
+                    stList << identifierSt;
                 }
             }
         }
