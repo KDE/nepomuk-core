@@ -143,6 +143,7 @@ void GraphGenerator::doJob()
         QList<QUrl> apps = fetchGraphApps( m_model, origGraph );
         if( apps.isEmpty() ) {
             st.setContext( nepomukGraph );
+            stList << st;
         }
         foreach(const QUrl& app, apps) {
             QHash< QUrl, QUrl >::iterator fit = appGraphHash.find( app );
