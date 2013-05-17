@@ -49,6 +49,9 @@ void BackupRestorationJob::doWork()
     kDebug() << "RESTORING!!!";
     connect( m_storageService, SIGNAL(resetRepositoryDone(QString, QString)), this, SLOT(slotRestRepo(QString, QString)) );
     m_storageService->resetRepository();
+
+    // Gives the users a sense that something is happening
+    emitPercent( 3, 100 );
 }
 
 namespace {
