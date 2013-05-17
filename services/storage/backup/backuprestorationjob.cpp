@@ -48,7 +48,7 @@ void BackupRestorationJob::doWork()
 {
     kDebug() << "RESTORING!!!";
     connect( m_storageService, SIGNAL(resetRepositoryDone(QString, QString)), this, SLOT(slotRestRepo(QString, QString)) );
-    m_storageService->resetRepository();
+    QTimer::singleShot(0, m_storageService, SLOT(resetRepository()) );
 
     // Gives the users a sense that something is happening
     emitPercent( 3, 100 );
@@ -118,7 +118,7 @@ void BackupRestorationJob::slotRestRepo(const QString&, const QString& newPath)
         emitPercent( numStatements, bf.numStatements() );
     }
 
-    m_storageService->openPublicInterfaces();
+    QTimer::singleShot(0, m_storageService, SLOT(openPublicInterfaces()) );
     emitResult();
 }
 
