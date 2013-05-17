@@ -132,7 +132,7 @@ void Nepomuk2::BackupManager::backupTagsAndRatings(const QString& oldUrl)
 void Nepomuk2::BackupManager::automatedBackup()
 {
     QDate today = QDate::currentDate();
-    backup( m_backupLocation + today.toString(Qt::ISODate) );
+    backupTagsAndRatings( m_backupLocation + today.toString(Qt::ISODate) );
 
     resetTimer();
     removeOldBackups();
