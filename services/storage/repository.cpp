@@ -332,14 +332,15 @@ void Nepomuk2::Repository::closePublicInterface()
     setParentModel( m_inferenceModel );
     connect(m_model, SIGNAL(virtuosoStopped(bool)), this, SLOT(slotVirtuosoStopped(bool)));
 
-    if( m_dataManagementModel ) {
-        m_dataManagementModel->deleteLater();
-        m_dataManagementModel = 0;
-    }
+    delete m_dataManagementModel;
+    m_dataManagementModel = 0;
 }
 
 void Nepomuk2::Repository::openPublicInterface()
 {
+    if( m_dataManagementModel && m_dataManagementAdaptor )
+        return;
+
     closePublicInterface();
 
     // =================================
