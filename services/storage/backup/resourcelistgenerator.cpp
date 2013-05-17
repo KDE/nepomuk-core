@@ -114,7 +114,8 @@ void ResourceListGenerator::doJob()
             approxCount = iter[0].literal().toInt() + m_resourceCount;
 
         query = QString::fromLatin1("select distinct ?r where { ?r a nfo:FileDataObject ;"
-                                    " nie:url ?url ; nao:hasTag ?t. }");
+                                    " nie:url ?url ; nao:hasTag ?t. "
+                                    " FILTER(REGEX(STR(?url), '^file:')) . }");
         it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
 
         while( it.next() ) {
