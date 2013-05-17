@@ -108,6 +108,23 @@ bool Nepomuk2::ResourceWatcher::start()
     // Create the dbus object to watch
     //
     QDBusPendingReply<QDBusObjectPath> reply = d->m_watchManagerInterface->watch( uris, props, types_ );
+    QDBusPendingCallWatcher* replyWatcher = new QDBusPendingCallWatcher( reply, this );
+    connect( replyWatcher, SIGNAL(finished(QDBusPendingCallWatcher*)),
+             this, SLOT(slotWatchFinished(QDBusPendingCallWatcher*)) );
+
+    // Always return true for now
+    // FIXME: Change the return value for frameworks 5
+    return true;
+}
+
+void Nepomuk2::ResourceWatcher::slotWatchFinished(QDBusPendingCallWatcher* replyWatcher)
+{
+    QDBusPendingReply<QDBusObjectPath> reply = *replyWatcher;
+    if( reply.isError() ) {
+        kDebug() << "Failed to connect to watch service" << reply.error().message();
+        return;
+    }
+
     QDBusObjectPath path = reply.value();
 
     if(!path.path().isEmpty()) {
@@ -124,13 +141,9 @@ bool Nepomuk2::ResourceWatcher::start()
                  this, SLOT(slotResourceTypesAdded(QString,QStringList)) );
         connect( d->m_connectionInterface, SIGNAL(resourceTypesRemoved(QString,QStringList)),
                  this, SLOT(slotResourceTypesRemoved(QString,QStringList)) );
-
-        //kDebug() << "Successfully connected to watch service";
-        return true;
     }
     else {
         kDebug() << "Failed to connect to watch service" << reply.error().message();
-        return false;
     }
 }
 
