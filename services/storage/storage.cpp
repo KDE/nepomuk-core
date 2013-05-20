@@ -213,7 +213,6 @@ void Nepomuk2::Storage::slotRepositoryClosedAfterReset()
     connect( m_repository, SIGNAL( closed( Repository* ) ),
                 this, SLOT( slotRepositoryClosed() ) );
 
-    setDataMigrated();
     m_repository->open();
 }
 
@@ -232,7 +231,7 @@ void Nepomuk2::Storage::migrateGraphsByBackup()
     closePublicInterfaces();
 
     if( !dataMigrationRequired() ) {
-        slotMigrationDone();
+        emit migrateGraphsDone();
         return;
     }
 
@@ -262,9 +261,7 @@ void Nepomuk2::Storage::slotMigrationResetDone(const QString&, const QString& ne
     disconnect( this, SIGNAL(resetRepositoryDone(QString, QString)), this, SLOT(slotMigrationResetDone(QString, QString)) );
 
     removeDir( newPath );
-    openPublicInterfaces();
-
-    emit migrateGraphsDone();
+    slotMigrationDone();
 }
 
 void Nepomuk2::Storage::slotMigrationBackupDone()
@@ -348,6 +345,9 @@ void Nepomuk2::Storage::setDataMigrated()
 {
     KConfigGroup group = KSharedConfig::openConfig("nepomukserverrc")->group( m_repository->name() + " Settings" );
     group.writeEntry( "GraphMigrationRequired", false );
+
+    group = KSharedConfig::openConfig("nepomukstrigirc")->group( "General" );
+    group.writeEntry( "first run", true );
 }
 
 
