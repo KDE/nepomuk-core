@@ -333,7 +333,9 @@ void Nepomuk2::ServiceController::slotServiceInitialized( bool success )
         else {
             d->failedToInitialize = true;
             kDebug() << "Failed to initialize service" << name();
-            stop();
+            // Do not stop because the storageservice now gets deinitialized when restoring a backup
+            // or migrating the data
+            //stop();
         }
     }
 }
