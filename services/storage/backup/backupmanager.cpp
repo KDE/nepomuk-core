@@ -22,8 +22,8 @@
 
 #include "backupmanager.h"
 #include "backupmanageradaptor.h"
+#include "storage.h"
 
-#include "ontologyloader.h"
 #include "backupgenerationjob.h"
 #include "backuprestorationjob.h"
 
@@ -43,11 +43,11 @@
 #include <KCalendarSystem>
 
 
-Nepomuk2::BackupManager::BackupManager(Nepomuk2::OntologyLoader* loader, Soprano::Model* model, QObject* parent)
-    : QObject( parent ),
+Nepomuk2::BackupManager::BackupManager(Nepomuk2::Storage* storageService)
+    : QObject( storageService ),
       m_config( "nepomukbackuprc" ),
-      m_model( model ),
-      m_ontologyLoader( loader )
+      m_model( storageService->model() ),
+      m_storageService( storageService )
 {
     new BackupManagerAdaptor( this );
     // Register via DBUs
@@ -100,12 +100,39 @@ void Nepomuk2::BackupManager::backup(const QString& oldUrl)
     emit backupStarted();
 }
 
+void Nepomuk2::BackupManager::backupTagsAndRatings(const QString& oldUrl)
+{
+    QString url = oldUrl;
+    if( url.isEmpty() )
+        url = KStandardDirs::locateLocal( "data", "nepomuk/backupsync/backup" ); // default location
+
+    kDebug() << url;
+
+    QFile::remove( url );
+
+    BackupGenerationJob* job = new BackupGenerationJob( m_model, url );
+    job->setFilter( BackupGenerationJob::Filter_TagsAndRatings );
+
+    QThread* backupThread = new QThread( this );
+    job->moveToThread( backupThread );
+    backupThread->start();
+
+    connect( job, SIGNAL(finished(KJob*)), backupThread, SLOT(quit()), Qt::QueuedConnection );
+    connect( backupThread, SIGNAL(finished()), backupThread, SLOT(deleteLater()) );
+    connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotBackupDone(KJob*)), Qt::QueuedConnection );
+    connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotBackupPercent(KJob*,ulong)), Qt::QueuedConnection );
+    job->start();
+
+    emit backupStarted();
+}
+
+
 
 
 void Nepomuk2::BackupManager::automatedBackup()
 {
     QDate today = QDate::currentDate();
-    backup( m_backupLocation + today.toString(Qt::ISODate) );
+    backupTagsAndRatings( m_backupLocation + today.toString(Qt::ISODate) );
 
     resetTimer();
     removeOldBackups();
@@ -208,10 +235,14 @@ void Nepomuk2::BackupManager::slotBackupDone(KJob* job)
     if( !job->error() ) {
         emit backupDone();
     }
+    else {
+        emit backupError(job->errorString());
+    }
 }
 
-void Nepomuk2::BackupManager::slotBackupPercent(KJob* job, ulong percent)
+void Nepomuk2::BackupManager::slotBackupPercent(KJob*, ulong percent)
 {
+    kDebug() << "WEEEEEE" << percent;
     emit backupPercent( percent );
 }
 
@@ -221,21 +252,52 @@ void Nepomuk2::BackupManager::restore(const QString& url)
     if( url.isEmpty() )
         return;
 
-    KJob* job = new BackupRestorationJob( m_model, m_ontologyLoader, QUrl::fromLocalFile(url) );
+    KJob* job = new BackupRestorationJob( m_storageService, QUrl::fromLocalFile(url) );
     job->start();
 
     connect( job, SIGNAL(finished(KJob*)), this, SLOT(slotRestorationDone(KJob*)) );
-    connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotRestorationPercent(KJob*,ulong)) );
+    connect( job, SIGNAL(percent(KJob*,ulong)), this, SLOT(slotRestorationPercent(KJob*,ulong)), Qt::QueuedConnection );
 }
 
 void Nepomuk2::BackupManager::slotRestorationPercent(KJob*, ulong percent)
 {
+    kDebug() << percent;
     emit restorePercent( percent );
 }
 
+namespace {
+    bool removeDir(const QString & dirName) {
+        bool result;
+        QDir dir(dirName);
+
+        if (dir.exists(dirName)) {
+            QFileInfoList list = dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden |
+                                                   QDir::AllDirs | QDir::Files, QDir::DirsFirst);
+            foreach(QFileInfo info, list) {
+                if( info.isDir() )
+                    result = removeDir(info.absoluteFilePath());
+                else
+                    result = QFile::remove(info.absoluteFilePath());
+
+                if( !result )
+                    return result;
+            }
+            result = dir.rmdir(dirName);
+        }
+        return result;
+    }
+}
 void Nepomuk2::BackupManager::slotRestorationDone(KJob* job)
 {
-    if( !job->error() ) {
+    if( job->error() ) {
+        emit restoreError(job->errorString());
+    }
+    else {
+        // Restoration was successful we can safely remove the old repository
+        BackupRestorationJob* brjob = qobject_cast<Nepomuk2::BackupRestorationJob*>(job);
+        if( brjob ) {
+            removeDir( brjob->oldRepositoryPath() );
+        }
         emit restoreDone();
     }
 }

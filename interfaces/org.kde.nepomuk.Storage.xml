@@ -5,5 +5,14 @@
     <method name="usedSopranoBackend">
       <arg name="backendName" type="s" direction="out" />
     </method>
+    <method name="migrateGraphs">
+    </method>
+    <method name="migrateGraphsByBackup">
+    </method>
+    <signal name="migrateGraphsDone">
+    </signal>
+    <signal name="migrateGraphsPercent">
+        <arg name="percent" type="i"/>
+    </signal>
   </interface>
 </node>

@@ -151,6 +151,9 @@ public Q_SLOTS:
      * One typical usecase is that the file indexer uses (rdf:type, nrl:DiscardableInstanceBase)
      * to state that the provided information can be recreated at any time. Only built-in types
      * such as int, string, or url are supported.
+     * \note Due to performance concerns, currently only (rdf:type, nrl:DiscardableInstanceBase)
+     * is considered as additionalMetadata. The rest is ignored.
+     *
      * \param app The calling application
      */
     QHash<QUrl,QUrl> storeResources(const SimpleResourceGraph& resources,
@@ -159,6 +162,23 @@ public Q_SLOTS:
                         Nepomuk2::StoreResourcesFlags flags = Nepomuk2::NoStoreResourcesFlags,
                         const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()) );
 
+    /**
+     * \param resources The resources to be merged. Blank nodes will be converted into new
+     * URIs (unless the corresponding resource already exists).
+     * \param identificationMode This method can try hard to avoid duplicate resources by looking
+     * for already existing duplicates based on nrl:DefiningProperty. By default it only looks
+     * for duplicates of resources that do not have a resource URI (SimpleResource::uri()) defined.
+     * This behaviour can be changed with this parameter.
+     * \param flags Additional flags to change the behaviour of the method.
+     * \param discardable Indicates if the data being stored is discardable. This is typically used
+     * in the file indexer so that the rdf:type nrl:DiscardableInstanceBase is applied.
+     * \param app The calling application
+     */
+    QHash<QUrl,QUrl> storeResources(const SimpleResourceGraph& resources,
+                        const QString& app,
+                        bool discardable,
+                        Nepomuk2::StoreIdentificationMode identificationMode = Nepomuk2::IdentifyNew,
+                        Nepomuk2::StoreResourcesFlags flags = Nepomuk2::NoStoreResourcesFlags);
     /**
      * Merges all the resources into one.
      * Properties from the first resource in \p resources take precedence over all other resources
@@ -202,7 +222,7 @@ public Q_SLOTS:
      */
     SimpleResourceGraph describeResources(const QList<QUrl>& resources,
                                           DescribeResourcesFlags flags = NoDescribeResourcesFlags,
-                                          const QList<QUrl>& targetParties = QList<QUrl>() ) const;
+                                          const QList<QUrl>& targetParties = QList<QUrl>() );
 
     /**
      * Export a set of resources, i.e. retrieve their properties.
@@ -223,7 +243,7 @@ public Q_SLOTS:
                             Soprano::RdfSerialization serialization,
                             const QString& userSerialization = QString(),
                             DescribeResourcesFlags flags = NoDescribeResourcesFlags,
-                            const QList<QUrl>& targetParties = QList<QUrl>() ) const;
+                            const QList<QUrl>& targetParties = QList<QUrl>() );
     //@}
 
     /**
@@ -233,56 +253,42 @@ public Q_SLOTS:
 
     TypeCache* typeCache();
 
+    QUrl nepomukGraph();
 private:
-    QUrl createGraph(const QString& app = QString(), const QHash<QUrl, QVariant>& additionalMetadata = (QHash<QUrl, QVariant>()));
+    QUrl createNepomukGraph();
     QUrl createGraph(const QString& app, const QMultiHash<QUrl, Soprano::Node>& additionalMetadata);
-
-    /**
-     * Splits \p graph into two. This essentially copies the graph metadata to a new graph and metadata graph pair.
-     * The newly created graph will set as being maintained by \p appRes.
-     *
-     * \param graph The graph that should be split/copied.
-     * \param metadataGraph The metadata graph of graph. This can be empty.
-     * \param appRes The application resource which will be added as maintaining the newly created graph. Can be empty.
-     *
-     * \return The URI of the newly created graph.
-     */
-    QUrl splitGraph(const QUrl& graph, const QUrl& metadataGraph, const QUrl& appRes);
+    QUrl fetchGraph(const QString& app, bool discardable = false);
 
     QUrl findApplicationResource(const QString& app, bool create = true);
 
     /**
      * Updates the modification date of \p resource to \p date.
-     * Adds the new statement in \p graph.
+     * Adds the new statement in the nepomuk graph
      */
-    Soprano::Error::ErrorCode updateModificationDate( const QUrl& resource, const QUrl& graph = QUrl(), const QDateTime& date = QDateTime::currentDateTime(), bool includeCreationDate = false );
+    Soprano::Error::ErrorCode updateModificationDate( const QUrl& resource,
+                                                      const QDateTime& date = QDateTime::currentDateTime() );
 
     /**
      * Updates the modification date of \p resources to \p date.
-     * Adds the new statement in \p graph.
+     * Adds the new statement in the nepomuk graph
      */
-    Soprano::Error::ErrorCode updateModificationDate( const QSet<QUrl>& resources, const QUrl& graph = QUrl(), const QDateTime& date = QDateTime::currentDateTime(), bool includeCreationDate = false );
-
-    /**
-     * Removes all the graphs from \p graphs which do not contain any statements
-     */
-    void removeTrailingGraphs( const QSet<QUrl>& graphs );
+    Soprano::Error::ErrorCode updateModificationDate( const QSet<QUrl>& resources,
+                                                      const QDateTime& date = QDateTime::currentDateTime() );
 
     /**
      * Adds for each resource in \p resources a property for each node in nodes. \p nodes cannot be empty.
      * This method is used in the public setProperty and addProperty slots to avoid a lot of code duplication.
      *
-     * \param resources A hash mapping the resources provided by the client to the actual resource URIs. This hash is created via resolveUrls() and can
-     *                  contain empty values which means that the resource corresponding to a file URL does not exist yet.
-     *                  This hash cannot be empty.
+     * \param resources A list of resource uris
      * \param property The property to use. This cannot be empty.
-     * \param nodes A hash mapping value nodes as created via resolveNodes from the output of ClassAndPropertyTree::variantToNodeSet. Like \p resources
-     *              this hash might contain empty values which refer to non-existing file resources. This cannot be empty.
+     * \param nodes A list of objects
      * \param app The calling application.
      *
      * \return A mapping from changed resources to actually newly added values.
      */
-    QHash<QUrl, QList<Soprano::Node> > addProperty(const QHash<QUrl, QUrl>& resources, const QUrl& property, const QHash<Soprano::Node, Soprano::Node>& nodes, const QString& app, bool signalPropertyChanged = false);
+    QHash<QUrl, QList<Soprano::Node> > addProperty(const QList<QUrl>& resources, const QUrl& property,
+                                                   const QList<Soprano::Node>& nodes, const QString& app,
+                                                   bool signalPropertyChanged = false);
 
     /**
      * Removes the given resources without any additional checks. The provided list needs to contain already resolved valid resource URIs.
@@ -304,24 +310,25 @@ private:
      * \param statLocalFiles If \p true the method will check if local files exist and set an error
      * if not.
      */
-    QUrl resolveUrl(const QUrl& url, bool statLocalFiles = false) const;
+    QUrl resolveUrl(const QUrl& url, bool statLocalFiles = false);
 
     /**
      * Resolves local file URLs through nie:url.
-     * \return a Hash mapping \p urls to their actual resource URIs or an empty QUrl if the resource does not exist.
+     * \return a list of urls which contain the actual resource uris. If the resource uri does not exist
+     *         it is created
      *
      * \param statLocalFiles If \p true this method does check if the local file exists and may set an error if not.
      */
-    QHash<QUrl, QUrl> resolveUrls(const QList<QUrl>& urls, bool statLocalFiles = true) const;
+    QList<QUrl> resolveUrls(const QList< QUrl >& urls, const QString& app, bool statLocalFiles = true);
 
     /**
      * Resolves local file URLs through nie:url.
-     * \return a Hash mapping \p nodes to the nodes that should actually be added to the model or an empty node if the resource for a file URL
-     * does not exist yet.
      *
      * This method does check if the local file exists and may set an error.
      */
-    QHash<Soprano::Node, Soprano::Node> resolveNodes(const QSet<Soprano::Node>& nodes) const;
+    QList<Soprano::Node> resolveNodes(const QSet<Soprano::Node>& nodes, const QString& app);
+
+    QList<QUrl> createFileResources(const QList<QUrl>& nieUrls, const QUrl& graph);
 
     /**
      * Updates the nie:url of a local file resource.
@@ -341,17 +348,6 @@ private:
         ResourceUri
     };
     QUrl createUri(UriType type);
-
-    /// Creates a new resource, and sets its nie:url. It does not set nao:lastModified or nao:created
-    QUrl createResource(const QUrl& nieUrl, const QUrl& graph);
-
-    /**
-     * Checks if any of the provided resources has a protected type (class, property, graph), ie. one
-     * of the resources should not be changed through the standard API.
-     *
-     * If the method returns \p true it has already set an appropriate error.
-     */
-    bool containsResourceWithProtectedType(const QSet<QUrl>& resources) const;
 
     bool isProtectedProperty(const QUrl& prop) const;
 

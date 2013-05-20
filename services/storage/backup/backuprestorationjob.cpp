@@ -20,7 +20,9 @@
 
 #include "backuprestorationjob.h"
 #include "backupfile.h"
+#include "storage.h"
 #include "nie.h"
+#include <KDebug>
 
 #include <QtCore/QTimer>
 #include <QtCore/QDir>
@@ -29,11 +31,10 @@ using namespace Nepomuk2::Vocabulary;
 
 namespace Nepomuk2 {
 
-BackupRestorationJob::BackupRestorationJob(Soprano::Model* model, Nepomuk2::OntologyLoader* loader,
-                                           const QUrl& url, QObject* parent)
+BackupRestorationJob::BackupRestorationJob(Storage* storageService, const QUrl& url, QObject* parent)
     : KJob(parent)
-    , m_model( model )
-    , m_ontologyLoader( loader )
+    , m_model( storageService->model() )
+    , m_storageService( storageService )
     , m_url( url )
 {
 }
@@ -45,13 +46,14 @@ void BackupRestorationJob::start()
 
 void BackupRestorationJob::doWork()
 {
-    // Discard all existing data
-    m_model->removeAllStatements();
+    kDebug() << "RESTORING!!!";
+    connect( m_storageService, SIGNAL(resetRepositoryDone(QString, QString)), this, SLOT(slotRestRepo(QString, QString)) );
+    QTimer::singleShot(0, m_storageService, SLOT(resetRepository()) );
 
-    // Re-insert the ontologies
-    m_ontologyLoader->updateAllLocalOntologies();
-    connect( m_ontologyLoader, SIGNAL(ontologyUpdateFinished(bool)), this, SLOT(slotOntologyUpdateFinished(bool)));
+    // Gives the users a sense that something is happening
+    emitPercent( 3, 100 );
 }
+
 namespace {
 
     //
@@ -72,12 +74,14 @@ namespace {
     }
 }
 
-void BackupRestorationJob::slotOntologyUpdateFinished(bool)
+void BackupRestorationJob::slotRestRepo(const QString&, const QString& newPath)
 {
+    m_oldRepoPath = newPath;
+
     BackupFile bf = BackupFile::fromUrl( m_url );
     Soprano::StatementIterator it = bf.iterator();
 
-    // TODO: Optimize this
+    kDebug() << "Restore Statements:" << bf.numStatements();
     int numStatements = 0;
     while( it.next() ) {
         Soprano::Statement st = it.current();
@@ -89,20 +93,32 @@ void BackupRestorationJob::slotOntologyUpdateFinished(bool)
                 //
                 if( !QFile::exists( url.toLocalFile() ) ) {
                     url = translateHomeUri( url );
-                    if( !QFile::exists( url.toLocalFile() ) ) {
-                        url.setScheme("nepomuk-backup");
-                    }
-                    st.setObject( url );
+
+                    // REMOVING THIS CHANGE TO nepomuk-backup because one can have removablemedia
+                    // files which are currently not mounted. This change sucks but the restore
+                    // utility will have to manually check each file
+                    // if( !QFile::exists( url.toLocalFile() ) ) {
+                    //    url.setScheme("nepomuk-backup");
+                    // }
+                    if( QFile::exists( url.toLocalFile() ) )
+                        st.setObject( url );
                 }
             }
         }
 
-        m_model->addStatement( st );
+        Soprano::Error::ErrorCode err = m_model->addStatement( st );
+        if( err ) {
+            kWarning() << m_model->lastError();
+            setErrorText( m_model->lastError().message() );
+            emitResult();
+            return;
+        }
 
         numStatements++;
         emitPercent( numStatements, bf.numStatements() );
     }
 
+    QTimer::singleShot(0, m_storageService, SLOT(openPublicInterfaces()) );
     emitResult();
 }
 

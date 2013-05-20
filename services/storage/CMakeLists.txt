@@ -9,8 +9,6 @@ include_directories(
 
 set(storage_SRCS
   storage.cpp
-  nepomukcore.cpp
-  modelcopyjob.cpp
   repository.cpp
   ontologyloader.cpp
   ontologymanagermodel.cpp
@@ -27,6 +25,7 @@ set(storage_SRCS
   resourcewatcherconnection.cpp
   virtuosoinferencemodel.cpp
   typecache.cpp
+  graphmigrationjob.cpp
   ${libnepomukcore_SOURCE_DIR}/datamanagement/dbustypes.cpp
   )
 
@@ -47,7 +46,9 @@ set( Backup_SRCS
   backup/backupfile.cpp
   backup/backupgenerationjob.cpp
   backup/backuprestorationjob.cpp
-  backup/backupstatementiterator.cpp
+  backup/resourcelistgenerator.cpp
+  backup/statementgenerator.cpp
+  backup/graphgenerator.cpp
   )
 
 qt4_add_dbus_adaptor( Backup_SRCS
@@ -95,3 +96,4 @@ install(
 add_subdirectory(backup)
 add_subdirectory(rcgen)
 add_subdirectory(test)
+add_subdirectory(migrator)

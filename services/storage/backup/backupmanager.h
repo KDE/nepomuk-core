@@ -34,7 +34,7 @@
 
 namespace Nepomuk2 {
 
-    class OntologyLoader;
+    class Storage;
 
     class BackupManager : public QObject
     {
@@ -42,22 +42,24 @@ namespace Nepomuk2 {
         Q_CLASSINFO("D-Bus Interface", "org.kde.nepomuk.BackupManager")
 
     public:
-        BackupManager(OntologyLoader* loader, Soprano::Model *model, QObject* parent);
+        BackupManager(Storage* storageService);
         virtual ~BackupManager();
 
     public slots:
         void backup( const QString & url = QString() );
+        void backupTagsAndRatings( const QString & url = QString() );
         void restore(const QString & url );
 
     signals:
         void backupStarted();
         void backupDone();
-        void backupPercent(ulong percent);
+        void backupError(const QString& error);
+        void backupPercent(int percent);
 
         void restoreStarted();
         void restoreDone();
-        void restorePercent(ulong percent);
-
+        void restoreError(const QString& error);
+        void restorePercent(int percent);
     private:
         QString m_backupLocation;
 
@@ -72,7 +74,7 @@ namespace Nepomuk2 {
         void removeOldBackups();
 
         Soprano::Model* m_model;
-        OntologyLoader* m_ontologyLoader;
+        Storage* m_storageService;
 
     private slots:
         void slotConfigDirty();

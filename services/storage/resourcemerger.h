@@ -27,7 +27,6 @@
 #include <QtCore/QSet>
 
 #include <KUrl>
-#include <Soprano/Error/ErrorCache>
 
 #include "datamanagement.h"
 #include "resourceidentifier.h"
@@ -43,12 +42,11 @@ namespace Nepomuk2 {
     class DataManagementModel;
     class ResourceWatcherManager;
 
-    class ResourceMerger : public Soprano::Error::ErrorCache
+    class ResourceMerger
     {
     public:
         ResourceMerger( Nepomuk2::DataManagementModel * model, const QString & app,
-                        const QHash<QUrl, QVariant>& additionalMetadata,
-                        const StoreResourcesFlags& flags );
+                        const StoreResourcesFlags& flags, bool discardable );
         ~ResourceMerger();
 
         void setMappings( const QHash<QUrl, QUrl> & mappings );
@@ -56,8 +54,15 @@ namespace Nepomuk2 {
 
         bool merge(const Sync::ResourceHash& resHash);
 
-        void setAdditionalGraphMetadata( const QHash<QUrl, QVariant>& additionalMetadata );
-        QHash<QUrl, QVariant> additionalMetadata() const;
+        //
+        // We do not just derive from Soprano::Error::ErrorCache cause it
+        // implements per thread error handling. We do not need that since
+        // each thread has its own ResourceMerger
+        //
+        Soprano::Error::Error lastError();
+        void clearError();
+        void setError(const Soprano::Error::Error& error);
+        void setError(const QString& errorMessage, int code);
 
     private:
         /**
@@ -82,23 +87,10 @@ namespace Nepomuk2 {
         /// The new uris which are being created from blank nodes
         QSet<QUrl> m_newUris;
 
-        /**
-         * Removes all the statements that already exist in the model
-         * and adds them to m_duplicateStatements
-         */
-        void removeDuplicates( Sync::SyncResource& res );
-        QMultiHash<QUrl, Soprano::Statement> m_duplicateStatements;
-
         QHash<QUrl, QUrl> m_mappings;
-
-        /// a set of graphs which we change and which are candidates for empty graphs
-        QSet<QUrl> m_trailingGraphCandidates;
 
         /// a list of all the statements that have been removed (only used for the resource watcher)
         Sync::ResourceHash m_resRemoveHash;
-
-        /// Can set the error
-        QMultiHash<QUrl, Soprano::Node> toNodeHash( const QHash<QUrl, QVariant> &hash );
 
         /**
          * Each statement that is being merged and already exists, belongs to a graph. This hash
@@ -109,8 +101,8 @@ namespace Nepomuk2 {
          * \sa mergeGraphs
          */
         QHash<QUrl, QUrl> m_graphHash;
-        QHash<QUrl, Soprano::Node> m_additionalMetadataHash;
-        QHash<QUrl, QVariant> m_additionalMetadata;
+
+        bool m_discardbale;
 
         QString m_app;
         QUrl m_appUri;
@@ -119,8 +111,6 @@ namespace Nepomuk2 {
         StoreResourcesFlags m_flags;
         Nepomuk2::DataManagementModel * m_model;
 
-        QUrl mergeGraphs( const QUrl& oldGraph );
-
         /**
          * Checks if \p node is of rdf:type \p type.
          *
@@ -128,16 +118,10 @@ namespace Nepomuk2 {
          */
         bool isOfType( const Soprano::Node& node, const QUrl& type, const QList<QUrl>& newTypes = QList<QUrl>() ) const;
 
-        QMultiHash<QUrl, Soprano::Node> getPropertyHashForGraph( const QUrl & graph ) const;
-
-        bool checkGraphMetadata( const QMultiHash<QUrl, Soprano::Node> & hash );
-        bool areEqual( const QMultiHash<QUrl, Soprano::Node>& oldPropHash,
-                       const QMultiHash<QUrl, Soprano::Node>& newPropHash );
-
-        bool sameTypes( const QSet<QUrl>& t1, const QSet<QUrl>& t2 );
-
         QSet<QUrl> metadataProperties;
         ResourceWatcherManager *m_rvm;
+
+        Soprano::Error::Error m_error;
     };
 
 }

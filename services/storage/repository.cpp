@@ -13,11 +13,11 @@
  */
 
 #include "repository.h"
-#include "modelcopyjob.h"
 #include "datamanagementmodel.h"
 #include "datamanagementadaptor.h"
 #include "classandpropertytree.h"
 #include "virtuosoinferencemodel.h"
+#include "ontologyloader.h"
 
 #include <Soprano/Backend>
 #include <Soprano/PluginManager>
@@ -64,11 +64,11 @@ Nepomuk2::Repository::Repository( const QString& name )
       m_inferenceModel( 0 ),
       m_dataManagementModel( 0 ),
       m_dataManagementAdaptor( 0 ),
-      m_backend( 0 ),
-      m_modelCopyJob( 0 ),
-      m_oldStorageBackend( 0 )
+      m_backend( 0 )
 {
     m_dummyModel = new Soprano::Util::DummyModel();
+
+    connect( this, SIGNAL(opened(Repository*,bool)), this, SLOT(slotOpened(Repository*,bool)) );
 }
 
 
@@ -84,7 +84,7 @@ void Nepomuk2::Repository::close()
 {
     kDebug() << m_name;
 
-    if(m_dataManagementModel) {
+    if( m_model ) {
         emit closed(this);
     }
 
@@ -102,11 +102,11 @@ void Nepomuk2::Repository::close()
     delete m_classAndPropertyTree;
     m_classAndPropertyTree = 0;
 
-    delete m_modelCopyJob;
-    m_modelCopyJob = 0;
-
     delete m_model;
     m_model = 0;
+
+    delete m_ontologyLoader;
+    m_ontologyLoader = 0;
 
     m_state = CLOSED;
 }
@@ -149,25 +149,21 @@ void Nepomuk2::Repository::open()
     // read config
     // =================================
     KConfigGroup repoConfig = KSharedConfig::openConfig( "nepomukserverrc" )->group( name() + " Settings" );
-    QString oldBackendName = repoConfig.readEntry( "Used Soprano Backend", m_backend->pluginName() );
-    QString oldBasePath = repoConfig.readPathEntry( "Storage Dir", QString() ); // backward comp: empty string means old storage path
+    QString basePath = repoConfig.readPathEntry( "Storage Dir", QString() );
+
+    if( basePath.isEmpty() ) {
+        m_basePath = createStoragePath(name());
+        // First time run
+        repoConfig.writeEntry("GraphMigrationRequired", false);
+    }
+    else {
+        m_basePath = basePath;
+    }
+    m_storagePath = m_basePath + "data/" + m_backend->pluginName();
     Soprano::BackendSettings settings = readVirtuosoSettings();
 
-    // If possible we want to keep the old storage path. exception: oldStoragePath is empty. In that case we stay backwards
-    // compatible and convert the data to the new default location createStoragePath( name ) + "data/" + m_backend->pluginName()
-    //
-    // If we have a proper oldStoragePath and a different backend we use the oldStoragePath as basePath
-    // newDataPath = oldStoragePath + "data/" + m_backend->pluginName()
-    // oldDataPath = oldStoragePath + "data/" + oldBackendName
-
-
-    // create storage paths
-    // =================================
-    m_basePath = oldBasePath.isEmpty() ? createStoragePath( name() ) : oldBasePath;
-    QString storagePath = m_basePath + "data/" + m_backend->pluginName();
-
-    if ( !KStandardDirs::makeDir( storagePath ) ) {
-        kDebug() << "Failed to create storage folder" << storagePath;
+    if ( !KStandardDirs::makeDir( m_storagePath ) ) {
+        kDebug() << "Failed to create storage folder" << m_storagePath;
         m_state = CLOSED;
         emit opened( this, false );
         return;
@@ -175,15 +171,9 @@ void Nepomuk2::Repository::open()
 
     kDebug() << "opening repository '" << name() << "' at '" << m_basePath << "'";
 
-    // remove old pre 4.4 clucene index
-    // =================================
-    if ( QFile::exists( m_basePath + QLatin1String( "index" ) ) ) {
-        KIO::del( QString( m_basePath + QLatin1String( "index" ) ) );
-    }
-
     // open storage
     // =================================
-    Soprano::settingInSettings( settings, Soprano::BackendOptionStorageDir ).setValue( storagePath );
+    Soprano::settingInSettings( settings, Soprano::BackendOptionStorageDir ).setValue( m_storagePath );
     m_model = m_backend->createModel( settings );
     if ( !m_model ) {
         kDebug() << "Unable to create model for repository" << name();
@@ -192,9 +182,7 @@ void Nepomuk2::Repository::open()
         return;
     }
 
-#if SOPRANO_IS_VERSION(2, 7, 3)
     connect(m_model, SIGNAL(virtuosoStopped(bool)), this, SLOT(slotVirtuosoStopped(bool)));
-#endif
 
     kDebug() << "Successfully created new model for repository" << name();
 
@@ -206,144 +194,17 @@ void Nepomuk2::Repository::open()
     // =================================
     m_inferenceModel = new VirtuosoInferenceModel(m_model);
 
-    // create the DataManagementModel on top of everything
-    // =================================
-    m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
-    m_dataManagementAdaptor = new Nepomuk2::DataManagementAdaptor(m_dataManagementModel);
-    QDBusConnection::sessionBus().registerObject(QLatin1String("/datamanagement"), m_dataManagementAdaptor, QDBusConnection::ExportScriptableContents);
-    setParentModel(m_dataManagementModel);
-
-    // check if we have to convert
-    // =================================
-    bool convertingData = false;
-
-    // if the backend changed we convert
-    // in case only the storage dir changes we normally would not have to convert but
-    // it is just simpler this way
-    if ( oldBackendName != m_backend->pluginName() ||
-         oldBasePath.isEmpty() ) {
-
-        kDebug() << "Previous backend:" << oldBackendName << "- new backend:" << m_backend->pluginName();
-        kDebug() << "Old path:" << oldBasePath << "- new path:" << m_basePath;
-
-        if ( oldBasePath.isEmpty() ) {
-            // backward comp: empty string means old storage path
-            // and before we stored the data directly in the default basePath
-            m_oldStoragePath = createStoragePath( name() );
-        }
-        else {
-            m_oldStoragePath = m_basePath + "data/" + oldBackendName;
-        }
-
-        // try creating a model for the old storage
-        Soprano::Model* oldModel = 0;
-        m_oldStorageBackend = Soprano::discoverBackendByName( oldBackendName );
-        if ( m_oldStorageBackend ) {
-            // FIXME: even if there is no old data we still create a model here which results in a new empty db!
-            oldModel = m_oldStorageBackend->createModel( QList<Soprano::BackendSetting>() << Soprano::BackendSetting( Soprano::BackendOptionStorageDir, m_oldStoragePath ) );
-        }
-
-        if ( oldModel ) {
-            if ( !oldModel->isEmpty() ) {
-                kDebug() << "Starting model conversion";
-
-                convertingData = true;
-                m_modelCopyJob = new ModelCopyJob( oldModel, m_model, this );
-                connect( m_modelCopyJob, SIGNAL( result( KJob* ) ), this, SLOT( copyFinished( KJob* ) ) );
-                m_modelCopyJob->start();
-            }
-            else {
-                delete oldModel;
-                m_state = OPEN;
-            }
-        }
-        else {
-            kDebug( 300002 ) << "Unable to convert old model: cound not load old backend" << oldBackendName;
-            KNotification::event( "convertingNepomukDataFailed",
-                                  i18nc("@info - notification message",
-                                        "Nepomuk was not able to find the configured database backend '%1'. "
-                                        "Existing data can thus not be accessed. "
-                                        "For data security reasons Nepomuk will be disabled until "
-                                        "the situation has been resolved manually.",
-                                        oldBackendName ),
-                                  KIcon( "nepomuk" ).pixmap( 32, 32 ),
-                                  0,
-                                  KNotification::Persistent );
-            m_state = CLOSED;
-            emit opened( this, false );
-            return;
-        }
-    }
-    else {
-        kDebug() << "no need to convert" << name();
-        m_state = OPEN;
-    }
+    // Set the parent as the main model for now. Once the ontologies have been loaded it will
+    // be set to the data management model
+    setParentModel( m_model );
 
     // save the settings
-    // =================================
-    // do not save when converting yet. If converting is cancelled we would loose data.
-    // this way conversion is restarted the next time
-    if ( !convertingData ) {
-        repoConfig.writeEntry( "Used Soprano Backend", m_backend->pluginName() );
-        repoConfig.writePathEntry( "Storage Dir", m_basePath );
-        repoConfig.sync(); // even if we crash the model has been created
+    repoConfig.writeEntry( "Used Soprano Backend", m_backend->pluginName() );
+    repoConfig.writePathEntry( "Storage Dir", m_basePath );
+    repoConfig.sync(); // even if we crash the model has been created
 
-        if( m_state == OPEN ) {
-            emit opened( this, true );
-        }
-    }
-    else {
-        KNotification::event( "convertingNepomukData",
-                              i18nc("@info - notification message",
-                                    "Converting Nepomuk data to a new backend. This might take a while."),
-                                    KIcon( "nepomuk" ).pixmap( 32, 32 ) );
-    }
-}
-
-
-void Nepomuk2::Repository::copyFinished( KJob* job )
-{
-    m_modelCopyJob = 0;
-
-    if ( job->error() ) {
-        KNotification::event( "convertingNepomukDataFailed",
-                              i18nc("@info - notification message",
-                                    "Converting Nepomuk data to the new backend failed. "
-                                    "For data security reasons Nepomuk will be disabled until "
-                                    "the situation has been resolved manually."),
-                              KIcon( "nepomuk" ).pixmap( 32, 32 ),
-                              0,
-                              KNotification::Persistent );
-
-        kDebug( 300002 ) << "Converting old model failed.";
-        m_state = CLOSED;
-        emit opened( this, false );
-    }
-    else {
-        KNotification::event( "convertingNepomukDataDone",
-                              i18nc("@info - notification message",
-                                    "Successfully converted Nepomuk data to the new backend."),
-                                    KIcon( "nepomuk" ).pixmap( 32, 32 ) );
-
-        kDebug() << "Successfully converted model data for repo" << name();
-
-        // delete the old model
-        ModelCopyJob* copyJob = qobject_cast<ModelCopyJob*>( job );
-        delete copyJob->source();
-
-        // cleanup the actual data
-        m_oldStorageBackend->deleteModelData( QList<Soprano::BackendSetting>() << Soprano::BackendSetting( Soprano::BackendOptionStorageDir, m_oldStoragePath ) );
-        m_oldStorageBackend = 0;
-
-        // save our new settings
-        KConfigGroup repoConfig = KSharedConfig::openConfig( "nepomukserverrc" )->group( name() + " Settings" );
-        repoConfig.writeEntry( "Used Soprano Backend", m_backend->pluginName() );
-        repoConfig.writePathEntry( "Storage Dir", m_basePath );
-        repoConfig.sync();
-
-        m_state = OPEN;
-        emit opened( this, true );
-    }
+    m_state = OPEN;
+    emit opened( this, true );
 }
 
 
@@ -397,6 +258,28 @@ Soprano::BackendSettings Nepomuk2::Repository::readVirtuosoSettings() const
     return settings;
 }
 
+void Nepomuk2::Repository::slotOpened(Nepomuk2::Repository* , bool success)
+{
+    if( !success ) {
+        emit loaded(this, false);
+        return;
+    }
+
+    m_ontologyLoader = new OntologyLoader( this, this );
+    connect( m_ontologyLoader, SIGNAL(ontologyUpdateFinished(bool)),
+             this, SLOT(slotOntologiesLoaded(bool)) );
+    m_ontologyLoader->updateLocalOntologies();
+}
+
+void Nepomuk2::Repository::slotOntologiesLoaded(bool somethingChanged)
+{
+    updateInference(somethingChanged);
+    if( m_state == OPEN ) {
+        m_state = LOADED;
+        emit loaded(this, true);
+    }
+}
+
 void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
 {
     // Update the query prefixes
@@ -422,7 +305,8 @@ void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
     }
 
     // update the prefixes in the DMS adaptor for script convenience
-    m_dataManagementAdaptor->setPrefixes(prefixes);
+    if( m_dataManagementAdaptor )
+        m_dataManagementAdaptor->setPrefixes(prefixes);
 
     // update the rest
     m_classAndPropertyTree->rebuildTree(this);
@@ -440,5 +324,38 @@ void Nepomuk2::Repository::slotVirtuosoStopped(bool normalExit)
     }
 }
 
+void Nepomuk2::Repository::closePublicInterface()
+{
+    delete m_dataManagementAdaptor;
+    m_dataManagementAdaptor = 0;
+
+    setParentModel( m_inferenceModel );
+    connect(m_model, SIGNAL(virtuosoStopped(bool)), this, SLOT(slotVirtuosoStopped(bool)));
+
+    delete m_dataManagementModel;
+    m_dataManagementModel = 0;
+}
+
+void Nepomuk2::Repository::openPublicInterface()
+{
+    if( m_dataManagementModel && m_dataManagementAdaptor )
+        return;
+
+    closePublicInterface();
+
+    // =================================
+    // create the DataManagementModel on top of everything
+    m_dataManagementModel = new DataManagementModel(m_classAndPropertyTree, m_inferenceModel, this);
+    setParentModel(m_dataManagementModel);
+
+    // setParentModel disconnects all signals from the previous parent
+    connect(m_model, SIGNAL(virtuosoStopped(bool)), this, SLOT(slotVirtuosoStopped(bool)));
+
+    m_dataManagementAdaptor = new Nepomuk2::DataManagementAdaptor(m_dataManagementModel);
+
+    QDBusConnection con = QDBusConnection::sessionBus();
+    con.registerObject(QLatin1String("/datamanagement"), m_dataManagementAdaptor,
+                       QDBusConnection::ExportScriptableContents);
+}
 
 #include "repository.moc"

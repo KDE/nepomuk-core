@@ -20,10 +20,17 @@
 #define _NEPOMUK_STORAGE_H_
 
 #include "service2.h"
+#include <Soprano/Server/ServerCore>
+
+class KJob;
 
 namespace Nepomuk2 {
 
-    class Core;
+    namespace Query {
+        class QueryService;
+    }
+    class BackupManager;
+    class Repository;
 
     class Storage : public Service2
     {
@@ -34,14 +41,60 @@ namespace Nepomuk2 {
         Storage();
         ~Storage();
 
+        Soprano::Model* model();
+
     public Q_SLOTS:
         Q_SCRIPTABLE QString usedSopranoBackend() const;
 
+        /**
+         * Switches off the Repository and renames the database directory to
+         * a new name. This new name is then emitted via resetRepositoryDone
+         *
+         * After renaming the repository it does not open the interfaces again, you
+         * need to manually call openPublicInterfaces
+         */
+        void resetRepository();
+
+        Q_SCRIPTABLE void closePublicInterfaces();
+        Q_SCRIPTABLE void openPublicInterfaces();
+
+        Q_SCRIPTABLE void migrateGraphs();
+        Q_SCRIPTABLE void migrateGraphsByBackup();
+    signals:
+        // Used by the BackupManager to know we're back online after a reset
+        void resetRepositoryDone(const QString& oldPath, const QString& newPath);
+
+        Q_SCRIPTABLE void migrateGraphsDone();
+        Q_SCRIPTABLE void migrateGraphsPercent(int percent);
+
     private Q_SLOTS:
-        void slotNepomukCoreInitialized( bool success );
+        void slotRepositoryLoaded( Repository* repo, bool success );
+        void slotRepositoryClosed();
+        void slotRepositoryClosedAfterReset();
+
+        void slotMigrationPercent(KJob*, ulong percent);
+        void slotMigrationDone();
+
+        void slotMigrationBackupProgress(int percent);
+        void slotMigrationRestoreProgress(int percent);
+        void slotMigrationBackupDone();
+        void slotMigrationRestoreDone();
+        void slotMigrationResetDone(const QString& old, const QString& newPath);
 
     private:
-        Nepomuk2::Core* m_core;
+        Soprano::Server::ServerCore* m_localServer;
+        Repository* m_repository;
+
+        Query::QueryService* m_queryService;
+        BackupManager* m_backupManager;
+
+        bool m_resetInProgress;
+        QString m_oldPath;
+        QString m_newPath;
+
+        bool dataMigrationRequired();
+        void setDataMigrated();
+        bool hasMigrationData();
     };
 }
 

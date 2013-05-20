@@ -111,6 +111,14 @@ void Nepomuk2::TestBase::resetRepository()
         model->removeAllStatements( Soprano::Node(), Soprano::Node(), it[0] );
     }
 
+    // We destroy the Nepomuk graph above, so we clear the cache in order to reset it
+    // Plus, certain graphs might be in the cache and are now invalid
+    QDBusMessage msg = QDBusMessage::createMethodCall( QLatin1String("org.kde.NepomukStorage"),
+                                                       QLatin1String("/datamanagement"),
+                                                       QLatin1String("org.kde.nepomuk.DataManagement"),
+                                                       QLatin1String("clearCache") );
+    QDBusConnection::sessionBus().send( msg );
+
     kDebug() << "Time Taken: " << timer.elapsed()/1000.0 << " seconds";
 }
 

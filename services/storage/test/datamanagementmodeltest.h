@@ -27,6 +27,7 @@
 namespace Soprano {
 class Model;
 class NRLModel;
+class Statement;
 }
 namespace Nepomuk2 {
 class DataManagementModel;
@@ -45,16 +46,15 @@ private Q_SLOTS:
     void init();
 
     void testAddProperty();
-    void testAddProperty_createRes();
+    void testAddProperty_double();
+    void testAddProperty_diffApp();
     void testAddProperty_cardinality();
     void testAddProperty_file();
     void testAddProperty_invalidFile();
     void testAddProperty_invalid_args();
-    void testAddProperty_protectedTypes();
     void testAddProperty_akonadi();
 
     void testSetProperty();
-    void testSetProperty_createRes();
     void testSetProperty_overwrite();
     void testSetProperty_invalid_args();
     void testSetProperty_nieUrl1();
@@ -63,27 +63,23 @@ private Q_SLOTS:
     void testSetProperty_nieUrl4();
     void testSetProperty_nieUrl5();
     void testSetProperty_nieUrl6();
-    void testSetProperty_protectedTypes();
     void testSetProperty_legacyData();
     void testSetProperty_file();
 
     void testRemoveProperty();
     void testRemoveProperty_file();
     void testRemoveProperty_invalid_args();
-    void testRemoveProperty_protectedTypes();
     void testRemoveProperty_subResource();
     void testRemoveProperty_subResource2();
 
     void testRemoveProperties();
     void testRemoveProperties_invalid_args();
-    void testRemoveProperties_protectedTypes();
     void testRemoveProperties_subResource();
     void testRemoveProperties_subResource2();
 
     void testRemoveResources();
     void testRemoveResources_subresources();
     void testRemoveResources_invalid_args();
-    void testRemoveResources_protectedTypes();
     void testRemoveResources_mtimeRelated();
     void testRemoveResources_deletedFile();
 
@@ -101,17 +97,13 @@ private Q_SLOTS:
     void testRemoveDataByApplication8();
     void testRemoveDataByApplication9();
     void testRemoveDataByApplication10();
-    void testRemoveDataByApplication11();
     void testRemoveDataByApplication12();
     void testRemoveDataByApplication_subResourcesOfSubResources();
     void testRemoveDataByApplication_subResourcesOfSubResources2();
-    void testRemoveDataByApplication_realLife();
     void testRemoveDataByApplication_nieUrl();
-    void testRemoveDataByApplication_nieUrlRelated();
     void testRemoveDataByApplication_mtime();
     void testRemoveDataByApplication_mtimeRelated();
     void testRemoveDataByApplication_related();
-    void testRemoveDataByApplication_legacyIndexerData();
     void testRemoveDataByApplication_deletedFile();
 
     void testRemoveAllDataByApplication1();
@@ -120,7 +112,6 @@ private Q_SLOTS:
     void testRemoveAllDataByApplication4();
 
     void testStoreResources_strigiCase();
-    void testStoreResources_graphRules();
     void testStoreResources_createResource();
     void testStoreResources_invalid_args();
     void testStoreResources_invalid_args_with_existing();
@@ -133,7 +124,6 @@ private Q_SLOTS:
     void testStoreResources_fileExists();
     void testStoreResources_sameNieUrl();
     void testStoreResources_metadata();
-    void testStoreResources_protectedTypes();
     void testStoreResources_superTypes();
     void testStoreResources_missingMetadata();
     void testStoreResources_multiMerge();
@@ -170,7 +160,6 @@ private Q_SLOTS:
     void testStoreResources_objectExistsIdentification();
 
     void testMergeResources();
-    void testMergeResources_protectedTypes();
 
     void testDescribeResources();
     void testDescribeResources_relatedResources();
@@ -182,8 +171,8 @@ private:
     KTempDir* createNieUrlTestData();
 
     void resetModel();
-    bool haveTrailingGraphs() const;
     bool haveDataInDefaultGraph() const;
+    bool haveMetadataInOtherGraphs() const;
 
     KTempDir* m_storageDir;
     Soprano::Model* m_model;
@@ -191,6 +180,8 @@ private:
     Nepomuk2::VirtuosoInferenceModel* m_inferenceModel;
     Nepomuk2::ClassAndPropertyTree* m_classAndPropertyTree;
     Nepomuk2::DataManagementModel* m_dmModel;
+
+    void checkDataMaintainedBy( const Soprano::Statement& st, const QList<QString>& apps );
 };
 
 #endif

@@ -235,10 +235,7 @@ int Nepomuk2::RestorePage::nextId() const
     if( !m_restoreDone )
         return -1;
 
-    if( FileConflictPage::hasConflicts() )
-        return BackupWizard::Id_FileConflictPage;
-    else
-        return BackupWizard::Id_RestoreEndPage;
+    return BackupWizard::Id_FileConflictPage;
 }
 
 
@@ -314,6 +311,11 @@ Nepomuk2::FileConflictPage::FileConflictPage(QWidget* parent): QWizardPage(paren
 void Nepomuk2::FileConflictPage::initializePage()
 {
     m_conflictWidget = new FileConflictWidget( this );
+    if( m_conflictWidget->isEmpty() ) {
+        wizard()->next();
+        return;
+    }
+
     QVBoxLayout* layout = new QVBoxLayout( this );
     layout->addWidget( m_conflictWidget );
 
@@ -325,21 +327,6 @@ int Nepomuk2::FileConflictPage::nextId() const
     return BackupWizard::Id_RestoreEndPage;
 }
 
-
-// static
-bool Nepomuk2::FileConflictPage::hasConflicts()
-{
-    QLatin1String query("select count(?url) where { ?r nie:url ?url . FILTER(REGEX(STR(?url), '^nepomuk-backup')) . }");
-
-    Soprano::Model* model = ResourceManager::instance()->mainModel();
-    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
-
-    if( it.next() ) {
-        return it[0].literal().toInt();
-    }
-
-    return false;
-}
 
 //
 // Final Page

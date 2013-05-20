@@ -145,6 +145,9 @@ void Nepomuk2::ResourceManagerPrivate::_k_storageServiceInitialized( bool succes
         m_manager->init();
         emit m_manager->nepomukSystemStarted();
     }
+    else {
+        _k_dbusServiceUnregistered( QLatin1String("org.kde.NepomukStorage") );
+    }
 }
 
 

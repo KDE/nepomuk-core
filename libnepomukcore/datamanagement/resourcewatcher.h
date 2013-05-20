@@ -27,6 +27,7 @@
 #include "resource.h"
 
 #include <QtDBus/QDBusVariant>
+#include <QDBusPendingCallWatcher>
 #include <QtCore/QVariant>
 
 #include "nepomuk_export.h"
@@ -348,6 +349,7 @@ namespace Nepomuk2 {
                               const QVariantList & removedValues );
 
     private Q_SLOTS:
+        void slotWatchFinished(QDBusPendingCallWatcher* replyWatcher);
         void slotResourceCreated(const QString& res, const QStringList& types);
         void slotResourceRemoved(const QString& res, const QStringList& types);
         void slotResourceTypesAdded(const QString& res, const QStringList& types);

@@ -4,22 +4,32 @@
     <method name="backup">
         <arg name="url" type="s" direction="in"/>
     </method>
+    <method name="backupTagsAndRatings">
+        <arg name="url" type="s" direction="in"/>
+    </method>
     <method name="restore">
         <arg name="url" type="s" direction="in"/>
     </method>
+
     <signal name="backupStarted">
     </signal>
     <signal name="backupDone">
     </signal>
+    <signal name="backupError">
+        <arg name="error" type="s"/>
+    </signal>
     <signal name="backupPercent">
-        <arg name="percent" type="i" direction="out"/>
+        <arg name="percent" type="i"/>
     </signal>
     <signal name="restoreStarted">
     </signal>
     <signal name="restoreDone">
     </signal>
+    <signal name="restoreError">
+        <arg name="error" type="s"/>
+    </signal>
     <signal name="restorePercent">
-        <arg name="percent" type="i" direction="out"/>
+        <arg name="percent" type="i"/>
     </signal>
   </interface>
 </node>
