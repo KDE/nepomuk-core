@@ -78,8 +78,8 @@ MainPage::MainPage(QWidget* parent): QWizardPage(parent)
     label->setTextFormat( Qt::RichText );
     label->setWordWrap( true );
     label->setText( i18n("With this new release Nepomuk has migrated its internal data format. "
-                         "You have launched this wizard because you wish to migrate your data and"
-                         "not go with the recommended method of backup and restore."
+                         "You have launched this wizard because you wish to migrate your data and "
+                         "not go with the recommended method of backup and restore. "
                          "This migration can take several hours") );
 
     QVBoxLayout* layout = new QVBoxLayout( this );
