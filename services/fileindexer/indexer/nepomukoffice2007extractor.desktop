@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=NepomukFileExtractor
+X-KDE-Library=nepomukoffice2007extractor
+Name=Nepomuk Office2007 Extractor
+Comment=Nepomuk File extractor for Office2007 files

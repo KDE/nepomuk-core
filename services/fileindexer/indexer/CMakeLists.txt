@@ -182,4 +182,24 @@ install(
 TARGETS nepomukodfextractor
 DESTINATION ${PLUGIN_INSTALL_DIR})
 
+#
+# Office 2007
+#
+
+kde4_add_plugin( nepomukoffice2007extractor office2007extractor.cpp )
+
+target_link_libraries( nepomukoffice2007extractor
+    nepomukcore
+    nepomukextractor
+    ${KDE4_KIO_LIBS}
+)
+
+install(
+FILES nepomukoffice2007extractor.desktop
+DESTINATION ${SERVICES_INSTALL_DIR})
+
+install(
+TARGETS nepomukoffice2007extractor
+DESTINATION ${PLUGIN_INSTALL_DIR})
+
 add_subdirectory(test)
