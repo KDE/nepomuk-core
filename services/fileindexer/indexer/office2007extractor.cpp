@@ -97,6 +97,9 @@ namespace {
                 continue;
             }
 
+            if( !entryName.endsWith(".xml") )
+                continue;
+
             QDomDocument appDoc("document");
             const KArchiveFile *file = static_cast<const KArchiveFile*>(entry);
             appDoc.setContent(file->data());
@@ -264,6 +267,22 @@ SimpleResourceGraph Office2007Extractor::extract(const QUrl& resUri, const QUrl&
 
         const KArchiveDirectory* xlDirectory = dynamic_cast<const KArchiveDirectory*>( xlEntry );
         extractTextFromFiles( xlDirectory, stream );
+        if( !plainText.isEmpty() )
+            fileRes.addProperty( NIE::plainTextContent(), plainText );
+    }
+
+    else if( rootEntries.contains("ppt") ) {
+        const KArchiveEntry* pptEntry = rootDir->entry("ppt");
+        if( !pptEntry->isDirectory() ) {
+            qWarning() << "Invalid document structure (ppt is not a directory)";
+            return SimpleResourceGraph();
+        }
+
+        QString plainText;
+        QTextStream stream(&plainText);
+
+        const KArchiveDirectory* pptDirectory = dynamic_cast<const KArchiveDirectory*>( pptEntry );
+        extractTextFromFiles( pptDirectory, stream );
         if( !plainText.isEmpty() )
             fileRes.addProperty( NIE::plainTextContent(), plainText );
     }
