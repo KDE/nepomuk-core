@@ -68,6 +68,42 @@ namespace {
             childElem = childElem.nextSiblingElement();
         }
     }
+
+    void extractAllTextFromNode(const QDomNode& node, QTextStream& stream) {
+        if( node.isText() ) {
+            QString str( node.toText().data() );
+            if( !str.isEmpty() ) {
+                stream << str;
+
+                if( !str.at( str.length()-1 ).isSpace() )
+                    stream << QLatin1Char(' ');
+            }
+        }
+
+        QDomNode childNode = node.firstChild();
+        while( !childNode.isNull() ) {
+            extractAllTextFromNode( childNode, stream );
+            childNode = childNode.nextSibling();
+        }
+    }
+
+    void extractTextFromFiles(const KArchiveDirectory* archiveDir, QTextStream& stream ) {
+        const QStringList entries = archiveDir->entries();
+        foreach(const QString& entryName, entries) {
+            const KArchiveEntry* entry = archiveDir->entry(entryName);
+            if( entry->isDirectory() ) {
+                const KArchiveDirectory* subDir = dynamic_cast<const KArchiveDirectory*>(entry);
+                extractTextFromFiles( subDir, stream );
+                continue;
+            }
+
+            QDomDocument appDoc("document");
+            const KArchiveFile *file = static_cast<const KArchiveFile*>(entry);
+            appDoc.setContent(file->data());
+
+            extractAllTextFromNode( appDoc.documentElement(), stream );
+        }
+    }
 }
 
 SimpleResourceGraph Office2007Extractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
@@ -214,6 +250,22 @@ SimpleResourceGraph Office2007Extractor::extract(const QUrl& resUri, const QUrl&
             if( !plainText.isEmpty() )
                 fileRes.addProperty( NIE::plainTextContent(), plainText );
         }
+    }
+
+    else if( rootEntries.contains("xl") ) {
+        const KArchiveEntry* xlEntry = rootDir->entry("xl");
+        if( !xlEntry->isDirectory() ) {
+            qWarning() << "Invalid document structure (xl is not a directory)";
+            return SimpleResourceGraph();
+        }
+
+        QString plainText;
+        QTextStream stream(&plainText);
+
+        const KArchiveDirectory* xlDirectory = dynamic_cast<const KArchiveDirectory*>( xlEntry );
+        extractTextFromFiles( xlDirectory, stream );
+        if( !plainText.isEmpty() )
+            fileRes.addProperty( NIE::plainTextContent(), plainText );
     }
 
     graph << fileRes;
