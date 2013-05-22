@@ -142,6 +142,9 @@ if(FFMPEG_FOUND)
 endif(FFMPEG_FOUND)
 
 
+#
+# Plain Text
+#
 kde4_add_plugin( nepomukplaintextextractor plaintextextractor.cpp )
 
 target_link_libraries( nepomukplaintextextractor
@@ -157,6 +160,26 @@ DESTINATION ${SERVICES_INSTALL_DIR})
 
 install(
 TARGETS nepomukplaintextextractor
+DESTINATION ${PLUGIN_INSTALL_DIR})
+
+#
+# ODF
+#
+
+kde4_add_plugin( nepomukodfextractor odfextractor.cpp )
+
+target_link_libraries( nepomukodfextractor
+    nepomukcore
+    nepomukextractor
+    ${KDE4_KIO_LIBS}
+)
+
+install(
+FILES nepomukodfextractor.desktop
+DESTINATION ${SERVICES_INSTALL_DIR})
+
+install(
+TARGETS nepomukodfextractor
 DESTINATION ${PLUGIN_INSTALL_DIR})
 
 add_subdirectory(test)

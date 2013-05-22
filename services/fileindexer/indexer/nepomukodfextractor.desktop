@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=NepomukFileExtractor
+X-KDE-Library=nepomukodfextractor
+Name=Nepomuk Odf Extractor
+Comment=Nepomuk File extractor for ODF files
