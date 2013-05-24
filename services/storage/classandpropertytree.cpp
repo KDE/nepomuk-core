@@ -587,31 +587,6 @@ namespace {
     }
 }
 
-QList<Soprano::Statement> Nepomuk2::ClassAndPropertyTree::simpleResourceToStatementList(const Nepomuk2::SimpleResource &res) const
-{
-    const Soprano::Node subject = convertIfBlankNode(res.uri());
-    QList<Soprano::Statement> list;
-    PropertyHash properties = res.properties();
-    QHashIterator<QUrl, QVariant> it( properties );
-    while( it.hasNext() ) {
-        it.next();
-        const Soprano::Node object = variantToNode(it.value(), it.key());
-        list << Soprano::Statement(subject,
-                                   it.key(),
-                                   convertIfBlankNode(object));
-    }
-    return list;
-}
-
-QList<Soprano::Statement> Nepomuk2::ClassAndPropertyTree::simpleResourceGraphToStatementList(const Nepomuk2::SimpleResourceGraph &graph) const
-{
-    QList<Soprano::Statement> list;
-    foreach(const SimpleResource& res, graph.toList()) {
-        list += simpleResourceToStatementList(res);
-    }
-    return list;
-}
-
 Nepomuk2::ClassAndPropertyTree * Nepomuk2::ClassAndPropertyTree::self()
 {
     return s_self;

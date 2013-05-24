@@ -79,9 +79,6 @@ public:
     Soprano::Node variantToNode(const QVariant& value, const QUrl& property) const;
     QSet<Soprano::Node> variantListToNodeSet(const QVariantList& vl, const QUrl& property) const;
 
-    QList<Soprano::Statement> simpleResourceToStatementList(const Nepomuk2::SimpleResource& res) const;
-    QList<Soprano::Statement> simpleResourceGraphToStatementList(const Nepomuk2::SimpleResourceGraph& graph) const;
-
     static ClassAndPropertyTree* self();
 
 public Q_SLOTS:
