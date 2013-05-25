@@ -213,6 +213,7 @@ QSet<Soprano::Node> Nepomuk2::ClassAndPropertyTree::variantListToNodeSet(const Q
     clearError();
 
     QSet<Soprano::Node> nodes;
+    nodes.reserve( vl.size() );
 
     QUrl range;
     QVariant::Type literalType;
