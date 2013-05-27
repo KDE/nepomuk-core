@@ -40,33 +40,11 @@
 
 namespace {
     static const char s_repositoryName[] = "main";
-
-    /**
-     * A light wrapper over ServerCore which just deals with one
-     * model
-     */
-    class LocalSever : public Soprano::Server::ServerCore {
-    public:
-        LocalSever(Soprano::Model* model, QObject* parent = 0)
-            : ServerCore(parent), m_model(model)
-        {
-            setMaximumConnectionCount( 80 );
-        }
-
-        // The LocalSocketClient calls the createModel function which calls this function
-        virtual Soprano::Model* model(const QString& name) {
-            if( name == s_repositoryName )
-                return m_model;
-            return 0;
-        }
-    private:
-        Soprano::Model* m_model;
-    };
 }
+
 
 Nepomuk2::Storage::Storage()
     : Service2( 0, true /* delayed initialization */ )
-    , m_localServer( 0 )
     , m_queryService( 0 )
     , m_backupManager( 0 )
     , m_resetInProgress( false )
@@ -96,8 +74,11 @@ Nepomuk2::Storage::~Storage()
 
 void Nepomuk2::Storage::slotRepositoryLoaded(Nepomuk2::Repository* repo, bool success)
 {
+    // FIXME: ResourceManager::instance() will result in a another VirtuosoModel being made
+    //        and then removed. Is that good?
+    //
     // We overide the main model cause certain classes utilize the Resource class, and we
-    // don't want them using the NepomukMainModel which communicates over a local socket.
+    // don't want them using a different model
     ResourceManager::instance()->setOverrideMainModel( repo );
 
     // Backup Service
@@ -127,14 +108,6 @@ void Nepomuk2::Storage::openPublicInterfaces()
     // DataManagement interface
     m_repository->openPublicInterface();
 
-    // the faster local socket interface
-    if( !m_localServer ) {
-        m_localServer = new LocalSever( m_repository, this );
-    }
-    QString socketPath = KGlobal::dirs()->locateLocal( "socket", "nepomuk-socket" );
-    QFile::remove( socketPath ); // in case we crashed
-    m_localServer->start( socketPath );
-
     setServiceInitialized( true );
     kDebug() << "Registered QueryService and DataManagement interface";
 }
@@ -144,8 +117,6 @@ void Nepomuk2::Storage::closePublicInterfaces()
     setServiceInitialized( false );
 
     m_repository->closePublicInterface();
-    if( m_localServer )
-        m_localServer->stop();
 
     delete m_queryService;
     m_queryService = 0;
@@ -154,9 +125,6 @@ void Nepomuk2::Storage::closePublicInterfaces()
 void Nepomuk2::Storage::slotRepositoryClosed()
 {
     closePublicInterfaces();
-
-    delete m_localServer;
-    m_localServer = 0;
 
     delete m_backupManager;
     m_backupManager = 0;

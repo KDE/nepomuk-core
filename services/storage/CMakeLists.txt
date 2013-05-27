@@ -72,7 +72,6 @@ kde4_add_executable(nepomukstorage ${storage_SRCS} ${queryservice_SRCS} ${Backup
 
 target_link_libraries(nepomukstorage
   ${SOPRANO_LIBRARIES}
-  ${SOPRANO_SERVER_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
   ${KDE4_KIO_LIBS}
   ${KDE4_SOLID_LIBS}

@@ -131,7 +131,6 @@ kde4_add_library(nepomukcore SHARED ${nepomuk_LIB_SRCS})
 
 target_link_libraries(nepomukcore
   ${SOPRANO_LIBRARIES}
-  ${SOPRANO_CLIENT_LIBRARIES}
   ${QT_QTCORE_LIBRARY}
   ${QT_QTGUI_LIBRARY}
   ${QT_QTDBUS_LIBRARY}

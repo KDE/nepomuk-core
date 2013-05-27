@@ -20,7 +20,7 @@
 #define _NEPOMUK_STORAGE_H_
 
 #include "service2.h"
-#include <Soprano/Server/ServerCore>
+#include <Soprano/Model>
 
 class KJob;
 
@@ -82,7 +82,6 @@ namespace Nepomuk2 {
         void slotMigrationResetDone(const QString& old, const QString& newPath);
 
     private:
-        Soprano::Server::ServerCore* m_localServer;
         Repository* m_repository;
 
         Query::QueryService* m_queryService;
