@@ -172,6 +172,14 @@ QSet<QUrl> Nepomuk2::SimpleIndexingJob::typesForMimeType(const QString& mimeType
         typeMapper.insert( QLatin1String("application/vnd.ms-powerpoint"), NFO::Presentation() );
         typeMapper.insert( QLatin1String("application/vnd.ms-excel"), NFO::Spreadsheet() );
 
+        // Office 2007
+        typeMapper.insert( QLatin1String("application/vnd.openxmlformats-officedocument.wordprocessingml.document"),
+                           NFO::PaginatedTextDocument() );
+        typeMapper.insert( QLatin1String("application/vnd.openxmlformats-officedocument.presentationml.presentation"),
+                           NFO::Presentation() );
+        typeMapper.insert( QLatin1String("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"),
+                           NFO::Spreadsheet() );
+
         // Open document formats - http://en.wikipedia.org/wiki/OpenDocument_technical_specification
         typeMapper.insert( QLatin1String("application/vnd.oasis.opendocument.text"), NFO::PaginatedTextDocument() );
         typeMapper.insert( QLatin1String("application/vnd.oasis.opendocument.presentation"), NFO::Presentation() );
