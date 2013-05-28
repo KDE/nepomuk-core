@@ -203,25 +203,28 @@ SimpleResourceGraph Office2007Extractor::extract(const QUrl& resUri, const QUrl&
 
         QDomElement docElem = appDoc.documentElement();
 
-        QDomElement elem = docElem.firstChildElement("Pages");
-        if( !elem.isNull() ) {
-            bool ok = false;
-            int pageCount = elem.text().toInt(&ok);
-            if( ok ) {
-                fileRes.setProperty( NFO::pageCount(), pageCount );
+        // According to the ontologies only Documents can have a wordCount and pageCount
+        if( mimeType == QLatin1String("application/vnd.openxmlformats-officedocument.wordprocessingml.document") ) {
+            QDomElement elem = docElem.firstChildElement("Pages");
+            if( !elem.isNull() ) {
+                bool ok = false;
+                int pageCount = elem.text().toInt(&ok);
+                if( ok ) {
+                    fileRes.setProperty( NFO::pageCount(), pageCount );
+                }
+            }
+
+            elem = docElem.firstChildElement("Words");
+            if( !elem.isNull() ) {
+                bool ok = false;
+                int wordCount = elem.text().toInt(&ok);
+                if( ok ) {
+                    fileRes.setProperty( NFO::wordCount(), wordCount );
+                }
             }
         }
 
-        elem = docElem.firstChildElement("Words");
-        if( !elem.isNull() ) {
-            bool ok = false;
-            int wordCount = elem.text().toInt(&ok);
-            if( ok ) {
-                fileRes.setProperty( NFO::wordCount(), wordCount );
-            }
-        }
-
-        elem = docElem.firstChildElement("Application");
+        QDomElement elem = docElem.firstChildElement("Application");
         if( !elem.isNull() ) {
             QString app = elem.text();
             if( !app.isEmpty() ) {
