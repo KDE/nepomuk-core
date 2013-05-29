@@ -2515,8 +2515,16 @@ bool Nepomuk2::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource
                 const QString oldRelativePath = u.path().mid(oldBasePath.length());
                 const KUrl newUrl(newBasePath + oldRelativePath);
 
-                removeStatement(r, NIE::url(), u, g);
-                addStatement(r, NIE::url(), newUrl, g);
+                QString cmd = QString::fromLatin1("sparql with %1 delete { %2 nie:url %3 }"
+                                                  "insert { %2 nie:url %4 . }")
+                              .arg( Soprano::Node::resourceToN3(g),
+                                    Soprano::Node::resourceToN3(r),
+                                    Soprano::Node::resourceToN3(u),
+                                    Soprano::Node::resourceToN3(newUrl) );
+
+                executeQuery( cmd, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+                if( lastError() )
+                    return false;
             }
         }
 
