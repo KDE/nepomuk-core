@@ -34,10 +34,12 @@ namespace Nepomuk2 {
 
         void setGraphs(bool status);
         void setInference(bool status);
+        void setPlainText(bool status);
 
     private:
         bool m_printGraphs;
         bool m_inference;
+        bool m_printPlainText;
     };
 }
 

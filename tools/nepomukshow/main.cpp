@@ -62,6 +62,7 @@ int main( int argc, char *argv[] )
     options.add("depth <depth>", ki18n("The number of sub resources to list"), "0");
     options.add("graphs", ki18n("Print information about the graphs"));
     options.add("inference", ki18n("Uses Inference to print additional properties"));
+    options.add("plainText", ki18n("Print the plain text content of the file"));
     KCmdLineArgs::addCmdLineOptions( options );
 
     KCmdLineArgs* args = KCmdLineArgs::parsedArgs();
@@ -134,6 +135,8 @@ int main( int argc, char *argv[] )
         printer.setGraphs( true );
     if( args->isSet("inference") )
         printer.setInference( true );
+    if( args->isSet("plainText") )
+        printer.setPlainText( true );
 
     foreach( const QUrl& resUri, uriList ) {
         printer.print( stream, resUri );

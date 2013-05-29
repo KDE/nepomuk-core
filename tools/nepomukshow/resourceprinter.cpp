@@ -32,6 +32,7 @@
 
 #include "resourcemanager.h"
 #include "nie.h"
+#include "nmo.h"
 
 using namespace Soprano::Vocabulary;
 using namespace Nepomuk2::Vocabulary;
@@ -60,10 +61,7 @@ namespace {
         Soprano::QueryResultIterator it = model->executeQuery( query, lang );
         while( it.next() ) {
             Soprano::Node object = it[1];
-
-            // Do not show the nie:plainTextContent. It's too large.
-            if( it[0].uri() != NIE::plainTextContent() )
-                syncRes.prop.insertMulti( it[0].uri(), object );
+            syncRes.prop.insertMulti( it[0].uri(), object );
         }
 
         return syncRes;
@@ -183,7 +181,8 @@ namespace {
         return str;
     }
 
-    void print(QTextStream& stream, const SyncResource& syncRes, bool printGraphInfo) {
+    void print(QTextStream& stream, const SyncResource& syncRes,
+               bool printGraphInfo, bool printPlainText) {
         // Print the uri
         stream << "\n" << Soprano::Node::resourceToN3( syncRes.uri ) << "\n";
 
@@ -194,6 +193,10 @@ namespace {
         foreach( const QUrl& propUri, sortedKeys ) {
             QList<Soprano::Node> values = syncRes.prop.values( propUri );
             foreach(const Soprano::Node& node, values) {
+                if( !printPlainText ) {
+                    if( propUri == NIE::plainTextContent() || propUri == NMO::plainTextMessageContent() )
+                        continue;
+                }
 
                 QString propery = Nepomuk2::Uri( propUri ).toN3();
                 QString object = nodeToN3( node );
@@ -225,12 +228,13 @@ Nepomuk2::ResourcePrinter::ResourcePrinter()
 {
     m_printGraphs = false;
     m_inference = false;
+    m_printPlainText = false;
 }
 
 
 void Nepomuk2::ResourcePrinter::print(QTextStream& stream, const QUrl& uri)
 {
-    ::print( stream, createSyncResource(uri, m_inference), m_printGraphs );
+    ::print( stream, createSyncResource(uri, m_inference), m_printGraphs, m_printPlainText );
 }
 
 void Nepomuk2::ResourcePrinter::setGraphs(bool status)
@@ -241,4 +245,9 @@ void Nepomuk2::ResourcePrinter::setGraphs(bool status)
 void Nepomuk2::ResourcePrinter::setInference(bool status)
 {
     m_inference = status;
+}
+
+void Nepomuk2::ResourcePrinter::setPlainText(bool status)
+{
+    m_printPlainText = status;
 }
