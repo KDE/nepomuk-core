@@ -2487,8 +2487,8 @@ bool Nepomuk2::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource
         // CAUTION: The trailing slash on the from URL is essential! Otherwise we might match the newly added
         //          URLs, too (in case a rename only added chars to the name)
         //
-        const QString query = QString::fromLatin1("select distinct ?r ?u ?g where { "
-                                                  "graph ?g { ?r %1 ?u . } . "
+        const QString query = QString::fromLatin1("select distinct ?r ?u where { "
+                                                  "?r %1 ?u . "
                                                   "FILTER(REGEX(STR(?u),'^%2')) . "
                                                   "}")
                 .arg(Soprano::Node::resourceToN3(NIE::url()),
@@ -2509,7 +2509,6 @@ bool Nepomuk2::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource
             for (int i = 0; i < urls.count(); ++i) {
                 const KUrl u = urls[i]["u"].uri();
                 const QUrl r = urls[i]["r"].uri();
-                const QUrl g = urls[i]["g"].uri();
 
                 // now construct the new URL
                 const QString oldRelativePath = u.path().mid(oldBasePath.length());
@@ -2517,7 +2516,7 @@ bool Nepomuk2::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource
 
                 QString cmd = QString::fromLatin1("sparql with %1 delete { %2 nie:url %3 }"
                                                   "insert { %2 nie:url %4 . }")
-                              .arg( Soprano::Node::resourceToN3(g),
+                              .arg( Soprano::Node::resourceToN3(d->m_nepomukGraph),
                                     Soprano::Node::resourceToN3(r),
                                     Soprano::Node::resourceToN3(u),
                                     Soprano::Node::resourceToN3(newUrl) );
