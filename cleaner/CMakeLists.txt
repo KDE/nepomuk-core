@@ -9,6 +9,8 @@ set( cleaner_SRCS
   mainwindow.cpp
 )
 
+kde4_add_app_icon( cleaner_SRCS "${KDE4_INSTALL_DIR}/share/icons/oxygen/*/apps/nepomuk.png")
+
 kde4_add_executable( nepomukcleaner ${cleaner_SRCS} )
 
 target_link_libraries( nepomukcleaner
