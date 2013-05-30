@@ -37,6 +37,7 @@ kde4_add_ui_files( NepomukBackup_GUI_SRCS
   errorpage.ui
 )
 
+kde4_add_app_icon(NepomukBackup_GUI_SRCS "${KDE4_INSTALL_DIR}/share/icons/oxygen/*/apps/nepomuk.png")
 kde4_add_executable(nepomukbackup ${NepomukBackup_GUI_SRCS})
 
 target_link_libraries(nepomukbackup
