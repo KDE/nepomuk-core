@@ -109,7 +109,7 @@ public:
         if( virtuosoModel )
             virtuosoModel->deleteLater();
 
-        virtuosoModel = backend->createModel( settings );
+        virtuosoModel = backend ? backend->createModel( settings ) : 0;
         // Listen to the virtuoso model crashing?
     }
 
