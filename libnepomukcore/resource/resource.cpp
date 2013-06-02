@@ -112,20 +112,28 @@ Nepomuk2::Resource::Resource( const QUrl& uri, const QUrl& type )
 
 Nepomuk2::Resource::Resource( Nepomuk2::ResourceData* data )
 {
-    QMutexLocker lock( &data->rm()->mutex );
-    m_data = data;
-    if ( m_data )
-        m_data->ref( this );
+    ResourceManager* rm = ResourceManager::instance();
+    if( rm ) {
+        QMutexLocker lock( &rm->d->mutex );
+        m_data = data;
+        if ( m_data )
+            m_data->ref( this );
+    }
 }
 
 
 Nepomuk2::Resource::~Resource()
 {
     if ( m_data ) {
-        QMutexLocker lock(&m_data->rm()->mutex);
-        m_data->deref( this );
-        if ( m_data->rm()->shouldBeDeleted( m_data ) )
-            delete m_data;
+        ResourceManager* rm = ResourceManager::instance();
+        if ( rm ) {
+            // It is possible that this resource is hanging around
+            // after the ResourceManager has been deleted
+            QMutexLocker lock( &rm->d->mutex );
+            m_data->deref( this );
+            if ( m_data->rm()->shouldBeDeleted( m_data ) )
+                delete m_data;
+        }
     }
 }
 
@@ -133,13 +141,16 @@ Nepomuk2::Resource::~Resource()
 Nepomuk2::Resource& Nepomuk2::Resource::operator=( const Resource& res )
 {
     if( m_data != res.m_data ) {
-        QMutexLocker lock(&m_data->rm()->mutex);
-        if ( m_data && !m_data->deref( this ) && m_data->rm()->shouldBeDeleted( m_data ) ) {
-            delete m_data;
+        ResourceManager* rm = ResourceManager::instance();
+        if ( rm ) {
+            QMutexLocker lock( &rm->d->mutex );
+            if ( m_data && !m_data->deref( this ) && m_data->rm()->shouldBeDeleted( m_data ) ) {
+                delete m_data;
+            }
+            m_data = res.m_data;
+            if ( m_data )
+                m_data->ref( this );
         }
-        m_data = res.m_data;
-        if ( m_data )
-            m_data->ref( this );
     }
 
     return *this;
