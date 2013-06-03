@@ -248,14 +248,15 @@ bool CodeGenerator::writeHeader( const ResourceClass *resourceClass, QTextStream
         }
     }
 
-    if ( m_mode == SafeMode ) {
-        ms << writeComment( QString("Retrieve a list of all available %1 resources. "
-                                    "This list consists of all resource of type %1 that are stored "
-                                    "in the local Nepomuk meta data storage and any changes made locally. "
-                                    "Be aware that in some cases this list can get very big. Then it might "
-                                    "be better to use libKNep directly.").arg( resourceClass->name() ), 2*4 ) << endl;
-        ms << "        static " << m_code->resourceAllResourcesDeclaration( resourceClass ) << ";" << endl;
-    }
+    //FIXME: this depends from removed (and inefficient) code
+    //if ( m_mode == SafeMode ) {
+    //    ms << writeComment( QString("Retrieve a list of all available %1 resources. "
+    //                                "This list consists of all resource of type %1 that are stored "
+    //                                "in the local Nepomuk meta data storage and any changes made locally. "
+    //                                "Be aware that in some cases this list can get very big. Then it might "
+    //                                "be better to use libKNep directly.").arg( resourceClass->name() ), 2*4 ) << endl;
+    //   ms << "        static " << m_code->resourceAllResourcesDeclaration( resourceClass ) << ";" << endl;
+    //}
 
     QString includeString;
     QSetIterator<QString> includeIt( includes );
