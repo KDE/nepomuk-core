@@ -66,6 +66,12 @@ QStringList TagLibExtractor::mimetypes()
     // AIFF
     types << QLatin1String("audio/x-aiff");
 
+    // APE
+    types << QLatin1String("audio/x-ape");
+
+    // WV
+    types << QLatin1String("audio/x-wavpack");
+
     return types;
 }
 
