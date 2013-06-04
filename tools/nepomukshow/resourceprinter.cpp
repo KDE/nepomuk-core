@@ -48,7 +48,7 @@ namespace {
         SyncResource syncRes;
         syncRes.uri = uri;
 
-        QString query = QString::fromLatin1("select ?p ?o where { %1 ?p ?o. }")
+        QString query = QString::fromLatin1("select distinct ?p ?o where { %1 ?p ?o. }")
                         .arg( Soprano::Node::resourceToN3( uri ) );
 
         Soprano::Query::QueryLanguage lang;
