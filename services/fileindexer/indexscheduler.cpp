@@ -109,21 +109,6 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     m_cleaner = new IndexCleaner(this);
     connect( m_cleaner, SIGNAL(finished(KJob*)), this, SLOT(slotCleaningDone()) );
 
-    // Special settings for the queues
-    KConfig config( "nepomukstrigirc" );
-    KConfigGroup cfg = config.group( "Indexing" );
-
-    int basicIQDelay = cfg.readEntry<int>( "BasicIQDelay", 0 );
-    int fileIQDelay = cfg.readEntry<int>( "FileIQDelay", 0 );
-    m_basicIQ->setDelay( basicIQDelay );
-    m_fileIQ->setDelay( fileIQDelay );
-
-    QString value = cfg.readEntry<QString>( "NormalMode_FileIndexing", "suspend" );
-    if( value == "suspend" )
-        m_shouldSuspendFileIQOnNormal = true;
-    else if( value == "resume" )
-        m_shouldSuspendFileIQOnNormal = false;
-
     m_state = State_Normal;
     slotScheduleIndexing();
 }
@@ -391,6 +376,8 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
         else {
             m_state = State_UserIdle;
             m_basicIQ->resume();
+
+            m_fileIQ->setDelay( 0 );
             m_fileIQ->resume();
         }
     }
@@ -400,19 +387,9 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
         m_state = State_Normal;
 
         m_basicIQ->resume();
-        if( m_shouldSuspendFileIQOnNormal )
-            m_fileIQ->suspend();
-        else {
-            if( m_cleaner ) {
-                // We need to run the cleaner
-                m_state = State_Cleaning;
-                m_cleaner->start();
-                slotScheduleIndexing();
-            }
-            else {
-                m_fileIQ->resume();
-            }
-        }
+
+        m_fileIQ->setDelay( 3000 );
+        m_fileIQ->resume();
     }
 }
 

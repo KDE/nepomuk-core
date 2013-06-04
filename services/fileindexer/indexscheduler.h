@@ -179,8 +179,6 @@ namespace Nepomuk2 {
         EventMonitor* m_eventMonitor;
 
         State m_state;
-
-        bool m_shouldSuspendFileIQOnNormal;
     };
 }
 
