@@ -466,7 +466,7 @@ void Nepomuk2::FileIndexerConfig::setInitialRun(bool isInitialRun)
 
 bool Nepomuk2::FileIndexerConfig::initialUpdateDisabled() const
 {
-    return m_config.group( "General" ).readEntry( "disable initial update", false );
+    return m_config.group( "General" ).readEntry( "disable initial update", true );
 }
 
 bool Nepomuk2::FileIndexerConfig::suspendOnPowerSaveDisabled() const

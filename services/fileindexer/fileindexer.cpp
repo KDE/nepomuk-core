@@ -64,6 +64,8 @@ Nepomuk2::FileIndexer::FileIndexer()
              this, SIGNAL( indexingFolder(QString) ) );
     connect( m_indexScheduler, SIGNAL(fileIndexingDone()),
              this, SIGNAL(fileIndexingDone()) );
+    connect( m_indexScheduler, SIGNAL(basicIndexingDone()),
+             this, SLOT(slotIndexingDone()) );
 
     connect( m_indexScheduler, SIGNAL( statusStringChanged() ),
              this, SLOT( emitStatusMessage() ) );
