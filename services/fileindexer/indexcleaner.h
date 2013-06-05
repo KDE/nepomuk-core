@@ -90,10 +90,6 @@ namespace Nepomuk2 {
         QMutex m_stateMutex;
         bool m_suspended;
         int m_delay;
-
-        /// Indicates if legacy data should be checked
-        bool m_supportLegacyData;
-        bool m_supportStrigiGraphData;
     };
 }
 
