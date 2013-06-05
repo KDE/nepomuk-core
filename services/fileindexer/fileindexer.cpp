@@ -99,22 +99,8 @@ int Nepomuk2::FileIndexer::currentStatus() const
 
 QString Nepomuk2::FileIndexer::userStatusString() const
 {
-    return userStatusString( false );
-}
-
-
-QString Nepomuk2::FileIndexer::simpleUserStatusString() const
-{
-    return userStatusString( true );
-}
-
-
-QString Nepomuk2::FileIndexer::userStatusString( bool simple ) const
-{
-    Q_UNUSED( simple );
     return m_indexScheduler->userStatusString();
 }
-
 
 void Nepomuk2::FileIndexer::setSuspended( bool suspend )
 {

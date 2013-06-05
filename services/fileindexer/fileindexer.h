@@ -81,13 +81,6 @@ namespace Nepomuk2 {
          */
         Q_SCRIPTABLE QString userStatusString() const;
 
-        /**
-         * Simplified status string without details.
-         *
-         * @deprecated use statusMessage() instead
-         */
-        Q_SCRIPTABLE QString simpleUserStatusString() const;
-
         Q_SCRIPTABLE bool isSuspended() const;
         Q_SCRIPTABLE bool isIndexing() const;
         Q_SCRIPTABLE bool isCleaning() const;
@@ -135,8 +128,6 @@ namespace Nepomuk2 {
         void emitStatusMessage();
 
     private:
-        QString userStatusString( bool simple ) const;
-
         IndexScheduler* m_indexScheduler;
     };
 }

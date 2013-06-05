@@ -304,7 +304,7 @@ void Nepomuk2::IndexScheduler::analyzeFile( const QString& path )
 }
 
 
-void Nepomuk2::IndexScheduler::slotBeginIndexingFile(const QUrl& url)
+void Nepomuk2::IndexScheduler::slotBeginIndexingFile(const QUrl&)
 {
     setIndexingStarted( true );
 }
