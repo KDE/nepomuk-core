@@ -442,8 +442,7 @@ QString Nepomuk2::IndexScheduler::userStatusString() const
         return i18nc( "@info:status", "File indexer is suspended." );
     }
     else if ( cleaning ) {
-        // TODO: Change this string for 4.11
-        return i18nc( "@info:status", "Scanning for recent changes in files for desktop search");
+        return i18nc( "@info:status", "Cleaning invalid file metadata");
     }
     else if ( indexing ) {
         QUrl url = currentUrl();
