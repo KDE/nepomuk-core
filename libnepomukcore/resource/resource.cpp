@@ -178,84 +178,125 @@ QUrl Nepomuk2::Resource::uri() const
 QUrl Nepomuk2::Resource::type() const
 {
     determineFinalResourceData();
-    return m_data->type();
+    if ( m_data ) {
+        return m_data->type();
+    }
+    else {
+        return QUrl();
+    }
 }
 
 
 QList<QUrl> Nepomuk2::Resource::types() const
 {
     determineFinalResourceData();
-    return m_data->property( RDF::type() ).toUrlList();
+    if ( m_data ) {
+        return m_data->property( RDF::type() ).toUrlList();
+    }
+    return QList<QUrl>();
 }
 
 
 void Nepomuk2::Resource::setTypes( const QList<QUrl>& types )
 {
     determineFinalResourceData();
-    m_data->setProperty( RDF::type(), types );
+    if ( m_data ) {
+        m_data->setProperty( RDF::type(), types );
+    }
 }
 
 
 void Nepomuk2::Resource::addType( const QUrl& type )
 {
     determineFinalResourceData();
-    m_data->addProperty( RDF::type(), type );
+    if ( m_data ) {
+        m_data->addProperty( RDF::type(), type );
+    }
 }
 
 
 bool Nepomuk2::Resource::hasType( const QUrl& typeUri ) const
 {
     determineFinalResourceData();
-    return m_data->hasProperty( RDF::type(), typeUri );
+    if ( m_data ) {
+        return m_data->hasProperty( RDF::type(), typeUri );
+    }
+    else {
+        return false;
+    }
 }
 
 
 QHash<QUrl, Nepomuk2::Variant> Nepomuk2::Resource::properties() const
 {
     determineFinalResourceData();
-    return m_data->allProperties();
+    if ( m_data ) {
+        return m_data->allProperties();
+    }
+    return QHash<QUrl, Nepomuk2::Variant> ();
 }
 
 
 bool Nepomuk2::Resource::hasProperty( const QUrl& uri ) const
 {
     determineFinalResourceData();
-    return m_data->hasProperty( uri );
+    if ( m_data ) {
+        return m_data->hasProperty( uri );
+    }
+    else {
+        return false;
+    }
 }
 
 
 bool Nepomuk2::Resource::hasProperty( const Types::Property& p, const Variant& v ) const
 {
     determineFinalResourceData();
-    return m_data->hasProperty( p.uri(), v );
+    if ( m_data ) {
+        return m_data->hasProperty( p.uri(), v );
+    }
+    else {
+        return false;
+    }
 }
 
 
 Nepomuk2::Variant Nepomuk2::Resource::property( const QUrl& uri ) const
 {
     determineFinalResourceData();
-    return m_data->property( uri );
+    if ( m_data ) {
+        return m_data->property( uri );
+    }
+    else {
+        return Nepomuk2::Variant();
+    }
 }
 
 
 void Nepomuk2::Resource::addProperty( const QUrl& uri, const Variant& value )
 {
     determineFinalResourceData();
-    m_data->addProperty( uri, value );
+    if ( m_data ) {
+        m_data->addProperty( uri, value );
+    }
 }
 
 
 void Nepomuk2::Resource::setProperty( const QUrl& uri, const Nepomuk2::Variant& value )
 {
     determineFinalResourceData();
-    m_data->setProperty( uri, value );
+    if ( m_data ) {
+        m_data->setProperty( uri, value );
+    }
 }
 
 
 void Nepomuk2::Resource::removeProperty( const QUrl& uri )
 {
     determineFinalResourceData();
-    m_data->removeProperty( uri );
+    if ( m_data ) {
+        m_data->removeProperty( uri );
+    }
 }
 
 
@@ -272,7 +313,9 @@ void Nepomuk2::Resource::removeProperty( const QUrl& uri, const Variant& value )
 void Nepomuk2::Resource::remove()
 {
     determineFinalResourceData();
-    m_data->remove();
+    if ( m_data ) {
+        m_data->remove();
+    }
 }
 
 
@@ -707,7 +750,7 @@ Nepomuk2::Resource Nepomuk2::Resource::fromResourceUri( const KUrl& uri, const N
 
 void Nepomuk2::Resource::determineFinalResourceData() const
 {
-    if (!m_data->uri().isEmpty()) {
+    if (!m_data || !m_data->uri().isEmpty()) {
         return;
     }
 
