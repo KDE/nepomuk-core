@@ -133,10 +133,6 @@ namespace Nepomuk2 {
         void basicIndexingDone();
         void fileIndexingDone();
 
-        // Finer Index state
-        void indexingFolder( const QString& );
-        void indexingFile( const QString & );
-
         // Emitted on calling suspend/resume
         void indexingSuspended( bool suspended );
 

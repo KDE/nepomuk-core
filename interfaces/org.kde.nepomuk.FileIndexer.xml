@@ -59,8 +59,5 @@
     <signal name="indexingStarted" />
     <signal name="indexingStopped" />
     <signal name="fileIndexingDone" />
-    <signal name="indexingFolder">
-      <arg name="path" type="s" />
-    </method>
   </interface>
 </node>

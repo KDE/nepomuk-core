@@ -307,12 +307,6 @@ void Nepomuk2::IndexScheduler::analyzeFile( const QString& path )
 void Nepomuk2::IndexScheduler::slotBeginIndexingFile(const QUrl& url)
 {
     setIndexingStarted( true );
-
-    QString path = url.toLocalFile();
-    if( QFileInfo(path).isDir() )
-        emit indexingFolder( path );
-    else
-        emit indexingFile( path );
 }
 
 void Nepomuk2::IndexScheduler::slotEndIndexingFile(const QUrl&)
@@ -445,14 +439,7 @@ QString Nepomuk2::IndexScheduler::userStatusString() const
         return i18nc( "@info:status", "Cleaning invalid file metadata");
     }
     else if ( indexing ) {
-        QUrl url = currentUrl();
-
-        if( url.isEmpty() ) {
-            return i18nc( "@info:status", "Indexing files for desktop search." );
-        }
-        else {
-            return i18nc( "@info:status", "Indexing %1", url.toLocalFile() );
-        }
+        return i18nc( "@info:status", "Indexing files for desktop search." );
     }
     else if ( processing ) {
         return i18nc( "@info:status", "Scanning for recent changes in files for desktop search");

@@ -43,7 +43,6 @@ namespace Nepomuk2 {
         void statusStringChanged();
 
         Q_SCRIPTABLE void statusChanged();
-        Q_SCRIPTABLE void indexingFolder( const QString& path );
         Q_SCRIPTABLE void indexingStarted();
         Q_SCRIPTABLE void indexingStopped();
         Q_SCRIPTABLE void fileIndexingDone();
