@@ -43,8 +43,10 @@
 
 
 Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
-    : QObject( parent ),
-      m_indexing( false )
+    : QObject( parent )
+    , m_indexing( false )
+    , m_lastBasicIndexingFile( QDateTime::currentDateTime() )
+    , m_basicIndexingFileCount( 0 )
 {
     // remove old indexing error log
     if(FileIndexerConfig::self()->isDebugModeEnabled()) {
@@ -76,6 +78,7 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
 
     connect( m_basicIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(slotBeginIndexingFile(QUrl)) );
     connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(slotEndIndexingFile(QUrl)) );
+    connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(slotEndBasicIndexingFile()) );
     connect( m_fileIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(slotBeginIndexingFile(QUrl)) );
     connect( m_fileIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(slotEndIndexingFile(QUrl)) );
 
@@ -322,6 +325,37 @@ void Nepomuk2::IndexScheduler::slotEndIndexingFile(const QUrl&)
     }
 }
 
+//
+// Slow down the Basic Indexing if we have > x files
+//
+void Nepomuk2::IndexScheduler::slotEndBasicIndexingFile()
+{
+    QDateTime current = QDateTime::currentDateTime();
+    if( current.secsTo(m_lastBasicIndexingFile) > 60 ) {
+        m_basicIQ->setDelay( 0 );
+        m_basicIndexingFileCount = 0;
+    }
+    else {
+        if ( m_basicIndexingFileCount > 1000 ) {
+            m_basicIQ->setDelay( 400 );
+        }
+        else if ( m_basicIndexingFileCount > 750 ) {
+            m_basicIQ->setDelay( 300 );
+        }
+        else if ( m_basicIndexingFileCount > 500 ) {
+            m_basicIQ->setDelay( 200 );
+        }
+        else if ( m_basicIndexingFileCount > 200 ) {
+            m_basicIQ->setDelay( 100 );
+        }
+        else
+            m_basicIQ->setDelay( 0 );
+    }
+
+    m_basicIndexingFileCount++;
+}
+
+
 void Nepomuk2::IndexScheduler::slotTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry)
 {
     const QString path = entry->mountPath();
@@ -360,7 +394,9 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
         kDebug() << "Battery";
         m_state = State_OnBattery;
 
+        m_basicIQ->setDelay(0);
         m_basicIQ->resume();
+
         m_fileIQ->suspend();
         if( m_cleaner )
             m_cleaner->suspend();
@@ -375,6 +411,7 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
         }
         else {
             m_state = State_UserIdle;
+            m_basicIQ->setDelay( 0 );
             m_basicIQ->resume();
 
             m_fileIQ->setDelay( 0 );
@@ -386,6 +423,7 @@ void Nepomuk2::IndexScheduler::slotScheduleIndexing()
         kDebug() << "Normal";
         m_state = State_Normal;
 
+        m_basicIQ->setDelay( 0 );
         m_basicIQ->resume();
 
         m_fileIQ->setDelay( 3000 );

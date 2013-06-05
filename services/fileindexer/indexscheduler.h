@@ -22,6 +22,7 @@
 
 #include "basicindexingqueue.h" // Required for UpdateDirFlags
 #include "removablemediacache.h"
+#include <QDateTime>
 
 namespace Nepomuk2 {
 
@@ -150,6 +151,7 @@ namespace Nepomuk2 {
 
         void slotBeginIndexingFile(const QUrl& url);
         void slotEndIndexingFile(const QUrl& url);
+        void slotEndBasicIndexingFile();
 
         void slotStartedIndexing();
         void slotFinishedIndexing();
@@ -179,6 +181,9 @@ namespace Nepomuk2 {
         EventMonitor* m_eventMonitor;
 
         State m_state;
+
+        QDateTime m_lastBasicIndexingFile;
+        int m_basicIndexingFileCount;
     };
 }
 
