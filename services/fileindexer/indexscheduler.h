@@ -156,7 +156,7 @@ namespace Nepomuk2 {
         void slotScheduleIndexing();
 
         void slotTeardownRequested(const Nepomuk2::RemovableMediaCache::Entry* entry);
-
+        void emitStatusStringChanged();
     private:
         void queueAllFoldersForUpdate( bool forceUpdate = false );
 
@@ -180,6 +180,8 @@ namespace Nepomuk2 {
 
         QDateTime m_lastBasicIndexingFile;
         int m_basicIndexingFileCount;
+
+        QString m_oldStatus;
     };
 }
 

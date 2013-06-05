@@ -91,15 +91,15 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), m_fileIQ, SLOT(enqueue(QUrl)) );
 
     // Status String
-    connect( m_basicIQ, SIGNAL(beginIndexingFile(QUrl)), this, SIGNAL(statusStringChanged()) );
-    connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), this, SIGNAL(statusStringChanged()) );
-    connect( m_basicIQ, SIGNAL(startedIndexing()), this, SIGNAL(statusStringChanged()) );
-    connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SIGNAL(statusStringChanged()) );
-    connect( m_fileIQ, SIGNAL(beginIndexingFile(QUrl)), this, SIGNAL(statusStringChanged()) );
-    connect( m_fileIQ, SIGNAL(endIndexingFile(QUrl)), this, SIGNAL(statusStringChanged()) );
-    connect( m_fileIQ, SIGNAL(startedIndexing()), this, SIGNAL(statusStringChanged()) );
-    connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SIGNAL(statusStringChanged()) );
-    connect( this, SIGNAL(indexingSuspended(bool)), this, SIGNAL(statusStringChanged()) );
+    connect( m_basicIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(emitStatusStringChanged()) );
+    connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(emitStatusStringChanged()) );
+    connect( m_basicIQ, SIGNAL(startedIndexing()), this, SLOT(emitStatusStringChanged()) );
+    connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(emitStatusStringChanged()) );
+    connect( m_fileIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(emitStatusStringChanged()) );
+    connect( m_fileIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(emitStatusStringChanged()) );
+    connect( m_fileIQ, SIGNAL(startedIndexing()), this, SLOT(emitStatusStringChanged()) );
+    connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SLOT(emitStatusStringChanged()) );
+    connect( this, SIGNAL(indexingSuspended(bool)), this, SLOT(emitStatusStringChanged()) );
 
     m_eventMonitor = new EventMonitor( this );
     connect( m_eventMonitor, SIGNAL(diskSpaceStatusChanged(bool)),
@@ -452,6 +452,15 @@ QString Nepomuk2::IndexScheduler::userStatusString() const
 Nepomuk2::IndexScheduler::State Nepomuk2::IndexScheduler::currentStatus() const
 {
     return m_state;
+}
+
+void Nepomuk2::IndexScheduler::emitStatusStringChanged()
+{
+    QString status = userStatusString();
+    if( status != m_oldStatus ) {
+        emit statusStringChanged();
+        m_oldStatus = status;
+    }
 }
 
 
