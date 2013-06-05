@@ -91,12 +91,8 @@ Nepomuk2::IndexScheduler::IndexScheduler( QObject* parent )
     connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), m_fileIQ, SLOT(enqueue(QUrl)) );
 
     // Status String
-    connect( m_basicIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(emitStatusStringChanged()) );
-    connect( m_basicIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(emitStatusStringChanged()) );
     connect( m_basicIQ, SIGNAL(startedIndexing()), this, SLOT(emitStatusStringChanged()) );
     connect( m_basicIQ, SIGNAL(finishedIndexing()), this, SLOT(emitStatusStringChanged()) );
-    connect( m_fileIQ, SIGNAL(beginIndexingFile(QUrl)), this, SLOT(emitStatusStringChanged()) );
-    connect( m_fileIQ, SIGNAL(endIndexingFile(QUrl)), this, SLOT(emitStatusStringChanged()) );
     connect( m_fileIQ, SIGNAL(startedIndexing()), this, SLOT(emitStatusStringChanged()) );
     connect( m_fileIQ, SIGNAL(finishedIndexing()), this, SLOT(emitStatusStringChanged()) );
     connect( this, SIGNAL(indexingSuspended(bool)), this, SLOT(emitStatusStringChanged()) );
