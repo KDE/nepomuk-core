@@ -178,7 +178,7 @@ bool Nepomuk2::Indexer::fileIndex(const QUrl& uri, const QUrl& url, const QStrin
 
     // Update the indexing level even if no data has changed
     kDebug() << "Updating indexing level";
-    updateIndexingLevel( uri, 2 );
+    Nepomuk2::updateIndexingLevel( uri, 2 );
 
     return true;
 }
@@ -209,45 +209,6 @@ Nepomuk2::SimpleResourceGraph Nepomuk2::Indexer::indexFileGraph(const QUrl& url)
 QString Nepomuk2::Indexer::lastError() const
 {
     return m_lastError;
-}
-
-//
-// We don't really care if the indexing level is in the incorrect graph
-//
-void Nepomuk2::Indexer::updateIndexingLevel(const QUrl& uri, int level)
-{
-    QString uriN3 = Soprano::Node::resourceToN3( uri );
-
-    QString query = QString::fromLatin1("select ?g ?l where { graph ?g { %1 kext:indexingLevel ?l . } }")
-                    .arg ( uriN3 );
-    Soprano::Model* model = ResourceManager::instance()->mainModel();
-    Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
-
-    QUrl graph;
-    Soprano::Node prevLevel;
-    if( it.next() ) {
-        graph = it[0].uri();
-        prevLevel = it[1];
-        it.close();
-    }
-
-    if( !graph.isEmpty() ) {
-        QString graphN3 = Soprano::Node::resourceToN3( graph );
-        QString removeCommand = QString::fromLatin1("sparql delete { graph %1 { %2 kext:indexingLevel %3 . } }")
-                                .arg( graphN3, uriN3, prevLevel.toN3() );
-        model->executeQuery( removeCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
-
-        QString insertCommand = QString::fromLatin1("sparql insert { graph %1 { %2 kext:indexingLevel %3 . } }")
-                                .arg( graphN3, uriN3, Soprano::Node::literalToN3(level) );
-        model->executeQuery( insertCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
-    }
-    // Practically, this should never happen, but still
-    else {
-        QScopedPointer<KJob> job( Nepomuk2::setProperty( QList<QUrl>() << uri, KExt::indexingLevel(),
-                                                                QVariantList() << QVariant(level) ) );
-        job->setAutoDelete(false);
-        job->exec();
-    }
 }
 
 void Nepomuk2::Indexer::setNiePlainTextContent(const QUrl& uri, QString& plainText)

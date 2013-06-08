@@ -22,6 +22,7 @@
 #include "resourcemanager.h"
 #include "fileindexingjob.h"
 #include "fileindexerconfig.h"
+#include "util.h"
 
 #include <Soprano/Model>
 #include <Soprano/QueryResultIterator>
@@ -54,7 +55,7 @@ void FileIndexingQueue::fillQueue()
         return;
 
     QString query = QString::fromLatin1("select distinct ?url where { ?r nie:url ?url ; kext:indexingLevel ?l "
-                                        " FILTER(?l < 2 ). } LIMIT 10");
+                                        " FILTER(?l = 1 ). } LIMIT 10");
 
     Soprano::Model* model = ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
@@ -96,6 +97,9 @@ void FileIndexingQueue::slotFinishedIndexingFile(KJob* job)
 {
     if( job->error() ) {
         kDebug() << job->errorString();
+        // Update the indexing level to -1, signalling an error,
+        // so the next round of the queue doesn't try to index it again.
+        updateIndexingLevel(m_currentUrl, -1);
     }
 
     QUrl url = m_currentUrl;
