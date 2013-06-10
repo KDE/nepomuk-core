@@ -48,7 +48,11 @@ namespace Nepomuk2 {
         class Private;
         Private *d;
 
+    // We do not want to change the order of the functions. This has been done
+    // in order to preserve binary compatibility
+    public:
         void start();
+    private:
 
         Q_PRIVATE_SLOT( d, void _k_slotDBusCallFinished( QDBusPendingCallWatcher* ) )
 
