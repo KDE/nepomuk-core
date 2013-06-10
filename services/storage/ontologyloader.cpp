@@ -139,6 +139,7 @@ void Nepomuk2::OntologyLoader::Private::updateOntology( const QString& filename 
             emit q->ontologyUpdated( ontoNamespace );
         }
         else {
+            kDebug() << "Parsing of file " << ontoFileInf.filePath() << "failed (" << parser->lastError().message() << ")";
             emit q->ontologyUpdateFailed( ontoNamespace, i18n( "Parsing of file %1 failed (%2)", ontoFileInf.filePath(), parser->lastError().message() ) );
         }
     }
