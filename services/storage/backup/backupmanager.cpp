@@ -223,7 +223,7 @@ void Nepomuk2::BackupManager::removeOldBackups()
     QStringList infoList = dir.entryList( QDir::Files | QDir::NoDotAndDotDot, QDir::Name );
 
     while( infoList.size() > m_maxBackups ) {
-        const QString backupPath = m_backupLocation + infoList.last();
+        const QString backupPath = m_backupLocation + infoList.first();
         kDebug() << "Removing : " << backupPath;
         QFile::remove( backupPath );
         infoList.pop_back();
