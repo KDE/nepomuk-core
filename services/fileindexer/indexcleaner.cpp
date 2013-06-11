@@ -245,7 +245,9 @@ namespace {
             subFilters << constructFolderSubFilter( folders, index );
         }
 
-        QString thisFilter = QString::fromLatin1( "REGEX(STR(?url),'^%1')" ).arg( QString::fromAscii( KUrl( path ).toEncoded() ) );
+        QString str = QString::fromLatin1( KUrl(path).toEncoded() );
+        str.replace( '\'', QLatin1String("\\'") );
+        QString thisFilter = QString::fromLatin1( "REGEX(STR(?url),'^%1')" ).arg( str );
 
         // we want all folders that should NOT be indexed
         if ( include ) {
