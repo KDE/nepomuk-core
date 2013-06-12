@@ -54,9 +54,6 @@ Nepomuk2::DataManagementAdaptor::DataManagementAdaptor(Nepomuk2::DataManagementM
 
     m_threadPool = new QThreadPool(this);
 
-    // never let go of our threads - that is just pointless cpu cycles wasted
-    m_threadPool->setExpiryTimeout(-1);
-
     // N threads means N connections to Virtuoso
     m_threadPool->setMaxThreadCount(10);
 }
