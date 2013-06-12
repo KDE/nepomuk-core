@@ -45,7 +45,6 @@ kde4_add_executable(nepomukfilewatch ${SRCS})
 target_link_libraries(nepomukfilewatch
   nepomukcommon
   nepomukcore
-  ${SOPRANO_CLIENT_LIBRARIES}
   ${SOPRANO_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
   ${KDE4_KDEUI_LIBS}

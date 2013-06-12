@@ -98,7 +98,6 @@ kde4_add_unit_test(identificationtest
 target_link_libraries(identificationtest
   ${QT_QTTEST_LIBRARY}
   ${SOPRANO_LIBRARIES}
-  ${SOPRANO_CLIENT_LIBRARIES}
   ${KDE4_KDECORE_LIBS}
   nepomukcore
   datamanagementtestlib

@@ -41,7 +41,6 @@ target_link_libraries(kdeinit_nepomukserver
   ${KDE4_KDEUI_LIBS}
   ${SOPRANO_LIBRARIES}
   ${SOPRANO_SERVER_LIBRARIES}
-  ${SOPRANO_CLIENT_LIBRARIES}
   )
 
 target_link_libraries(nepomukserver
