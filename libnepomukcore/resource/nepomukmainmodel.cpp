@@ -47,19 +47,22 @@ using namespace Soprano;
 namespace {
     // FIXME: This is hack taken from the virtuoso Soprano backend. We need a proper way of
     //        communicating the port numbber!
-    quint16 getFreePortNumber() {
-        #ifdef Q_OS_WIN
-        static QMutex portNumberMutex;
-        static quint16 p = 1113;
-        QMutexLocker l(&portNumberMutex);
-        return p++;
-        #else
-        int p = 1113;
-        while ( QFile::exists( QString( "/tmp/virt_%1" ).arg( p ) ) ) {
-            ++p;
+
+    quint16 getVirtuosoPortNumber() {
+        int largestUsedPort = 0;
+
+        int startPort = 1113;
+        for( int i=0; i<10; i++ ) {
+            int p = startPort + i;
+            if( QFile::exists( QString( "/tmp/virt_%1" ).arg(p) ) ) {
+                largestUsedPort = p;
+            }
+            else if( largestUsedPort ) {
+                return largestUsedPort;
+            }
         }
-        return p;
-        #endif
+
+        return largestUsedPort;
     }
 }
 
@@ -95,10 +98,15 @@ public:
 
         Soprano::BackendSettings settings;
 
-        // FIXME: The port might not always be 1113
+        // FIXME: Find a better way of getting the port number in use
+        int portNumber = getVirtuosoPortNumber();
+        if(!portNumber) {
+            kError() << "Could not find virtuoso to connect to. Aborting";
+            return;
+        }
+
         settings << Soprano::BackendSetting( Soprano::BackendOptionHost, "localhost" );
-        // The -1 is because if virtuoso exists, it would be on the previous port
-        settings << Soprano::BackendSetting( Soprano::BackendOptionPort, getFreePortNumber()-1 );
+        settings << Soprano::BackendSetting( Soprano::BackendOptionPort, portNumber );
         settings << Soprano::BackendSetting( Soprano::BackendOptionUsername, "dba" );
         settings << Soprano::BackendSetting( Soprano::BackendOptionPassword, "dba" );
         settings << Soprano::BackendSetting( "noStatementSignals", true );
