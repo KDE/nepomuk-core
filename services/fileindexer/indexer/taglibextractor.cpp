@@ -29,6 +29,7 @@
 #include <taglib/fileref.h>
 #include <taglib/flacfile.h>
 #include <taglib/id3v2tag.h>
+#include <taglib/id3v1genres.h>
 #include <taglib/mpegfile.h>
 #include <taglib/oggfile.h>
 #include <taglib/taglib.h>
@@ -275,16 +276,20 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
         }
 
         if( genres.isEmpty() ) {
-            // TODO: Split genres.
-            QString genre = QString::fromUtf8( tags->genre().toCString( true ) );
-            if( !genre.isEmpty() ) {
-                fileRes.addProperty( NMM::genre(), genre );
+            genres.append( tags->genre() );
+        }
+
+        for( uint i = 0; i < genres.size(); i++ ) {
+            QString genre = QString::fromUtf8( genres[i].toCString( true ) ).trimmed();
+
+            // Convert from int
+            bool ok = false;
+            int genreNum = genre.toInt( &ok );
+            if( ok ) {
+                genre = QString::fromUtf8( TagLib::ID3v1::genre(genreNum).toCString( true ) );
             }
-        } else {
-            for( uint i = 0; i < genres.size(); i++ ) {
-                QString genre = QString::fromUtf8( genres[i].toCString( true ) ).trimmed();
-                fileRes.addProperty( NMM::genre(), genre );
-            }
+
+            fileRes.addProperty( NMM::genre(), genre );
         }
 
         QString artistString;
