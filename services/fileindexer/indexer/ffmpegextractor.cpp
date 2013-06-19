@@ -120,43 +120,16 @@ SimpleResourceGraph FFmpegExtractor::extract(const QUrl& resUri, const QUrl& fil
         const AVCodecContext* codec = stream->codec;
 
         if( codec->codec_type == AVMEDIA_TYPE_AUDIO || codec->codec_type == AVMEDIA_TYPE_VIDEO ) {
-            SimpleResource subRes;
-            subRes.addType( NFO::EmbeddedFileDataObject() );
-            subRes.addProperty( NIE::isPartOf(), fileRes );
-
-            int dur = stream->duration / AV_TIME_BASE;
-            if( dur ) {
-                subRes.addProperty( NFO::duration(), dur );
-            }
-
-            QString codecName = QString::fromLatin1( codec->codec_name );
-            if( codecName.isEmpty() ) {
-                const AVCodec* p = avcodec_find_decoder( codec->codec_id );
-                if( p )
-                    codecName = QString::fromLatin1( p->name );
-            }
-
-            if( !codecName.isEmpty() ) {
-                subRes.addProperty( NFO::codec(), codecName );
-            }
-
-            int bitrate = codec->bit_rate;
-            if( bitrate ) {
-                subRes.addProperty( NFO::averageBitrate(), bitrate );
-            }
-
+            /*
             if( codec->codec_type == AVMEDIA_TYPE_AUDIO ) {
                 subRes.addType( NFO::Audio() );
                 subRes.addProperty( NFO::sampleRate(), codec->sample_rate );
                 subRes.addProperty( NFO::channels(), codec->channels );
 
                 //TODO: Fetch Sample Format
-            }
-            else if( codec->codec_type == AVMEDIA_TYPE_VIDEO ) {
-                subRes.addType( NFO::Video() );
-                subRes.addProperty( NFO::width(), codec->width );
-                subRes.addProperty( NFO::height(), codec->height );
+            }*/
 
+            if( codec->codec_type == AVMEDIA_TYPE_VIDEO ) {
                 int aspectRatio = codec->sample_aspect_ratio.num;
                 int frameRate = stream->r_frame_rate.num;
 
@@ -165,20 +138,11 @@ SimpleResourceGraph FFmpegExtractor::extract(const QUrl& resUri, const QUrl& fil
                 if( stream->r_frame_rate.den )
                     frameRate /= stream->r_frame_rate.den;
 
-                subRes.addProperty( NFO::aspectRatio(), aspectRatio );
-                subRes.addProperty( NFO::frameRate(), frameRate );
-
-                // Also add all of these to the main file resource
-                // It's easier to fetch them this way
                 fileRes.setProperty( NFO::width(), codec->width );
                 fileRes.setProperty( NFO::height(), codec->height );
                 fileRes.setProperty( NFO::aspectRatio(), aspectRatio );
                 fileRes.setProperty( NFO::frameRate(), frameRate );
             }
-
-            fileRes.addProperty( NIE::hasPart(), subRes );
-            fileRes.addProperty( NAO::hasSubResource(), subRes );
-            graph << subRes;
         }
     }
 
