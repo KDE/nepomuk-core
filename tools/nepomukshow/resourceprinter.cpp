@@ -97,7 +97,9 @@ namespace {
                     int numSpaces = m_dataMaxLength[c] - m_data[c][i].length();
                     numSpaces += 2;
 
-                    stream << QString( numSpaces, QChar::fromAscii(' ') );
+                    // Do not print spaces for the last column
+                    if( c != m_columns-1 )
+                        stream << QString( numSpaces, QChar::fromAscii(' ') );
                 }
                 stream << "\n";
             }
