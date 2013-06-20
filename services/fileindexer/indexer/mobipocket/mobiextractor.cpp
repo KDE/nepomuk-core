@@ -82,9 +82,15 @@ SimpleResourceGraph MobiExtractor::extract(const QUrl& resUri, const QUrl& fileU
                 graph << con;
                 break;
             }
-            case Mobipocket::Document::Description:
-                fileRes.addProperty( NIE::comment(), it.value() );
+            case Mobipocket::Document::Description: {
+                QTextDocument document;
+                document.setHtml( it.value() );
+
+                QString plain = document.toPlainText();
+                if( !plain.isEmpty() )
+                    fileRes.addProperty( NIE::comment(), plain );
                 break;
+            }
             case Mobipocket::Document::Subject:
                 fileRes.addProperty( NIE::subject(), it.value() );
                 break;
