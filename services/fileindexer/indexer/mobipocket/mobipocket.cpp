@@ -264,6 +264,16 @@ QString Document::text(int size) const
         QByteArray decompressedRecord = d->dec->decompress(d->pdb.getRecord(i));
         if (decompressedRecord.size() > d->maxRecordSize)
             decompressedRecord.resize(d->maxRecordSize);
+
+        // HACK: Sometimes a record has a null character in the middle and then bytes after
+        //       that. This leads to an invalid string whose strlen does not match its size
+        //       This should be properly fixed in the decompressor
+        for (int i=0; i< decompressedRecord.size(); i++) {
+            if (decompressedRecord[i] == 0) {
+                decompressedRecord.resize(i);
+                break;
+            }
+        }
         whole+=decompressedRecord;
         if (!d->dec->isValid()) {
             d->valid=false;
