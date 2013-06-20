@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=NepomukFileExtractor
+X-KDE-Library=nepomukmobiextractor
+Name=Nepomuk Mobi Extractor
+Comment=Nepomuk File extractor for MobiPocket Files
