@@ -22,9 +22,9 @@ find_package(KDE4 4.9.4 REQUIRED)
 include(KDE4Defaults)
 
 # TODO: Remove this block and the cmake directory when kdelibs >= 4.10 will be required
-if(KDE_VERSION VERSION_LESS 4.10.00)
+# if(KDE_VERSION VERSION_LESS 4.10.00)
   set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules" ${CMAKE_MODULE_PATH})
-endif()
+# endif()
 
 find_package(SharedDesktopOntologies 0.10.51)
 set_package_properties(SharedDesktopOntologies PROPERTIES DESCRIPTION "Shared Desktop Ontologies" URL "http://oscaf.sourceforge.net" TYPE REQUIRED PURPOSE "Ontologies necessary for the Nepomuk semantic desktop")
@@ -44,6 +44,9 @@ set_package_properties(Exiv2 PROPERTIES DESCRIPTION "Image Tag reader" URL "http
 
 find_package(FFmpeg 1.0)
 set_package_properties(FFmpeg PROPERTIES DESCRIPTION "Video Tag reader" URL "http://ffmpeg.org" TYPE OPTIONAL PURPOSE "Support for video metadata")
+
+find_package(EPub)
+set_package_properties(EPub PROPERTIES DESCRIPTION "Ebook epub reader" URL "http://sourceforge.net/projects/ebook-tools" TYPE OPTIONAL PURPOSE "Support for epub metadata")
 
 # Some definitions
 # ===============================================================================================

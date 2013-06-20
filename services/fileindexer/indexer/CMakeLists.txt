@@ -142,6 +142,28 @@ if(FFMPEG_FOUND)
 endif(FFMPEG_FOUND)
 
 
+if(EPUB_FOUND)
+    include_directories( ${EPUB_INCLUDE_DIR} )
+
+    kde4_add_plugin( nepomukepubextractor epubextractor.cpp )
+
+    target_link_libraries( nepomukepubextractor
+        nepomukcore
+        nepomukextractor
+        ${KDE4_KIO_LIBS}
+        ${EPUB_LIBRARIES}
+    )
+
+    install(
+    FILES nepomukepubextractor.desktop
+    DESTINATION ${SERVICES_INSTALL_DIR})
+
+    install(
+    TARGETS nepomukepubextractor
+    DESTINATION ${PLUGIN_INSTALL_DIR})
+
+endif(EPUB_FOUND)
+
 #
 # Plain Text
 #

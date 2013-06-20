@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=NepomukFileExtractor
+X-KDE-Library=nepomukepubextractor
+Name=Nepomuk EPub Extractor
+Comment=Nepomuk File extractor for EPub Files
