@@ -136,7 +136,7 @@ QString Nepomuk2::Utils::formatPropertyValue( const Nepomuk2::Types::Property& p
         valueString = KGlobal::locale()->formatTime( time, true, true );
     }
 
-    if( valueString.isEmpty() ) {
+    if( valueString.isEmpty() && ResourceManager::instance()->initialized() ) {
         Types::Literal literalRange = property.literalRangeType();
         QVariant::Type dataType = literalRange.dataType();
         if( !literalRange.isValid() )
