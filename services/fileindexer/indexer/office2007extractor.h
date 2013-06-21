@@ -23,6 +23,8 @@
 
 #include "extractorplugin.h"
 
+class KArchiveDirectory;
+
 namespace Nepomuk2 {
 
     class Office2007Extractor : public ExtractorPlugin
@@ -34,6 +36,9 @@ namespace Nepomuk2 {
         virtual SimpleResourceGraph extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType);
 
     private:
+        void extractTextWithTag(QIODevice* device, const QString& tag, QTextStream& stream);
+        void extractAllText(QIODevice* device, QTextStream& stream);
+        void extractTextFromFiles(const KArchiveDirectory* archiveDir, QTextStream& stream);
     };
 }
 

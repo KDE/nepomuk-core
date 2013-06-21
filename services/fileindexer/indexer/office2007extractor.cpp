@@ -28,6 +28,7 @@
 #include <KDE/KZip>
 
 #include <QtXml/QDomDocument>
+#include <QtXml/QXmlStreamReader>
 #include <Soprano/Vocabulary/NAO>
 
 using namespace Soprano::Vocabulary;
@@ -48,65 +49,6 @@ QStringList Office2007Extractor::mimetypes()
          << QLatin1String("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
 
     return list;
-}
-
-namespace {
-    void extractText(const QDomElement& elem, QTextStream& stream) {
-        if( elem.tagName().startsWith("w:t") ) {
-            QString str( elem.text() );
-            if( !str.isEmpty() ) {
-                stream << str;
-
-                if( !str.at( str.length()-1 ).isSpace() )
-                    stream << QLatin1Char(' ');
-            }
-        }
-
-        QDomElement childElem = elem.firstChildElement();
-        while( !childElem.isNull() ) {
-            extractText( childElem, stream );
-            childElem = childElem.nextSiblingElement();
-        }
-    }
-
-    void extractAllTextFromNode(const QDomNode& node, QTextStream& stream) {
-        if( node.isText() ) {
-            QString str( node.toText().data() );
-            if( !str.isEmpty() ) {
-                stream << str;
-
-                if( !str.at( str.length()-1 ).isSpace() )
-                    stream << QLatin1Char(' ');
-            }
-        }
-
-        QDomNode childNode = node.firstChild();
-        while( !childNode.isNull() ) {
-            extractAllTextFromNode( childNode, stream );
-            childNode = childNode.nextSibling();
-        }
-    }
-
-    void extractTextFromFiles(const KArchiveDirectory* archiveDir, QTextStream& stream ) {
-        const QStringList entries = archiveDir->entries();
-        foreach(const QString& entryName, entries) {
-            const KArchiveEntry* entry = archiveDir->entry(entryName);
-            if( entry->isDirectory() ) {
-                const KArchiveDirectory* subDir = dynamic_cast<const KArchiveDirectory*>(entry);
-                extractTextFromFiles( subDir, stream );
-                continue;
-            }
-
-            if( !entryName.endsWith(".xml") )
-                continue;
-
-            QDomDocument appDoc("document");
-            const KArchiveFile *file = static_cast<const KArchiveFile*>(entry);
-            appDoc.setContent(file->data());
-
-            extractAllTextFromNode( appDoc.documentElement(), stream );
-        }
-    }
 }
 
 SimpleResourceGraph Office2007Extractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
@@ -247,12 +189,11 @@ SimpleResourceGraph Office2007Extractor::extract(const QUrl& resUri, const QUrl&
         if( wordEntries.contains("document.xml") ) {
             QDomDocument appDoc("document");
             const KArchiveFile *file = static_cast<const KArchiveFile*>(wordDirectory->entry("document.xml"));
-            appDoc.setContent(file->data());
 
             QString plainText;
             QTextStream stream(&plainText);
 
-            extractText(appDoc.documentElement(), stream);
+            extractTextWithTag(file->createDevice(), QLatin1String("w:t"), stream);
             if( !plainText.isEmpty() )
                 fileRes.addProperty( NIE::plainTextContent(), plainText );
         }
@@ -292,6 +233,67 @@ SimpleResourceGraph Office2007Extractor::extract(const QUrl& resUri, const QUrl&
 
     graph << fileRes;
     return graph;
+}
+
+void Office2007Extractor::extractAllText(QIODevice* device, QTextStream& stream)
+{
+    QXmlStreamReader xml( device );
+
+    while( !xml.atEnd() ) {
+        xml.readNext();
+        if( xml.isCharacters() ) {
+            QString str = xml.text().toString();
+            stream << str;
+
+            if( !str.at(str.length()-1).isSpace() )
+                stream << QLatin1Char(' ');
+        }
+
+        if( xml.isEndDocument() )
+            break;
+    }
+}
+
+void Office2007Extractor::extractTextFromFiles(const KArchiveDirectory* archiveDir, QTextStream& stream)
+{
+    const QStringList entries = archiveDir->entries();
+    foreach(const QString& entryName, entries) {
+        const KArchiveEntry* entry = archiveDir->entry(entryName);
+        if( entry->isDirectory() ) {
+            const KArchiveDirectory* subDir = dynamic_cast<const KArchiveDirectory*>(entry);
+            extractTextFromFiles( subDir, stream );
+            continue;
+        }
+
+        if( !entryName.endsWith(".xml") )
+            continue;
+
+        const KArchiveFile* file = static_cast<const KArchiveFile*>(entry);
+        extractAllText( file->createDevice(), stream );
+    }
+}
+
+void Office2007Extractor::extractTextWithTag(QIODevice* device, const QString& tag, QTextStream& stream)
+{
+    QXmlStreamReader xml( device );
+
+    while( !xml.atEnd() ) {
+        xml.readNext();
+        if( xml.qualifiedName().startsWith(tag) && xml.isStartElement() ) {
+            QString str = xml.readElementText(QXmlStreamReader::IncludeChildElements).simplified();
+
+            if( !str.isEmpty() ) {
+                stream << str;
+                kDebug() << str;
+
+                if( !str.at(str.length()-1).isSpace() )
+                    stream << QLatin1Char(' ');
+            }
+        }
+
+        if( xml.isEndDocument() )
+            break;
+    }
 }
 
 
