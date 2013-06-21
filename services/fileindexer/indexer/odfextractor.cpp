@@ -29,6 +29,7 @@
 #include <KDE/KZip>
 
 #include <QtXml/QDomDocument>
+#include <QtXml/QXmlStreamReader>
 #include <Soprano/Vocabulary/NAO>
 
 using namespace Soprano::Vocabulary;
@@ -48,26 +49,6 @@ QStringList OdfExtractor::mimetypes()
          << QLatin1String("application/vnd.oasis.opendocument.spreadsheet");
 
     return list;
-}
-
-namespace {
-    void extractText(const QDomElement& elem, QTextStream& stream) {
-        if( elem.tagName().startsWith("text") ) {
-            QString str( elem.text() );
-            if( !str.isEmpty() ) {
-                stream << str;
-
-                if( !str.at( str.length()-1 ).isSpace() )
-                    stream << QLatin1Char(' ');
-            }
-        }
-
-        QDomElement childElem = elem.firstChildElement();
-        while( !childElem.isNull() ) {
-            extractText( childElem, stream );
-            childElem = childElem.nextSiblingElement();
-        }
-    }
 }
 
 SimpleResourceGraph OdfExtractor::extract(const QUrl& resUri, const QUrl& fileUrl, const QString& mimeType)
@@ -159,14 +140,26 @@ SimpleResourceGraph OdfExtractor::extract(const QUrl& resUri, const QUrl& fileUr
         n = n.nextSibling();
     }
 
-    QDomDocument contents("contents");
     const KArchiveFile *contentsFile = static_cast<const KArchiveFile*>(directory->entry("content.xml"));
-    contents.setContent(contentsFile->data());
+    QXmlStreamReader xml( contentsFile->createDevice() );
 
     QString plainText;
     QTextStream stream(&plainText);
 
-    extractText(contents.documentElement(), stream);
+    while( !xml.atEnd() ) {
+        xml.readNext();
+        if( xml.isCharacters() ) {
+            QString str = xml.text().toString();
+            stream << str;
+
+            if( !str.at(str.length()-1).isSpace() )
+                stream << QLatin1Char(' ');
+        }
+
+        if( xml.isEndDocument() )
+            break;
+    }
+
     if( !plainText.isEmpty() )
         fileRes.addProperty( NIE::plainTextContent(), plainText );
 
