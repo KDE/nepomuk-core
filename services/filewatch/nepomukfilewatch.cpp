@@ -101,14 +101,14 @@ namespace {
 
         bool shouldFolderBeIndexed = Nepomuk2::FileIndexerConfig::self()->folderInFolderList( path );
 
-        // Only watch the index folders for file creation and change.
+        // Only watch the index folders for file change.
+        // We still need to monitor everything for file creation because directories count as
+        // files, and we want to recieve signals for a new directory, so that we can watch it.
         if( shouldFolderBeIndexed && shouldFileNameBeIndexed ) {
             modes |= KInotify::EventCloseWrite;
-            modes |= KInotify::EventCreate;
         }
         else {
             modes &= (~KInotify::EventCloseWrite);
-            modes &= (~KInotify::EventCreate);
         }
         return true;
     }
