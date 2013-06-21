@@ -127,7 +127,7 @@ namespace Nepomuk2 {
          */
         void slotDeviceTeardownRequested( const Nepomuk2::RemovableMediaCache::Entry* );
 
-        void slotActiveFileQueueTimeout(const KUrl& url);
+        void slotActiveFileQueueTimeout(const QString& url);
 
         /**
          * @brief When called via MetaMover (signal) the state of the watcher will be active and the status message will be set

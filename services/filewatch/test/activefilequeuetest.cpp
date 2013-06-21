@@ -36,24 +36,23 @@ namespace {
 
 ActiveFileQueueTest::ActiveFileQueueTest()
 {
-    qRegisterMetaType<KUrl>();
 }
 
 void ActiveFileQueueTest::testTimeout()
 {
-    KUrl myUrl("/tmp");
+    QString myUrl("/tmp");
 
     // enqueue one url and then make sure it is not emitted before the timeout
     ActiveFileQueue queue;
     queue.setTimeout(3);
     queue.setWaitTimeout(2);
 
-    QSignalSpy spy( &queue, SIGNAL(urlTimeout(KUrl)) );
+    QSignalSpy spy( &queue, SIGNAL(urlTimeout(QString)) );
     queue.enqueueUrl(myUrl);
 
     // The signal should be emitted immediately
     QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.takeFirst().first().value<KUrl>(), myUrl);
+    QCOMPARE(spy.takeFirst().first().value<QString>(), myUrl);
 
     // wait for 1 seconds
     loopWait(1000);
@@ -71,24 +70,24 @@ void ActiveFileQueueTest::testTimeout()
 
     // now the signal should have been emitted
     QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.takeFirst().first().value<KUrl>(), myUrl);
+    QCOMPARE(spy.takeFirst().first().value<QString>(), myUrl);
 }
 
 void ActiveFileQueueTest::testRequeue()
 {
-    KUrl myUrl("/tmp");
+    QString myUrl("/tmp");
 
     // enqueue one url and then make sure it is not emitted before the timeout
     ActiveFileQueue queue;
     queue.setTimeout(3);
     queue.setWaitTimeout(2);
 
-    QSignalSpy spy( &queue, SIGNAL(urlTimeout(KUrl)) );
+    QSignalSpy spy( &queue, SIGNAL(urlTimeout(QString)) );
     queue.enqueueUrl(myUrl);
 
     // The signal should be emitted immediately
     QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.takeFirst().first().value<KUrl>(), myUrl);
+    QCOMPARE(spy.takeFirst().first().value<QString>(), myUrl);
 
     queue.enqueueUrl(myUrl);
     // wait for 2 seconds
@@ -111,7 +110,7 @@ void ActiveFileQueueTest::testRequeue()
 
     // now the signal should have been emitted
     QCOMPARE(spy.count(), 1);
-    QCOMPARE(spy.takeFirst().first().value<KUrl>(), myUrl);
+    QCOMPARE(spy.takeFirst().first().value<QString>(), myUrl);
 }
 
 QTEST_MAIN(ActiveFileQueueTest)

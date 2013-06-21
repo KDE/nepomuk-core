@@ -153,8 +153,8 @@ Nepomuk2::FileWatch::FileWatch()
     m_metadataMover->moveToThread(m_metadataMoverThread);
 
     m_fileModificationQueue = new ActiveFileQueue(this);
-    connect(m_fileModificationQueue, SIGNAL(urlTimeout(KUrl)),
-            this, SLOT(slotActiveFileQueueTimeout(KUrl)));
+    connect(m_fileModificationQueue, SIGNAL(urlTimeout(QString)),
+            this, SLOT(slotActiveFileQueueTimeout(QString)));
 
 #ifdef BUILD_KINOTIFY
     // monitor the file system for changes (restricted by the inotify limit)
@@ -520,10 +520,10 @@ void Nepomuk2::FileWatch::slotDeviceTeardownRequested(const Nepomuk2::RemovableM
 }
 
 
-void Nepomuk2::FileWatch::slotActiveFileQueueTimeout(const KUrl &url)
+void Nepomuk2::FileWatch::slotActiveFileQueueTimeout(const QString& url)
 {
     kDebug() << url;
-    updateFileViaFileIndexer(url.toLocalFile());
+    updateFileViaFileIndexer(url);
 }
 
 void Nepomuk2::FileWatch::updateStatusMessage(const QString &newStatus)

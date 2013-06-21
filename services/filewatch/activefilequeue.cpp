@@ -29,16 +29,16 @@
 namespace {
     class Entry {
     public:
-        Entry(const KUrl& url, int c);
+        Entry(const QString& url, int c);
         bool operator==(const Entry& other) const;
 
         /// The file url
-        KUrl url;
+        QString url;
         /// The seconds left in this entry
         int cnt;
     };
 
-    Entry::Entry(const KUrl &u, int c)
+    Entry::Entry(const QString &u, int c)
         : url(u),
           cnt(c)
     {
@@ -91,7 +91,7 @@ ActiveFileQueue::~ActiveFileQueue()
     delete d;
 }
 
-void ActiveFileQueue::enqueueUrl(const KUrl &url)
+void ActiveFileQueue::enqueueUrl(const QString& url)
 {
     Entry defaultEntry(url, d->m_queueTimeout);
 

@@ -23,8 +23,7 @@
 #define ACTIVEFILEQUEUE_H
 
 #include <QtCore/QObject>
-
-#include <KUrl>
+#include <QString>
 
 /**
  * The active file queue maintains a queue of file paths
@@ -53,10 +52,10 @@ public:
     ~ActiveFileQueue();
 
 signals:
-    void urlTimeout(const KUrl& url);
+    void urlTimeout(const QString& url);
 
 public slots:
-    void enqueueUrl(const KUrl& url);
+    void enqueueUrl(const QString& url);
 
     /**
      * Set the timeout in seconds. Be aware that the timeout
