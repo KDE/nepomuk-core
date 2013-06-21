@@ -19,14 +19,13 @@
 #include "metadatamover.h"
 #include "nepomukfilewatch.h"
 #include "datamanagement.h"
+#include "resourcemanager.h"
 
 #include <QtCore/QTimer>
 
 #include <Soprano/Model>
 #include <Soprano/Node>
-#include <Soprano/NodeIterator>
 #include <Soprano/QueryResultIterator>
-#include <Soprano/LiteralValue>
 
 #include "nie.h"
 
@@ -139,33 +138,56 @@ void Nepomuk2::MetadataMover::slotWorkUpdateQueue()
 }
 
 
+namespace {
+    QUrl fetchUriFromUrl(const QUrl& nieUrl) {
+        if( nieUrl.isEmpty() ) {
+            return QUrl();
+        }
+
+        QString query = QString::fromLatin1("select ?r where { ?r nie:url %1 . } LIMIT 1")
+                        .arg( Soprano::Node::resourceToN3(nieUrl) );
+
+        Soprano::Model* model = Nepomuk2::ResourceManager::instance()->mainModel();
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+        if( it.next() )
+            return it[0].uri();
+
+        return QUrl();
+    }
+}
+
 void Nepomuk2::MetadataMover::removeMetadata( const KUrl& url )
 {
-//    kDebug() << url;
-
-    if ( url.isEmpty() ) {
+    if( url.isEmpty() ) {
         kDebug() << "empty path. Looks like a bug somewhere...";
+        return;
     }
-    else {
-        // When the url is a folder we do not remove the metadata for all
-        // the files in that folder, since inotify gives us a delete event
-        // for each of those files
-        KJob* job = Nepomuk2::removeResources( QList<QUrl>() << url );
-        job->exec();
-        if( job->error() )
-            kError() << job->errorString();
-    }
+
+    const QUrl uri = fetchUriFromUrl(url);
+    if( uri.isEmpty() )
+        return;
+
+    // When the url is a folder we do not remove the metadata for all
+    // the files in that folder, since inotify gives us a delete event
+    // for each of those files
+    KJob* job = Nepomuk2::removeResources( QList<QUrl>() << uri );
+    job->exec();
+    if( job->error() )
+        kError() << job->errorString();
 }
 
 
 void Nepomuk2::MetadataMover::updateMetadata( const KUrl& from, const KUrl& to )
 {
     kDebug() << from << "->" << to;
+    if( from.isEmpty() || to.isEmpty() ) {
+        kError() << "Paths Empty - File a bug" << from << to;
+        return;
+    }
 
-    if ( m_model->executeQuery(QString::fromLatin1("ask where { { %1 ?p ?o . } UNION { ?r nie:url %1 . } . }")
-                               .arg(Soprano::Node::resourceToN3(from)),
-                               Soprano::Query::QueryLanguageSparql).boolValue() ) {
-        Nepomuk2::setProperty(QList<QUrl>() << from, Nepomuk2::Vocabulary::NIE::url(), QVariantList() << to);
+    const QUrl uri = fetchUriFromUrl(from);
+    if( !uri.isEmpty() ) {
+        Nepomuk2::setProperty(QList<QUrl>() << uri, Nepomuk2::Vocabulary::NIE::url(), QVariantList() << to);
     }
     else {
         //
