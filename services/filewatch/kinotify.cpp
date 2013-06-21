@@ -338,6 +338,12 @@ void KInotify::slotEvent( int socket )
 
         QByteArray path;
 
+        // Overflow happens sometimes if we process the events too slowly
+        if( event->wd < 0 && (event->mask & EventQueueOverflow) ) {
+            kError() << "Inotify - too many event - Overflowed";
+            return;
+        }
+
         // the event name only contains an interesting value if we get an event for a file/folder inside
         // a watched folder. Otherwise we should ignore it
         if ( event->mask & (EventDeleteSelf|EventMoveSelf) ) {
