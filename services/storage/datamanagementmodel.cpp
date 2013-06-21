@@ -2583,7 +2583,8 @@ QUrl DataManagementModel::nepomukGraph()
 
 void Nepomuk2::DataManagementModel::removeAllResources(const QSet< QUrl >& resourceUris, RemovalFlags flags)
 {
-    Q_UNUSED(flags);
+    if( resourceUris.isEmpty() )
+        return;
 
     QSet<QUrl> resolvedResources(resourceUris);
 
