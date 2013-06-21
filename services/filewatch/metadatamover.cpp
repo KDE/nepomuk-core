@@ -33,6 +33,7 @@
 #include <KJob>
 #include <KLocale>
 
+using namespace Nepomuk2::Vocabulary;
 
 Nepomuk2::MetadataMover::MetadataMover( Soprano::Model* model, QObject* parent )
     : QObject( parent ),
@@ -187,7 +188,10 @@ void Nepomuk2::MetadataMover::updateMetadata( const KUrl& from, const KUrl& to )
 
     const QUrl uri = fetchUriFromUrl(from);
     if( !uri.isEmpty() ) {
-        Nepomuk2::setProperty(QList<QUrl>() << uri, Nepomuk2::Vocabulary::NIE::url(), QVariantList() << to);
+        KJob* job = Nepomuk2::setProperty(QList<QUrl>() << uri, NIE::url(), QVariantList() << to);
+        job->exec();
+        if( job->error() )
+            kError() << job->errorString();
     }
     else {
         //
