@@ -146,11 +146,16 @@ SimpleResourceGraph OdfExtractor::extract(const QUrl& resUri, const QUrl& fileUr
     QString plainText;
     QTextStream stream(&plainText);
 
+    int size = 0;
     while( !xml.atEnd() ) {
+        if( size >= maxPlainTextSize() )
+            break;
+
         xml.readNext();
         if( xml.isCharacters() ) {
             QString str = xml.text().toString();
             stream << str;
+            size += str.size();
 
             if( !str.at(str.length()-1).isSpace() )
                 stream << QLatin1Char(' ');

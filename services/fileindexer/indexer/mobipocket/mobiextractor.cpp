@@ -101,7 +101,7 @@ SimpleResourceGraph MobiExtractor::extract(const QUrl& resUri, const QUrl& fileU
     }
 
     if (!doc.hasDRM()) {
-        QString html = doc.text();
+        QString html = doc.text( maxPlainTextSize() );
 
         QTextDocument document;
         document.setHtml(html);

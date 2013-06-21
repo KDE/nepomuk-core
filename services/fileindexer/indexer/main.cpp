@@ -21,6 +21,7 @@
 */
 
 #include "indexer.h"
+#include "extractorplugin.h"
 #include "../util.h"
 #include "../../../servicestub/priority.h"
 #include "nepomukversion.h"
@@ -93,7 +94,10 @@ int main(int argc, char *argv[])
     Nepomuk2::Indexer indexer;
 
     if( args->isSet("data") ) {
+        // We tell the plugins not to extract any plain text
+        Nepomuk2::ExtractorPlugin::setMaxPlainTextSize(0);
         Nepomuk2::SimpleResourceGraph graph = indexer.indexFileGraph( args->url(0) );
+        Nepomuk2::ExtractorPlugin::resetMaxPlainTextSize();
 
         // Optimization, in this case we generally don't care about the plain text content
         graph.removeAll( QUrl(), NIE::plainTextContent() );

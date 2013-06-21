@@ -96,6 +96,10 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
 
     QString plainTextContent;
     for( int i=0; i<pdfDoc->numPages(); i++ ) {
+        if( plainTextContent.size() >= maxPlainTextSize() ) {
+            break;
+        }
+
         Poppler::Page* page = pdfDoc->page( i );
         if(!page) {  // broken pdf files do not return a valid page
             kWarning() << "Could not read page content from" << fileUrl;
@@ -103,14 +107,6 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
         }
         plainTextContent.append( page->text( QRectF() ) );
         delete page;
-
-        // This number has been experimentally chosen. Virtuoso cannot handle more than this
-        static const int maxSize = 3 * 1024 * 1024;
-        if( plainTextContent.size() >= maxSize ) {
-            kWarning() << "Trimming plain text content from " << plainTextContent.size() << " to " << maxSize;
-            plainTextContent.resize( maxSize );
-            break;
-        }
     }
 
     if( !plainTextContent.isEmpty() ) {

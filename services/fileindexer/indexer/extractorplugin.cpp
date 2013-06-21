@@ -116,4 +116,25 @@ QList<SimpleResource> ExtractorPlugin::contactsFromString(const QString& string)
     return resList;
 }
 
+// This number has been experimentally chosen. Virtuoso cannot handle more than this
+// The max query size actually seems to be 2500243, but we're leaving space for the other parts
+// of the query
+int ExtractorPlugin::s_plainTextSize = 2490999;
+
+int ExtractorPlugin::maxPlainTextSize()
+{
+    return s_plainTextSize;
+}
+
+void ExtractorPlugin::resetMaxPlainTextSize()
+{
+    s_plainTextSize = 2490999;
+}
+
+void ExtractorPlugin::setMaxPlainTextSize(int size)
+{
+    s_plainTextSize = size;
+}
+
+
 }

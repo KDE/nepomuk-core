@@ -240,6 +240,9 @@ void Office2007Extractor::extractAllText(QIODevice* device, QTextStream& stream)
     QXmlStreamReader xml( device );
 
     while( !xml.atEnd() ) {
+        if( stream.string()->size() >= maxPlainTextSize() )
+            return;
+
         xml.readNext();
         if( xml.isCharacters() ) {
             QString str = xml.text().toString();
@@ -265,6 +268,9 @@ void Office2007Extractor::extractTextFromFiles(const KArchiveDirectory* archiveD
             continue;
         }
 
+        if( stream.string()->size() >= maxPlainTextSize() )
+            return;
+
         if( !entryName.endsWith(".xml") )
             continue;
 
@@ -276,15 +282,19 @@ void Office2007Extractor::extractTextFromFiles(const KArchiveDirectory* archiveD
 void Office2007Extractor::extractTextWithTag(QIODevice* device, const QString& tag, QTextStream& stream)
 {
     QXmlStreamReader xml( device );
+    int size = 0;
 
     while( !xml.atEnd() ) {
+        if( size >= maxPlainTextSize() )
+            break;
+
         xml.readNext();
         if( xml.qualifiedName().startsWith(tag) && xml.isStartElement() ) {
             QString str = xml.readElementText(QXmlStreamReader::IncludeChildElements).simplified();
 
             if( !str.isEmpty() ) {
                 stream << str;
-                kDebug() << str;
+                size += str.size();
 
                 if( !str.at(str.length()-1).isSpace() )
                     stream << QLatin1Char(' ');

@@ -167,6 +167,9 @@ SimpleResourceGraph EPubExtractor::extract(const QUrl& resUri, const QUrl& fileU
         doc.setHtml( html );
         plainText.append( doc.toPlainText() + "\n" );
 
+        if( plainText.size() >= maxPlainTextSize() )
+            break;
+
     } while( epub_it_get_next(iter) );
 
     epub_free_iterator(iter);
@@ -193,6 +196,9 @@ SimpleResourceGraph EPubExtractor::extract(const QUrl& resUri, const QUrl& fileU
                 doc.setHtml( html );
                 plainText.append( doc.toPlainText() + "\n" );
                 free(data);
+
+                if( plainText.size() >= maxPlainTextSize() )
+                    break;
             }
         } while( epub_tit_next(tit) );
     }

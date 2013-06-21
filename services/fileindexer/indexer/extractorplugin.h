@@ -138,6 +138,19 @@ namespace Nepomuk2 {
          * by a number of different separators. It sets the contact's nco:fullname.
          */
         static QList<SimpleResource> contactsFromString(const QString& string);
+
+        /**
+         * Virtuoso does not support streaming operators, and does not accept queries
+         * above a certain size. Since the plain text has to go in a query, there is
+         * no point extracting more than this plain text
+         */
+        static int maxPlainTextSize();
+
+        static void setMaxPlainTextSize(int size);
+        static void resetMaxPlainTextSize();
+
+    private:
+        static int s_plainTextSize;
     };
 }
 

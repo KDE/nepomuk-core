@@ -214,7 +214,7 @@ QString Nepomuk2::Indexer::lastError() const
 void Nepomuk2::Indexer::setNiePlainTextContent(const QUrl& uri, QString& plainText)
 {
     // This number has been experimentally chosen. Virtuoso cannot handle more than this
-    static const int maxSize = 3 * 1024 * 1024;
+    static const int maxSize = ExtractorPlugin::maxPlainTextSize();
     if( plainText.size() > maxSize )  {
         kWarning() << "Trimming plain text content from " << plainText.size() << " to " << maxSize;
         plainText.resize( maxSize );
@@ -240,6 +240,9 @@ void Nepomuk2::Indexer::setNiePlainTextContent(const QUrl& uri, QString& plainTe
                                 .arg( graphN3, uriN3, Soprano::Node::literalToN3(plainText) );
 
         model->executeQuery( insertCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+        if( model->lastError() ) {
+            kError() << model->lastError().message();
+        }
     }
 }
 
