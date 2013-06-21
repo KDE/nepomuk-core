@@ -1143,8 +1143,8 @@ void DataManagementModelTest::testRemoveProperty_invalid_args()
     const QUrl nonExistingFileUrl("file:///a/file/that/is/very/unlikely/to/exist");
     m_dmModel->removeProperty(QList<QUrl>() << nonExistingFileUrl, QUrl("prop:/int"), QVariantList() << 42, QLatin1String("testapp"));
 
-    // the call should have failed
-    QVERIFY(m_dmModel->lastError());
+    // the call should silently fail
+    QVERIFY(!m_dmModel->lastError());
 
     // nothing should have changed
     QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);
@@ -1393,8 +1393,8 @@ void DataManagementModelTest::testRemoveProperties_invalid_args()
     const QUrl nonExistingFileUrl("file:///a/file/that/is/very/unlikely/to/exist");
     m_dmModel->removeProperties(QList<QUrl>() << nonExistingFileUrl, QList<QUrl>() << QUrl("prop:/int"), QLatin1String("testapp"));
 
-    // the call should have failed
-    QVERIFY(m_dmModel->lastError());
+    // the call should have silently failed
+    QVERIFY(!m_dmModel->lastError());
 
     // nothing should have changed
     QCOMPARE(Graph(m_model->listStatements().allStatements()), existingStatements);

@@ -659,7 +659,7 @@ void Nepomuk2::DataManagementModel::removeProperty(const QList<QUrl> &resources,
     //
     // Resolve file URLs
     //
-    QSet<QUrl> resolvedResources = QSet<QUrl>::fromList(resolveUrls(resources, app));
+    QSet<QUrl> resolvedResources = QSet<QUrl>::fromList(resolveUrls(resources, app, false));
     if(resolvedResources.isEmpty() || lastError()) {
         return;
     }
@@ -751,7 +751,7 @@ void Nepomuk2::DataManagementModel::removeProperties(const QList<QUrl> &resource
     //
     // Resolve file URLs, we can simply ignore the non-existing file resources which are reflected by empty resolved URIs
     //
-    QSet<QUrl> resolvedResources = QSet<QUrl>::fromList(resolveUrls(resources, app));
+    QSet<QUrl> resolvedResources = QSet<QUrl>::fromList(resolveUrls(resources, app, false));
     if(resolvedResources.isEmpty() || lastError()) {
         return;
     }
@@ -2240,7 +2240,7 @@ QList<QUrl> DataManagementModel::resolveUrls(const QList<QUrl>& urls, const QStr
     }
 
     // Create the file urls
-    if( !app.isEmpty() ) {
+    if( statLocalFiles && !app.isEmpty() ) {
         const QUrl graph = fetchGraph( app );
         finalUrls.append( createFileResources(nieUrls, graph) );
     }
