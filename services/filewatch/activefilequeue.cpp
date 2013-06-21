@@ -23,6 +23,7 @@
 #include "activefilequeue.h"
 
 #include <QtCore/QQueue>
+#include <QtCore/QHash>
 #include <QtCore/QTimer>
 
 
@@ -64,7 +65,7 @@ public:
     QTimer m_queueTimer;
 
     /// Contains a set of all the entries for which we emitted the urlTimeout sigal
-    QList<Entry> m_emittedEntries;
+    QHash<QString, int> m_emittedEntries;
     int m_emittedTimeout;
 
 };
@@ -102,7 +103,7 @@ void ActiveFileQueue::enqueueUrl(const QString& url)
     }
     else {
         // We check if we just emitted the url, if so we move it to the normal queue
-        QList<Entry>::iterator iter = qFind(d->m_emittedEntries.begin(), d->m_emittedEntries.end(), defaultEntry);
+        QHash<QString, int>::iterator iter = d->m_emittedEntries.find(url);
         if( iter != d->m_emittedEntries.end() ) {
             d->m_queue.enqueue( defaultEntry );
             d->m_emittedEntries.erase( iter );
@@ -110,8 +111,7 @@ void ActiveFileQueue::enqueueUrl(const QString& url)
         else {
             // It's not in any of the queues
             emit urlTimeout( url );
-            defaultEntry.cnt = d->m_emittedTimeout;
-            d->m_emittedEntries.append( defaultEntry );
+            d->m_emittedEntries.insert( url, d->m_emittedTimeout );
         }
     }
 
@@ -140,8 +140,7 @@ void ActiveFileQueue::slotTimer()
         entry.cnt--;
         if( entry.cnt <= 0 ) {
             // Insert into the emitted queue
-            entry.cnt = d->m_emittedTimeout;
-            d->m_emittedEntries.append( entry );
+            d->m_emittedEntries.insert( entry.url, d->m_emittedTimeout );
 
             emit urlTimeout( entry.url );
             it.remove();
@@ -149,12 +148,12 @@ void ActiveFileQueue::slotTimer()
     }
 
     // Run through all the emitted entires and remove them
-    it = QMutableListIterator<Entry>( d->m_emittedEntries );
-    while( it.hasNext() ) {
-        Entry& entry = it.next();
-        entry.cnt--;
-        if( entry.cnt <= 0 ) {
-            it.remove();
+    QMutableHashIterator<QString, int> iter( d->m_emittedEntries );
+    while( iter.hasNext() ) {
+        iter.next();
+        iter.value()--;
+        if( iter.value() <= 0 ) {
+            iter.remove();
         }
     }
 
