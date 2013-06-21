@@ -89,6 +89,12 @@ Nepomuk2::ResourceData::ResourceData( const QUrl& uri, const QUrl& kickOffUri, c
         }
         else {
             m_nieUrl = kickOffUri;
+            if( m_nieUrl.isLocalFile() ) {
+                // Point to the actual file in the case of a system link
+                QFileInfo fileInfo(m_nieUrl.toLocalFile());
+                if( fileInfo.isSymLink() )
+                    m_nieUrl = KUrl::fromLocalFile( fileInfo.canonicalFilePath() );
+            }
             m_cache.insert( NIE::url(), m_nieUrl );
 
             QMutexLocker locker(&m_rm->mutex);
