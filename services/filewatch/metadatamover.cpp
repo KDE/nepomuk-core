@@ -147,53 +147,13 @@ void Nepomuk2::MetadataMover::removeMetadata( const KUrl& url )
         kDebug() << "empty path. Looks like a bug somewhere...";
     }
     else {
-        const bool isFolder = url.url().endsWith('/');
+        // When the url is a folder we do not remove the metadata for all
+        // the files in that folder, since inotify gives us a delete event
+        // for each of those files
         KJob* job = Nepomuk2::removeResources( QList<QUrl>() << url );
         job->exec();
         if( job->error() )
             kError() << job->errorString();
-
-        if( isFolder ) {
-            //
-            // Recursively remove children
-            // We cannot use the nie:isPartOf relation since only children could have metadata. Thus, we do a regex
-            // match on all files and folders below the URL we got.
-            //
-            // CAUTION: The trailing slash on the from URL is essential! Otherwise we might match the newly added
-            //          URLs, too (in case a rename only added chars to the name)
-            //
-            const QString query = QString::fromLatin1( "select distinct ?r where { "
-                                                    "?r %1 ?url . "
-                                                    "FILTER(REGEX(STR(?url),'^%2')) . "
-                                                    "}" )
-                                .arg( Soprano::Node::resourceToN3( Nepomuk2::Vocabulary::NIE::url() ),
-                                        url.url(KUrl::AddTrailingSlash) );
-
-            //
-            // We cannot use one big loop since our updateMetadata calls below can change the iterator
-            // which could have bad effects like row skipping. Thus, we handle the urls in chunks of
-            // cached items.
-            //
-            while ( 1 ) {
-                QList<QUrl> urls;
-                Soprano::QueryResultIterator it = m_model->executeQuery( query + QLatin1String( " LIMIT 20" ),
-                                                                         Soprano::Query::QueryLanguageSparql );
-                while(it.next()) {
-                    urls << it[0].uri();
-                }
-                if ( !urls.isEmpty() ) {
-                    KJob* job = Nepomuk2::removeResources(urls);
-                    // This will spawn an event loop and wait, but that is okay cause
-                    // the MetadataMover is not running on the main thread
-                    job->exec();
-                    if( job->error() )
-                        kError() << job->errorString();
-                }
-                else {
-                    break;
-                }
-            }
-        }
     }
 }
 
