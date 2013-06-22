@@ -334,7 +334,7 @@ void Nepomuk2::FileWatch::updateFolderViaFileIndexer( const QString& path )
 }
 
 
-void Nepomuk2::FileWatch::connectToKDirWatch()
+void Nepomuk2::FileWatch::connectToKDirNotify()
 {
     // monitor KIO for changes
     QDBusConnection::sessionBus().connect( QString(), QString(), "org.kde.KDirNotify", "FileMoved",
@@ -382,7 +382,7 @@ void Nepomuk2::FileWatch::slotInotifyWatchUserLimitReached( const QString& path 
             m_dirWatch->deleteLater();
             m_dirWatch = 0;
         }
-        connectToKDirWatch();
+        connectToKDirNotify();
     }
 }
 #endif
