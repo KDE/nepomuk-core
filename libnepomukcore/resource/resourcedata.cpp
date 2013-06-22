@@ -53,7 +53,7 @@
 #include <kurl.h>
 #include <kcomponentdata.h>
 
-#include <QtDBus/QDBusConnection>
+#include <kdbusconnectionpool.h>
 #include <QtDBus/QDBusMessage>
 
 using namespace Soprano;
@@ -281,7 +281,7 @@ bool Nepomuk2::ResourceData::store()
                           << QString() << QString()
                           << KGlobal::mainComponent().componentName() );
 
-        QDBusConnection bus = QDBusConnection::sessionBus();
+        QDBusConnection bus = KDBusConnectionPool::threadConnection();
         QDBusMessage reply = bus.call( msg );
         if( reply.type() == QDBusMessage::ErrorMessage ) {
             //TODO: Set the error somehow
@@ -424,7 +424,7 @@ void Nepomuk2::ResourceData::setProperty( const QUrl& uri, const Nepomuk2::Varia
                           << QVariant(DBus::normalizeVariantList(varList))
                           << KGlobal::mainComponent().componentName() );
 
-        QDBusConnection bus = QDBusConnection::sessionBus();
+        QDBusConnection bus = KDBusConnectionPool::threadConnection();
         QDBusMessage reply = bus.call( msg );
         if( reply.type() == QDBusMessage::ErrorMessage ) {
             //TODO: Set the error somehow
@@ -479,7 +479,7 @@ void Nepomuk2::ResourceData::addProperty( const QUrl& uri, const Nepomuk2::Varia
                           << QVariant(DBus::normalizeVariantList(varList))
                           << KGlobal::mainComponent().componentName() );
 
-        QDBusConnection bus = QDBusConnection::sessionBus();
+        QDBusConnection bus = KDBusConnectionPool::threadConnection();
         QDBusMessage reply = bus.call( msg );
         if( reply.type() == QDBusMessage::ErrorMessage ) {
             //TODO: Set the error somehow
@@ -513,7 +513,7 @@ void Nepomuk2::ResourceData::removeProperty( const QUrl& uri )
                           << DBus::convertUri(uri)
                           << KGlobal::mainComponent().componentName() );
 
-        QDBusConnection bus = QDBusConnection::sessionBus();
+        QDBusConnection bus = KDBusConnectionPool::threadConnection();
         QDBusMessage reply = bus.call( msg );
         if( reply.type() == QDBusMessage::ErrorMessage ) {
             //TODO: Set the error somehow
@@ -546,7 +546,7 @@ void Nepomuk2::ResourceData::remove( bool recursive )
                           << 0 /* no flags */
                           << KGlobal::mainComponent().componentName());
 
-        QDBusConnection bus = QDBusConnection::sessionBus();
+        QDBusConnection bus = KDBusConnectionPool::threadConnection();
         QDBusMessage reply = bus.call( msg );
         if( reply.type() == QDBusMessage::ErrorMessage ) {
             //TODO: Set the error somehow
