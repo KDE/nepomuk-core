@@ -32,6 +32,7 @@ Comment[sv]=Nepomuk-tjänst version 2
 Comment[tr]=Nepomuk Servisi Sürüm 2
 Comment[uk]=Служба Nepomuk версії 2
 Comment[x-test]=xxNepomuk Service Version 2xx
+Comment[zh_CN]=Nepomuk 服务版本 2
 Comment[zh_TW]=Nepomuk 服務第 2 版
 [PropertyDef::X-KDE-Nepomuk-autostart]
 Type=bool
