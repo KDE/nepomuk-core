@@ -321,7 +321,7 @@ bool Nepomuk2::ResourceData::store()
 // Caller must hold m_dataMutex
 void Nepomuk2::ResourceData::addToWatcher()
 {
-    if( m_watchEnabled && !m_addedToWatcher ) {
+    if( m_watchEnabled && !m_addedToWatcher && !m_uri.isEmpty() ) {
         //Obey the locking rules: the rm mutex gets locked before the dataMutex.
         m_dataMutex.unlock();
         //It is safe to use m_uri with dataMutex unlocked because it is only modified to set it, 
@@ -796,12 +796,11 @@ void Nepomuk2::ResourceData::setWatchEnabled(bool status)
 {
     QMutexLocker lock(&m_dataMutex);
     if( m_watchEnabled != status ) {
+        m_watchEnabled = status;
         if( status )
             addToWatcher();
         else
             removeFromWatcher();
-
-        m_watchEnabled = status;
     }
 }
 
