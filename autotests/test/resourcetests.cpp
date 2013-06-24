@@ -542,15 +542,15 @@ void ResourceTests::urlUpdate()
 
     Resource res;
     res.setProperty(NIE::url(), resUrl);
+    res.setWatchEnabled(true);
 
     QVERIFY(res.exists());
     QVERIFY(!res.uri().isEmpty());
 
-    QUrl resUrl2("akonadi:?item=2342");
+    QUrl resUrl2("akonadi:?item=50000");
     KJob* job = Nepomuk2::setProperty( QList<QUrl>() << res.uri(), NIE::url(),
                                        QVariantList() << resUrl2 );
     job->exec();
-    QEXPECT_FAIL("", "You currently aren't allowed to change the nie:url", Abort);
     QVERIFY(!job->error());
 
     QTest::qWait( 200 );
@@ -558,8 +558,10 @@ void ResourceTests::urlUpdate()
     QUrl nieUrl = res.property(NIE::url()).toUrl();
     QCOMPARE(nieUrl, resUrl2);
 
+    QVERIFY(res.exists());
+
     Resource res2(resUrl);
-    QVERIFY(!res.exists());
+    QVERIFY(!res2.exists());
 
     Resource res3(resUrl2);
     QVERIFY(res3.exists());
