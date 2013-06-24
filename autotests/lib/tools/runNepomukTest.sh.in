@@ -4,6 +4,8 @@
 source @NEPOMUK_TESTLIB_TOOLS_DIR@/nepomuk-sandbox-begin.sh
 
 eval '$@'
+ret=$?
 
 # Destroy it
 source @NEPOMUK_TESTLIB_TOOLS_DIR@/nepomuk-sandbox-end.sh
+exit $ret
