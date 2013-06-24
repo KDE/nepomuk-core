@@ -2461,11 +2461,22 @@ bool Nepomuk2::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource
         removeStatement(resUri, NIE::url(), oldNieUrl, oldNieUrlGraph);
         addStatement(resUri, NIE::url(), nieUrl, oldNieUrlGraph);
 
+        d->m_watchManager->changeProperty( resource, NIE::url(),
+                                           QList<Soprano::Node>() << nieUrl,
+                                           QList<Soprano::Node>() << oldNieUrl );
+
         if (!oldFileNameGraph.isEmpty()) {
             // we only update the filename if it actually changed
             if(KUrl(oldNieUrl).fileName() != KUrl(nieUrl).fileName()) {
-                removeStatement(resUri, NFO::fileName(), Soprano::LiteralValue(oldFileName), oldFileNameGraph);
-                addStatement(resUri, NFO::fileName(), Soprano::LiteralValue(KUrl(nieUrl).fileName()), oldFileNameGraph);
+                Soprano::Node oldN = Soprano::LiteralValue(oldFileName);
+                Soprano::Node newN = Soprano::LiteralValue(KUrl(nieUrl).fileName());
+
+                removeStatement(resUri, NFO::fileName(), oldN, oldFileNameGraph);
+                addStatement(resUri, NFO::fileName(), newN, oldFileNameGraph);
+
+                d->m_watchManager->changeProperty( resource, NIE::url(),
+                                                   QList<Soprano::Node>() << newN,
+                                                   QList<Soprano::Node>() << oldN );
             }
         }
 
