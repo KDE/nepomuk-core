@@ -141,6 +141,18 @@ void Nepomuk2::ResourceWatcher::slotWatchFinished(QDBusPendingCallWatcher* reply
                  this, SLOT(slotResourceTypesAdded(QString,QStringList)) );
         connect( d->m_connectionInterface, SIGNAL(resourceTypesRemoved(QString,QStringList)),
                  this, SLOT(slotResourceTypesRemoved(QString,QStringList)) );
+
+        foreach(const QUrl& uri, d->m_resources) {
+            d->m_connectionInterface->addResource(convertUri(uri));
+        }
+
+        foreach(const QUrl& uri, d->m_properties) {
+            d->m_connectionInterface->addProperty(convertUri(uri));
+        }
+
+        foreach(const QUrl& uri, d->m_types) {
+            d->m_connectionInterface->addType(convertUri(uri));
+        }
     }
     else {
         kDebug() << "Failed to connect to watch service" << reply.error().message();
