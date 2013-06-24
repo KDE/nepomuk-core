@@ -749,6 +749,20 @@ void Nepomuk2::ResourceData::updateKickOffLists(const QUrl& uri, const Nepomuk2:
     }
 }
 
+namespace {
+    // Returns true if the variant list was modified
+    bool removeInvalidValues(QList<Nepomuk2::Variant>& vList) {
+        bool modified = false;
+        foreach(const Nepomuk2::Variant& var, vList) {
+            if( var.isResource() && !var.toResource().isValid() ) {
+                vList.removeAll(var);
+                modified = true;
+            }
+        }
+
+        return modified;
+    }
+}
 // Since propertyRemoved and propertyAdded are called from the ResourceManager with the RM mutex already locked, 
 // it is ok for them to call updateKickOffLists while the dataMutex is locked.
 void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const QVariant &value_ )
@@ -756,6 +770,12 @@ void Nepomuk2::ResourceData::propertyRemoved( const Types::Property &prop, const
     QMutexLocker lock(&m_dataMutex);
     const Variant value(value_);
     QList<Variant> vl = m_cache.value(prop.uri()).toVariantList();
+
+    // Remove all invalid values
+    if( removeInvalidValues(vl) ) {
+        m_cache[prop.uri()] = vl;
+    }
+
     if( vl.contains(value) ) {
         //
         // Remove that element and and also remove all empty elements
