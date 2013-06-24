@@ -2382,6 +2382,9 @@ QList<QUrl> DataManagementModel::createFileResources(const QList< QUrl >& nieUrl
 
 bool Nepomuk2::DataManagementModel::updateNieUrlOnLocalFile(const QUrl &resource, const QUrl &nieUrl)
 {
+    if( !nieUrl.isLocalFile() )
+        return false;
+
     kDebug() << resource << "->" << nieUrl;
 
     //
