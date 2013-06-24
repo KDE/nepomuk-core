@@ -92,7 +92,7 @@ uint qHash(const OptimizedByteArray& arr) {
     return qHash(arr.toByteArray());
 }
 
-Q_DECLARE_METATYPE(OptimizedByteArray);
+Q_DECLARE_METATYPE(OptimizedByteArray)
 Q_DECLARE_TYPEINFO(OptimizedByteArray, Q_MOVABLE_TYPE);
 
 #endif // OPTIMIZED_BYTE_ARRAY_H
