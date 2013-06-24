@@ -52,9 +52,6 @@ Nepomuk2::Storage::Storage()
     // register the fancier name for this important service
     QDBusConnection::sessionBus().registerService( "org.kde.NepomukStorage" );
 
-    // TODO: remove this one
-    QDBusConnection::sessionBus().registerService(QLatin1String("org.kde.nepomuk.DataManagement"));
-
     m_repository = new Repository( QLatin1String( s_repositoryName ) );
     connect( m_repository, SIGNAL( loaded( Repository*, bool ) ),
                 this, SLOT( slotRepositoryLoaded( Repository*, bool ) ) );

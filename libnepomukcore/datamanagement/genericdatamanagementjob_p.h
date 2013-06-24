@@ -23,9 +23,6 @@
 #define GENERICDATAMANAGEMENTJOB_H
 
 #include <QtGlobal>
-
-#define DMS_DBUS_SERVICE "org.kde.nepomuk.DataManagement"
-
 #include <KJob>
 
 class QDBusPendingCallWatcher;

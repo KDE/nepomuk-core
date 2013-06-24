@@ -90,7 +90,7 @@ OrgKdeNepomukDataManagementInterface* Nepomuk2::dataManagementDBusInterface()
     DBus::registerDBusTypes();
 
     s_perThreadDms.setLocalData(
-      new org::kde::nepomuk::DataManagement(QLatin1String(DMS_DBUS_SERVICE),
+      new org::kde::nepomuk::DataManagement(QLatin1String("org.kde.NepomukStorage"),
                                             QLatin1String("/datamanagement"),
                                             KDBusConnectionPool::threadConnection()));
   }
