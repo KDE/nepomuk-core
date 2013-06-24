@@ -575,12 +575,19 @@ void ResourceTests::resourceDeletion()
     const QUrl fileUrl(tempFile.fileName());
 
     Tag tag("Poop");
+    tag.setWatchEnabled(true);
+
     Resource fileRes( fileUrl );
     fileRes.setWatchEnabled(true);
     fileRes.addTag(tag);
 
     const QUrl tagUri = tag.uri();
     QCOMPARE(fileRes.tags(), QList<Tag>() << tag);
+
+    // This 200 is because there is a slight delay after the watcher is first created
+    // and after it comes into use
+    // FIXME: Find a solution?
+    QTest::qWait(200);
 
     QVERIFY(tag.exists());
     tag.remove();
