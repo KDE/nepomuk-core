@@ -84,7 +84,7 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
         fileRes.addProperty( NIE::subject(), subject );
     }
 
-    QString creator = pdfDoc->info(QLatin1String("Creator"));
+    QString creator = pdfDoc->info(QLatin1String("Author"));
     if( !creator.isEmpty() ) {
         SimpleResource res;
         res.addType( NCO::Contact() );
@@ -92,6 +92,16 @@ SimpleResourceGraph PopplerExtractor::extract(const QUrl& resUri, const QUrl& fi
         graph << res;
 
         fileRes.addProperty( NCO::creator(), res );
+    }
+
+    QString generator = pdfDoc->info(QLatin1String("Creator"));
+    if( !creator.isEmpty() ) {
+        SimpleResource res;
+        res.addType( NCO::Contact() );
+        res.addProperty( NCO::fullname(), creator );
+        graph << res;
+
+        fileRes.addProperty( NIE::generator(), res );
     }
 
     QString plainTextContent;
