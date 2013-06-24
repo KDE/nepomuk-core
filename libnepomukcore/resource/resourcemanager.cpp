@@ -394,6 +394,18 @@ void Nepomuk2::ResourceManager::slotPropertyRemoved(const Resource &res, const T
     }
 }
 
+void Nepomuk2::ResourceManager::slotResourceRemoved(const QUrl& uri, const QList<QUrl>& )
+{
+    QMutexLocker lock( &d->mutex );
+    ResourceDataHash::iterator it = d->m_initializedData.find(uri);
+    if(it != d->m_initializedData.end()) {
+        ResourceData* data = *it;
+        data->resetAll();
+    }
+    d->m_initializedData.remove(uri);
+}
+
+
 void Nepomuk2::ResourceManager::setOverrideMainModel( Soprano::Model* model )
 {
     QMutexLocker lock( &d->mutex );
@@ -423,6 +435,8 @@ void Nepomuk2::ResourceManagerPrivate::addToWatcher( const QUrl& uri )
                   m_manager, SLOT(slotPropertyAdded(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
         QObject::connect( m_watcher, SIGNAL(propertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)),
                   m_manager, SLOT(slotPropertyRemoved(Nepomuk2::Resource, Nepomuk2::Types::Property, QVariant)) );
+        QObject::connect( m_watcher, SIGNAL(resourceRemoved(QUrl,QList<QUrl>)),
+                  m_manager, SLOT(slotResourceRemoved(QUrl, QList<QUrl>)) );
     }
     m_watcher->addResource( uri );
     // (re-)start the watcher in case this resource is the only one in the list of watched

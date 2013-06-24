@@ -160,6 +160,7 @@ namespace Nepomuk2 {
     private Q_SLOTS:
         void slotPropertyAdded(const Nepomuk2::Resource &res, const Nepomuk2::Types::Property &prop, const QVariant &value);
         void slotPropertyRemoved(const Nepomuk2::Resource &res, const Nepomuk2::Types::Property &prop, const QVariant &value);
+        void slotResourceRemoved(const QUrl& uri, const QList<QUrl>& types);
 
         /**
          * This slot is called when the application is about to quit in order to delete all the

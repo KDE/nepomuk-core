@@ -162,6 +162,10 @@ namespace Nepomuk2 {
 
         void setWatchEnabled( bool status );
         bool watchEnabled();
+
+        /// Will reset this instance to 0 as if constructed without parameters
+        /// Used by remove() and deleteData()
+        void resetAll();
     private:
         ResourceData(const ResourceData&); // = delete
         ResourceData& operator = (const ResourceData&); // = delete
@@ -170,10 +174,6 @@ namespace Nepomuk2 {
 
         void addToWatcher();
         void removeFromWatcher();
-
-        /// Will reset this instance to 0 as if constructed without parameters
-        /// Used by remove() and deleteData()
-        void resetAll();
 
         /// Contains a list of resources which use this ResourceData
         QList<Resource*> m_resources;

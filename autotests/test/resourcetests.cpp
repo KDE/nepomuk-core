@@ -603,6 +603,45 @@ void ResourceTests::resourceDeletion()
     QVERIFY(!model->containsAnyStatement(QUrl(), QUrl(), tagUri));
 }
 
+void ResourceTests::resourceDeletion2()
+{
+    KTemporaryFile tempFile;
+    QVERIFY(tempFile.open());
+    const QUrl fileUrl(tempFile.fileName());
+
+    Tag tag("Poop");
+    tag.setWatchEnabled(true);
+
+    Resource fileRes( fileUrl );
+    fileRes.setWatchEnabled(true);
+    fileRes.addTag(tag);
+
+    const QUrl tagUri = tag.uri();
+    QCOMPARE(fileRes.tags(), QList<Tag>() << tag);
+
+    // This 200 is because there is a slight delay after the watcher is first created
+    // and after it comes into use
+    // FIXME: Find a solution?
+    QTest::qWait(200);
+
+    QVERIFY(tag.exists());
+
+    KJob* job = Nepomuk2::removeResources( QList<QUrl>() << tag.uri() );
+    job->exec();
+    QVERIFY(!job->error());
+
+    QTest::qWait(200);
+
+    QVERIFY(!tag.exists());
+    QVERIFY(tag.uri().isEmpty());
+
+    QVERIFY(fileRes.tags().isEmpty());
+
+    // Verify the statements
+    Soprano::Model* model = ResourceManager::instance()->mainModel();
+    QVERIFY(!model->containsAnyStatement(tagUri, QUrl(), QUrl()));
+    QVERIFY(!model->containsAnyStatement(QUrl(), QUrl(), tagUri));
+}
 
 }
 

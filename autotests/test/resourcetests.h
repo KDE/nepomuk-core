@@ -90,6 +90,7 @@ private Q_SLOTS:
     // 7. Resource Deletion
     //
     void resourceDeletion();
+    void resourceDeletion2();
 };
 
 }
