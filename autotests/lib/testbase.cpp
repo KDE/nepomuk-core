@@ -97,7 +97,7 @@ void Nepomuk2::TestBase::cleanupTest()
 
 void Nepomuk2::TestBase::resetRepository()
 {
-    kDebug() << "Reseting the repository";
+    //kDebug() << "Reseting the repository";
     QTime timer;
     timer.start();
 
@@ -117,9 +117,9 @@ void Nepomuk2::TestBase::resetRepository()
                                                        QLatin1String("/datamanagement"),
                                                        QLatin1String("org.kde.nepomuk.DataManagement"),
                                                        QLatin1String("clearCache") );
-    QDBusConnection::sessionBus().send( msg );
+    QDBusConnection::sessionBus().call( msg );
 
-    kDebug() << "Time Taken: " << timer.elapsed()/1000.0 << " seconds";
+    //kDebug() << "Time Taken: " << timer.elapsed()/1000.0 << " seconds";
 }
 
 
