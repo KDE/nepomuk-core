@@ -213,7 +213,7 @@ void BackupTests::nonExistingData()
     QCOMPARE( urls.size(), 1 );
 
     QUrl url = urls.first();
-    QCOMPARE( url.scheme(), QLatin1String("nepomuk-backup") );
+    QCOMPARE( url, fileUrl );
     QCOMPARE( url.path(), fileUrl.toLocalFile() );
 }
 
