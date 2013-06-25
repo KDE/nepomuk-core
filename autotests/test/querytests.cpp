@@ -327,6 +327,9 @@ void QueryTests::resourceTypeTerm_data()
 
 void QueryTests::resourceTypeTerm()
 {
+    QEXPECT_FAIL( "type query", "The query results are correct but our resultIterator gives the incorrect results."
+                                "This is because of a bug related to type inferencing in virtuoso 6.1.6",
+                  Continue );
     QEXPECT_FAIL( "negated type query", "Negated Terms are broken - We get graphs in the results", Continue );
     literalTerm();
 }
