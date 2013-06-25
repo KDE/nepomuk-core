@@ -105,20 +105,61 @@ void BackupTests::restore()
     }
 }
 
+namespace {
+
+    QList<QUrl> graphsForApp(const QString& app) {
+        QString query = QString::fromLatin1("select distinct ?g where { ?g nao:maintainedBy ?a . "
+                                            "?a nao:identifier %1 . }")
+                        .arg( Soprano::Node::literalToN3(app) );
+
+        Soprano::Model* model = ResourceManager::instance()->mainModel();
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        QList<QUrl> graphs;
+        while( it.next() )
+            graphs << it[0].uri();
+
+        return graphs;
+    }
+
+    int graphCountForApp(const QString& app) {
+        // Check the number of Nepomuk graphs
+        return graphsForApp(app).size();
+    }
+
+    QList<QUrl> nepomukMeGraph() {
+        QString query = QString::fromLatin1("select distinct ?g where { graph ?g { <nepomuk:/me> ?p ?o. } }");
+
+        Soprano::Model* model = ResourceManager::instance()->mainModel();
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+        QList<QUrl> nepomukGraphs;
+        while( it.next() )
+            nepomukGraphs << it[0].uri();
+
+        return nepomukGraphs;
+    }
+}
+
 void BackupTests::simpleData()
 {
+    QCOMPARE( nepomukMeGraph(), graphsForApp("nepomuk") );
+
     // Add just one file and check if it is restored
     Test::DataGenerator gen;
     gen.createMusicFile( "Fix you", "Coldplay", "AlbumName") ;
 
     backup();
 
+    QCOMPARE( graphCountForApp("nepomuk"), 1 );
+    QCOMPARE( graphCountForApp("qttest"), 1 );
+    QCOMPARE( nepomukMeGraph(), graphsForApp("nepomuk") );
+
     // Save all statements in memory
-    Soprano::Graph origNepomukDataGraph( outputNepomukData() );
-    QSet< Soprano::Statement > origNepomukData = origNepomukDataGraph.toSet();
+    QSet< Soprano::Statement > origNepomukData = outputNepomukData().toSet();
 
     // Reset the repo
     resetRepository();
+
+    QCOMPARE( nepomukMeGraph(), graphsForApp("nepomuk") );
 
     // Restore the backup
     restore();
@@ -144,6 +185,11 @@ void BackupTests::simpleData()
     // The Agent should still exist
     query = QString::fromLatin1("ask where { ?r a nao:Agent . }");
     QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
+
+    // Check the number of graphs
+    QCOMPARE( graphCountForApp("nepomuk"), 1 );
+    QCOMPARE( graphCountForApp("qttest"), 1 );
+    QCOMPARE( nepomukMeGraph(), graphsForApp("nepomuk") );
 }
 
 void BackupTests::indexedData()
