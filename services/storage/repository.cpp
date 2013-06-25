@@ -64,7 +64,8 @@ Nepomuk2::Repository::Repository( const QString& name )
       m_inferenceModel( 0 ),
       m_dataManagementModel( 0 ),
       m_dataManagementAdaptor( 0 ),
-      m_backend( 0 )
+      m_backend( 0 ),
+      m_ontologyLoader( 0 )
 {
     m_dummyModel = new Soprano::Util::DummyModel();
 
