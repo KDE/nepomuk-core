@@ -71,6 +71,11 @@ Nepomuk2::Storage::~Storage()
 
 void Nepomuk2::Storage::slotRepositoryLoaded(Nepomuk2::Repository* repo, bool success)
 {
+    if( !success ) {
+        setServiceInitialized( false );
+        return;
+    }
+
     // FIXME: ResourceManager::instance() will result in a another VirtuosoModel being made
     //        and then removed. Is that good?
     //
