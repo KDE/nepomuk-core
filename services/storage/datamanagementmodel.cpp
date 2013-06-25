@@ -291,25 +291,30 @@ Soprano::Error::ErrorCode Nepomuk2::DataManagementModel::updateModificationDate(
     // which might actually be okay, but lets stick with 2 statements for now
     //
     const QString graphN3 = Soprano::Node::resourceToN3(d->m_nepomukGraph);
-    const QStringList resN3 = urlSetToN3( resources );
+    const QStringList allResN3 = urlSetToN3( resources );
 
-    QString delQ = QString::fromLatin1("sparql DELETE from %1 { ?res nao:lastModified ?mod . } "
-                                        "WHERE  { ?res nao:lastModified ?mod . "
-                                        "    FILTER(?res in (%3)) ."
-                                        "}")
-                    .arg( graphN3, resN3.join(",") );
+    // Do them 30 resources at a time, we do not want to send too large queries
+    for(int i=0; i<allResN3.size(); i+=30) {
+        const QStringList resN3 = allResN3.mid( i, 30 );
 
-    executeQuery( delQ, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+        QString delQ = QString::fromLatin1("sparql DELETE from %1 { ?res nao:lastModified ?mod . } "
+                                            "WHERE  { ?res nao:lastModified ?mod . "
+                                            "    FILTER(?res in (%3)) ."
+                                            "}")
+                       .arg( graphN3, resN3.join(",") );
 
-    const QString dt = Soprano::Node::literalToN3(date);
+        executeQuery( delQ, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
 
-    QString iq = QString::fromLatin1("sparql insert into %1 {").arg( graphN3 );
-    foreach(const QString& res, resN3) {
-        iq += QString::fromLatin1(" %1 nao:lastModified %2 .").arg( res, dt );
+        const QString dt = Soprano::Node::literalToN3(date);
+
+        QString iq = QString::fromLatin1("sparql insert into %1 {").arg( graphN3 );
+        foreach(const QString& res, resN3) {
+            iq += QString::fromLatin1(" %1 nao:lastModified %2 .").arg( res, dt );
+        }
+        iq += QLatin1String("} ");
+
+        executeQuery( iq, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
     }
-    iq += QLatin1String("} ");
-
-    executeQuery( iq, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
     return Soprano::Error::ErrorNone;
 }
 
