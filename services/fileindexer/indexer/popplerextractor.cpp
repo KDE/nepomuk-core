@@ -204,6 +204,9 @@ QString PopplerExtractor::parseFirstPage(Poppler::Document* pdfDoc, const QUrl& 
         }
     }
 
+    // FIXME: Sometimes the titles that are extracted are too large. This is a way of trimming them
+    //        though it still gives strange titles.
+    newPossibleTitle.resize( 50 );
     return newPossibleTitle;
 }
 
