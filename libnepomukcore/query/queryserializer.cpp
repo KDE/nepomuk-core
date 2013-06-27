@@ -92,12 +92,19 @@ namespace {
             return Nepomuk2::Query::ComparisonTerm::NoAggregateFunction;
     }
 
+    void doSerializeTermCommon( QXmlStreamWriter& xml, const Nepomuk2::Query::Term& term )
+    {
+        xml.writeAttribute( QLatin1String("position"), QString::number( term.position() ) );
+        xml.writeAttribute( QLatin1String("length"), QString::number( term.length() ) );
+    }
 
     bool doSerializeTerm( QXmlStreamWriter& xml, const Nepomuk2::Query::Term& term )
     {
         switch(term.type()) {
         case Term::Literal: {
             xml.writeStartElement( QLatin1String("literal") );
+            doSerializeTermCommon( xml, term );
+
             const Soprano::LiteralValue value = term.toLiteralTerm().value();
             if( value.isPlain() )
                 xml.writeAttribute( QLatin1String("lang"), value.language().toString() );
@@ -110,12 +117,16 @@ namespace {
 
         case Term::Resource:
             xml.writeStartElement( QLatin1String("resource") );
+            doSerializeTermCommon( xml, term );
+
             xml.writeAttribute( QLatin1String("uri"), KUrl( term.toResourceTerm().resource().uri() ).url() );
             xml.writeEndElement();
             break;
 
         case Term::And:
             xml.writeStartElement( QLatin1String("and") );
+            doSerializeTermCommon( xml, term );
+
             Q_FOREACH( const Term& myterm, term.toAndTerm().subTerms() ) {
                 doSerializeTerm( xml, myterm );
             }
@@ -124,6 +135,8 @@ namespace {
 
         case Term::Or:
             xml.writeStartElement( QLatin1String("or") );
+            doSerializeTermCommon( xml, term );
+
             Q_FOREACH( const Term& myterm, term.toOrTerm().subTerms() ) {
                 doSerializeTerm( xml, myterm );
             }
@@ -134,6 +147,8 @@ namespace {
             ComparisonTerm cTerm( term.toComparisonTerm() );
 
             xml.writeStartElement( QLatin1String("comparison") );
+            doSerializeTermCommon( xml, term );
+
 
             if( cTerm.property().isValid() )
                 xml.writeAttribute( QLatin1String("property"), KUrl(cTerm.property().uri()).url() );
@@ -156,18 +171,24 @@ namespace {
 
         case Term::ResourceType:
             xml.writeStartElement( QLatin1String("type") );
+            doSerializeTermCommon( xml, term );
+
             xml.writeAttribute( QLatin1String("uri"), KUrl( term.toResourceTypeTerm().type().uri() ).url() );
             xml.writeEndElement();
             break;
 
         case Term::Negation:
             xml.writeStartElement( QLatin1String("not") );
+            doSerializeTermCommon( xml, term );
+
             doSerializeTerm( xml, term.toNegationTerm().subTerm() );
             xml.writeEndElement();
             break;
 
         case Term::Optional:
             xml.writeStartElement( QLatin1String("optional") );
+            doSerializeTermCommon( xml, term );
+
             doSerializeTerm( xml, term.toOptionalTerm().subTerm() );
             xml.writeEndElement();
             break;
