@@ -334,7 +334,7 @@ int main( int argc, char **argv ) {
     aboutData.addAuthor(ki18n("Sebastian Trüg"),ki18n("Developer"), "trueg@kde.org");
     aboutData.addAuthor(ki18n("Vishesh Handa"),ki18n("Maintainer"), "me@vhanda.in");
 
-    Nepomuk2::Service2::init<Nepomuk2::Storage>( argc, argv, aboutData );
+    Nepomuk2::Service2::initUI<Nepomuk2::Storage>( argc, argv, aboutData );
 }
 
 #include "storage.moc"
