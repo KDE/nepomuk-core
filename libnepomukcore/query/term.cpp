@@ -86,6 +86,21 @@ Nepomuk2::Query::Term::Type Nepomuk2::Query::Term::type() const
     return d_ptr->m_type;
 }
 
+void Nepomuk2::Query::Term::setPosition(int start, int length)
+{
+    d_ptr->m_start = start;
+    d_ptr->m_length = length;
+}
+
+int Nepomuk2::Query::Term::position() const
+{
+    return d_ptr->m_start;
+}
+
+int Nepomuk2::Query::Term::length() const
+{
+    return d_ptr->m_length;
+}
 
 Nepomuk2::Query::Term Nepomuk2::Query::Term::optimized() const
 {

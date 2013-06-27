@@ -33,7 +33,9 @@ namespace Nepomuk2 {
         {
         public:
             TermPrivate( Term::Type t = Term::Invalid )
-                : m_type( t ) {
+                : m_type( t ),
+                  m_start( 0 ),
+                  m_length( 0 ) {
             }
             virtual ~TermPrivate() {
             }
@@ -47,6 +49,8 @@ namespace Nepomuk2 {
             }
 
             Term::Type m_type;
+            int m_start;
+            int m_length;
         };
     }
 }

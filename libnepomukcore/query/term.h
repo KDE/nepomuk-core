@@ -168,6 +168,34 @@ namespace Nepomuk2 {
             Type type() const;
 
             /**
+             * Set the position of the term in a query
+             *
+             * \param start Index of the first character parsed to this term
+             * \param length Size of the sub-string parsed to this term
+             *
+             * \since 4.12
+             */
+            void setPosition(int start, int length);
+
+            /**
+             * \return The start position of this term in a query
+             *
+             * \since 4.12
+             *
+             * \sa setPosition()
+             */
+            int position() const;
+
+            /**
+             * \return The length of this term in a query
+             *
+             * \since 4.12
+             *
+             * \sa setPosition()
+             */
+            int length() const;
+
+            /**
              * Optimizes the term without changing its meaning. This removes
              * redundant terms such as NegationTerm and OptionalTerm nestings and flattens
              * AndTerm and OrTerm hierarchies.
