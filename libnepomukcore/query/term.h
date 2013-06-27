@@ -178,6 +178,15 @@ namespace Nepomuk2 {
             void setPosition(int start, int length);
 
             /**
+             * Set the position of a term in a query
+             *
+             * \param term Term whose position is used as the position of this term
+             *
+             * \since 4.12
+             */
+            void setPosition(const Nepomuk2::Query::Term &term);
+
+            /**
              * \return The start position of this term in a query
              *
              * \since 4.12

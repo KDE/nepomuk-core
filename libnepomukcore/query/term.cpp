@@ -92,6 +92,11 @@ void Nepomuk2::Query::Term::setPosition(int start, int length)
     d_ptr->m_length = length;
 }
 
+void Nepomuk2::Query::Term::setPosition(const Nepomuk2::Query::Term& term)
+{
+    setPosition(term.position(), term.length());
+}
+
 int Nepomuk2::Query::Term::position() const
 {
     return d_ptr->m_start;
