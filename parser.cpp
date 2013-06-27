@@ -218,10 +218,10 @@ Nepomuk2::Query::Query Parser::parse(const QString &query)
         i18nc("Equality", "(contains|containing) %1"));
     d->pass_comparators.setComparator(Nepomuk2::Query::ComparisonTerm::Greater);
     d->runPass(d->pass_comparators,
-        i18nc("Strictly greater", "(greater|bigger|more) than %1;at least %1;after %1;\\> %1"));
+        i18nc("Strictly greater", "(greater|bigger|more) than %1;at least %1;(after|since) %1;\\> %1"));
     d->pass_comparators.setComparator(Nepomuk2::Query::ComparisonTerm::Smaller);
     d->runPass(d->pass_comparators,
-        i18nc("Strictly smaller", "(smaller|less|lesser) than %1;at most %1;before %1;\\< %1"));
+        i18nc("Strictly smaller", "(smaller|less|lesser) than %1;at most %1;(before|until) %1;\\< %1"));
     d->pass_comparators.setComparator(Nepomuk2::Query::ComparisonTerm::Equal);
     d->runPass(d->pass_comparators,
         i18nc("Equality", "(equal|equals|=) %1;equal to %1"));
@@ -255,7 +255,7 @@ Nepomuk2::Query::Query Parser::parse(const QString &query)
         i18nc("Date of creation", "created (at|on) %1;created %1"));
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileLastModified(), PassProperties::DateTime);
     d->runPass(d->pass_properties,
-        i18nc("Date of last modification", "(modified|edited) (at|on) %1;(modified|edited) %1"));
+        i18nc("Date of last modification", "(modified|edited|dated) (at|on|of) %1;(modified|edited|dated) %1"));
 
     // Properties having a resource range (hasTag, messageFrom, etc)
     d->pass_properties.setProperty(Soprano::Vocabulary::NAO::hasTag(), PassProperties::Tag);
