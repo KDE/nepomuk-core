@@ -29,7 +29,7 @@
 
 class SimpleResourceSubsystemTest : public QObject
 {
-    Q_OBJECT;
+    Q_OBJECT
     private Q_SLOTS:
        void testSimpleResourceStream();
        void testSimpleResourceGraphStream();
