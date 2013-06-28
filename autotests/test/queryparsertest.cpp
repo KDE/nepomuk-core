@@ -21,6 +21,7 @@
 
 #include "queryparsertest.h"
 #include "qtest_querytostring.h"
+#include "class.h"
 #include "queryparser.h"
 #include "query.h"
 #include "literalterm.h"
@@ -29,8 +30,12 @@
 #include "orterm.h"
 #include "negationterm.h"
 #include "comparisonterm.h"
+#include "resourcetypeterm.h"
+#include "nie.h"
 #include "nfo.h"
+#include "nmo.h"
 
+#include <QDateTime>
 #include <QtTest>
 #include <qtest_kde.h>
 
@@ -56,92 +61,79 @@ using namespace Nepomuk2::Query;
 
 void QueryParserTest::initTestCase()
 {
-    // we need to use a Virtuoso model as tmp model since redland misses important SPARQL features
-    // that are used by libnepomuk below
-    const Soprano::Backend* backend = Soprano::PluginManager::instance()->discoverBackendByName( "virtuosobackend" );
-    QVERIFY( backend );
-    m_storageDir = new KTempDir();
-    m_model = backend->createModel( Soprano::BackendSettings() << Soprano::BackendSetting(Soprano::BackendOptionStorageDir, m_storageDir->name()) );
-    QVERIFY( m_model );
-
-    // we create one fake ontology
-    QUrl graph("graph:/onto");
-    m_model->addStatement( graph, Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::NRL::Ontology(), graph );
-
-    m_model->addStatement( QUrl("onto:/label"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDF::Property(), graph );
-    m_model->addStatement( QUrl("onto:/label"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("label"), graph );
-    m_model->addStatement( QUrl("onto:/label"), Soprano::Vocabulary::RDFS::range(), Soprano::Vocabulary::XMLSchema::string(), graph );
-
-    m_model->addStatement( QUrl("onto:/hasTag"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDF::Property(), graph );
-    m_model->addStatement( QUrl("onto:/hasTag"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("has tag"), graph );
-    m_model->addStatement( QUrl("onto:/hasTag"), Soprano::Vocabulary::RDFS::range(), QUrl("onto:/Tag"), graph );
-
-    m_model->addStatement( QUrl("onto:/tag"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDF::Property(), graph );
-    m_model->addStatement( QUrl("onto:/tag"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("hastag"), graph );
-    m_model->addStatement( QUrl("onto:/tag"), Soprano::Vocabulary::RDFS::range(), QUrl("onto:/Tag"), graph );
-
-    m_model->addStatement( QUrl("onto:/Tag"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDFS::Class(), graph );
-
-    m_model->addStatement( QUrl("onto:/int"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDF::Property(), graph );
-    m_model->addStatement( QUrl("onto:/int"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("int value"), graph );
-    m_model->addStatement( QUrl("onto:/int"), Soprano::Vocabulary::RDFS::range(), Soprano::Vocabulary::XMLSchema::integer(), graph );
-
-    Nepomuk2::ResourceManager::instance()->setOverrideMainModel( m_model );
 }
-
 
 void QueryParserTest::cleanupTestCase()
 {
-    Nepomuk2::ResourceManager::instance()->setOverrideMainModel( 0 );
-    delete m_model;
-    delete m_storageDir;
 }
-
 
 void QueryParserTest::testQueryParser_data()
 {
-    QTest::addColumn<QString>( "queryString" );
-    QTest::addColumn<Nepomuk2::Query::Query>( "query" );
+    QTest::addColumn<QString>("queryString");
+    QTest::addColumn<Nepomuk2::Query::Query>("query");
 
     // the invalid query
-    QTest::newRow( "empty query string" ) << QString() << Query();
+    QTest::newRow("empty query string")
+        << QString()
+        << Query();
 
     // simple literal queries
-    QTest::newRow( "simple literal query" ) << QString( "Hello" ) << Query( LiteralTerm( "Hello" ) );
-    QTest::newRow( "literal with spaces without quotes" ) << QString( "Hello World" ) << Query( LiteralTerm("Hello AND World" ) );
-    QTest::newRow( "literal with spaces with quotes" ) << QString( "'Hello World'" ) << Query( LiteralTerm( "'Hello World'" ) );
+    QTest::newRow("simple literal query")
+        << QString("Hello")
+        << Query(LiteralTerm("Hello"));
 
-    // comparison queries
-    QTest::newRow( "simple field query" )    << QString( "hastag:nepomuk" )
-                                             << Query( OrTerm( ComparisonTerm( QUrl("onto:/hasTag"), LiteralTerm( "nepomuk" ) ),
-                                                               ComparisonTerm( QUrl("onto:/tag"), LiteralTerm( "nepomuk" ) ) ) );
-    QTest::newRow( "simple property query" ) << QString( "<onto:/hasTag>:nepomuk" )
-                                             << Query( ComparisonTerm( QUrl("onto:/hasTag"), LiteralTerm( "nepomuk" ) ) );
-#ifdef QUERY_PARSER_SUPPORTS_RESOURCE_VALUES
-    QTest::newRow( "resource field query" )  << QString( "hastag:<nepomuk:/Nepomuk>" )
-                                             << Query( ComparisonTerm( "hastag", ResourceTerm( QUrl( "nepomuk:/Nepomuk" ) ) ) );
-#endif
-    QTest::newRow( "nested resource query" ) << QString( "hastag:(label:nepomuk)" )
-                                             << Query( OrTerm( ComparisonTerm( QUrl("onto:/hasTag"), ComparisonTerm( QUrl("onto:/label"), LiteralTerm( "nepomuk" ) ) ),
-                                                               ComparisonTerm( QUrl("onto:/tag"), ComparisonTerm( QUrl("onto:/label"), LiteralTerm( "nepomuk" ) ) ) ) );
-    QTest::newRow( "int property query" ) << QString( "'int value':42" )
-                                          << Query( ComparisonTerm( QUrl("onto:/int"), LiteralTerm( 42 ), ComparisonTerm::Equal ) );
-    QTest::newRow( "int property query 2" ) << QString( "int:\"42\"" )
-                                            << Query( ComparisonTerm( QUrl("onto:/int"), LiteralTerm( 42 ), ComparisonTerm::Equal ) );
+    QTest::newRow("literal with spaces without quotes")
+        << QString("Hello World")
+        << Query(AndTerm(LiteralTerm("Hello"), LiteralTerm("World")));
 
+    QTest::newRow("literal with spaces with quotes")
+        << QString("\"Hello World\"")
+        << Query(LiteralTerm("Hello World"));
 
-    // negation
-    QTest::newRow( "simple negation" ) << QString( "-Hello" ) << Query( NegationTerm::negateTerm( LiteralTerm( "Hello" ) ) );
-    QTest::newRow( "field negation" ) << QString( "-label:nepomuk" ) << Query( NegationTerm::negateTerm( ComparisonTerm( QUrl("onto:/label"), LiteralTerm( "nepomuk" ) ) ) );
+    // type hints
+    QTest::newRow("type hint")
+        << QString("mails")
+        << Query(ResourceTypeTerm(Nepomuk2::Vocabulary::NMO::Message()));
 
-    // and query
-    QTest::newRow( "and: two literals" )          << QString( "Hello World" ) << Query( LiteralTerm( "Hello AND World" ) );
-    QTest::newRow( "and: two literals with AND" ) << QString( "Hello AND World" ) << Query( LiteralTerm( "Hello AND World" ) ) ;
+    // Properties
+    QTest::newRow("simple property")
+        << QString("named Kile")
+        << Query(ComparisonTerm(Nepomuk2::Vocabulary::NFO::fileName(), LiteralTerm("Kile")));
 
-    // or queries
-    QTest::newRow( "or: two literals" )          << QString( "Hello OR World" ) << Query( OrTerm( LiteralTerm( "Hello" ), LiteralTerm( "World" ) ) );
+    QTest::newRow("file sizes")
+        << QString("size < 2 KiB")
+        << Query(ComparisonTerm(Nepomuk2::Vocabulary::NFO::fileSize(), LiteralTerm(2048LL), ComparisonTerm::Smaller));
+
+    QTest::newRow("comparators")
+        << QString("size < 2KB size greater than 2KB")
+        << Query(AndTerm(
+            ComparisonTerm(Nepomuk2::Vocabulary::NFO::fileSize(), LiteralTerm(2000LL), ComparisonTerm::Smaller),
+            ComparisonTerm(Nepomuk2::Vocabulary::NFO::fileSize(), LiteralTerm(2000LL), ComparisonTerm::Greater)));
+
+    // logical operators
+    QTest::newRow("logical operators")
+        << QString("Vim or Emacs and Kate")
+        << Query(AndTerm(OrTerm(LiteralTerm("Vim"), LiteralTerm("Emacs")), LiteralTerm("Kate")));
+
+    QTest::newRow("inversion")
+        << QString("-KWrite")
+        << Query(NegationTerm::negateTerm(LiteralTerm("KWrite")));
+
+    // Date-time values
+    QTest::newRow("absolute date-time")
+        << QString("before June 5, 2013")
+        << Query(ComparisonTerm(Nepomuk2::Types::Property(), LiteralTerm(QDateTime(QDate(2013, 6, 5), QTime(0, 0, 0, 4))), ComparisonTerm::Smaller));
+
+    // Nested queries
+    QTest::newRow("nested queries")
+        << QString("related to mails title Title, size > 2K")
+        << Query(AndTerm(
+            ComparisonTerm(Nepomuk2::Vocabulary::NIE::relatedTo(), AndTerm(
+                ResourceTypeTerm(Nepomuk2::Vocabulary::NMO::Message()),
+                ComparisonTerm(Nepomuk2::Vocabulary::NMO::messageSubject(), LiteralTerm("Title"))
+            ), ComparisonTerm::Equal),
+            ComparisonTerm(Nepomuk2::Vocabulary::NFO::fileSize(), LiteralTerm(2048LL), ComparisonTerm::Greater)));
 }
-
 
 void QueryParserTest::testQueryParser()
 {
@@ -149,60 +141,6 @@ void QueryParserTest::testQueryParser()
     QFETCH( Nepomuk2::Query::Query, query );
 
     Query q = QueryParser::parseQuery( queryString );
-
-    QCOMPARE( q, query );
-}
-
-
-void QueryParserTest::testQueryParserWithGlobbing_data()
-{
-    QTest::addColumn<QString>( "queryString" );
-    QTest::addColumn<Nepomuk2::Query::Query>( "query" );
-
-    // simple literal queries
-    QTest::newRow( "simple literal query" ) << QString( "Hello" ) << Query( LiteralTerm( "Hello*" ) );
-    QTest::newRow( "simple literal query" ) << QString( "\"Hello\"" ) << Query( LiteralTerm( "\"Hello\"" ) );
-    QTest::newRow( "literal with spaces without quotes" ) << QString( "Hello World" ) << Query( LiteralTerm("Hello* AND World*" ) );
-    QTest::newRow( "literal with spaces with quotes" ) << QString( "'Hello World'" ) << Query( LiteralTerm( "'Hello World'" ) );
-}
-
-
-void QueryParserTest::testQueryParserWithGlobbing()
-{
-    QFETCH( QString, queryString );
-    QFETCH( Nepomuk2::Query::Query, query );
-
-    QueryParser p;
-    Query q = p.parse( queryString, QueryParser::QueryTermGlobbing );
-
-    QCOMPARE( q, query );
-}
-
-
-void QueryParserTest::testQueryParserDetectFilenamePattern_data()
-{
-    QTest::addColumn<QString>( "queryString" );
-    QTest::addColumn<Nepomuk2::Query::Query>( "query" );
-
-    QTest::newRow( "DetectFilenamePattern1" ) << QString( "*.mp3" ) << Query( ComparisonTerm( Nepomuk2::Vocabulary::NFO::fileName(),
-                                                                                              LiteralTerm( "^.*\\\\.mp3$" ),
-                                                                                              ComparisonTerm::Regexp ) );
-    QTest::newRow( "DetectFilenamePattern2" ) << QString( "hello?.txt" ) << Query( ComparisonTerm( Nepomuk2::Vocabulary::NFO::fileName(),
-                                                                                              LiteralTerm( "^hello.\\\\.txt$" ),
-                                                                                              ComparisonTerm::Regexp ) );
-    QTest::newRow( "DetectFilenamePattern3" ) << QString( "*.???" ) << Query( ComparisonTerm( Nepomuk2::Vocabulary::NFO::fileName(),
-                                                                                              LiteralTerm( "^.*\\\\....$" ),
-                                                                                              ComparisonTerm::Regexp ) );
-}
-
-
-void QueryParserTest::testQueryParserDetectFilenamePattern()
-{
-    QFETCH( QString, queryString );
-    QFETCH( Nepomuk2::Query::Query, query );
-
-    QueryParser p;
-    Query q = p.parse( queryString, QueryParser::DetectFilenamePattern );
 
     QCOMPARE( q, query );
 }

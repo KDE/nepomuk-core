@@ -36,14 +36,6 @@ private Q_SLOTS:
     void cleanupTestCase();
     void testQueryParser_data();
     void testQueryParser();
-    void testQueryParserWithGlobbing_data();
-    void testQueryParserWithGlobbing();
-    void testQueryParserDetectFilenamePattern_data();
-    void testQueryParserDetectFilenamePattern();
-
-private:
-    KTempDir* m_storageDir;
-    Soprano::Model* m_model;
 };
 
 #endif
