@@ -54,7 +54,6 @@ set(nepomuk_query_SRCS
   query/optionalterm.cpp
   query/query.cpp
   query/filequery.cpp
-  query/queryparser.cpp
   query/dateparser.cpp
   query/result.cpp
   query/resultiterator.cpp
@@ -62,6 +61,22 @@ set(nepomuk_query_SRCS
   query/dbusoperators.cpp
   query/queryserializer.cpp
   query/standardqueries.cpp
+)
+
+set(nepomuk_queryparser_SRCS
+  queryparser/queryparser.cpp
+  queryparser/pass_comparators.cpp
+  queryparser/pass_dateperiods.cpp
+  queryparser/pass_datevalues.cpp
+  queryparser/pass_filesize.cpp
+  queryparser/pass_numbers.cpp
+  queryparser/pass_periodnames.cpp
+  queryparser/pass_properties.cpp
+  queryparser/pass_splitunits.cpp
+  queryparser/pass_subqueries.cpp
+  queryparser/pass_typehints.cpp
+  queryparser/patternmatcher.cpp
+  queryparser/utils.cpp
 )
 
 set_source_files_properties(
@@ -111,6 +126,7 @@ set(nepomuk_LIB_SRCS
   ${nepomuk_misc_SRCS}
   ${nepomuk_types_SRCS}
   ${nepomuk_query_SRCS}
+  ${nepomuk_queryparser_SRCS}
   ${nepomuk_datamanagement_SRCS}
   stuff-to-remove-for-kdelibs-5.0/kdbusconnectionpool.cpp
 )
@@ -182,8 +198,8 @@ install(FILES
   query/result.h
   query/resultiterator.h
   query/queryserviceclient.h
-  query/queryparser.h
   query/standardqueries.h
+  queryparser/queryparser.h
   datamanagement/simpleresource.h
   datamanagement/simpleresourcegraph.h
   datamanagement/datamanagement.h
