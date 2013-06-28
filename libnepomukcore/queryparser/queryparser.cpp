@@ -264,10 +264,10 @@ Query QueryParser::parse(const QString &query, ParserFlags flags) const
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileName(), PassProperties::String);
     d->runPass(d->pass_properties,
         i18nc("Name of a file", "name %1;named %1"));
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileCreated(), PassProperties::DateTime);
+    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::created(), PassProperties::DateTime);
     d->runPass(d->pass_properties,
-        i18nc("Date of creation", "created (at|on) %1;created %1"));
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileLastModified(), PassProperties::DateTime);
+        i18nc("Date of creation", "created (at|on|in) %1;created %1"));
+    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::lastModified(), PassProperties::DateTime);
     d->runPass(d->pass_properties,
         i18nc("Date of last modification", "(modified|edited|dated) (at|on|of) %1;(modified|edited|dated) %1"));
 
