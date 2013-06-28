@@ -3,7 +3,6 @@ project(libnepomukcore)
 add_definitions(-DKDE_DEFAULT_DEBUG_AREA=300000)
 
 include_directories(
-  ${CMAKE_CURRENT_SOURCE_DIR}/stuff-to-remove-for-kdelibs-5.0
   ${CMAKE_CURRENT_BINARY_DIR}
 )
 
@@ -112,7 +111,6 @@ set(nepomuk_LIB_SRCS
   ${nepomuk_types_SRCS}
   ${nepomuk_query_SRCS}
   ${nepomuk_datamanagement_SRCS}
-  stuff-to-remove-for-kdelibs-5.0/kdbusconnectionpool.cpp
 )
 
 soprano_add_ontology(nepomuk_LIB_SRCS "${SHAREDDESKTOPONTOLOGIES_ROOT_DIR}/nie/nie.trig" "NIE" "Nepomuk2::Vocabulary" "trig" VISIBILITY "nepomuk")
