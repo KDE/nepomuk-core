@@ -88,7 +88,7 @@ if(KDE4_BUILD_TESTS)
   add_subdirectory(autotests)
 endif()
 
-feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
+feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
 
 # generate NepomukCoreConfig.cmake for easy utilisation of the package by other cmake build systems
 # ===============================================================================================
