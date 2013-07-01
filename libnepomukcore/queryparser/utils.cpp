@@ -156,7 +156,7 @@ Nepomuk2::Query::Term fuseTerms(const QList<Nepomuk2::Query::Term> &terms, int f
         Nepomuk2::Query::Term term = terms.at(end_term_index);
 
         if (term.isComparisonTerm()) {
-            Nepomuk2::Query::ComparisonTerm &comparison = term.toComparisonTerm();
+            Nepomuk2::Query::ComparisonTerm comparison = term.toComparisonTerm();
 
             if (comparison.comparator() == Nepomuk2::Query::ComparisonTerm::Equal &&
                 comparison.subTerm().isLiteralTerm() &&
@@ -167,6 +167,20 @@ Nepomuk2::Query::Term fuseTerms(const QList<Nepomuk2::Query::Term> &terms, int f
                 // the millisecond you want)
                 // Build a comparison against an interval
                 term = dateTimeComparison(comparison.property(), comparison.subTerm().toLiteralTerm());
+
+                // Only comparison has information about the position of the whole
+                // comparison, as the date-time comparison was built with only the
+                // literal terms
+                Nepomuk2::Query::Term min_term, max_term;
+
+                min_term = term.toAndTerm().subTerms().at(0);
+                max_term = term.toAndTerm().subTerms().at(1);
+
+                term.setPosition(comparison);
+                min_term.setPosition(comparison);
+                max_term.setPosition(comparison);
+
+                term.toAndTerm().setSubTerms(QList<Nepomuk2::Query::Term>() << min_term << max_term);
             }
         } else if (term.isResourceTypeTerm()) {
             QUrl uri = term.toResourceTypeTerm().type().uri();
