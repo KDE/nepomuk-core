@@ -3,13 +3,6 @@ project(nepomuk-core)
 # TODO: Remove when kdelibs >= 4.10 will be required
 cmake_minimum_required(VERSION 2.8.6 FATAL_ERROR)
 
-# set the version to be used by NepomukCoreConfig.cmake and the lib version
-# ===============================================================================================
-set(CMAKE_NEPOMUK_CORE_VERSION_MAJOR 0)
-set(CMAKE_NEPOMUK_CORE_VERSION_MINOR 1)
-set(CMAKE_NEPOMUK_CORE_VERSION_RELEASE 0)
-set(CMAKE_NEPOMUK_CORE_VERSION_STRING "${CMAKE_NEPOMUK_CORE_VERSION_MAJOR}.${CMAKE_NEPOMUK_CORE_VERSION_MINOR}.${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}")
-
 # CTest setup
 # ===============================================================================================
 include(CTest)
@@ -47,6 +40,13 @@ set_package_properties(FFmpeg PROPERTIES DESCRIPTION "Video Tag reader" URL "htt
 
 find_package(EPub)
 set_package_properties(EPub PROPERTIES DESCRIPTION "Ebook epub reader" URL "http://sourceforge.net/projects/ebook-tools" TYPE OPTIONAL PURPOSE "Support for epub metadata")
+
+# set the version to be used by NepomukCoreConfig.cmake and the lib version
+# ===============================================================================================
+set(CMAKE_NEPOMUK_CORE_VERSION_MAJOR ${KDE_VERSION_MAJOR})
+set(CMAKE_NEPOMUK_CORE_VERSION_MINOR ${KDE_VERSION_MINOR})
+set(CMAKE_NEPOMUK_CORE_VERSION_RELEASE ${KDE_VERSION_RELEASE})
+set(CMAKE_NEPOMUK_CORE_VERSION_STRING "${CMAKE_NEPOMUK_CORE_VERSION_MAJOR}.${CMAKE_NEPOMUK_CORE_VERSION_MINOR}.${CMAKE_NEPOMUK_CORE_VERSION_RELEASE}")
 
 # Some definitions
 # ===============================================================================================
