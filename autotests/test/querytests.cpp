@@ -1130,7 +1130,73 @@ void QueryTests::fileQueries_data()
 }
 
 
+void QueryTests::andOrQueries()
+{
+    SimpleResource res1;
+    res1.addType( NCO::PersonContact() );
+    res1.addProperty( NCO::fullname(), QLatin1String("Peter") );
+    res1.addProperty( NAO::prefLabel(), QLatin1String("Label") );
+    res1.addProperty( NCO::gender(), NCO::male() );
 
+    SimpleResource res2;
+    res2.addType( NCO::PersonContact() );
+    res2.addProperty( NCO::fullname(), QLatin1String("Mary") );
+    res2.addProperty( NAO::prefLabel(), QLatin1String("Label") );
+    res2.addProperty( NCO::gender(), NCO::female() );
+
+    SimpleResourceGraph graph;
+    graph << res1 << res2;
+
+    StoreResourcesJob* job = graph.save();
+    job->exec();
+
+    const QUrl contact1 = job->mappings().value(res1.uri());
+    const QUrl contact2 = job->mappings().value(res2.uri());
+
+    Query::ComparisonTerm ct1( NCO::fullname(), LiteralTerm("Peter") );
+    Query::ComparisonTerm ct2( NAO::prefLabel(), LiteralTerm("Label") );
+
+    Query::AndTerm andTerm( ct1, ct2 );
+    Query::Query query(andTerm);
+
+    QList<Query::Result> results = fetchResults( query );
+
+    bool conA = false;
+    bool conB = false;
+
+    foreach(const Query::Result& r, results) {
+        const QUrl uri = r.resource().uri();
+        if( uri == contact1 )
+            conA = true;
+        if( uri == contact2 )
+            conB = true;
+    }
+
+    QVERIFY( conA && !conB );
+
+    //
+    // Or term
+    Query::ComparisonTerm ct3( NCO::fullname(), LiteralTerm("Peter") );
+    Query::ComparisonTerm ct4( NCO::gender(), ResourceTerm(NCO::female()) );
+
+    Query::OrTerm orTerm( ct3, ct4 );
+    query = Query::Query(orTerm);
+
+    results = fetchResults( query );
+
+    conA = false;
+    conB = false;
+
+    foreach(const Query::Result& r, results) {
+        const QUrl uri = r.resource().uri();
+        if( uri == contact1 )
+            conA = true;
+        if( uri == contact2 )
+            conB = true;
+    }
+
+    QVERIFY( conA && conB );
 }
 
+}
 QTEST_KDEMAIN(Nepomuk2::QueryTests, NoGUI)

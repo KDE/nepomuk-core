@@ -64,6 +64,7 @@ private Q_SLOTS:
     void fileQueries();
     void fileQueries_data();
 
+    void andOrQueries();
 private:
 
 };
