@@ -929,6 +929,7 @@ void Nepomuk2::DataManagementModel::removeResources(const QList<QUrl> &resources
         }
     }
 
+    clearError();
 
     //
     // Resolve file URLs, we can simply ignore the non-existing file resources which are reflected by empty resolved URIs
@@ -937,8 +938,6 @@ void Nepomuk2::DataManagementModel::removeResources(const QList<QUrl> &resources
     if(resolvedResources.isEmpty() || lastError()) {
         return;
     }
-
-    clearError();
 
     //
     // Actually remove the data
