@@ -217,6 +217,7 @@ void Nepomuk2::Repository::open()
     // save the settings
     repoConfig.writeEntry( "Used Soprano Backend", m_backend->pluginName() );
     repoConfig.writePathEntry( "Storage Dir", m_basePath );
+    repoConfig.writeEntry( "Port", m_port );
     repoConfig.sync(); // even if we crash the model has been created
 
     m_state = OPEN;

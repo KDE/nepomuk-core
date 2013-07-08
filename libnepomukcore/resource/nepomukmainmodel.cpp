@@ -36,6 +36,8 @@
 #include <kglobal.h>
 #include <kstandarddirs.h>
 #include <kdebug.h>
+#include <ksharedconfig.h>
+#include <KConfigGroup>
 
 #include <QtCore/QTimer>
 #include <QtCore/QMutex>
@@ -43,28 +45,6 @@
 #include <QtCore/QFile>
 
 using namespace Soprano;
-
-namespace {
-    // FIXME: This is hack taken from the virtuoso Soprano backend. We need a proper way of
-    //        communicating the port numbber!
-
-    quint16 getVirtuosoPortNumber() {
-        int largestUsedPort = 0;
-
-        int startPort = 1113;
-        for( int i=0; i<10; i++ ) {
-            int p = startPort + i;
-            if( QFile::exists( QString( "/tmp/virt_%1" ).arg(p) ) ) {
-                largestUsedPort = p;
-            }
-            else if( largestUsedPort ) {
-                return largestUsedPort;
-            }
-        }
-
-        return largestUsedPort;
-    }
-}
 
 class Nepomuk2::MainModel::Private
 {
@@ -98,8 +78,8 @@ public:
 
         Soprano::BackendSettings settings;
 
-        // FIXME: Find a better way of getting the port number in use
-        int portNumber = getVirtuosoPortNumber();
+        KConfigGroup repoConfig = KSharedConfig::openConfig( "nepomukserverrc" )->group( "main Settings" );
+        int portNumber = repoConfig.readEntry("Port", 0);
         if(!portNumber) {
             kError() << "Could not find virtuoso to connect to. Aborting";
             return;
