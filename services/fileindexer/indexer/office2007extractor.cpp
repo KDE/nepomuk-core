@@ -231,6 +231,9 @@ SimpleResourceGraph Office2007Extractor::extract(const QUrl& resUri, const QUrl&
             fileRes.addProperty( NIE::plainTextContent(), plainText );
     }
 
+    if( fileRes.properties().isEmpty() )
+        return SimpleResourceGraph();
+
     graph << fileRes;
     return graph;
 }

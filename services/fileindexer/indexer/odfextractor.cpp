@@ -168,6 +168,9 @@ SimpleResourceGraph OdfExtractor::extract(const QUrl& resUri, const QUrl& fileUr
     if( !plainText.isEmpty() )
         fileRes.addProperty( NIE::plainTextContent(), plainText );
 
+    if( fileRes.properties().isEmpty() )
+        return SimpleResourceGraph();
+
     graph << fileRes;
     return graph;
 }
