@@ -178,6 +178,7 @@ void Nepomuk2::Repository::open()
     m_model = m_backend->createModel( settings );
     if ( !m_model ) {
         kDebug() << "Unable to create model for repository" << name();
+        kError() << m_backend->lastError();
         m_state = CLOSED;
         emit opened( this, false );
         return;
