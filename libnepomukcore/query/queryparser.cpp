@@ -28,6 +28,7 @@
 #include "comparisonterm.h"
 #include "dateparser_p.h"
 #include "nfo.h"
+#include "nie.h"
 
 #include <QtCore/QRegExp>
 #include <QtCore/QSet>
@@ -46,7 +47,10 @@
 #include <Soprano/QueryResultIterator>
 #include <Soprano/Vocabulary/RDFS>
 #include <Soprano/Vocabulary/RDF>
+#include <Soprano/Vocabulary/NAO>
 
+using namespace Soprano::Vocabulary;
+using namespace Nepomuk2::Vocabulary;
 
 using namespace Nepomuk2::Query;
 
@@ -554,6 +558,14 @@ Nepomuk2::Query::QueryParser::QueryParser()
     foreach ( const QString &orKeyword, orListStr.split( ' ', QString::SkipEmptyParts ) ) {
         d->orKeywords.insert( orKeyword.toLower() );
     }
+
+    // These are going to be the most frequently matched
+    // We are including them so as to speed up the queries as otherwise each of these keywords
+    // maps to multiple properties
+    d->fieldMatchCache.insert( QLatin1String("hastag"), QList<Types::Property>() << Types::Property(NAO::hasTag()) );
+    d->fieldMatchCache.insert( QLatin1String("rating"), QList<Types::Property>() << Types::Property(NAO::numericRating()) );
+    d->fieldMatchCache.insert( QLatin1String("comment"), QList<Types::Property>() << Types::Property(NAO::description()) );
+    d->fieldMatchCache.insert( QLatin1String("mimetype"), QList<Types::Property>() << Types::Property(NIE::mimeType()) );
 }
 
 
