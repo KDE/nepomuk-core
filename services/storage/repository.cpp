@@ -65,7 +65,8 @@ Nepomuk2::Repository::Repository( const QString& name )
       m_dataManagementModel( 0 ),
       m_dataManagementAdaptor( 0 ),
       m_backend( 0 ),
-      m_ontologyLoader( 0 )
+      m_ontologyLoader( 0 ),
+      m_port( 0 )
 {
     m_dummyModel = new Soprano::Util::DummyModel();
 
@@ -172,6 +173,14 @@ void Nepomuk2::Repository::open()
 
     kDebug() << "opening repository '" << name() << "' at '" << m_basePath << "'";
 
+    // WARNING:
+    // This is used as a hack to get the port number and virtuoso version number. This slot
+    // should not by async, as the values it sets are subsequently used.
+    // The QObject cast is because m_backend is const
+    QObject* qobj = dynamic_cast<QObject*>(const_cast<Soprano::Backend*>(m_backend));
+    connect( qobj, SIGNAL(virtuosoInitParameters(int, QString)),
+             this, SLOT(slotVirtuosoInitParameters(int,QString)) );
+
     // open storage
     // =================================
     Soprano::settingInSettings( settings, Soprano::BackendOptionStorageDir ).setValue( m_storagePath );
@@ -181,6 +190,11 @@ void Nepomuk2::Repository::open()
         kError() << m_backend->lastError();
         m_state = CLOSED;
         emit opened( this, false );
+        return;
+    }
+
+    if( !m_virtuosoVersion.startsWith("6.1.6") ) {
+        kError() << "NepomukStorage only works with virtuoso 6.1.6";
         return;
     }
 
@@ -314,6 +328,13 @@ void Nepomuk2::Repository::updateInference(bool ontologiesChanged)
     m_classAndPropertyTree->rebuildTree(this);
     m_inferenceModel->updateOntologyGraphs(ontologiesChanged);
 }
+
+void Nepomuk2::Repository::slotVirtuosoInitParameters(int port, const QString& version)
+{
+    m_port = port;
+    m_virtuosoVersion = version;
+}
+
 
 void Nepomuk2::Repository::slotVirtuosoStopped(bool normalExit)
 {

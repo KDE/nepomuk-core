@@ -91,6 +91,7 @@ namespace Nepomuk2 {
         void closed( Repository* );
 
     private Q_SLOTS:
+        void slotVirtuosoInitParameters(int port, const QString& version);
         void slotVirtuosoStopped( bool normalExit );
         void slotOpened( Repository*, bool success );
         void slotOntologiesLoaded( bool somethingChanged );
@@ -125,6 +126,9 @@ namespace Nepomuk2 {
 
         OntologyLoader* m_ontologyLoader;
         void updateInference(bool ontologiesChanged);
+
+        int m_port;
+        QString m_virtuosoVersion;
     };
 
     typedef QMap<QString, Repository*> RepositoryMap;

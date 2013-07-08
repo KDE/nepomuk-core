@@ -22,7 +22,7 @@ include(KDE4Defaults)
 find_package(SharedDesktopOntologies 0.10.51)
 set_package_properties(SharedDesktopOntologies PROPERTIES DESCRIPTION "Shared Desktop Ontologies" URL "http://oscaf.sourceforge.net" TYPE REQUIRED PURPOSE "Ontologies necessary for the Nepomuk semantic desktop")
 
-find_package(Soprano 2.9.0 COMPONENTS PLUGIN_RAPTORPARSER PLUGIN_REDLANDBACKEND PLUGIN_VIRTUOSOBACKEND)
+find_package(Soprano 2.9.3 COMPONENTS PLUGIN_RAPTORPARSER PLUGIN_REDLANDBACKEND PLUGIN_VIRTUOSOBACKEND)
 set_package_properties(Soprano PROPERTIES DESCRIPTION "Qt-based RDF storage and parsing solution" URL "http://soprano.sourceforge.net" TYPE REQUIRED PURPOSE "Required for everything (storage and general data management)")
 
 # Poppler
