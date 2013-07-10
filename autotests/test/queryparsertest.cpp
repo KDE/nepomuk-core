@@ -72,15 +72,15 @@ void QueryParserTest::initTestCase()
     m_model->addStatement( QUrl("onto:/label"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("label"), graph );
     m_model->addStatement( QUrl("onto:/label"), Soprano::Vocabulary::RDFS::range(), Soprano::Vocabulary::XMLSchema::string(), graph );
 
-    m_model->addStatement( QUrl("onto:/hasTag"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDF::Property(), graph );
-    m_model->addStatement( QUrl("onto:/hasTag"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("has tag"), graph );
-    m_model->addStatement( QUrl("onto:/hasTag"), Soprano::Vocabulary::RDFS::range(), QUrl("onto:/Tag"), graph );
+    m_model->addStatement( QUrl("onto:/hasRag"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDF::Property(), graph );
+    m_model->addStatement( QUrl("onto:/hasRag"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("has rag"), graph );
+    m_model->addStatement( QUrl("onto:/hasRag"), Soprano::Vocabulary::RDFS::range(), QUrl("onto:/Rag"), graph );
 
-    m_model->addStatement( QUrl("onto:/tag"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDF::Property(), graph );
-    m_model->addStatement( QUrl("onto:/tag"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("hastag"), graph );
-    m_model->addStatement( QUrl("onto:/tag"), Soprano::Vocabulary::RDFS::range(), QUrl("onto:/Tag"), graph );
+    m_model->addStatement( QUrl("onto:/rag"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDF::Property(), graph );
+    m_model->addStatement( QUrl("onto:/rag"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("hasrag"), graph );
+    m_model->addStatement( QUrl("onto:/rag"), Soprano::Vocabulary::RDFS::range(), QUrl("onto:/Rag"), graph );
 
-    m_model->addStatement( QUrl("onto:/Tag"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDFS::Class(), graph );
+    m_model->addStatement( QUrl("onto:/Rag"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDFS::Class(), graph );
 
     m_model->addStatement( QUrl("onto:/int"), Soprano::Vocabulary::RDF::type(), Soprano::Vocabulary::RDF::Property(), graph );
     m_model->addStatement( QUrl("onto:/int"), Soprano::Vocabulary::RDFS::label(), Soprano::LiteralValue::createPlainLiteral("int value"), graph );
@@ -112,18 +112,18 @@ void QueryParserTest::testQueryParser_data()
     QTest::newRow( "literal with spaces with quotes" ) << QString( "'Hello World'" ) << Query( LiteralTerm( "'Hello World'" ) );
 
     // comparison queries
-    QTest::newRow( "simple field query" )    << QString( "hastag:nepomuk" )
-                                             << Query( OrTerm( ComparisonTerm( QUrl("onto:/hasTag"), LiteralTerm( "nepomuk" ) ),
-                                                               ComparisonTerm( QUrl("onto:/tag"), LiteralTerm( "nepomuk" ) ) ) );
-    QTest::newRow( "simple property query" ) << QString( "<onto:/hasTag>:nepomuk" )
-                                             << Query( ComparisonTerm( QUrl("onto:/hasTag"), LiteralTerm( "nepomuk" ) ) );
+    QTest::newRow( "simple field query" )    << QString( "hasrag:nepomuk" )
+                                             << Query( OrTerm( ComparisonTerm( QUrl("onto:/hasRag"), LiteralTerm( "nepomuk" ) ),
+                                                               ComparisonTerm( QUrl("onto:/rag"), LiteralTerm( "nepomuk" ) ) ) );
+    QTest::newRow( "simple property query" ) << QString( "<onto:/hasRag>:nepomuk" )
+                                             << Query( ComparisonTerm( QUrl("onto:/hasRag"), LiteralTerm( "nepomuk" ) ) );
 #ifdef QUERY_PARSER_SUPPORTS_RESOURCE_VALUES
-    QTest::newRow( "resource field query" )  << QString( "hastag:<nepomuk:/Nepomuk>" )
-                                             << Query( ComparisonTerm( "hastag", ResourceTerm( QUrl( "nepomuk:/Nepomuk" ) ) ) );
+    QTest::newRow( "resource field query" )  << QString( "hasrag:<nepomuk:/Nepomuk>" )
+                                             << Query( ComparisonTerm( "hasrag", ResourceTerm( QUrl( "nepomuk:/Nepomuk" ) ) ) );
 #endif
-    QTest::newRow( "nested resource query" ) << QString( "hastag:(label:nepomuk)" )
-                                             << Query( OrTerm( ComparisonTerm( QUrl("onto:/hasTag"), ComparisonTerm( QUrl("onto:/label"), LiteralTerm( "nepomuk" ) ) ),
-                                                               ComparisonTerm( QUrl("onto:/tag"), ComparisonTerm( QUrl("onto:/label"), LiteralTerm( "nepomuk" ) ) ) ) );
+    QTest::newRow( "nested resource query" ) << QString( "hasrag:(label:nepomuk)" )
+                                             << Query( OrTerm( ComparisonTerm( QUrl("onto:/hasRag"), ComparisonTerm( QUrl("onto:/label"), LiteralTerm( "nepomuk" ) ) ),
+                                                               ComparisonTerm( QUrl("onto:/rag"), ComparisonTerm( QUrl("onto:/label"), LiteralTerm( "nepomuk" ) ) ) ) );
     QTest::newRow( "int property query" ) << QString( "'int value':42" )
                                           << Query( ComparisonTerm( QUrl("onto:/int"), LiteralTerm( 42 ), ComparisonTerm::Equal ) );
     QTest::newRow( "int property query 2" ) << QString( "int:\"42\"" )
