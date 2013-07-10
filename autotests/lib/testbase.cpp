@@ -59,6 +59,12 @@ Nepomuk2::TestBase::TestBase(QObject* parent)
         QFAIL(message.toLatin1().data());
     }
 
+    //
+    // QTEST_KDEMAIN_WITH_COMPONENTNAME overwrites the XDG_CONFIG_HOME env variable with a custom value
+    // and that breaks all our unit tests. Therfore we add the actual config directory to the tests
+    //
+    KGlobal::dirs()->addResourceDir("config", QFile::encodeName( QDir::homePath() + QString::fromLatin1("/share/config") ) );
+
     d->m_serviceManager = new org::kde::nepomuk::ServiceManager( "org.kde.NepomukServer", "/servicemanager", QDBusConnection::sessionBus() );
 
     // Wait for Nepomuk to get initialized
