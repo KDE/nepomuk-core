@@ -472,7 +472,11 @@ QString Nepomuk2::Query::Query::toSparqlQuery( SparqlFlags sparqlFlags ) const
     }
 
     // build the core of the query - the part that never changes
-    QString queryBase = QString::fromLatin1( "where { %1 }" )
+    // HACK: We only need to show nepomuk uris as results. I've tried using other measures such
+    //       as graph groups to hide ontology results, but virtuoso still does not have good support
+    //       for those features, and crashes regularly.
+    //       Since we are doing this filter on the client end, we may as well do it in the query
+    QString queryBase = QString::fromLatin1( "where { %1 FILTER(REGEX(STR(?r), '^nepomuk:/res')) . }" )
                         .arg( termGraphPattern );
 
     // build the final query

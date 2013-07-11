@@ -109,7 +109,7 @@ namespace {
 
     class NepomukStatementIterator {
     public:
-        NepomukStatementIterator(const QUrl& property = QUrl()) {
+        NepomukStatementIterator(const QUrl& property = QUrl(), bool inference=true) {
             QString propertyFilter;
             if( !property.isEmpty() ) {
                 propertyFilter = QString("FILTER(?p=%1)").arg( Soprano::Node::resourceToN3(property) );
@@ -119,7 +119,10 @@ namespace {
                                                 "FILTER(REGEX(STR(?r), '^nepomuk:/res')) . %1 }")
                             .arg( propertyFilter );
             Soprano::Model* model = ResourceManager::instance()->mainModel();
-            m_it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+            if( inference )
+                m_it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+            else
+                m_it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
         }
 
         Soprano::Statement current() const { return m_current; }
@@ -310,7 +313,7 @@ void QueryTests::resourceTypeTerm_data()
 
         QSet<QUrl> uris;
         QSet<QUrl> tags;
-        NepomukStatementIterator it( RDF::type() );
+        NepomukStatementIterator it( RDF::type(), false ); // Buggy virtuoso inference!
         while( it.next() ) {
             uris << it.subject().uri();
             if( it.object() == NAO::Tag() ) {
@@ -330,7 +333,6 @@ void QueryTests::resourceTypeTerm()
     QEXPECT_FAIL( "type query", "The query results are correct but our resultIterator gives the incorrect results."
                                 "This is because of a bug related to type inferencing in virtuoso 6.1.6",
                   Continue );
-    QEXPECT_FAIL( "negated type query", "Negated Terms are broken - We get graphs in the results", Continue );
     literalTerm();
 }
 
@@ -593,7 +595,8 @@ void QueryTests::comparisonTerm_data()
 
         QSet<QUrl> uris;
         QSet<QUrl> negatedUris;
-        NepomukStatementIterator it3;
+        // HACK: Not using inference because virtuoso is buggy with inference enabled at times
+        NepomukStatementIterator it3(QUrl(), false);
         while( it3.next() ) {
             uris << it3.subject().uri();
             if( it3.predicate() == NMM::performer() && it3.object().uri() == artistUri ) {
@@ -638,10 +641,6 @@ void QueryTests::comparisonTerm_data()
 
 void QueryTests::comparisonTerm()
 {
-    QEXPECT_FAIL( "negated comparison term with resource",
-                  "Negated Terms are broken - We get graphs in the results", Continue );
-    QEXPECT_FAIL( "comparison term with datetime",
-                  "We need to filter out the ontology results", Continue );
     literalTerm();
 }
 
@@ -715,9 +714,6 @@ void QueryTests::comparisonTerm_withInvalid_data()
 
 void QueryTests::comparisonTerm_withInvalid()
 {
-    // We seem to get ontology results as well. Even though they are expressly forbidden
-    QEXPECT_FAIL( "comparsion term with invalid term and property",
-                  "Negated Terms are broken - We get graph results and virtuoso is freaking crazy", Continue );
     literalTerm();
 }
 
