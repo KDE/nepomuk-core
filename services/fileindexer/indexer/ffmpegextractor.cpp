@@ -131,12 +131,12 @@ SimpleResourceGraph FFmpegExtractor::extract(const QUrl& resUri, const QUrl& fil
 
             if( codec->codec_type == AVMEDIA_TYPE_VIDEO ) {
                 int aspectRatio = codec->sample_aspect_ratio.num;
-                int frameRate = stream->r_frame_rate.num;
+                int frameRate = stream->avg_frame_rate.num;
 
                 if( codec->sample_aspect_ratio.den )
                     aspectRatio /= codec->sample_aspect_ratio.den;
-                if( stream->r_frame_rate.den )
-                    frameRate /= stream->r_frame_rate.den;
+                if( stream->avg_frame_rate.den )
+                    frameRate /= stream->avg_frame_rate.den;
 
                 fileRes.setProperty( NFO::width(), codec->width );
                 fileRes.setProperty( NFO::height(), codec->height );
