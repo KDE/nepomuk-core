@@ -2,6 +2,7 @@
 Type=ServiceType
 X-KDE-ServiceType=NepomukFileExtractor
 Comment=Nepomuk File Extractor
+Comment[bs]=Nepomukov ekstraktor datoteka
 Comment[ca]=Extractor de fitxers del Nepomuk
 Comment[ca@valencia]=Extractor de fitxers del Nepomuk
 Comment[cs]=Extraktor souborů pro Nepomuk
