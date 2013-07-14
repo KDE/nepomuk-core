@@ -23,6 +23,7 @@
 
 #include "pass_splitunits.h"
 #include "pass_numbers.h"
+#include "pass_filenames.h"
 #include "pass_filesize.h"
 #include "pass_typehints.h"
 #include "pass_properties.h"
@@ -97,6 +98,7 @@ struct QueryParser::Private
     // Parsing passes (they cache translations, queries, etc)
     PassSplitUnits pass_splitunits;
     PassNumbers pass_numbers;
+    PassFileNames pass_filenames;
     PassFileSize pass_filesize;
     PassTypeHints pass_typehints;
     PassComparators pass_comparators;
@@ -144,7 +146,6 @@ QList<Nepomuk2::Types::Property> QueryParser::matchProperty( const QString& fiel
 
 Query QueryParser::parse(const QString &query, ParserFlags flags) const
 {
-    Q_UNUSED(flags)
     d->terms.clear();
 
     // Split the query into terms
@@ -166,6 +167,10 @@ Query QueryParser::parse(const QString &query, ParserFlags flags) const
     d->runPass(d->pass_numbers, "%1");
     d->runPass(d->pass_filesize, "%1 %2");
     d->runPass(d->pass_typehints, "%1");
+
+    if (flags & DetectFilenamePattern) {
+        d->runPass(d->pass_filenames, "%1");
+    }
 
     // Date-time periods
     d->runPass(d->pass_periodnames, "%1");

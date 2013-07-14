@@ -68,6 +68,7 @@ set(nepomuk_queryparser_SRCS
   queryparser/pass_comparators.cpp
   queryparser/pass_dateperiods.cpp
   queryparser/pass_datevalues.cpp
+  queryparser/pass_filenames.cpp
   queryparser/pass_filesize.cpp
   queryparser/pass_numbers.cpp
   queryparser/pass_periodnames.cpp
