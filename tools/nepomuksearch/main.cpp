@@ -117,7 +117,7 @@ int main( int argc, char *argv[] )
     argList.takeFirst();
     QString queryStr = argList.join(" ");
 
-    Query::Query query = Query::QueryParser::parseQuery( queryStr );
+    Query::Query query = Query::QueryParser::parseQuery( queryStr, Query::QueryParser::DetectFilenamePattern );
     query.addRequestProperty( Query::Query::RequestProperty( NIE::url(), false ) );
     query.setQueryFlags( Query::Query::WithFullTextExcerpt );
     query.setLimit( 10 );
