@@ -20,7 +20,7 @@
 #ifndef __PASS_COMPARATORS_H__
 #define __PASS_COMPARATORS_H__
 
-#include <QList>
+#include <QtCore/QList>
 
 #include "comparisonterm.h"
 

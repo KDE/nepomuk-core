@@ -20,9 +20,9 @@
 #ifndef __PASS_SPLITUNITS_H__
 #define __PASS_SPLITUNITS_H__
 
-#include <QString>
-#include <QList>
-#include <QSet>
+#include <QtCore/QString>
+#include <QtCore/QList>
+#include <QtCore/QSet>
 
 namespace Nepomuk2 { namespace Query { class Term; }}
 

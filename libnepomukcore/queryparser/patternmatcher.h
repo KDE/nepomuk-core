@@ -22,7 +22,7 @@
 
 #include "term.h"
 
-#include <QStringList>
+#include <QtCore/QStringList>
 
 class PatternMatcher
 {

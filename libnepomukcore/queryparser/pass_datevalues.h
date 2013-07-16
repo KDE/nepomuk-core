@@ -20,7 +20,7 @@
 #ifndef __PASS_DATEVALUES_H__
 #define __PASS_DATEVALUES_H__
 
-#include <QList>
+#include <QtCore/QList>
 
 namespace Nepomuk2 { namespace Query { class Term; }}
 

@@ -45,7 +45,7 @@
 #include <kcalendarsystem.h>
 #include <klocalizedstring.h>
 
-#include <QList>
+#include <QtCore/QList>
 
 using namespace Nepomuk2::Query;
 

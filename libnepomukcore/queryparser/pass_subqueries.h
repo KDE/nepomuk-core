@@ -20,8 +20,8 @@
 #ifndef __PASS_SUBQUERIES_H__
 #define __PASS_SUBQUERIES_H__
 
-#include <QList>
-#include <QUrl>
+#include <QtCore/QList>
+#include <QtCore/QUrl>
 
 namespace Nepomuk2 { namespace Query { class Term; }}
 

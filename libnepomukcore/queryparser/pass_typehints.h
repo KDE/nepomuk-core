@@ -20,10 +20,10 @@
 #ifndef __PASS_TYPEHINTS_H__
 #define __PASS_TYPEHINTS_H__
 
-#include <QString>
-#include <QList>
-#include <QHash>
-#include <QUrl>
+#include <QtCore/QString>
+#include <QtCore/QList>
+#include <QtCore/QHash>
+#include <QtCore/QUrl>
 
 namespace Nepomuk2 { namespace Query { class Term; }}
 

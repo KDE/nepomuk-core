@@ -20,9 +20,9 @@
 #ifndef __PASS_PERIODNAMES_H__
 #define __PASS_PERIODNAMES_H__
 
-#include <QString>
-#include <QList>
-#include <QHash>
+#include <QtCore/QString>
+#include <QtCore/QList>
+#include <QtCore/QHash>
 
 namespace Nepomuk2 { namespace Query { class Term; }}
 

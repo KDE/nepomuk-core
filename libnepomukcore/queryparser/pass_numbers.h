@@ -20,8 +20,8 @@
 #ifndef __PASS_NUMBERS_H__
 #define __PASS_NUMBERS_H__
 
-#include <QList>
-#include <QHash>
+#include <QtCore/QList>
+#include <QtCore/QHash>
 
 namespace Nepomuk2 { namespace Query { class Term; }}
 

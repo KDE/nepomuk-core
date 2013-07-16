@@ -21,7 +21,7 @@
 
 #include "literalterm.h"
 
-#include <QRegExp>
+#include <QtCore/QRegExp>
 
 PatternMatcher::PatternMatcher(QList<Nepomuk2::Query::Term> &terms, QStringList pattern)
 : terms(terms),

@@ -20,8 +20,8 @@
 #ifndef __PASS_PROPERTIES_H__
 #define __PASS_PROPERTIES_H__
 
-#include <QList>
-#include <QUrl>
+#include <QtCore/QList>
+#include <QtCore/QUrl>
 
 #include "literalterm.h"
 
