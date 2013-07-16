@@ -62,11 +62,15 @@ QList<Nepomuk2::Query::Term> PassFileSize::run(const QList<Nepomuk2::Query::Term
     if (multipliers.contains(unit)) {
         long long int multiplier = multipliers.value(unit);
         Nepomuk2::Query::LiteralTerm term = match.at(0).toLiteralTerm();
+        Soprano::LiteralValue value = term.value();
 
-        if (term.value().isDouble()) {
+        if (value.isDouble()) {
             term.setValue(term.value().toDouble() * double(multiplier));
-        } else {
+        } else if (value.isInt() || value.isInt64()) {
             term.setValue(term.value().toInt64() * multiplier);
+        } else {
+            // String or anything that is not a number
+            return rs;
         }
 
         rs.append(term);
