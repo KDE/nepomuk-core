@@ -98,33 +98,32 @@ static Nepomuk2::Query::AndTerm dateTimeComparison(const Nepomuk2::Types::Proper
     QTime end_time(start_time);
     PassDatePeriods::Period last_defined_period = (PassDatePeriods::Period)(start_time.msec());
 
-    switch (last_defined_period)
-    {
-        case PassDatePeriods::Year:
-            end_date = cal->addYears(start_date, 1);
-            break;
-        case PassDatePeriods::Month:
-            end_date = cal->addMonths(start_date, 1);
-            break;
-        case PassDatePeriods::Week:
-            end_date = cal->addDays(start_date, cal->dayOfWeek(end_date));
-            break;
-        case PassDatePeriods::DayOfWeek:
-        case PassDatePeriods::Day:
-            end_date = cal->addDays(start_date, 1);
-            break;
+    switch (last_defined_period) {
+    case PassDatePeriods::Year:
+        end_date = cal->addYears(start_date, 1);
+        break;
+    case PassDatePeriods::Month:
+        end_date = cal->addMonths(start_date, 1);
+        break;
+    case PassDatePeriods::Week:
+        end_date = cal->addDays(start_date, cal->dayOfWeek(end_date));
+        break;
+    case PassDatePeriods::DayOfWeek:
+    case PassDatePeriods::Day:
+        end_date = cal->addDays(start_date, 1);
+        break;
 
-        case PassDatePeriods::Hour:
-            end_time.addSecs(60 * 60);
-            break;
-        case PassDatePeriods::Minute:
-            end_time.addSecs(60);
-            break;
-        case PassDatePeriods::Second:
-            end_time.addSecs(1);
-            break;
-        default:
-            break;
+    case PassDatePeriods::Hour:
+        end_time.addSecs(60 * 60);
+        break;
+    case PassDatePeriods::Minute:
+        end_time.addSecs(60);
+        break;
+    case PassDatePeriods::Second:
+        end_time.addSecs(1);
+        break;
+    default:
+        break;
     }
 
     Nepomuk2::Query::LiteralTerm end_term(QDateTime(end_date, end_time));

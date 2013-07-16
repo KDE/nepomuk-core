@@ -378,14 +378,13 @@ static int fieldIsRelative(const Field &field, int if_yes, int if_no)
 
 static int fieldValue(const Field &field, bool in_defined_period, int now_value, int null_value)
 {
-    switch (field.flags)
-    {
-        case Field::Unset:
-            return (in_defined_period ? now_value : null_value);
-        case Field::Absolute:
-            return field.value;
-        case Field::Relative:
-            return now_value;
+    switch (field.flags) {
+    case Field::Unset:
+        return (in_defined_period ? now_value : null_value);
+    case Field::Absolute:
+        return field.value;
+    case Field::Relative:
+        return now_value;
     }
 
     return 0;

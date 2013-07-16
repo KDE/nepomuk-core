@@ -77,40 +77,39 @@ Nepomuk2::Query::Term PassProperties::convertToRange(const Nepomuk2::Query::Lite
 {
     Soprano::LiteralValue value = term.value();
 
-    switch (range)
-    {
-        case Integer:
-            if (value.isInt() || value.isInt64()) {
-                return term;
-            }
-            break;
+    switch (range) {
+    case Integer:
+        if (value.isInt() || value.isInt64()) {
+            return term;
+        }
+        break;
 
-        case IntegerOrDouble:
-            if (value.isInt() || value.isInt64() || value.isDouble()) {
-                return term;
-            }
-            break;
+    case IntegerOrDouble:
+        if (value.isInt() || value.isInt64() || value.isDouble()) {
+            return term;
+        }
+        break;
 
-        case String:
-            if (value.isString()) {
-                return term;
-            }
-            break;
+    case String:
+        if (value.isString()) {
+            return term;
+        }
+        break;
 
-        case DateTime:
-            if (value.isDateTime()) {
-                return term;
-            }
-            break;
+    case DateTime:
+        if (value.isDateTime()) {
+            return term;
+        }
+        break;
 
-        case Tag:
-            if (value.isString() && tags().contains(value.toString())) {
-                Nepomuk2::Query::ResourceTerm rs(cached_tags.value(value.toString()));
-                rs.setPosition(term);
+    case Tag:
+        if (value.isString() && tags().contains(value.toString())) {
+            Nepomuk2::Query::ResourceTerm rs(cached_tags.value(value.toString()));
+            rs.setPosition(term);
 
-                return rs;
-            }
-            break;
+            return rs;
+        }
+        break;
     }
 
     return Nepomuk2::Query::Term();
