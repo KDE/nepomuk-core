@@ -21,8 +21,6 @@
 
 #include "literalterm.h"
 
-#include <QtCore/QRegExp>
-
 PatternMatcher::PatternMatcher(QList<Nepomuk2::Query::Term> &terms, QStringList pattern)
 : terms(terms),
   pattern(pattern),
@@ -132,8 +130,14 @@ bool PatternMatcher::matchTerm(const Nepomuk2::Query::Term& term, const QString&
         }
 
         QString value = term.toLiteralTerm().value().toString();
-        QRegExp regexp(pattern, Qt::CaseInsensitive, QRegExp::RegExp2);
+        QStringList allowed_values = pattern.split(QLatin1Char('|'));
 
-        return regexp.exactMatch(value);
+        Q_FOREACH(const QString &allowed_value, allowed_values) {
+            if (value == allowed_value) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

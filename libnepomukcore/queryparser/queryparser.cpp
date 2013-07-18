@@ -222,8 +222,8 @@ Query QueryParser::parse(const QString &query, ParserFlags flags) const
     d->runPass(d->pass_datevalues, i18nc(
         "A year (%1), month (%2), day (%3), day of week (%4), hour (%5), "
             "minute (%6), second (%7), in every combination supported by your language",
-        "%3 of %2 %1;%3 (st|nd|rd|th) %2 %1;%3 (st|nd|rd|th) of %2 %1;"
-        "%3 of %2;%3 (st|nd|rd|th) %2;%3 (st|nd|rd|th) of %2;of %2 %1;%2 %3 (st|nd|rd|th);%2 %3;%2 %1;"
+        "%3 of %2 %1;%3 st|nd|rd|th %2 %1;%3 st|nd|rd|th of %2 %1;"
+        "%3 of %2;%3 st|nd|rd|th %2;%3 st|nd|rd|th of %2;of %2 %1;%2 %3 st|nd|rd|th;%2 %3;%2 %1;"
         "%1 - %2 - %3;%1 - %2;%3 / %2 / %1;%3 / %2;"
         "in %2 %1; in %1;, %1;"
     ));
@@ -234,16 +234,16 @@ Query QueryParser::parse(const QString &query, ParserFlags flags) const
     // Comparators
     d->pass_comparators.setComparator(ComparisonTerm::Contains);
     d->runPass(d->pass_comparators,
-        i18nc("Equality", "(contains|containing) %1"));
+        i18nc("Equality", "contains|containing %1"));
     d->pass_comparators.setComparator(ComparisonTerm::Greater);
     d->runPass(d->pass_comparators,
-        i18nc("Strictly greater", "(greater|bigger|more) than %1;at least %1;(after|since) %1;\\> %1"));
+        i18nc("Strictly greater", "greater|bigger|more than %1;at least %1;after|since %1;\\> %1"));
     d->pass_comparators.setComparator(ComparisonTerm::Smaller);
     d->runPass(d->pass_comparators,
-        i18nc("Strictly smaller", "(smaller|less|lesser) than %1;at most %1;(before|until) %1;\\< %1"));
+        i18nc("Strictly smaller", "smaller|less|lesser than %1;at most %1;before|until %1;\\< %1"));
     d->pass_comparators.setComparator(ComparisonTerm::Equal);
     d->runPass(d->pass_comparators,
-        i18nc("Equality", "(equal|equals|=) %1;equal to %1"));
+        i18nc("Equality", "equal|equals|= %1;equal to %1"));
 
     // Email-related properties
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageFrom(), PassProperties::String);
@@ -257,10 +257,10 @@ Query QueryParser::parse(const QString &query, ParserFlags flags) const
         i18nc("Recipient of an e-mail", "sent to %1;to %1;recipient is %1;recipient %1"));
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::sentDate(), PassProperties::DateTime);
     d->runPass(d->pass_properties,
-        i18nc("Sending date-time", "sent (at|on) %1;sent %1"));
+        i18nc("Sending date-time", "sent at|on %1;sent %1"));
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::receivedDate(), PassProperties::DateTime);
     d->runPass(d->pass_properties,
-        i18nc("Receiving date-time", "received (at|on) %1;received %1"));
+        i18nc("Receiving date-time", "received at|on %1;received %1"));
 
     // File-related properties
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileSize(), PassProperties::IntegerOrDouble);
@@ -271,10 +271,10 @@ Query QueryParser::parse(const QString &query, ParserFlags flags) const
         i18nc("Name of a file", "name %1;named %1"));
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::created(), PassProperties::DateTime);
     d->runPass(d->pass_properties,
-        i18nc("Date of creation", "created (at|on|in) %1;created %1"));
+        i18nc("Date of creation", "created at|on|in %1;created %1"));
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::lastModified(), PassProperties::DateTime);
     d->runPass(d->pass_properties,
-        i18nc("Date of last modification", "(modified|edited|dated) (at|on|of) %1;(modified|edited|dated) %1"));
+        i18nc("Date of last modification", "modified|edited|dated at|on|of %1;modified|edited|dated %1"));
 
     // Properties having a resource range (hasTag, messageFrom, etc)
     d->pass_properties.setProperty(Soprano::Vocabulary::NAO::hasTag(), PassProperties::Tag);
