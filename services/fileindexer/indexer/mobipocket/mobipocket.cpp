@@ -269,7 +269,7 @@ QString Document::text(int size) const
         //       that. This leads to an invalid string whose strlen does not match its size
         //       This should be properly fixed in the decompressor
         for (int i=0; i< decompressedRecord.size(); i++) {
-            if (decompressedRecord[i] == 0) {
+            if (decompressedRecord.at(i) == 0) {
                 decompressedRecord.resize(i);
                 break;
             }
