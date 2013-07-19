@@ -18,12 +18,22 @@
 */
 
 #include "patternmatcher.h"
+#include "queryparser.h"
 
 #include "literalterm.h"
 
-PatternMatcher::PatternMatcher(QList<Nepomuk2::Query::Term> &terms, QStringList pattern)
-: terms(terms),
+PatternMatcher::PatternMatcher(Nepomuk2::Query::QueryParser *parser,
+                               QList<Nepomuk2::Query::Term> &terms,
+                               int cursor_position,
+                               const QStringList &pattern,
+                               Nepomuk2::Query::CompletionProposal::Type completion_type,
+                               const KLocalizedString &completion_description)
+: parser(parser),
+  terms(terms),
+  cursor_position(cursor_position),
   pattern(pattern),
+  completion_type(completion_type),
+  completion_description(completion_description),
   capture_count(captureCount())
 {
 }
@@ -46,13 +56,14 @@ int PatternMatcher::captureCount() const
     return max_capture;
 }
 
-int PatternMatcher::matchPattern(QList<Nepomuk2::Query::Term> &matched_terms,
-                                 int index,
+int PatternMatcher::matchPattern(int first_term_index,
+                                 QList<Nepomuk2::Query::Term> &matched_terms,
                                  int &start_position,
                                  int &end_position) const
 {
     int pattern_index = 0;
-    int term_index = index;
+    int term_index = first_term_index;
+    bool has_matched_a_literal = false;
     bool match_anything = false;        // Match "..."
     bool contains_catchall = false;
 
@@ -92,17 +103,24 @@ int PatternMatcher::matchPattern(QList<Nepomuk2::Query::Term> &matched_terms,
         } else if (match) {
             if (capture_index != -1) {
                 matched_terms[capture_index] = term;
+            } else {
+                has_matched_a_literal = true;   // At least one literal has been matched, enable auto-completion
             }
 
             // Try to match the next pattern
             ++pattern_index;
         } else {
             // The pattern does not match, abort
-            return 0;
+            break;
         }
 
         // Match the next term
         ++term_index;
+    }
+
+    // See if the partially matched pattern can be used to provide a completion proposal
+    if (has_matched_a_literal && term_index - first_term_index > 0) {
+        addCompletionProposal(pattern_index, first_term_index, term_index);
     }
 
     if (!contains_catchall && pattern_index != pattern.count()) {
@@ -112,11 +130,11 @@ int PatternMatcher::matchPattern(QList<Nepomuk2::Query::Term> &matched_terms,
         // without encountering the terminating term.
         return 0;
     } else {
-        return (term_index - index);
+        return (term_index - first_term_index);
     }
 }
 
-bool PatternMatcher::matchTerm(const Nepomuk2::Query::Term& term, const QString& pattern, int& capture_index) const
+bool PatternMatcher::matchTerm(const Nepomuk2::Query::Term &term, const QString &pattern, int &capture_index) const
 {
     if (pattern.at(0) == QLatin1Char('%')) {
         // Placeholder
@@ -140,4 +158,44 @@ bool PatternMatcher::matchTerm(const Nepomuk2::Query::Term& term, const QString&
 
         return false;
     }
+}
+
+void PatternMatcher::addCompletionProposal(int first_pattern_index_not_matching,
+                                           int first_term_index_matching,
+                                           int first_term_index_not_matching) const
+{
+    // Don't count terms that are not literal terms. This avoids problems when the
+    // user types "sent to size > 2M", that is seen here as "sent to <comparison>".
+    if (!terms.at(first_term_index_not_matching - 1).isLiteralTerm()) {
+        if (--first_term_index_not_matching < 0) {
+            return; // Avoid an underflow when the pattern is only "%1" for instance.
+        }
+    }
+
+    const Nepomuk2::Query::Term &first_matching = terms.at(first_term_index_matching);
+    const Nepomuk2::Query::Term &last_matching = terms.at(first_term_index_not_matching - 1);
+
+    // Check that the completion proposal would be valid
+    if (completion_description.isEmpty()) {
+        return;
+    }
+
+    if (cursor_position < first_matching.position()) {
+        return;
+    }
+
+    if (first_term_index_not_matching < terms.count() ?
+            cursor_position > terms.at(first_term_index_not_matching).position() :
+            cursor_position > last_matching.position() + last_matching.length()) {
+        return;
+    }
+
+    parser->addCompletionProposal(new Nepomuk2::Query::CompletionProposal(
+        pattern,
+        first_pattern_index_not_matching - 1,
+        first_matching.position(),
+        last_matching.position() + last_matching.length(),
+        completion_type,
+        completion_description
+    ));
 }

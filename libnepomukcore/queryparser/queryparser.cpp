@@ -19,6 +19,7 @@
 
 #include "queryparser.h"
 #include "patternmatcher.h"
+#include "completionproposal.h"
 #include "utils.h"
 
 #include "pass_splitunits.h"
@@ -88,12 +89,17 @@ struct QueryParser::Private
     QStringList split(const QString &query, bool split_separators, QList<int> *positions = NULL);
 
     template<typename T>
-    void runPass(const T &pass, const QString &pattern);
+    void runPass(const T &pass,
+                 int cursor_position,
+                 const QString &pattern,
+                 const KLocalizedString &description = KLocalizedString(),
+                 CompletionProposal::Type type = Nepomuk2::Query::CompletionProposal::NoType);
     void foldDateTimes();
     void handleDateTimeComparison(DateTimeSpec &spec, const ComparisonTerm &term);
 
-    // Terms on which the parser works
+    QueryParser *parser;
     QList<Term> terms;
+    QList<CompletionProposal *> proposals;
 
     // Parsing passes (they cache translations, queries, etc)
     PassSplitUnits pass_splitunits;
@@ -115,16 +121,23 @@ struct QueryParser::Private
 QueryParser::QueryParser()
 : d(new Private)
 {
+    d->parser = this;
 }
 
 QueryParser::~QueryParser()
 {
+    qDeleteAll(d->proposals);
     delete d;
 }
 
 Query QueryParser::parse(const QString &query) const
 {
     return parse(query, NoParserFlags);
+}
+
+Query QueryParser::parse(const QString &query, ParserFlags flags) const
+{
+    return parse(query, flags, -1);
 }
 
 Query QueryParser::parseQuery(const QString &query, ParserFlags flags)
@@ -144,9 +157,13 @@ QList<Nepomuk2::Types::Property> QueryParser::matchProperty( const QString& fiel
     return QList<Nepomuk2::Types::Property>();
 }
 
-Query QueryParser::parse(const QString &query, ParserFlags flags) const
+
+Query QueryParser::parse(const QString &query, ParserFlags flags, int cursor_position) const
 {
+    qDeleteAll(d->proposals);
+
     d->terms.clear();
+    d->proposals.clear();
 
     // Split the query into terms
     QList<int> positions;
@@ -163,63 +180,72 @@ Query QueryParser::parse(const QString &query, ParserFlags flags) const
     }
 
     // Prepare literal values
-    d->runPass(d->pass_splitunits, "%1");
-    d->runPass(d->pass_numbers, "%1");
-    d->runPass(d->pass_filesize, "%1 %2");
-    d->runPass(d->pass_typehints, "%1");
+    d->runPass(d->pass_splitunits, cursor_position, "%1");
+    d->runPass(d->pass_numbers, cursor_position, "%1");
+    d->runPass(d->pass_filesize, cursor_position, "%1 %2");
+    d->runPass(d->pass_typehints, cursor_position, "%1");
 
     if (flags & DetectFilenamePattern) {
-        d->runPass(d->pass_filenames, "%1");
+        d->runPass(d->pass_filenames, cursor_position, "%1");
     }
 
     // Date-time periods
-    d->runPass(d->pass_periodnames, "%1");
+    d->runPass(d->pass_periodnames, cursor_position, "%1");
 
     d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset);
-    d->runPass(d->pass_dateperiods,
+    d->runPass(d->pass_dateperiods, cursor_position,
         i18nc("Adding an offset to a period of time (%1=period, %2=offset)", "in %2 %1"));
 
     d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::InvertedOffset);
-    d->runPass(d->pass_dateperiods,
+    d->runPass(d->pass_dateperiods, cursor_position,
         i18nc("Removing an offset from a period of time (%1=period, %2=offset)", "%2 %1 ago"));
 
     d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset, 1);
-    d->runPass(d->pass_dateperiods,
-        i18nc("Adding 1 to a period of time", "next %1"));
+    d->runPass(d->pass_dateperiods, cursor_position,
+        i18nc("Adding 1 to a period of time", "next %1"),
+        ki18n("Next week, month, day, ..."));
 
     d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset, -1);
-    d->runPass(d->pass_dateperiods,
-        i18nc("Removing 1 to a period of time", "last %1"));
+    d->runPass(d->pass_dateperiods, cursor_position,
+        i18nc("Removing 1 to a period of time", "last %1"),
+        ki18n("Previous week, month, day, ..."));
 
     d->pass_dateperiods.setKind(PassDatePeriods::Day, PassDatePeriods::Offset, 1);
-    d->runPass(d->pass_dateperiods,
-        i18nc("In one day", "tomorrow"));
+    d->runPass(d->pass_dateperiods, cursor_position,
+        i18nc("In one day", "tomorrow"),
+        ki18n("Tomorrow"));
     d->pass_dateperiods.setKind(PassDatePeriods::Day, PassDatePeriods::Offset, -1);
-    d->runPass(d->pass_dateperiods,
-        i18nc("One day ago", "yesterday"));
+    d->runPass(d->pass_dateperiods, cursor_position,
+        i18nc("One day ago", "yesterday"),
+        ki18n("Yesterday"));
     d->pass_dateperiods.setKind(PassDatePeriods::Day, PassDatePeriods::Offset, 0);
-    d->runPass(d->pass_dateperiods,
-        i18nc("The current day", "today"));
+    d->runPass(d->pass_dateperiods, cursor_position,
+        i18nc("The current day", "today"),
+        ki18n("Today"));
 
     d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value, 1);
-    d->runPass(d->pass_dateperiods,
-        i18nc("First period (first day, month, etc)", "first %1"));
+    d->runPass(d->pass_dateperiods, cursor_position,
+        i18nc("First period (first day, month, etc)", "first %1"),
+        ki18n("First week, month, day, ..."));
     d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value, -1);
-    d->runPass(d->pass_dateperiods,
-        i18nc("Last period (last day, month, etc)", "last %1"));
+    d->runPass(d->pass_dateperiods, cursor_position,
+        i18nc("Last period (last day, month, etc)", "last %1"),
+        ki18n("Last week, month, day, ..."));
     d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value);
-    d->runPass(d->pass_dateperiods,
+    d->runPass(d->pass_dateperiods, cursor_position,
         i18nc("Setting the value of a period, as in 'third week' (%1=period, %2=value)", "%2 %1"));
 
     // Setting values of date-time periods (14:30, June 6, etc)
     d->pass_datevalues.setPm(true);
-    d->runPass(d->pass_datevalues,
-        i18nc("An hour (%5) and an optional minute (%6), PM", "at %5 : %6 pm;at %5 h pm;at %5 pm;%5 : %6 pm;%5 h pm;%5 pm"));
+    d->runPass(d->pass_datevalues, cursor_position,
+        i18nc("An hour (%5) and an optional minute (%6), PM", "at %5 : %6 pm;at %5 h pm;at %5 pm;%5 : %6 pm;%5 h pm;%5 pm"),
+        ki18n("A time after midday"));
     d->pass_datevalues.setPm(false);
-    d->runPass(d->pass_datevalues,
-        i18nc("An hour (%5) and an optional minute (%6), AM", "at %5 : %6 am;at %5 h am;at %5 am;at %5;%5 : %6 am;%5 : %6 : %7;%5 : %6;%5 h am;%5 h;%5 am"));
+    d->runPass(d->pass_datevalues, cursor_position,
+        i18nc("An hour (%5) and an optional minute (%6), AM", "at %5 : %6 am;at %5 h am;at %5 am;at %5;%5 : %6 am;%5 : %6 : %7;%5 : %6;%5 h am;%5 h;%5 am"),
+        ki18n("A time"));
 
-    d->runPass(d->pass_datevalues, i18nc(
+    d->runPass(d->pass_datevalues, cursor_position, i18nc(
         "A year (%1), month (%2), day (%3), day of week (%4), hour (%5), "
             "minute (%6), second (%7), in every combination supported by your language",
         "%3 of %2 %1;%3 st|nd|rd|th %2 %1;%3 st|nd|rd|th of %2 %1;"
@@ -233,58 +259,79 @@ Query QueryParser::parse(const QString &query, ParserFlags flags) const
 
     // Comparators
     d->pass_comparators.setComparator(ComparisonTerm::Contains);
-    d->runPass(d->pass_comparators,
-        i18nc("Equality", "contains|containing %1"));
+    d->runPass(d->pass_comparators, cursor_position,
+        i18nc("Equality", "contains|containing %1"),
+        ki18n("Containing"));
     d->pass_comparators.setComparator(ComparisonTerm::Greater);
-    d->runPass(d->pass_comparators,
-        i18nc("Strictly greater", "greater|bigger|more than %1;at least %1;after|since %1;\\> %1"));
+    d->runPass(d->pass_comparators, cursor_position,
+        i18nc("Strictly greater", "greater|bigger|more than %1;at least %1;\\> %1"),
+        ki18n("Greater than"));
+    d->runPass(d->pass_comparators, cursor_position,
+        i18nc("After in time", "after|since %1"),
+        ki18n("After"));
     d->pass_comparators.setComparator(ComparisonTerm::Smaller);
-    d->runPass(d->pass_comparators,
-        i18nc("Strictly smaller", "smaller|less|lesser than %1;at most %1;before|until %1;\\< %1"));
+    d->runPass(d->pass_comparators, cursor_position,
+        i18nc("Strictly smaller", "smaller|less|lesser than %1;at most %1;\\< %1"),
+        ki18n("Smaller than"), CompletionProposal::DateTime);
+    d->runPass(d->pass_comparators, cursor_position,
+        i18nc("Before in time", "before|until %1"),
+        ki18n("Before"), CompletionProposal::DateTime);
     d->pass_comparators.setComparator(ComparisonTerm::Equal);
-    d->runPass(d->pass_comparators,
-        i18nc("Equality", "equal|equals|= %1;equal to %1"));
+    d->runPass(d->pass_comparators, cursor_position,
+        i18nc("Equality", "equal|equals|= %1;equal to %1"),
+        ki18n("Equal to"));
 
     // Email-related properties
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageFrom(), PassProperties::String);
-    d->runPass(d->pass_properties,
-        i18nc("Sender of an e-mail", "sent by %1;from %1;sender is %1;sender %1"));
+    d->runPass(d->pass_properties, cursor_position,
+        i18nc("Sender of an e-mail", "sent by %1;from %1;sender is %1;sender %1"),
+        ki18n("Sender of an e-mail"), CompletionProposal::Contact);
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageSubject(), PassProperties::String);
-    d->runPass(d->pass_properties,
-        i18nc("Title of an e-mail", "title %1"));
+    d->runPass(d->pass_properties, cursor_position,
+        i18nc("Title of an e-mail", "title %1;titled %1"),
+        ki18n("Title of an e-mail"));
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageRecipient(), PassProperties::String);
-    d->runPass(d->pass_properties,
-        i18nc("Recipient of an e-mail", "sent to %1;to %1;recipient is %1;recipient %1"));
+    d->runPass(d->pass_properties, cursor_position,
+        i18nc("Recipient of an e-mail", "sent to %1;to %1;recipient is %1;recipient %1"),
+        ki18n("Recipient of an e-mail"), CompletionProposal::Contact);
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::sentDate(), PassProperties::DateTime);
-    d->runPass(d->pass_properties,
-        i18nc("Sending date-time", "sent at|on %1;sent %1"));
+    d->runPass(d->pass_properties, cursor_position,
+        i18nc("Sending date-time", "sent at|on %1;sent %1"),
+        ki18n("Date of sending"), CompletionProposal::DateTime);
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::receivedDate(), PassProperties::DateTime);
-    d->runPass(d->pass_properties,
-        i18nc("Receiving date-time", "received at|on %1;received %1"));
+    d->runPass(d->pass_properties, cursor_position,
+        i18nc("Receiving date-time", "received at|on %1;received %1"),
+        ki18n("Date of reception"), CompletionProposal::DateTime);
 
     // File-related properties
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileSize(), PassProperties::IntegerOrDouble);
-    d->runPass(d->pass_properties,
-        i18nc("Size of a file", "size is %1;size %1;being %1 large;%1 large"));
+    d->runPass(d->pass_properties, cursor_position,
+        i18nc("Size of a file", "size is %1;size %1;being %1 large;%1 large"),
+        ki18n("File size"));
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileName(), PassProperties::String);
-    d->runPass(d->pass_properties,
-        i18nc("Name of a file", "name %1;named %1"));
+    d->runPass(d->pass_properties, cursor_position,
+        i18nc("Name of a file", "name %1;named %1"),
+        ki18n("File name"));
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::created(), PassProperties::DateTime);
-    d->runPass(d->pass_properties,
-        i18nc("Date of creation", "created at|on|in %1;created %1"));
+    d->runPass(d->pass_properties, cursor_position,
+        i18nc("Date of creation", "created at|on|in %1;created %1"),
+        ki18n("Date of creation"), CompletionProposal::DateTime);
     d->pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::lastModified(), PassProperties::DateTime);
-    d->runPass(d->pass_properties,
-        i18nc("Date of last modification", "modified|edited|dated at|on|of %1;modified|edited|dated %1"));
+    d->runPass(d->pass_properties, cursor_position,
+        i18nc("Date of last modification", "modified|edited|dated at|on|of %1;modified|edited|dated %1"),
+        ki18n("Date of last modification"), CompletionProposal::DateTime);
 
     // Properties having a resource range (hasTag, messageFrom, etc)
     d->pass_properties.setProperty(Soprano::Vocabulary::NAO::hasTag(), PassProperties::Tag);
-    d->runPass(d->pass_properties, i18nc(
-        "A document is associated with a tag", "tagged as %1;has tag %1;tag is %1;# %1"));
+    d->runPass(d->pass_properties, cursor_position,
+        i18nc("A document is associated with a tag", "tagged as %1;has tag %1;tag is %1;# %1"),
+        ki18n("Tag name"), CompletionProposal::Tag);
 
     // Different kinds of properties that need subqueries
     d->pass_subqueries.setProperty(Nepomuk2::Vocabulary::NIE::relatedTo());
-    d->runPass(d->pass_subqueries,
-        i18nc("Related to a subquery", "related to ... ,"));
+    d->runPass(d->pass_subqueries, cursor_position,
+        i18nc("Related to a subquery", "related to ... ,"),
+        ki18n("Match items related to others"));
 
     // Fuse the terms into a big AND term and produce the query
     int end_index;
@@ -293,7 +340,20 @@ Query QueryParser::parse(const QString &query, ParserFlags flags) const
     return Query(final_term);
 }
 
+QList<CompletionProposal *> QueryParser::completionProposals() const
+{
+    return d->proposals;
+}
 
+void QueryParser::addCompletionProposal(CompletionProposal *proposal)
+{
+    d->proposals.append(proposal);
+}
+
+QStringList QueryParser::allTags() const
+{
+    return d->pass_properties.tags().keys();
+}
 
 QStringList QueryParser::Private::split(const QString &query, bool split_separators, QList<int> *positions)
 {
@@ -340,7 +400,11 @@ QStringList QueryParser::Private::split(const QString &query, bool split_separat
 }
 
 template<typename T>
-void QueryParser::Private::runPass(const T &pass, const QString &pattern)
+void QueryParser::Private::runPass(const T &pass,
+                                   int cursor_position,
+                                   const QString &pattern,
+                                   const KLocalizedString &description,
+                                   CompletionProposal::Type type)
 {
     // Split the pattern at ";" characters, as a locale can have more than one
     // pattern that can be used for a given rule
@@ -349,7 +413,7 @@ void QueryParser::Private::runPass(const T &pass, const QString &pattern)
     Q_FOREACH(const QString &rule, rules) {
         // Split the rule into parts that have to be matched
         QStringList parts = split(rule, false);
-        PatternMatcher matcher(terms, parts);
+        PatternMatcher matcher(parser, terms, cursor_position, parts, type, description);
 
         matcher.runPass(pass);
     }

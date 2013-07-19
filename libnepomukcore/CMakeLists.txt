@@ -64,6 +64,7 @@ set(nepomuk_query_SRCS
 )
 
 set(nepomuk_queryparser_SRCS
+  queryparser/completionproposal.cpp
   queryparser/queryparser.cpp
   queryparser/pass_comparators.cpp
   queryparser/pass_dateperiods.cpp
@@ -200,6 +201,7 @@ install(FILES
   query/resultiterator.h
   query/queryserviceclient.h
   query/standardqueries.h
+  queryparser/completionproposal.h
   queryparser/queryparser.h
   datamanagement/simpleresource.h
   datamanagement/simpleresourcegraph.h

@@ -20,14 +20,22 @@
 #ifndef __PATTERNMATCHER_H__
 #define __PATTERNMATCHER_H__
 
+#include "completionproposal.h"
 #include "term.h"
 
 #include <QtCore/QStringList>
 
+namespace Nepomuk2 { namespace Query { class QueryParser; }}
+
 class PatternMatcher
 {
     public:
-        PatternMatcher(QList<Nepomuk2::Query::Term> &terms, QStringList pattern);
+        PatternMatcher(Nepomuk2::Query::QueryParser *parser,
+                       QList<Nepomuk2::Query::Term> &terms,
+                       int cursor_position,
+                       const QStringList &pattern,
+                       Nepomuk2::Query::CompletionProposal::Type completion_type,
+                       const KLocalizedString &completion_description);
 
         template<typename T>
         void runPass(const T &pass)
@@ -42,7 +50,7 @@ class PatternMatcher
             for (int index=0; index<terms.count(); ++index) {
                 int start_position;
                 int end_position;
-                int matched_length = matchPattern(matched_terms, index, start_position, end_position);
+                int matched_length = matchPattern(index, matched_terms, start_position, end_position);
 
                 if (matched_length > 0) {
                     // The pattern matched, run the pass on the matching terms
@@ -83,15 +91,23 @@ class PatternMatcher
 
     private:
         int captureCount() const;
-        int matchPattern(QList<Nepomuk2::Query::Term> &matched_terms,
-                         int index,
+        int matchPattern(int first_term_index,
+                         QList<Nepomuk2::Query::Term> &matched_terms,
                          int &start_position,
                          int &end_position) const;
         bool matchTerm(const Nepomuk2::Query::Term &term, const QString &pattern, int &capture_index) const;
+        void addCompletionProposal(int first_pattern_index_not_matching,
+                                   int first_term_index_matching,
+                                   int first_term_index_not_matching) const;
 
     private:
+        Nepomuk2::Query::QueryParser *parser;
         QList<Nepomuk2::Query::Term> &terms;
+        int cursor_position;
         QStringList pattern;
+        Nepomuk2::Query::CompletionProposal::Type completion_type;
+        KLocalizedString completion_description;
+
         int capture_count;
 };
 

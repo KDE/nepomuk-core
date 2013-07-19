@@ -26,9 +26,12 @@
 
 #include "nepomuk_export.h"
 
+class PatternMatcher;
 
 namespace Nepomuk2 {
     namespace Query {
+        class CompletionProposal;
+
         /**
          * \class QueryParser queryparser.h Nepomuk2/Query/QueryParser
          *
@@ -90,6 +93,7 @@ namespace Nepomuk2 {
          * (in English):
          * \code
          * documents related to mails from Smith and tagged as important, size > 2M
+         * \endcode
          *
          * \author Sebastian Trueg <trueg@kde.org>
          * \author Denis Steckelmacher <steckdenis@yahoo.fr> (4.12 version)
@@ -98,6 +102,8 @@ namespace Nepomuk2 {
          */
         class NEPOMUK_EXPORT QueryParser
         {
+            friend class ::PatternMatcher;
+
         public:
             /**
              * Create a new query parser.
@@ -166,6 +172,36 @@ namespace Nepomuk2 {
             Query parse( const QString& query, ParserFlags flags ) const;
 
             /**
+             * Parse a user query.
+             *
+             * \param query The query string to parse
+             * \param flags a set of flags influencing the parsing process.
+             * \param cursor_position position of the cursor in a line edit used
+             *                        by the user to enter the query. It is used
+             *                        to provide auto-completion proposals.
+             *
+             * \return The parsed query or an invalid Query object
+             * in case the parsing failed.
+             *
+             * \since 4.12
+             */
+            Query parse( const QString& query, ParserFlags flags, int cursor_position ) const;
+
+            /**
+             * List of completion proposals related to the previously parsed query
+             *
+             * \note The query parser is responsible for deleting the CompletionProposal
+             *       objects.
+             */
+            QList<CompletionProposal *> completionProposals() const;
+
+            /**
+             * List of all the valid tags on the user's system. This list is
+             * cached and calling this function does not touch the Nepomuk server.
+             */
+            QStringList allTags() const;
+
+            /**
              * Try to match a field name as used in a query string to actual
              * properties.
              *
@@ -196,6 +232,9 @@ namespace Nepomuk2 {
              * \since 4.6
              */
             static Query parseQuery( const QString& query, ParserFlags flags );
+
+        private:
+            void addCompletionProposal(CompletionProposal *proposal);
 
         private:
             class Private;

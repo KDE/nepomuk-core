@@ -26,6 +26,7 @@ DESTINATION ${INCLUDE_INSTALL_DIR}/Nepomuk2/Types COMPONENT Devel)
 install(FILES
   Query/AndTerm
   Query/ComparisonTerm
+  Query/CompletionProposal
   Query/FileQuery
   Query/GroupTerm
   Query/LiteralTerm
