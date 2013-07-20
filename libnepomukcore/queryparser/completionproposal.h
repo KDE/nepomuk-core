@@ -58,8 +58,8 @@ namespace Nepomuk2 {
 
                 CompletionProposal(const QStringList &pattern,
                                    int last_matched_part,
-                                   int start_position,
-                                   int end_position,
+                                   int position,
+                                   int length,
                                    Type type,
                                    const KLocalizedString &description);
                 ~CompletionProposal();
@@ -67,8 +67,8 @@ namespace Nepomuk2 {
                 QStringList pattern() const;
                 int lastMatchedPart() const;
 
-                int startPosition() const;
-                int endPosition() const;
+                int position() const;
+                int length() const;
 
                 Type type() const;
                 KLocalizedString description() const;

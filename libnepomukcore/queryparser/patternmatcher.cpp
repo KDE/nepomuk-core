@@ -194,7 +194,7 @@ void PatternMatcher::addCompletionProposal(int first_pattern_index_not_matching,
         pattern,
         first_pattern_index_not_matching - 1,
         first_matching.position(),
-        last_matching.position() + last_matching.length(),
+        last_matching.position() + last_matching.length() + 1 - first_matching.position(),
         completion_type,
         completion_description
     ));

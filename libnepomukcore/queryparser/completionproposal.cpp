@@ -27,24 +27,24 @@ struct CompletionProposal::Private
 {
     QStringList pattern;
     int last_matched_part;
-    int start_position;
-    int end_position;
+    int position;
+    int length;
     CompletionProposal::Type type;
     KLocalizedString description;
 };
 
 CompletionProposal::CompletionProposal(const QStringList &pattern,
                                        int last_matched_part,
-                                       int start_position,
-                                       int end_position,
+                                       int position,
+                                       int length,
                                        Type type,
                                        const KLocalizedString &description)
 : d(new Private)
 {
     d->pattern = pattern;
     d->last_matched_part = last_matched_part;
-    d->start_position = start_position;
-    d->end_position = end_position;
+    d->position = position;
+    d->length = length;
     d->type = type;
     d->description = description;
 }
@@ -54,14 +54,14 @@ CompletionProposal::~CompletionProposal()
     delete d;
 }
 
-int CompletionProposal::startPosition() const
+int CompletionProposal::position() const
 {
-    return d->start_position;
+    return d->position;
 }
 
-int CompletionProposal::endPosition() const
+int CompletionProposal::length() const
 {
-    return d->end_position;
+    return d->length;
 }
 
 int CompletionProposal::lastMatchedPart() const
