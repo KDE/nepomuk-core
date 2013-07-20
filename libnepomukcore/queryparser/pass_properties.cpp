@@ -24,6 +24,7 @@
 #include "property.h"
 #include "resourcemanager.h"
 #include "resourceterm.h"
+#include "nco.h"
 
 #include <soprano/nao.h>
 #include <soprano/rdfs.h>
@@ -50,6 +51,15 @@ const QHash<QString, QUrl> &PassProperties::tags() const
     return cached_tags;
 }
 
+const QHash<QString, QUrl> &PassProperties::contacts() const
+{
+    if (!cached_contacts_filled) {
+        const_cast<PassProperties *>(this)->fillContactsCache();
+    }
+
+    return cached_contacts;
+}
+
 void PassProperties::fillTagsCache()
 {
     cached_tags_filled = true;
@@ -70,6 +80,42 @@ void PassProperties::fillTagsCache()
             it["label"].toString(),
             QUrl(it["tag"].toString())
         );
+    }
+}
+
+void PassProperties::fillContactsCache()
+{
+    cached_contacts_filled = true;
+
+    // Get the contact URIs, their fullnames and email addresses
+    QString query = QString::fromLatin1("select distinct ?c, ?fullname, ?email where { "
+                                        "?c a %1 . "
+                                        "{ "
+                                        " ?c %2 ?fullname . "
+                                        "} OPTIONAL { "
+                                        " ?c %3 ?emailaddr . "
+                                        " ?emailaddr %4 ?email . "
+                                        "} "
+                                        "}")
+                    .arg(Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::Contact()),
+                         Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::fullname()),
+                         Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::hasEmailAddress()),
+                         Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::emailAddress()));
+
+    Soprano::QueryResultIterator it =
+        Nepomuk2::ResourceManager::instance()->mainModel()->executeQuery(query, Soprano::Query::QueryLanguageSparql);
+
+    while(it.next()) {
+        QUrl uri(it["c"].toString());
+        QString fullname(it["fullname"].toString());
+        QString email(it["email"].toString());
+
+        if (!fullname.isEmpty()) {
+            cached_contacts.insert(fullname, uri);
+        }
+        if (!email.isEmpty()) {
+            cached_contacts.insert(email, uri);
+        }
     }
 }
 
@@ -105,6 +151,15 @@ Nepomuk2::Query::Term PassProperties::convertToRange(const Nepomuk2::Query::Lite
     case Tag:
         if (value.isString() && tags().contains(value.toString())) {
             Nepomuk2::Query::ResourceTerm rs(cached_tags.value(value.toString()));
+            rs.setPosition(term);
+
+            return rs;
+        }
+        break;
+
+    case Contact:
+        if (value.isString() && contacts().contains(value.toString())) {
+            Nepomuk2::Query::ResourceTerm rs(cached_contacts.value(value.toString()));
             rs.setPosition(term);
 
             return rs;

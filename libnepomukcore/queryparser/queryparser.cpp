@@ -295,7 +295,7 @@ Query QueryParser::parse(const QString &query, ParserFlags flags, int cursor_pos
         ki18n("Equal to"));
 
     // Email-related properties
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageFrom(), PassProperties::String);
+    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageFrom(), PassProperties::Contact);
     d->runPass(d->pass_properties, cursor_position,
         i18nc("Sender of an e-mail", "sent by %1;from %1;sender is %1;sender %1"),
         ki18n("Sender of an e-mail"), CompletionProposal::Contact);
@@ -303,7 +303,7 @@ Query QueryParser::parse(const QString &query, ParserFlags flags, int cursor_pos
     d->runPass(d->pass_properties, cursor_position,
         i18nc("Title of an e-mail", "title %1;titled %1"),
         ki18n("Title of an e-mail"));
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageRecipient(), PassProperties::String);
+    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageRecipient(), PassProperties::Contact);
     d->runPass(d->pass_properties, cursor_position,
         i18nc("Recipient of an e-mail", "sent to %1;to %1;recipient is %1;recipient %1"),
         ki18n("Recipient of an e-mail"), CompletionProposal::Contact);
@@ -366,6 +366,11 @@ void QueryParser::addCompletionProposal(CompletionProposal *proposal)
 QStringList QueryParser::allTags() const
 {
     return d->pass_properties.tags().keys();
+}
+
+QStringList QueryParser::allContacts() const
+{
+    return d->pass_properties.contacts().keys();
 }
 
 QStringList QueryParser::Private::split(const QString &query, bool split_separators, QList<int> *positions)
