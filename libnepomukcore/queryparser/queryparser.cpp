@@ -172,9 +172,22 @@ Query QueryParser::parse(const QString &query, ParserFlags flags, int cursor_pos
     for (int i=0; i<parts.count(); ++i) {
         const QString &part = parts.at(i);
         int position = positions.at(i);
+        int length = part.length();
+
+        if (position > 0 &&
+            query.at(position - 1) == QLatin1Char('"')) {
+            // Absorb the starting quote into the term's position
+            --position;
+            ++length;
+        }
+        if (position + length < query.length() &&
+            query.at(position + length) == QLatin1Char('"')) {
+            // Absorb the ending quote into the term's position
+            ++length;
+        }
 
         LiteralTerm term(part);
-        term.setPosition(position, part.size());
+        term.setPosition(position, length);
 
         d->terms.append(term);
     }
