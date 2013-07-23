@@ -32,7 +32,8 @@
 #include <soprano/queryresultiterator.h>
 
 PassProperties::PassProperties()
-: cached_tags_filled(false)
+: cached_tags_filled(false),
+  cached_contacts_filled(false)
 {
 }
 
