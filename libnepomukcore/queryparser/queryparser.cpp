@@ -281,11 +281,11 @@ Query QueryParser::parse(const QString &query, ParserFlags flags, int cursor_pos
         ki18n("Greater than"));
     d->runPass(d->pass_comparators, cursor_position,
         i18nc("After in time", "after|since %1"),
-        ki18n("After"));
+        ki18n("After"), CompletionProposal::DateTime);
     d->pass_comparators.setComparator(ComparisonTerm::Smaller);
     d->runPass(d->pass_comparators, cursor_position,
         i18nc("Strictly smaller", "smaller|less|lesser than %1;at most %1;< %1"),
-        ki18n("Smaller than"), CompletionProposal::DateTime);
+        ki18n("Smaller than"));
     d->runPass(d->pass_comparators, cursor_position,
         i18nc("Before in time", "before|until %1"),
         ki18n("Before"), CompletionProposal::DateTime);
