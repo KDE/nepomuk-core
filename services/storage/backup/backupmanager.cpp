@@ -89,6 +89,7 @@ void Nepomuk2::BackupManager::backup(const QString& oldUrl)
 
     QThread* backupThread = new QThread( this );
     job->moveToThread( backupThread );
+    job->setAutoDelete(false);
     backupThread->start();
 
     connect( job, SIGNAL(finished(KJob*)), backupThread, SLOT(quit()), Qt::QueuedConnection );
@@ -115,6 +116,7 @@ void Nepomuk2::BackupManager::backupTagsAndRatings(const QString& oldUrl)
 
     QThread* backupThread = new QThread( this );
     job->moveToThread( backupThread );
+    job->setAutoDelete(false);
     backupThread->start();
 
     connect( job, SIGNAL(finished(KJob*)), backupThread, SLOT(quit()), Qt::QueuedConnection );
@@ -238,6 +240,9 @@ void Nepomuk2::BackupManager::slotBackupDone(KJob* job)
     else {
         emit backupError(job->errorString());
     }
+
+// FIXME: This causes a reliable crash! Why!
+//    delete job;
 }
 
 void Nepomuk2::BackupManager::slotBackupPercent(KJob*, ulong percent)
