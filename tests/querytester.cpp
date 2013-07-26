@@ -58,6 +58,8 @@ int main( int argc, char **argv )
     KCmdLineArgs::addCmdLineOptions( options );
 
     KApplication app;
+    KGlobal::locale()->insertCatalog("libnepomukcore");
+
     QueryTester tester;
     tester.show();
     return app.exec();

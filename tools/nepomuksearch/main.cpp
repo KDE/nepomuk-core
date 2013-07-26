@@ -103,6 +103,7 @@ int main( int argc, char *argv[] )
 
     QCoreApplication app( argc, argv );
     KComponentData comp( aboutData );
+    KGlobal::locale()->insertCatalog("libnepomukcore");
 
     QTextStream out( stdout );
 
