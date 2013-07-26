@@ -88,6 +88,7 @@ struct QueryParser::Private
 
     QStringList split(const QString &query, bool split_separators, QList<int> *positions = NULL);
 
+    void runPasses(int cursor_position, QueryParser::ParserFlags flags);
     template<typename T>
     void runPass(const T &pass,
                  int cursor_position,
@@ -192,159 +193,8 @@ Query QueryParser::parse(const QString &query, ParserFlags flags, int cursor_pos
         d->terms.append(term);
     }
 
-    // Prepare literal values
-    d->runPass(d->pass_splitunits, cursor_position, "%1");
-    d->runPass(d->pass_numbers, cursor_position, "%1");
-    d->runPass(d->pass_filesize, cursor_position, "%1 %2");
-    d->runPass(d->pass_typehints, cursor_position, "%1");
-
-    if (flags & DetectFilenamePattern) {
-        d->runPass(d->pass_filenames, cursor_position, "%1");
-    }
-
-    // Date-time periods
-    d->runPass(d->pass_periodnames, cursor_position, "%1");
-
-    d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset);
-    d->runPass(d->pass_dateperiods, cursor_position,
-        i18nc("Adding an offset to a period of time (%1=period, %2=offset)", "in %2 %1"));
-
-    d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::InvertedOffset);
-    d->runPass(d->pass_dateperiods, cursor_position,
-        i18nc("Removing an offset from a period of time (%1=period, %2=offset)", "%2 %1 ago"));
-
-    d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset, 1);
-    d->runPass(d->pass_dateperiods, cursor_position,
-        i18nc("Adding 1 to a period of time", "next %1"),
-        ki18n("Next week, month, day, ..."));
-
-    d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset, -1);
-    d->runPass(d->pass_dateperiods, cursor_position,
-        i18nc("Removing 1 to a period of time", "last %1"),
-        ki18n("Previous week, month, day, ..."));
-
-    d->pass_dateperiods.setKind(PassDatePeriods::Day, PassDatePeriods::Offset, 1);
-    d->runPass(d->pass_dateperiods, cursor_position,
-        i18nc("In one day", "tomorrow"),
-        ki18n("Tomorrow"));
-    d->pass_dateperiods.setKind(PassDatePeriods::Day, PassDatePeriods::Offset, -1);
-    d->runPass(d->pass_dateperiods, cursor_position,
-        i18nc("One day ago", "yesterday"),
-        ki18n("Yesterday"));
-    d->pass_dateperiods.setKind(PassDatePeriods::Day, PassDatePeriods::Offset, 0);
-    d->runPass(d->pass_dateperiods, cursor_position,
-        i18nc("The current day", "today"),
-        ki18n("Today"));
-
-    d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value, 1);
-    d->runPass(d->pass_dateperiods, cursor_position,
-        i18nc("First period (first day, month, etc)", "first %1"),
-        ki18n("First week, month, day, ..."));
-    d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value, -1);
-    d->runPass(d->pass_dateperiods, cursor_position,
-        i18nc("Last period (last day, month, etc)", "last %1"),
-        ki18n("Last week, month, day, ..."));
-    d->pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value);
-    d->runPass(d->pass_dateperiods, cursor_position,
-        i18nc("Setting the value of a period, as in 'third week' (%1=period, %2=value)", "%2 %1"));
-
-    // Setting values of date-time periods (14:30, June 6, etc)
-    d->pass_datevalues.setPm(true);
-    d->runPass(d->pass_datevalues, cursor_position,
-        i18nc("An hour (%5) and an optional minute (%6), PM", "at %5 : %6 pm;at %5 h pm;at %5 pm;%5 : %6 pm;%5 h pm;%5 pm"),
-        ki18n("A time after midday"));
-    d->pass_datevalues.setPm(false);
-    d->runPass(d->pass_datevalues, cursor_position,
-        i18nc("An hour (%5) and an optional minute (%6), AM", "at %5 : %6 am;at %5 h am;at %5 am;at %5;%5 : %6 am;%5 : %6 : %7;%5 : %6;%5 h am;%5 h;%5 am"),
-        ki18n("A time"));
-
-    d->runPass(d->pass_datevalues, cursor_position, i18nc(
-        "A year (%1), month (%2), day (%3), day of week (%4), hour (%5), "
-            "minute (%6), second (%7), in every combination supported by your language",
-        "%3 of %2 %1;%3 st|nd|rd|th %2 %1;%3 st|nd|rd|th of %2 %1;"
-        "%3 of %2;%3 st|nd|rd|th %2;%3 st|nd|rd|th of %2;of %2 %1;%2 %3 st|nd|rd|th;%2 %3;%2 %1;"
-        "%1 - %2 - %3;%1 - %2;%3 / %2 / %1;%3 / %2;"
-        "in %2 %1; in %1;, %1;"
-    ));
-
-    // Fold date-time properties into real DateTime values
-    d->foldDateTimes();
-
-    // Comparators
-    d->pass_comparators.setComparator(ComparisonTerm::Contains);
-    d->runPass(d->pass_comparators, cursor_position,
-        i18nc("Equality", "contains|containing %1"),
-        ki18n("Containing"));
-    d->pass_comparators.setComparator(ComparisonTerm::Greater);
-    d->runPass(d->pass_comparators, cursor_position,
-        i18nc("Strictly greater", "greater|bigger|more than %1;at least %1;> %1"),
-        ki18n("Greater than"));
-    d->runPass(d->pass_comparators, cursor_position,
-        i18nc("After in time", "after|since %1"),
-        ki18n("After"), CompletionProposal::DateTime);
-    d->pass_comparators.setComparator(ComparisonTerm::Smaller);
-    d->runPass(d->pass_comparators, cursor_position,
-        i18nc("Strictly smaller", "smaller|less|lesser than %1;at most %1;< %1"),
-        ki18n("Smaller than"));
-    d->runPass(d->pass_comparators, cursor_position,
-        i18nc("Before in time", "before|until %1"),
-        ki18n("Before"), CompletionProposal::DateTime);
-    d->pass_comparators.setComparator(ComparisonTerm::Equal);
-    d->runPass(d->pass_comparators, cursor_position,
-        i18nc("Equality", "equal|equals|= %1;equal to %1"),
-        ki18n("Equal to"));
-
-    // Email-related properties
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageFrom(), PassProperties::Contact);
-    d->runPass(d->pass_properties, cursor_position,
-        i18nc("Sender of an e-mail", "sent by %1;from %1;sender is %1;sender %1"),
-        ki18n("Sender of an e-mail"), CompletionProposal::Contact);
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageSubject(), PassProperties::String);
-    d->runPass(d->pass_properties, cursor_position,
-        i18nc("Title of an e-mail", "title %1;titled %1"),
-        ki18n("Title of an e-mail"));
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageRecipient(), PassProperties::Contact);
-    d->runPass(d->pass_properties, cursor_position,
-        i18nc("Recipient of an e-mail", "sent to %1;to %1;recipient is %1;recipient %1"),
-        ki18n("Recipient of an e-mail"), CompletionProposal::Contact);
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::sentDate(), PassProperties::DateTime);
-    d->runPass(d->pass_properties, cursor_position,
-        i18nc("Sending date-time", "sent at|on %1;sent %1"),
-        ki18n("Date of sending"), CompletionProposal::DateTime);
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::receivedDate(), PassProperties::DateTime);
-    d->runPass(d->pass_properties, cursor_position,
-        i18nc("Receiving date-time", "received at|on %1;received %1"),
-        ki18n("Date of reception"), CompletionProposal::DateTime);
-
-    // File-related properties
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileSize(), PassProperties::IntegerOrDouble);
-    d->runPass(d->pass_properties, cursor_position,
-        i18nc("Size of a file", "size is %1;size %1;being %1 large;%1 large"),
-        ki18n("File size"));
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileName(), PassProperties::String);
-    d->runPass(d->pass_properties, cursor_position,
-        i18nc("Name of a file", "name %1;named %1"),
-        ki18n("File name"));
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::created(), PassProperties::DateTime);
-    d->runPass(d->pass_properties, cursor_position,
-        i18nc("Date of creation", "created at|on|in %1;created %1"),
-        ki18n("Date of creation"), CompletionProposal::DateTime);
-    d->pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::lastModified(), PassProperties::DateTime);
-    d->runPass(d->pass_properties, cursor_position,
-        i18nc("Date of last modification", "modified|edited|dated at|on|of %1;modified|edited|dated %1"),
-        ki18n("Date of last modification"), CompletionProposal::DateTime);
-
-    // Properties having a resource range (hasTag, messageFrom, etc)
-    d->pass_properties.setProperty(Soprano::Vocabulary::NAO::hasTag(), PassProperties::Tag);
-    d->runPass(d->pass_properties, cursor_position,
-        i18nc("A document is associated with a tag", "tagged as %1;has tag %1;tag is %1;# %1"),
-        ki18n("Tag name"), CompletionProposal::Tag);
-
-    // Different kinds of properties that need subqueries
-    d->pass_subqueries.setProperty(Nepomuk2::Vocabulary::NIE::relatedTo());
-    d->runPass(d->pass_subqueries, cursor_position,
-        i18nc("Related to a subquery", "related to ... ,"),
-        ki18n("Match items related to others"));
+    // Run the parsing passes
+    d->runPasses(cursor_position, flags);
 
     // Fuse the terms into a big AND term and produce the query
     int end_index;
@@ -415,6 +265,163 @@ QStringList QueryParser::Private::split(const QString &query, bool split_separat
     }
 
     return parts;
+}
+
+void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFlags flags)
+{
+    // Prepare literal values
+    runPass(pass_splitunits, cursor_position, "%1");
+    runPass(pass_numbers, cursor_position, "%1");
+    runPass(pass_filesize, cursor_position, "%1 %2");
+    runPass(pass_typehints, cursor_position, "%1");
+
+    if (flags & DetectFilenamePattern) {
+        runPass(pass_filenames, cursor_position, "%1");
+    }
+
+    // Date-time periods
+    runPass(pass_periodnames, cursor_position, "%1");
+
+    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("Adding an offset to a period of time (%1=period, %2=offset)", "in %2 %1"));
+
+    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::InvertedOffset);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("Removing an offset from a period of time (%1=period, %2=offset)", "%2 %1 ago"));
+
+    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset, 1);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("Adding 1 to a period of time", "next %1"),
+        ki18n("Next week, month, day, ..."));
+
+    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset, -1);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("Removing 1 to a period of time", "last %1"),
+        ki18n("Previous week, month, day, ..."));
+
+    pass_dateperiods.setKind(PassDatePeriods::Day, PassDatePeriods::Offset, 1);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("In one day", "tomorrow"),
+        ki18n("Tomorrow"));
+    pass_dateperiods.setKind(PassDatePeriods::Day, PassDatePeriods::Offset, -1);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("One day ago", "yesterday"),
+        ki18n("Yesterday"));
+    pass_dateperiods.setKind(PassDatePeriods::Day, PassDatePeriods::Offset, 0);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("The current day", "today"),
+        ki18n("Today"));
+
+    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value, 1);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("First period (first day, month, etc)", "first %1"),
+        ki18n("First week, month, day, ..."));
+    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value, -1);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("Last period (last day, month, etc)", "last %1"),
+        ki18n("Last week, month, day, ..."));
+    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("Setting the value of a period, as in 'third week' (%1=period, %2=value)", "%2 %1"));
+
+    // Setting values of date-time periods (14:30, June 6, etc)
+    pass_datevalues.setPm(true);
+    runPass(pass_datevalues, cursor_position,
+        i18nc("An hour (%5) and an optional minute (%6), PM", "at %5 : %6 pm;at %5 h pm;at %5 pm;%5 : %6 pm;%5 h pm;%5 pm"),
+        ki18n("A time after midday"));
+    pass_datevalues.setPm(false);
+    runPass(pass_datevalues, cursor_position,
+        i18nc("An hour (%5) and an optional minute (%6), AM", "at %5 : %6 am;at %5 h am;at %5 am;at %5;%5 : %6 am;%5 : %6 : %7;%5 : %6;%5 h am;%5 h;%5 am"),
+        ki18n("A time"));
+
+    runPass(pass_datevalues, cursor_position, i18nc(
+        "A year (%1), month (%2), day (%3), day of week (%4), hour (%5), "
+            "minute (%6), second (%7), in every combination supported by your language",
+        "%3 of %2 %1;%3 st|nd|rd|th %2 %1;%3 st|nd|rd|th of %2 %1;"
+        "%3 of %2;%3 st|nd|rd|th %2;%3 st|nd|rd|th of %2;of %2 %1;%2 %3 st|nd|rd|th;%2 %3;%2 %1;"
+        "%1 - %2 - %3;%1 - %2;%3 / %2 / %1;%3 / %2;"
+        "in %2 %1; in %1;, %1;"
+    ));
+
+    // Fold date-time properties into real DateTime values
+    foldDateTimes();
+
+    // Comparators
+    pass_comparators.setComparator(ComparisonTerm::Contains);
+    runPass(pass_comparators, cursor_position,
+        i18nc("Equality", "contains|containing %1"),
+        ki18n("Containing"));
+    pass_comparators.setComparator(ComparisonTerm::Greater);
+    runPass(pass_comparators, cursor_position,
+        i18nc("Strictly greater", "greater|bigger|more than %1;at least %1;> %1"),
+        ki18n("Greater than"));
+    runPass(pass_comparators, cursor_position,
+        i18nc("After in time", "after|since %1"),
+        ki18n("After"), CompletionProposal::DateTime);
+    pass_comparators.setComparator(ComparisonTerm::Smaller);
+    runPass(pass_comparators, cursor_position,
+        i18nc("Strictly smaller", "smaller|less|lesser than %1;at most %1;< %1"),
+        ki18n("Smaller than"));
+    runPass(pass_comparators, cursor_position,
+        i18nc("Before in time", "before|until %1"),
+        ki18n("Before"), CompletionProposal::DateTime);
+    pass_comparators.setComparator(ComparisonTerm::Equal);
+    runPass(pass_comparators, cursor_position,
+        i18nc("Equality", "equal|equals|= %1;equal to %1"),
+        ki18n("Equal to"));
+
+    // Email-related properties
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageFrom(), PassProperties::Contact);
+    runPass(pass_properties, cursor_position,
+        i18nc("Sender of an e-mail", "sent by %1;from %1;sender is %1;sender %1"),
+        ki18n("Sender of an e-mail"), CompletionProposal::Contact);
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageSubject(), PassProperties::String);
+    runPass(pass_properties, cursor_position,
+        i18nc("Title of an e-mail", "title %1;titled %1"),
+        ki18n("Title of an e-mail"));
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageRecipient(), PassProperties::Contact);
+    runPass(pass_properties, cursor_position,
+        i18nc("Recipient of an e-mail", "sent to %1;to %1;recipient is %1;recipient %1"),
+        ki18n("Recipient of an e-mail"), CompletionProposal::Contact);
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::sentDate(), PassProperties::DateTime);
+    runPass(pass_properties, cursor_position,
+        i18nc("Sending date-time", "sent at|on %1;sent %1"),
+        ki18n("Date of sending"), CompletionProposal::DateTime);
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::receivedDate(), PassProperties::DateTime);
+    runPass(pass_properties, cursor_position,
+        i18nc("Receiving date-time", "received at|on %1;received %1"),
+        ki18n("Date of reception"), CompletionProposal::DateTime);
+
+    // File-related properties
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileSize(), PassProperties::IntegerOrDouble);
+    runPass(pass_properties, cursor_position,
+        i18nc("Size of a file", "size is %1;size %1;being %1 large;%1 large"),
+        ki18n("File size"));
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileName(), PassProperties::String);
+    runPass(pass_properties, cursor_position,
+        i18nc("Name of a file", "name %1;named %1"),
+        ki18n("File name"));
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::created(), PassProperties::DateTime);
+    runPass(pass_properties, cursor_position,
+        i18nc("Date of creation", "created at|on|in %1;created %1"),
+        ki18n("Date of creation"), CompletionProposal::DateTime);
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::lastModified(), PassProperties::DateTime);
+    runPass(pass_properties, cursor_position,
+        i18nc("Date of last modification", "modified|edited|dated at|on|of %1;modified|edited|dated %1"),
+        ki18n("Date of last modification"), CompletionProposal::DateTime);
+
+    // Properties having a resource range (hasTag, messageFrom, etc)
+    pass_properties.setProperty(Soprano::Vocabulary::NAO::hasTag(), PassProperties::Tag);
+    runPass(pass_properties, cursor_position,
+        i18nc("A document is associated with a tag", "tagged as %1;has tag %1;tag is %1;# %1"),
+        ki18n("Tag name"), CompletionProposal::Tag);
+
+    // Different kinds of properties that need subqueries
+    pass_subqueries.setProperty(Nepomuk2::Vocabulary::NIE::relatedTo());
+    runPass(pass_subqueries, cursor_position,
+        i18nc("Related to a subquery", "related to ... ,"),
+        ki18n("Match items related to others"));
 }
 
 template<typename T>

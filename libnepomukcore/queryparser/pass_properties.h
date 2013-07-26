@@ -41,8 +41,8 @@ class PassProperties
 
         void setProperty(const QUrl &property, Types range);
 
-        const QHash<QString, QUrl> &tags() const;
-        const QHash<QString, QUrl> &contacts() const;
+        const QMap<QString, QUrl> &tags() const;
+        const QMap<QString, QUrl> &contacts() const;
         QList<Nepomuk2::Query::Term> run(const QList<Nepomuk2::Query::Term> &match) const;
 
     private:
@@ -55,11 +55,11 @@ class PassProperties
         Types range;
 
         // Cache for tags
-        QHash<QString, QUrl> cached_tags;
+        QMap<QString, QUrl> cached_tags;
         bool cached_tags_filled;
 
         // Cache for contacts
-        QHash<QString, QUrl> cached_contacts;
+        QMap<QString, QUrl> cached_contacts;
         bool cached_contacts_filled;
 };
 

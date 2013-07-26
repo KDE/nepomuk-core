@@ -43,7 +43,7 @@ void PassProperties::setProperty(const QUrl &property, Types range)
     this->range = range;
 }
 
-const QHash<QString, QUrl> &PassProperties::tags() const
+const QMap<QString, QUrl> &PassProperties::tags() const
 {
     if (!cached_tags_filled) {
         const_cast<PassProperties *>(this)->fillTagsCache();
@@ -52,7 +52,7 @@ const QHash<QString, QUrl> &PassProperties::tags() const
     return cached_tags;
 }
 
-const QHash<QString, QUrl> &PassProperties::contacts() const
+const QMap<QString, QUrl> &PassProperties::contacts() const
 {
     if (!cached_contacts_filled) {
         const_cast<PassProperties *>(this)->fillContactsCache();

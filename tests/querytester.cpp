@@ -68,6 +68,7 @@ int main( int argc, char **argv )
 QueryTester::QueryTester(QWidget *parent)
     : QWidget(parent)
 {
+    parser = new Nepomuk2::Query::QueryParser;
     setupUi(this);
 
     connect(m_queryEdit, SIGNAL(textEdited(QString)), this, SLOT(slotConvert()));
@@ -77,6 +78,7 @@ QueryTester::QueryTester(QWidget *parent)
 
 QueryTester::~QueryTester()
 {
+    delete parser;
 }
 
 void QueryTester::slotConvert()
@@ -89,7 +91,8 @@ void QueryTester::slotConvert()
         flags |= Nepomuk2::Query::QueryParser::DetectFilenamePattern;
     }
 
-    QString query = Nepomuk2::Query::QueryParser::parseQuery(m_queryEdit->text(), flags).toSparqlQuery();
+    QString text = m_queryEdit->text();
+    QString query = parser->parse(text, flags, text.length()).toSparqlQuery();
     query= query.simplified();
     QString newQuery;
     int i = 0;

@@ -27,6 +27,8 @@
 
 #include "ui_querytester.h"
 
+namespace Nepomuk2 { namespace Query { class QueryParser; }}
+
 class QueryTester : public QWidget, private Ui::QueryTesterWidget
 {
     Q_OBJECT
@@ -37,6 +39,9 @@ public:
 
 private Q_SLOTS:
     void slotConvert();
+
+private:
+    Nepomuk2::Query::QueryParser *parser;
 };
 
 #endif
