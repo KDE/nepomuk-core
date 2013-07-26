@@ -63,6 +63,7 @@ include_directories(
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/resource
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/service
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/query
+  ${nepomuk-core_SOURCE_DIR}/libnepomukcore/queryparser
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/types
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/datamanagement
   ${nepomuk-core_SOURCE_DIR}/libnepomukcore/misc

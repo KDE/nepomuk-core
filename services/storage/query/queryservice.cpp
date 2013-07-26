@@ -34,7 +34,7 @@
 #include "resourcemanager.h"
 #include "types/property.h"
 #include "query/query.h"
-#include "query/queryparser.h"
+#include "queryparser/queryparser.h"
 
 Q_DECLARE_METATYPE( QList<QUrl> )
 
