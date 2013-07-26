@@ -184,9 +184,8 @@ void PatternMatcher::addCompletionProposal(int first_pattern_index_not_matching,
         return;
     }
 
-    if (first_term_index_not_matching < terms.count() ?
-            cursor_position > terms.at(first_term_index_not_matching).position() :
-            cursor_position > last_matching.position() + last_matching.length()) {
+    if (first_term_index_not_matching < terms.count() &&
+            cursor_position > terms.at(first_term_index_not_matching).position()) {
         return;
     }
 
