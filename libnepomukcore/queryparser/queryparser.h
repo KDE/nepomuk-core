@@ -38,6 +38,8 @@ namespace Nepomuk2 {
          * \brief Parser for desktop user queries.
          *
          * \warning This is NOT a SPARQL parser.
+         * \note Don't forget to insert the "libnepomukcore" localization catalog
+         *       for this class to be localized. Do so using KLocale::insertCatalog.
          *
          * The QueryParser can be used to parse user queries, ie. queries that the user
          * would enter in any search interface, and convert them into Query instances.
