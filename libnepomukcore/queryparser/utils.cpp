@@ -90,7 +90,7 @@ static Nepomuk2::Query::AndTerm dateTimeComparison(const Nepomuk2::Types::Proper
                                                    const Nepomuk2::Query::LiteralTerm &term)
 {
     KCalendarSystem *cal = KCalendarSystem::create(KGlobal::locale()->calendarSystem());
-    QDateTime start_date_time = term.value().toDateTime();
+    QDateTime start_date_time = term.value().toDateTime().toLocalTime();
 
     QDate start_date(start_date_time.date());
     QTime start_time(start_date_time.time());
@@ -112,21 +112,27 @@ static Nepomuk2::Query::AndTerm dateTimeComparison(const Nepomuk2::Types::Proper
     case PassDatePeriods::Day:
         end_date = cal->addDays(start_date, 1);
         break;
+    default:
+        break;
+    }
 
+    QDateTime datetime(end_date, end_time);
+
+    switch (last_defined_period) {
     case PassDatePeriods::Hour:
-        end_time.addSecs(60 * 60);
+        datetime = datetime.addSecs(60 * 60);
         break;
     case PassDatePeriods::Minute:
-        end_time.addSecs(60);
+        datetime = datetime.addSecs(60);
         break;
     case PassDatePeriods::Second:
-        end_time.addSecs(1);
+        datetime = datetime.addSecs(1);
         break;
     default:
         break;
     }
 
-    Nepomuk2::Query::LiteralTerm end_term(QDateTime(end_date, end_time));
+    Nepomuk2::Query::LiteralTerm end_term(datetime);
     end_term.setPosition(term);
 
     return intervalComparison(
