@@ -606,7 +606,7 @@ void QueryParser::Private::foldDateTimes()
     spec.reset();
 
     Q_FOREACH(const Term &term, terms) {
-        bool comparison_encountered = false;
+        bool end_of_cluster = true;
 
         if (term.isComparisonTerm()) {
             ComparisonTerm comparison = term.toComparisonTerm();
@@ -615,14 +615,18 @@ void QueryParser::Private::foldDateTimes()
                 handleDateTimeComparison(spec, comparison);
 
                 spec_contains_interesting_data = true;
-                comparison_encountered = true;
+                end_of_cluster = false;
 
                 start_position = qMin(start_position, term.position());
                 end_position = qMax(end_position, term.position() + term.length());
             }
+        } else if (spec_contains_interesting_data &&
+                   term.isLiteralTerm() &&
+                   term.toLiteralTerm().value().toString().length() <= 2) {
+            end_of_cluster = false;
         }
 
-        if (!comparison_encountered) {
+        if (end_of_cluster) {
             if (spec_contains_interesting_data) {
                 // End a date-time spec and emit its xsd:DateTime value
                 new_terms.append(buildDateTimeLiteral(spec));
