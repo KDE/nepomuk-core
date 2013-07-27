@@ -35,7 +35,7 @@ PassPeriodNames::PassPeriodNames()
     ));
     registerNames(month_names, i18nc(
         "Month names, starting at the first of the year",
-        "january february march april may june july augustus september october november september"
+        "january february march april may june july augustus september october november december"
     ));
 }
 
