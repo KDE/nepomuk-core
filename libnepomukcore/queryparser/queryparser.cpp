@@ -285,20 +285,9 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
     pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset);
     runPass(pass_dateperiods, cursor_position,
         i18nc("Adding an offset to a period of time (%1=period, %2=offset)", "in %2 %1"));
-
     pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::InvertedOffset);
     runPass(pass_dateperiods, cursor_position,
         i18nc("Removing an offset from a period of time (%1=period, %2=offset)", "%2 %1 ago"));
-
-    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset, 1);
-    runPass(pass_dateperiods, cursor_position,
-        i18nc("Adding 1 to a period of time", "next %1"),
-        ki18n("Next week, month, day, ..."));
-
-    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset, -1);
-    runPass(pass_dateperiods, cursor_position,
-        i18nc("Removing 1 to a period of time", "last %1"),
-        ki18n("Previous week, month, day, ..."));
 
     pass_dateperiods.setKind(PassDatePeriods::Day, PassDatePeriods::Offset, 1);
     runPass(pass_dateperiods, cursor_position,
@@ -319,11 +308,20 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
         ki18n("First week, month, day, ..."));
     pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value, -1);
     runPass(pass_dateperiods, cursor_position,
-        i18nc("Last period (last day, month, etc)", "last %1"),
+        i18nc("Last period (last day, month, etc)", "last %1 of"),
         ki18n("Last week, month, day, ..."));
     pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Value);
     runPass(pass_dateperiods, cursor_position,
         i18nc("Setting the value of a period, as in 'third week' (%1=period, %2=value)", "%2 %1"));
+
+    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset, 1);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("Adding 1 to a period of time", "next %1"),
+        ki18n("Next week, month, day, ..."));
+    pass_dateperiods.setKind(PassDatePeriods::VariablePeriod, PassDatePeriods::Offset, -1);
+    runPass(pass_dateperiods, cursor_position,
+        i18nc("Removing 1 to a period of time", "last %1"),
+        ki18n("Previous week, month, day, ..."));
 
     // Setting values of date-time periods (14:30, June 6, etc)
     pass_datevalues.setPm(true);
