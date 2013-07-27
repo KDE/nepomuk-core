@@ -106,7 +106,7 @@ static Nepomuk2::Query::AndTerm dateTimeComparison(const Nepomuk2::Types::Proper
         end_date = cal->addMonths(start_date, 1);
         break;
     case PassDatePeriods::Week:
-        end_date = cal->addDays(start_date, cal->dayOfWeek(end_date));
+        end_date = cal->addDays(start_date, cal->daysInWeek(end_date));
         break;
     case PassDatePeriods::DayOfWeek:
     case PassDatePeriods::Day:
