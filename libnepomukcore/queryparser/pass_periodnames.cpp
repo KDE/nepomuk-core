@@ -67,11 +67,14 @@ QList<Nepomuk2::Query::Term> PassPeriodNames::run(const QList<Nepomuk2::Query::T
     if (period != PassDatePeriods::VariablePeriod) {
         value_term.setPosition(match.at(0));
 
-        rs.append(Nepomuk2::Query::ComparisonTerm(
+        Nepomuk2::Query::ComparisonTerm comparison(
             PassDatePeriods::propertyUrl(period, false),
             value_term,
             Nepomuk2::Query::ComparisonTerm::Equal
-        ));
+        );
+
+        comparison.setPosition(match.at(0));
+        rs.append(comparison);
     }
 
     return rs;
