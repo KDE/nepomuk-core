@@ -2,6 +2,7 @@
 Type=ServiceType
 X-KDE-ServiceType=NepomukCleaningJob
 Comment=Nepomuk Cleaning Job
+Comment[bs]=Čistač Nepomuka
 Comment[ca]=Treball de neteja del Nepomuk
 Comment[cs]=Úloha pro čistění databáze Nepomuku
 Comment[da]=Nepomuk-oprydningsjob
