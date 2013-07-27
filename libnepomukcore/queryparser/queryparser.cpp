@@ -536,7 +536,15 @@ static LiteralTerm buildDateTimeLiteral(const DateTimeSpec &spec)
         );
     }
 
-    // Absolute week and day of week
+    // Week (absolute or relative, it is easy as the date is currently at the beginning
+    // of a year or a month)
+    if (week.flags == Field::Absolute) {
+        date = calendar->addDays(date, (week.value - 1) * calendar->daysInWeek(date));
+    } else if (week.flags == Field::Relative) {
+        date = calendar->addDays(date, week.value * calendar->daysInWeek(date));
+    }
+
+    // Day of week
     int isoyear;
     int isoweek = calendar->week(date, KLocale::IsoWeekNumber, &isoyear);
     int isoday = calendar->dayOfWeek(date);
@@ -544,23 +552,16 @@ static LiteralTerm buildDateTimeLiteral(const DateTimeSpec &spec)
     calendar->setDateIsoWeek(
         date,
         isoyear,
-        (week.flags == Field::Absolute && month.flags != Field::Unset) ?
-            // Week of month, isoweek is the first week of the month
-            isoweek + (week.value - 1) :
-            // Week of year (or no week at all)
-            fieldValue(week, last_defined_date >= PassDatePeriods::Week, isoweek, isoweek),
+        isoweek,
         fieldValue(dayofweek, last_defined_date >= PassDatePeriods::DayOfWeek, isoday, 1)
     );
 
-    // Relative year, month, week, day of month
+    // Relative year, month, day of month
     if (year.flags == Field::Relative) {
         date = calendar->addYears(date, year.value);
     }
     if (month.flags == Field::Relative) {
         date = calendar->addMonths(date, month.value);
-    }
-    if (week.flags == Field::Relative) {
-        date = calendar->addDays(date, week.value * calendar->daysInWeek(date));
     }
     if (day.flags == Field::Relative) {
         date = calendar->addDays(date, day.value);
