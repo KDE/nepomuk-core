@@ -92,7 +92,7 @@ void Nepomuk2::BackupPage::initializePage()
     kDebug() << backupUrl;
     m_status->setText( i18nc("@info", "Writing Nepomuk database backup to <filename>%1</filename>...",
                              field(QLatin1String("backupUrl")).value<KUrl>().pathOrUrl()));
-    m_backupManager->backup( backupUrl.toLocalFile() );
+    m_backupManager->backupTagsAndRatings( backupUrl.toLocalFile() );
 }
 
 bool Nepomuk2::BackupPage::isComplete() const
