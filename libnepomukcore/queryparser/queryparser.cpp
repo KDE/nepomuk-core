@@ -345,6 +345,12 @@ QStringList QueryParser::Private::split(const QString &query, bool is_user_query
         } else if (c == '"') {
             between_quotes = !between_quotes;
         } else {
+            if (is_user_query && part.length() == 1 && separators.contains(part.at(0))) {
+                // The part contains only a separator, split "-KMail" to "-", "KMail"
+                parts.append(part);
+                part.clear();
+            }
+
             if (positions && part.size() == 0) {
                 // Start of a new part, save its position in the stream
                 positions->append(i);
