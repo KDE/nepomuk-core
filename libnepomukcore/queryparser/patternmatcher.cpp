@@ -64,7 +64,7 @@ int PatternMatcher::matchPattern(int first_term_index,
     int pattern_index = 0;
     int term_index = first_term_index;
     bool has_matched_a_literal = false;
-    bool match_anything = false;        // Match "..."
+    bool match_anything = false;        // Match "%%"
     bool contains_catchall = false;
 
     start_position = 1 << 30;
@@ -79,7 +79,7 @@ int PatternMatcher::matchPattern(int first_term_index,
         start_position = qMin(start_position, term.position());
         end_position = qMax(end_position, term.position() + term.length());
 
-        if (pattern.at(pattern_index) == QLatin1String("...")) {
+        if (pattern.at(pattern_index) == QLatin1String("%%")) {
             // Start to match anything
             match_anything = true;
             contains_catchall = true;

@@ -86,7 +86,7 @@ struct QueryParser::Private
         ",;:!?()[]{}<>=#+-"))
     {}
 
-    QStringList split(const QString &query, bool split_separators, QList<int> *positions = NULL);
+    QStringList split(const QString &query, bool is_user_query, QList<int> *positions = NULL);
 
     void runPasses(int cursor_position, QueryParser::ParserFlags flags);
     template<typename T>
@@ -223,30 +223,33 @@ QStringList QueryParser::allContacts() const
     return d->pass_properties.contacts().keys();
 }
 
-QStringList QueryParser::Private::split(const QString &query, bool split_separators, QList<int> *positions)
+QStringList QueryParser::Private::split(const QString &query, bool is_user_query, QList<int> *positions)
 {
     QStringList parts;
     QString part;
     int size = query.size();
     bool between_quotes = false;
+    bool split_at_every_char =
+        i18nc("Are words of your language separated by spaces (Y/N) ?", "Y") != QLatin1String("Y");
 
     for (int i=0; i<size; ++i) {
         QChar c = query.at(i);
 
-        if (!between_quotes && (c.isSpace() || (split_separators && separators.contains(c)))) {
-            // A part may be empty if more than one space are found in block in the input
+        if (!between_quotes && (is_user_query || part != QLatin1String("%")) &&
+            (split_at_every_char || c.isSpace() || (is_user_query && separators.contains(c)))) {
+            // If there is a cluster of several spaces in the input, part may be empty
             if (part.size() > 0) {
                 parts.append(part);
                 part.clear();
             }
 
             // Add a separator, if any
-            if (split_separators && separators.contains(c)) {
+            if (!c.isSpace()) {
                 if (positions) {
                     positions->append(i);
                 }
 
-                parts.append(QString(c));
+                part.append(c);
             }
         } else if (c == '"') {
             between_quotes = !between_quotes;
@@ -339,7 +342,7 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
         "%3 of %2 %1;%3 st|nd|rd|th %2 %1;%3 st|nd|rd|th of %2 %1;"
         "%3 of %2;%3 st|nd|rd|th %2;%3 st|nd|rd|th of %2;of %2 %1;%2 %3 st|nd|rd|th;%2 %3;%2 %1;"
         "%1 - %2 - %3;%1 - %2;%3 / %2 / %1;%3 / %2;"
-        "in %2 %1; in %1;, %1;"
+        "in %2 %1; in %1;, %1"
     ));
 
     // Fold date-time properties into real DateTime values
@@ -418,7 +421,7 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
     // Different kinds of properties that need subqueries
     pass_subqueries.setProperty(Nepomuk2::Vocabulary::NIE::relatedTo());
     runPass(pass_subqueries, cursor_position,
-        i18nc("Related to a subquery", "related to ... ,"),
+        i18nc("Related to a subquery", "related to %% ,"),
         ki18n("Match items related to others"));
 }
 
