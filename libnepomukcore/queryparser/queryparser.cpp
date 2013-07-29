@@ -652,14 +652,10 @@ Term QueryParser::Private::tuneTerm(Term term)
         rs.setPosition(term);
 
         return rs;
-    } else if (term.isComparisonTerm()) {
-        // If the comparison contains an And, Or or Not, tune it. This is needed
-        // for sub-queries to work.
-        Term t = term.toComparisonTerm().subTerm();
-
-        if (t.isAndTerm() || t.isOrTerm() || t.isNegationTerm()) {
-            term.toComparisonTerm().setSubTerm(tuneTerm(t));
-        }
+    } else if (term.isComparisonTerm() &&
+        term.toComparisonTerm().property().uri() == Nepomuk2::Vocabulary::NIE::relatedTo()) {
+        // Related to is a nested comparison, tune its sub-term
+        term.toComparisonTerm().setSubTerm(tuneTerm(term.toComparisonTerm().subTerm()));
     }
 
     // Resource type terms change the current resource type used for properties
