@@ -1302,6 +1302,9 @@ QHash<QUrl, QUrl> DataManagementModel::storeResources(const SimpleResourceGraph&
                                                       StoreIdentificationMode identificationMode,
                                                       StoreResourcesFlags flags)
 {
+    QTime timer;
+    timer.start();
+
     if(app.isEmpty()) {
         setError(QLatin1String("storeResources: Empty application specified. This is not supported."), Soprano::Error::ErrorInvalidArgument);
         return QHash<QUrl, QUrl>();
@@ -1528,7 +1531,14 @@ QHash<QUrl, QUrl> DataManagementModel::storeResources(const SimpleResourceGraph&
     //
     // Perform the actual identification
     //
+    QTime identificationTimer;
+    identificationTimer.start();
+
     resIdent.identifyAll();
+
+    int identificationTime = identificationTimer.elapsed();
+    QTime mergingTimer;
+    mergingTimer.start();
 
     ResourceMerger merger( this, app, flags, discardable );
     merger.setMappings( resIdent.mappings() );
@@ -1540,6 +1550,8 @@ QHash<QUrl, QUrl> DataManagementModel::storeResources(const SimpleResourceGraph&
         return QHash<QUrl, QUrl>();
     }
 
+    kDebug() << "Identification:" << identificationTime << "Merging:" << mergingTimer.elapsed();
+    kDebug() << "TIME TAKEN -------- " << timer.elapsed();
     return merger.mappings();
 }
 
