@@ -98,17 +98,17 @@ void QueryParserTest::testQueryParser_data()
     // Properties
     QTest::newRow("simple property")
         << QString("named Kile")
-        << Query(ComparisonTerm(Nepomuk2::Vocabulary::NFO::fileName(), LiteralTerm("Kile")));
+        << Query(ComparisonTerm(Soprano::Vocabulary::RDFS::label(), LiteralTerm("Kile")));
 
     QTest::newRow("file sizes")
         << QString("size < 2 KiB")
-        << Query(ComparisonTerm(Nepomuk2::Vocabulary::NFO::fileSize(), LiteralTerm(2048LL), ComparisonTerm::Smaller));
+        << Query(ComparisonTerm(Nepomuk2::Vocabulary::NIE::contentSize(), LiteralTerm(2048LL), ComparisonTerm::Smaller));
 
     QTest::newRow("comparators")
         << QString("size < 2KB size greater than 2KB")
         << Query(AndTerm(
-            ComparisonTerm(Nepomuk2::Vocabulary::NFO::fileSize(), LiteralTerm(2000LL), ComparisonTerm::Smaller),
-            ComparisonTerm(Nepomuk2::Vocabulary::NFO::fileSize(), LiteralTerm(2000LL), ComparisonTerm::Greater)));
+            ComparisonTerm(Nepomuk2::Vocabulary::NIE::contentSize(), LiteralTerm(2000LL), ComparisonTerm::Smaller),
+            ComparisonTerm(Nepomuk2::Vocabulary::NIE::contentSize(), LiteralTerm(2000LL), ComparisonTerm::Greater)));
 
     // logical operators
     QTest::newRow("logical operators")
@@ -132,7 +132,7 @@ void QueryParserTest::testQueryParser_data()
                 ResourceTypeTerm(Nepomuk2::Vocabulary::NMO::Message()),
                 ComparisonTerm(Nepomuk2::Vocabulary::NMO::messageSubject(), LiteralTerm("Title"))
             ), ComparisonTerm::Equal),
-            ComparisonTerm(Nepomuk2::Vocabulary::NFO::fileSize(), LiteralTerm(2048LL), ComparisonTerm::Greater)));
+            ComparisonTerm(Nepomuk2::Vocabulary::NIE::contentSize(), LiteralTerm(2048LL), ComparisonTerm::Greater)));
 }
 
 void QueryParserTest::testQueryParser()

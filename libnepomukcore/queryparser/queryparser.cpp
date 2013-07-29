@@ -35,18 +35,35 @@
 #include "pass_comparators.h"
 
 #include "literalterm.h"
+#include "comparisonterm.h"
+#include "andterm.h"
+#include "orterm.h"
+#include "resourcetypeterm.h"
+#include "negationterm.h"
 #include "property.h"
 #include "nfo.h"
 #include "nmo.h"
+#include "nmm.h"
 #include "nie.h"
+#include "nco.h"
+#include "ncal.h"
 
 #include <soprano/literalvalue.h>
 #include <soprano/nao.h>
+#include <soprano/rdfs.h>
 #include <klocale.h>
 #include <kcalendarsystem.h>
 #include <klocalizedstring.h>
 
 #include <QtCore/QList>
+
+#define _P(x) QUrl(QLatin1String("property://" x "/"))
+#define PROPERTY_AUTHOR     _P("author")
+#define PROPERTY_TITLE      _P("title")
+#define PROPERTY_SIZE       _P("size")
+#define PROPERTY_NAME       _P("name")
+#define PROPERTY_CREATED    _P("created")
+#define PROPERTY_MODIFIED   _P("modified")
 
 using namespace Nepomuk2::Query;
 
@@ -84,7 +101,68 @@ struct QueryParser::Private
     : separators(i18nc(
         "Characters that are kept in the query for further processing but are considered word boundaries",
         ",;:!?()[]{}<>=#+-"))
-    {}
+    {
+        // Default property types (NOTE: Ensure that any property used in runPasses
+        // is represented here)
+        QHash<QUrl, QUrl> general;
+
+        general.insert(PROPERTY_CREATED, Nepomuk2::Vocabulary::NIE::created());
+        general.insert(PROPERTY_AUTHOR, Nepomuk2::Vocabulary::NFO::fileOwner());
+        general.insert(PROPERTY_TITLE, Nepomuk2::Vocabulary::NIE::title());
+        general.insert(PROPERTY_SIZE, Nepomuk2::Vocabulary::NIE::contentSize());
+        general.insert(PROPERTY_NAME, Soprano::Vocabulary::RDFS::label());
+        general.insert(PROPERTY_CREATED, Nepomuk2::Vocabulary::NIE::created());
+        general.insert(PROPERTY_MODIFIED, Nepomuk2::Vocabulary::NIE::lastModified());
+
+        resourcetype_properties.insert(Nepomuk2::Vocabulary::NIE::InformationElement(), general);
+
+        // Files
+        QHash<QUrl, QUrl> files(general);
+
+        files.insert(PROPERTY_SIZE, Nepomuk2::Vocabulary::NFO::fileSize());
+        files.insert(PROPERTY_NAME, Nepomuk2::Vocabulary::NFO::fileName());
+        files.insert(PROPERTY_CREATED, Nepomuk2::Vocabulary::NFO::fileCreated());
+        files.insert(PROPERTY_MODIFIED, Nepomuk2::Vocabulary::NFO::fileLastModified());
+
+        resourcetype_properties.insert(Nepomuk2::Vocabulary::NFO::FileDataObject(), files);
+
+        // Images, videos, documents use the same properties as plain files
+        resourcetype_properties.insert(Nepomuk2::Vocabulary::NFO::Image(), files);
+        resourcetype_properties.insert(Nepomuk2::Vocabulary::NFO::Video(), files);
+        resourcetype_properties.insert(Nepomuk2::Vocabulary::NFO::Document(), files);
+
+        // Music
+        QHash<QUrl, QUrl> musics(files);
+
+        musics.insert(PROPERTY_AUTHOR, Nepomuk2::Vocabulary::NMM::performer());
+
+        resourcetype_properties.insert(Nepomuk2::Vocabulary::NFO::Audio(), musics);
+
+        // Messages
+        QHash<QUrl, QUrl> messages(general);
+
+        messages.insert(PROPERTY_AUTHOR, Nepomuk2::Vocabulary::NMO::messageFrom());
+        messages.insert(PROPERTY_TITLE, Nepomuk2::Vocabulary::NMO::messageSubject());
+        messages.insert(PROPERTY_CREATED, Nepomuk2::Vocabulary::NMO::receivedDate());
+
+        resourcetype_properties.insert(Nepomuk2::Vocabulary::NMO::Message(), messages);
+
+        // Contacts
+        QHash<QUrl, QUrl> contacts(general);
+
+        contacts.insert(PROPERTY_TITLE, Nepomuk2::Vocabulary::NCO::fullname());
+        contacts.insert(PROPERTY_NAME, Nepomuk2::Vocabulary::NCO::fullname());
+
+        resourcetype_properties.insert(Nepomuk2::Vocabulary::NCO::Contact(), contacts);
+
+        // Events
+        QHash<QUrl, QUrl> events(general);
+
+        events.insert(PROPERTY_NAME, Nepomuk2::Vocabulary::NCAL::summary());
+        events.insert(PROPERTY_TITLE, Nepomuk2::Vocabulary::NCAL::description());
+
+        resourcetype_properties.insert(Nepomuk2::Vocabulary::NCAL::Event(), events);
+    }
 
     QStringList split(const QString &query, bool is_user_query, QList<int> *positions = NULL);
 
@@ -94,9 +172,16 @@ struct QueryParser::Private
                  int cursor_position,
                  const QString &pattern,
                  const KLocalizedString &description = KLocalizedString(),
-                 CompletionProposal::Type type = Nepomuk2::Query::CompletionProposal::NoType);
+                 CompletionProposal::Type type = CompletionProposal::NoType);
     void foldDateTimes();
     void handleDateTimeComparison(DateTimeSpec &spec, const ComparisonTerm &term);
+
+    AndTerm intervalComparison(const Nepomuk2::Types::Property &prop,
+                               const LiteralTerm &min,
+                               const LiteralTerm &max);
+    AndTerm dateTimeComparison(const Nepomuk2::Types::Property &prop,
+                               const LiteralTerm &term);
+    Term tuneTerm(Term term);
 
     QueryParser *parser;
     QList<Term> terms;
@@ -117,6 +202,10 @@ struct QueryParser::Private
 
     // Locale-specific
     QString separators;
+
+    // Real properties depending the type of a resource
+    QUrl resourcetype;
+    QHash<QUrl, QHash<QUrl, QUrl> > resourcetype_properties;
 };
 
 QueryParser::QueryParser()
@@ -197,8 +286,10 @@ Query QueryParser::parse(const QString &query, ParserFlags flags, int cursor_pos
     d->runPasses(cursor_position, flags);
 
     // Fuse the terms into a big AND term and produce the query
+    d->resourcetype = Nepomuk2::Vocabulary::NIE::InformationElement();
+
     int end_index;
-    Term final_term = fuseTerms(d->terms, 0, end_index);
+    Term final_term = d->tuneTerm(fuseTerms(d->terms, 0, end_index));
 
     return Query(final_term);
 }
@@ -340,7 +431,7 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
         "A year (%1), month (%2), day (%3), day of week (%4), hour (%5), "
             "minute (%6), second (%7), in every combination supported by your language",
         "%3 of %2 %1;%3 st|nd|rd|th %2 %1;%3 st|nd|rd|th of %2 %1;"
-        "%3 of %2;%3 st|nd|rd|th %2;%3 st|nd|rd|th of %2;of %2 %1;%2 %3 st|nd|rd|th;%2 %3;%2 %1;"
+        "%3 of %2;%3 st|nd|rd|th %2;%3 st|nd|rd|th of %2;%2 %3 st|nd|rd|th;%2 %3;%2 %1;"
         "%1 - %2 - %3;%1 - %2;%3 / %2 / %1;%3 / %2;"
         "in %2 %1; in %1;, %1"
     ));
@@ -373,14 +464,14 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
         ki18n("Equal to"));
 
     // Email-related properties
-    pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageFrom(), PassProperties::Contact);
+    pass_properties.setProperty(PROPERTY_AUTHOR, PassProperties::Contact);
     runPass(pass_properties, cursor_position,
         i18nc("Sender of an e-mail", "sent by %1;from %1;sender is %1;sender %1"),
         ki18n("Sender of an e-mail"), CompletionProposal::Contact);
-    pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageSubject(), PassProperties::String);
+    pass_properties.setProperty(PROPERTY_TITLE, PassProperties::String);
     runPass(pass_properties, cursor_position,
-        i18nc("Title of an e-mail", "title %1;titled %1"),
-        ki18n("Title of an e-mail"));
+        i18nc("Title of an e-mail or document", "title %1;titled %1"),
+        ki18n("Title"));
     pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageRecipient(), PassProperties::Contact);
     runPass(pass_properties, cursor_position,
         i18nc("Recipient of an e-mail", "sent to %1;to %1;recipient is %1;recipient %1"),
@@ -391,25 +482,29 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
         ki18n("Date of sending"), CompletionProposal::DateTime);
     pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::receivedDate(), PassProperties::DateTime);
     runPass(pass_properties, cursor_position,
-        i18nc("Receiving date-time", "received at|on %1;received %1"),
+        i18nc("Receiving date-time", "received at|on %1;received %1;reception is %1"),
         ki18n("Date of reception"), CompletionProposal::DateTime);
 
     // File-related properties
-    pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileSize(), PassProperties::IntegerOrDouble);
+    pass_properties.setProperty(PROPERTY_AUTHOR, PassProperties::Contact);
+    runPass(pass_properties, cursor_position,
+        i18nc("Author of a document", "written|created|composed by %1;author is %1;by %1"),
+        ki18n("Author"), CompletionProposal::Contact);
+    pass_properties.setProperty(PROPERTY_SIZE, PassProperties::IntegerOrDouble);
     runPass(pass_properties, cursor_position,
         i18nc("Size of a file", "size is %1;size %1;being %1 large;%1 large"),
-        ki18n("File size"));
-    pass_properties.setProperty(Nepomuk2::Vocabulary::NFO::fileName(), PassProperties::String);
+        ki18n("Size"));
+    pass_properties.setProperty(PROPERTY_NAME, PassProperties::String);
     runPass(pass_properties, cursor_position,
-        i18nc("Name of a file", "name %1;named %1"),
-        ki18n("File name"));
-    pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::created(), PassProperties::DateTime);
+        i18nc("Name of a file or contact", "name is %1;name %1;named %1"),
+        ki18n("Name"));
+    pass_properties.setProperty(PROPERTY_CREATED, PassProperties::DateTime);
     runPass(pass_properties, cursor_position,
-        i18nc("Date of creation", "created at|on|in %1;created %1"),
+        i18nc("Date of creation", "created|dated at|on|in|of %1;created|dated %1;creation date|time|datetime is %1"),
         ki18n("Date of creation"), CompletionProposal::DateTime);
-    pass_properties.setProperty(Nepomuk2::Vocabulary::NIE::lastModified(), PassProperties::DateTime);
+    pass_properties.setProperty(PROPERTY_MODIFIED, PassProperties::DateTime);
     runPass(pass_properties, cursor_position,
-        i18nc("Date of last modification", "modified|edited|dated at|on|of %1;modified|edited|dated %1"),
+        i18nc("Date of last modification", "modified|edited at|on %1;modified|edited %1;modification|edition date|time|datetime is %1"),
         ki18n("Date of last modification"), CompletionProposal::DateTime);
 
     // Properties having a resource range (hasTag, messageFrom, etc)
@@ -443,6 +538,205 @@ void QueryParser::Private::runPass(const T &pass,
 
         matcher.runPass(pass);
     }
+}
+
+/*
+ * Term tuning (setting the right properties of comparisons, etc)
+ */
+AndTerm QueryParser::Private::intervalComparison(const Nepomuk2::Types::Property &prop,
+                                                 const LiteralTerm &min,
+                                                 const LiteralTerm &max)
+{
+    int start_position = qMin(min.position(), max.position());
+    int end_position = qMax(min.position() + min.length(), max.position() + max.length());
+
+    ComparisonTerm greater(prop, min, ComparisonTerm::GreaterOrEqual);
+    ComparisonTerm smaller(prop, max, ComparisonTerm::SmallerOrEqual);
+
+    greater.setPosition(start_position, end_position - start_position);
+    smaller.setPosition(greater);
+
+    AndTerm total(greater, smaller);
+    total.setPosition(greater);
+
+    return total;
+}
+
+AndTerm QueryParser::Private::dateTimeComparison(const Nepomuk2::Types::Property &prop,
+                                                 const LiteralTerm &term)
+{
+    KCalendarSystem *cal = KCalendarSystem::create(KGlobal::locale()->calendarSystem());
+    QDateTime start_date_time = term.value().toDateTime().toLocalTime();
+
+    QDate start_date(start_date_time.date());
+    QTime start_time(start_date_time.time());
+    QDate end_date(start_date);
+    QTime end_time(start_time);
+    PassDatePeriods::Period last_defined_period = (PassDatePeriods::Period)(start_time.msec());
+
+    switch (last_defined_period) {
+    case PassDatePeriods::Year:
+        end_date = cal->addYears(start_date, 1);
+        break;
+    case PassDatePeriods::Month:
+        end_date = cal->addMonths(start_date, 1);
+        break;
+    case PassDatePeriods::Week:
+        end_date = cal->addDays(start_date, cal->daysInWeek(end_date));
+        break;
+    case PassDatePeriods::DayOfWeek:
+    case PassDatePeriods::Day:
+        end_date = cal->addDays(start_date, 1);
+        break;
+    default:
+        break;
+    }
+
+    QDateTime datetime(end_date, end_time);
+
+    switch (last_defined_period) {
+    case PassDatePeriods::Hour:
+        datetime = datetime.addSecs(60 * 60);
+        break;
+    case PassDatePeriods::Minute:
+        datetime = datetime.addSecs(60);
+        break;
+    case PassDatePeriods::Second:
+        datetime = datetime.addSecs(1);
+        break;
+    default:
+        break;
+    }
+
+    Nepomuk2::Query::LiteralTerm end_term(datetime);
+    end_term.setPosition(term);
+
+    return intervalComparison(
+        prop,
+        term,
+        end_term
+    );
+}
+
+Term QueryParser::Private::tuneTerm(Term term)
+{
+    // Recurse in And, Or and Not terms
+    if (term.isNegationTerm()) {
+        Term rs = NegationTerm::negateTerm(
+            tuneTerm(term.toNegationTerm().subTerm())
+        );
+
+        rs.setPosition(term);
+        return rs;
+    } else if (term.isAndTerm() || term.isOrTerm()) {
+        QList<Term> terms = (term.isAndTerm() ? term.toAndTerm().subTerms() : term.toOrTerm().subTerms());
+
+        // Tune the sub-terms. Some of them may change this->resourcetype, so save
+        // it and restore it after the tuning
+        QUrl old_resourcetype = resourcetype;
+
+        for (int i=0; i<terms.count(); ++i) {
+            terms[i] = tuneTerm(terms.at(i));
+        }
+
+        resourcetype = old_resourcetype;
+
+        // Create a shiny new And or Or term
+        Term rs = (term.isAndTerm() ? (Term)AndTerm(terms) : (Term)OrTerm(terms));
+        rs.setPosition(term);
+
+        return rs;
+    } else if (term.isComparisonTerm()) {
+        // If the comparison contains an And, Or or Not, tune it. This is needed
+        // for sub-queries to work.
+        Term t = term.toComparisonTerm().subTerm();
+
+        if (t.isAndTerm() || t.isOrTerm() || t.isNegationTerm()) {
+            term.toComparisonTerm().setSubTerm(tuneTerm(t));
+        }
+    }
+
+    // Resource type terms change the current resource type used for properties
+    if (term.isResourceTypeTerm()) {
+        resourcetype = term.toResourceTypeTerm().type().uri();
+    }
+
+    // Change literal terms to comparisons against a default property
+    if (term.isLiteralTerm()) {
+        Soprano::LiteralValue value = term.toLiteralTerm().value();
+
+        if (value.isDateTime() || value.isInt() || value.isInt64()) {
+            Term t = ComparisonTerm(
+                value.isDateTime() ? PROPERTY_CREATED : PROPERTY_SIZE,
+                term,
+                ComparisonTerm::Equal
+            );
+
+            t.setPosition(term);
+            term = t;
+        }
+    }
+
+    // Handle comparisons
+    if (term.isComparisonTerm()) {
+        ComparisonTerm &comparison = term.toComparisonTerm();
+
+        // Change comparisons against a default property to actual comparisons
+        QUrl property_uri = comparison.property().uri();
+
+        if (property_uri.scheme() == QLatin1String("property")) {
+            term.toComparisonTerm().setProperty(
+                resourcetype_properties.value(resourcetype).value(property_uri)
+            );
+        }
+
+        // Change strict equalities to interval comparisons
+        if (comparison.comparator() == ComparisonTerm::Equal &&
+            comparison.subTerm().isLiteralTerm()) {
+            Soprano::LiteralValue value = comparison.subTerm().toLiteralTerm().value();
+
+            if (value.isDateTime()) {
+                // The width of the interval is encoded into the millisecond part
+                // of the date-time
+                AndTerm datetime_comparison = dateTimeComparison(
+                    comparison.property(),
+                    comparison.subTerm().toLiteralTerm()
+                );
+
+                // Only comparison has information about the position of the whole
+                // comparison, as the date-time comparison was built with only the
+                // literal terms
+                Nepomuk2::Query::Term min_term, max_term;
+
+                min_term = datetime_comparison.subTerms().at(0);
+                max_term = datetime_comparison.subTerms().at(1);
+
+                datetime_comparison.setPosition(comparison);
+                min_term.setPosition(comparison);
+                max_term.setPosition(comparison);
+
+                datetime_comparison.setSubTerms(QList<Nepomuk2::Query::Term>() << min_term << max_term);
+                term = datetime_comparison;
+            } else if (value.isInt() || value.isInt64()) {
+                // Compare with the value +- 20%
+                long long int v = value.toInt64();
+                Nepomuk2::Query::LiteralTerm min(v * 80LL / 100LL);
+                Nepomuk2::Query::LiteralTerm max(v * 120LL / 100LL);
+
+                min.setPosition(term);
+                max.setPosition(term);
+
+                term = intervalComparison(
+                    PROPERTY_SIZE,
+                    min,
+                    max
+                );
+            }
+        }
+    }
+
+    // The term is now okay
+    return term;
 }
 
 /*
