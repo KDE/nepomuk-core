@@ -924,9 +924,12 @@ void QueryParser::Private::foldDateTimes()
                 end_position = qMax(end_position, term.position() + term.length());
             }
         } else if (spec_contains_interesting_data &&
-                   term.isLiteralTerm() &&
-                   term.toLiteralTerm().value().toString().length() <= 2) {
-            end_of_cluster = false;
+                   term.isLiteralTerm()) {
+            QString value = termStringValue(term);
+
+            if (value.length() == 2 || (value.length() == 1 && !separators.contains(value.at(0)))) {
+                end_of_cluster = false;
+            }
         }
 
         if (end_of_cluster) {
