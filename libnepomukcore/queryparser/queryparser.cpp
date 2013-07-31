@@ -474,6 +474,10 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
     runPass(pass_properties, cursor_position,
         i18nc("Numeric rating of a resource", "rated as %1;rated %1;score is %1;score|scored %1;having %1 stars|star"),
         ki18n("Rating (0 to 10)"), CompletionProposal::NoType);
+    pass_properties.setProperty(Soprano::Vocabulary::NAO::description(), PassProperties::String);
+    runPass(pass_properties, cursor_position,
+        i18nc("Description of a resource", "described as %1;description|comment is %1;described|description|comment %1"),
+        ki18n("Comment or description"), CompletionProposal::NoType);
 
     // Email-related properties
     pass_properties.setProperty(PROPERTY_AUTHOR, PassProperties::Contact);
