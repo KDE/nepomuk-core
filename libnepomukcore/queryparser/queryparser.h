@@ -245,7 +245,7 @@ namespace Nepomuk2 {
             void addCompletionProposal(CompletionProposal *proposal);
 
         private:
-            class Private;
+            struct Private;
             Private* const d;
         };
     }

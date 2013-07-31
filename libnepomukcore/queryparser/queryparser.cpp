@@ -469,6 +469,12 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
         i18nc("Equality", "equal|equals|= %1;equal to %1"),
         ki18n("Equal to"));
 
+    // Properties associated with any Nepomuk resource
+    pass_properties.setProperty(Soprano::Vocabulary::NAO::numericRating(), PassProperties::Integer);
+    runPass(pass_properties, cursor_position,
+        i18nc("Numeric rating of a resource", "rated as %1;rated %1;score is %1;score|scored %1;having %1 stars|star"),
+        ki18n("Rating (0 to 10)"), CompletionProposal::NoType);
+
     // Email-related properties
     pass_properties.setProperty(PROPERTY_AUTHOR, PassProperties::Contact);
     runPass(pass_properties, cursor_position,
