@@ -204,10 +204,16 @@ namespace Nepomuk2 {
             QStringList allTags() const;
 
             /**
-             * List of all the contacts of the user. This list is
-             * cached and calling this function does not touch the Nepomuk server.
+             * List of all the contacts of the user.
+             * \sa allTags()
              */
             QStringList allContacts() const;
+
+            /**
+             * List of all the email-addresses in the address book of the user.
+             * \sa allTags()
+             */
+            QStringList allEmailAddresses() const;
 
             /**
              * Try to match a field name as used in a query string to actual

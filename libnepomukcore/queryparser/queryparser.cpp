@@ -141,7 +141,6 @@ struct QueryParser::Private
         // Messages
         QHash<QUrl, QUrl> messages(general);
 
-        messages.insert(PROPERTY_AUTHOR, Nepomuk2::Vocabulary::NMO::messageFrom());
         messages.insert(PROPERTY_TITLE, Nepomuk2::Vocabulary::NMO::messageSubject());
         messages.insert(PROPERTY_CREATED, Nepomuk2::Vocabulary::NMO::receivedDate());
 
@@ -314,6 +313,11 @@ QStringList QueryParser::allContacts() const
     return d->pass_properties.contacts().keys();
 }
 
+QStringList QueryParser::allEmailAddresses() const
+{
+    return d->pass_properties.emailAddresses().keys();
+}
+
 QStringList QueryParser::Private::split(const QString &query, bool is_user_query, QList<int> *positions)
 {
     QStringList parts;
@@ -480,18 +484,18 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
         ki18n("Comment or description"), CompletionProposal::NoType);
 
     // Email-related properties
-    pass_properties.setProperty(PROPERTY_AUTHOR, PassProperties::Contact);
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageFrom(), PassProperties::EmailAddress);
     runPass(pass_properties, cursor_position,
         i18nc("Sender of an e-mail", "sent by %1;from %1;sender is %1;sender %1"),
-        ki18n("Sender of an e-mail"), CompletionProposal::Contact);
+        ki18n("Sender of an e-mail"), CompletionProposal::Email);
     pass_properties.setProperty(PROPERTY_TITLE, PassProperties::String);
     runPass(pass_properties, cursor_position,
         i18nc("Title of an e-mail or document", "title %1;titled %1"),
         ki18n("Title"));
-    pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageRecipient(), PassProperties::Contact);
+    pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::messageRecipient(), PassProperties::EmailAddress);
     runPass(pass_properties, cursor_position,
         i18nc("Recipient of an e-mail", "sent to %1;to %1;recipient is %1;recipient %1"),
-        ki18n("Recipient of an e-mail"), CompletionProposal::Contact);
+        ki18n("Recipient of an e-mail"), CompletionProposal::Email);
     pass_properties.setProperty(Nepomuk2::Vocabulary::NMO::sentDate(), PassProperties::DateTime);
     runPass(pass_properties, cursor_position,
         i18nc("Sending date-time", "sent at|on %1;sent %1"),

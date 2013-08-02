@@ -54,6 +54,7 @@ namespace Nepomuk2 {
                     DateTime,       /*!< A date-time */
                     Tag,            /*!< A valid tag name */
                     Contact,        /*!< Something that can be parsed unambiguously to a contact (a contact name, email, pseudo, etc) */
+                    Email,          /*!< An e-mail address */
                 };
 
                 /**

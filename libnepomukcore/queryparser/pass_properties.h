@@ -35,6 +35,7 @@ class PassProperties
             DateTime,
             Tag,
             Contact,
+            EmailAddress
         };
 
         PassProperties();
@@ -43,24 +44,32 @@ class PassProperties
 
         const QMap<QString, QUrl> &tags() const;
         const QMap<QString, QUrl> &contacts() const;
+        const QMap<QString, QUrl> &emailAddresses() const;
+
         QList<Nepomuk2::Query::Term> run(const QList<Nepomuk2::Query::Term> &match) const;
 
     private:
+        struct Cache {
+            Cache() : populated(false) {}
+
+            QMap<QString, QUrl> contents;
+            bool populated;
+        };
+
+        const QMap<QString, QUrl> &cacheContents(const Cache &cache) const;
+        void fillCache(Cache &cache, const QString &query);
+
         Nepomuk2::Query::Term convertToRange(const Nepomuk2::Query::LiteralTerm &term) const;
-        void fillTagsCache();
-        void fillContactsCache();
+        Nepomuk2::Query::Term termFromCache(const Nepomuk2::Query::LiteralTerm &value, const Cache &cache) const;
 
     private:
         QUrl property;
         Types range;
 
-        // Cache for tags
-        QMap<QString, QUrl> cached_tags;
-        bool cached_tags_filled;
-
-        // Cache for contacts
-        QMap<QString, QUrl> cached_contacts;
-        bool cached_contacts_filled;
+        // Caches
+        Cache cached_tags;
+        Cache cached_contacts;
+        Cache cached_emails;
 };
 
 #endif

@@ -32,8 +32,6 @@
 #include <soprano/queryresultiterator.h>
 
 PassProperties::PassProperties()
-: cached_tags_filled(false),
-  cached_contacts_filled(false)
 {
 }
 
@@ -45,78 +43,71 @@ void PassProperties::setProperty(const QUrl &property, Types range)
 
 const QMap<QString, QUrl> &PassProperties::tags() const
 {
-    if (!cached_tags_filled) {
-        const_cast<PassProperties *>(this)->fillTagsCache();
-    }
-
-    return cached_tags;
+    return cacheContents(cached_tags);
 }
 
 const QMap<QString, QUrl> &PassProperties::contacts() const
 {
-    if (!cached_contacts_filled) {
-        const_cast<PassProperties *>(this)->fillContactsCache();
-    }
-
-    return cached_contacts;
+    return cacheContents(cached_contacts);
 }
 
-void PassProperties::fillTagsCache()
+const QMap<QString, QUrl> &PassProperties::emailAddresses() const
 {
-    cached_tags_filled = true;
+    return cacheContents(cached_emails);
+}
 
-    // Get the tags URIs and their label in one SPARQL query
-    QString query = QString::fromLatin1("select ?tag ?label where { "
-                                        "?tag a %1 . "
-                                        "?tag %2 ?label . "
-                                        "}")
-                    .arg(Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::Tag()),
-                         Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::label()));
+const QMap<QString, QUrl> &PassProperties::cacheContents(const PassProperties::Cache &cache) const
+{
+    if (!cache.populated) {
+        PassProperties *t = const_cast<PassProperties *>(this);
+        Cache *c = const_cast<Cache *>(&cache);
+
+        // Populate the cache
+        if (c == &cached_tags) {
+            t->fillCache(*c, QString::fromLatin1(
+                "select distinct ?res ?label where { "
+                "?res a %1 . "
+                "?res %2 ?label . "
+                "}"
+                ).arg(Soprano::Node::resourceToN3(Soprano::Vocabulary::NAO::Tag()),
+                      Soprano::Node::resourceToN3(Soprano::Vocabulary::RDFS::label()))
+            );
+        } else if (c == &cached_contacts) {
+            t->fillCache(*c, QString::fromLatin1(
+                "select distinct ?res ?label where { "
+                "?res a %1 . "
+                "?res %2 ?label . "
+                "}"
+                ).arg(Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::Contact()),
+                      Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::fullname()))
+            );
+        } else if (c == &cached_emails) {
+            t->fillCache(*c, QString::fromLatin1(
+                "select distinct ?res ?label where { "
+                "?res a %1 . "
+                "?res %2 ?label . "
+                "}"
+                ).arg(Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::EmailAddress()),
+                      Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::emailAddress()))
+            );
+        }
+    }
+
+    return cache.contents;
+}
+
+void PassProperties::fillCache(PassProperties::Cache &cache, const QString &query)
+{
+    cache.populated = true;
 
     Soprano::QueryResultIterator it =
         Nepomuk2::ResourceManager::instance()->mainModel()->executeQuery(query, Soprano::Query::QueryLanguageSparql);
 
     while(it.next()) {
-        cached_tags.insert(
+        cache.contents.insert(
             it["label"].toString(),
-            QUrl(it["tag"].toString())
+            QUrl(it["res"].toString())
         );
-    }
-}
-
-void PassProperties::fillContactsCache()
-{
-    cached_contacts_filled = true;
-
-    // Get the contact URIs, their fullnames and email addresses
-    QString query = QString::fromLatin1("select distinct ?c, ?fullname, ?email where { "
-                                        "?c a %1 . "
-                                        "{ "
-                                        " ?c %2 ?fullname . "
-                                        "} OPTIONAL { "
-                                        " ?c %3 ?emailaddr . "
-                                        " ?emailaddr %4 ?email . "
-                                        "} "
-                                        "}")
-                    .arg(Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::Contact()),
-                         Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::fullname()),
-                         Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::hasEmailAddress()),
-                         Soprano::Node::resourceToN3(Nepomuk2::Vocabulary::NCO::emailAddress()));
-
-    Soprano::QueryResultIterator it =
-        Nepomuk2::ResourceManager::instance()->mainModel()->executeQuery(query, Soprano::Query::QueryLanguageSparql);
-
-    while(it.next()) {
-        QUrl uri(it["c"].toString());
-        QString fullname(it["fullname"].toString());
-        QString email(it["email"].toString());
-
-        if (!fullname.isEmpty()) {
-            cached_contacts.insert(fullname, uri);
-        }
-        if (!email.isEmpty()) {
-            cached_contacts.insert(email, uri);
-        }
     }
 }
 
@@ -150,22 +141,30 @@ Nepomuk2::Query::Term PassProperties::convertToRange(const Nepomuk2::Query::Lite
         break;
 
     case Tag:
-        if (value.isString() && tags().contains(value.toString())) {
-            Nepomuk2::Query::ResourceTerm rs(cached_tags.value(value.toString()));
-            rs.setPosition(term);
-
-            return rs;
-        }
-        break;
+        return termFromCache(term, cached_tags);
 
     case Contact:
-        if (value.isString() && contacts().contains(value.toString())) {
-            Nepomuk2::Query::ResourceTerm rs(cached_contacts.value(value.toString()));
-            rs.setPosition(term);
+        return termFromCache(term, cached_contacts);
 
-            return rs;
-        }
-        break;
+    case EmailAddress:
+        return termFromCache(term, cached_emails);
+    }
+
+    return Nepomuk2::Query::Term();
+}
+
+Nepomuk2::Query::Term PassProperties::termFromCache(const Nepomuk2::Query::LiteralTerm &value,
+                                                    const PassProperties::Cache &cache) const
+{
+    if (!cache.populated) {
+        cacheContents(cache);
+    }
+
+    if (value.value().isString() && cache.contents.contains(value.value().toString())) {
+        Nepomuk2::Query::ResourceTerm rs(cache.contents.value(value.value().toString()));
+        rs.setPosition(value);
+
+        return rs;
     }
 
     return Nepomuk2::Query::Term();
