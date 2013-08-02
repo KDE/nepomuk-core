@@ -305,17 +305,17 @@ void QueryParser::addCompletionProposal(CompletionProposal *proposal)
 
 QStringList QueryParser::allTags() const
 {
-    return d->pass_properties.tags().keys();
+    return d->pass_properties.tags();
 }
 
 QStringList QueryParser::allContacts() const
 {
-    return d->pass_properties.contacts().keys();
+    return d->pass_properties.contacts();
 }
 
 QStringList QueryParser::allEmailAddresses() const
 {
-    return d->pass_properties.emailAddresses().keys();
+    return d->pass_properties.emailAddresses();
 }
 
 QStringList QueryParser::Private::split(const QString &query, bool is_user_query, QList<int> *positions)

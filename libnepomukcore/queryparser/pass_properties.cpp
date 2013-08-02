@@ -41,22 +41,22 @@ void PassProperties::setProperty(const QUrl &property, Types range)
     this->range = range;
 }
 
-const QMap<QString, QUrl> &PassProperties::tags() const
+QStringList PassProperties::tags() const
 {
     return cacheContents(cached_tags);
 }
 
-const QMap<QString, QUrl> &PassProperties::contacts() const
+QStringList PassProperties::contacts() const
 {
     return cacheContents(cached_contacts);
 }
 
-const QMap<QString, QUrl> &PassProperties::emailAddresses() const
+QStringList PassProperties::emailAddresses() const
 {
     return cacheContents(cached_emails);
 }
 
-const QMap<QString, QUrl> &PassProperties::cacheContents(const PassProperties::Cache &cache) const
+QStringList PassProperties::cacheContents(const PassProperties::Cache &cache) const
 {
     if (!cache.populated) {
         PassProperties *t = const_cast<PassProperties *>(this);
@@ -104,11 +104,10 @@ void PassProperties::fillCache(PassProperties::Cache &cache, const QString &quer
         Nepomuk2::ResourceManager::instance()->mainModel()->executeQuery(query, Soprano::Query::QueryLanguageSparql);
 
     while(it.next()) {
-        cache.contents.insert(
-            it["label"].toString(),
-            QUrl(it["res"].toString())
-        );
+        cache.contents.append(it["label"].toString());
     }
+
+    qSort(cache.contents);
 }
 
 Nepomuk2::Query::Term PassProperties::convertToRange(const Nepomuk2::Query::LiteralTerm &term) const
@@ -160,8 +159,14 @@ Nepomuk2::Query::Term PassProperties::termFromCache(const Nepomuk2::Query::Liter
         cacheContents(cache);
     }
 
-    if (value.value().isString() && cache.contents.contains(value.value().toString())) {
-        Nepomuk2::Query::ResourceTerm rs(cache.contents.value(value.value().toString()));
+    if (!value.value().isString()) {
+        return Nepomuk2::Query::Term();
+    }
+
+    QStringList::const_iterator it = qBinaryFind(cache.contents, value.value().toString());
+
+    if (it != cache.contents.end()) {
+        Nepomuk2::Query::LiteralTerm rs(*it);
         rs.setPosition(value);
 
         return rs;
@@ -189,7 +194,7 @@ QList<Nepomuk2::Query::Term> PassProperties::run(const QList<Nepomuk2::Query::Te
         // and the equality for everything else
         subterm = convertToRange(term.toLiteralTerm());
         comparator = (
-            (subterm.isLiteralTerm() && subterm.toLiteralTerm().value().isString()) ?
+            range == PassProperties::String ?
             Nepomuk2::Query::ComparisonTerm::Contains :
             Nepomuk2::Query::ComparisonTerm::Equal
         );

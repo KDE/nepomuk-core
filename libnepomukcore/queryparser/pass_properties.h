@@ -20,7 +20,7 @@
 #ifndef __PASS_PROPERTIES_H__
 #define __PASS_PROPERTIES_H__
 
-#include <QtCore/QList>
+#include <QtCore/QStringList>
 #include <QtCore/QUrl>
 
 #include "literalterm.h"
@@ -42,9 +42,9 @@ class PassProperties
 
         void setProperty(const QUrl &property, Types range);
 
-        const QMap<QString, QUrl> &tags() const;
-        const QMap<QString, QUrl> &contacts() const;
-        const QMap<QString, QUrl> &emailAddresses() const;
+        QStringList tags() const;
+        QStringList contacts() const;
+        QStringList emailAddresses() const;
 
         QList<Nepomuk2::Query::Term> run(const QList<Nepomuk2::Query::Term> &match) const;
 
@@ -52,11 +52,11 @@ class PassProperties
         struct Cache {
             Cache() : populated(false) {}
 
-            QMap<QString, QUrl> contents;
+            QStringList contents;
             bool populated;
         };
 
-        const QMap<QString, QUrl> &cacheContents(const Cache &cache) const;
+        QStringList cacheContents(const Cache &cache) const;
         void fillCache(Cache &cache, const QString &query);
 
         Nepomuk2::Query::Term convertToRange(const Nepomuk2::Query::LiteralTerm &term) const;
