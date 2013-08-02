@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Start the test environment
+source @NEPOMUK_TESTLIB_TOOLS_DIR@/nepomuk-sandbox-begin.sh
+
+if ( $NEPOMUK_TESTLIB_RUNNING ); then
+    eval '$@'
+    ret=$?
+else
+    ret=1
+fi
+
+# Destroy it
+source @NEPOMUK_TESTLIB_TOOLS_DIR@/nepomuk-sandbox-end.sh
+exit $ret

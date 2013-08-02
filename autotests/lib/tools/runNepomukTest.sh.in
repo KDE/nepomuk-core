@@ -1,11 +1,15 @@
 #!/bin/bash
 
-# Start the test environment
-source @NEPOMUK_TESTLIB_TOOLS_DIR@/nepomuk-sandbox-begin.sh
+XVFB="bash"
+# Start the test environment: use xvfb-run if available
+if [[ -e `which xvfb-run` ]]; then
+    XVFB="xvfb-run bash"
+fi
+$XVFB @NEPOMUK_TESTLIB_TOOLS_DIR@/reallyRunNepomukTest.sh $@
 
-eval '$@'
 ret=$?
 
-# Destroy it
-source @NEPOMUK_TESTLIB_TOOLS_DIR@/nepomuk-sandbox-end.sh
+#Sleep for a bit to give the fake X server time to shutdown
+sleep 4
+
 exit $ret

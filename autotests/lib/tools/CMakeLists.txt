@@ -29,3 +29,8 @@ configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/runNepomukTest.sh.in"
                 IMMEDIATE @ONLY
 )
 
+configure_file ("${CMAKE_CURRENT_SOURCE_DIR}/reallyRunNepomukTest.sh.in"
+                "${CMAKE_CURRENT_BINARY_DIR}/reallyRunNepomukTest.sh"
+                IMMEDIATE @ONLY
+)
+

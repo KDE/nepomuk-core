@@ -29,14 +29,35 @@ mkdir -p $KDEHOME/share/config
 cp @NEPOMUK_TESTLIB_DATA_DIR@/nepomukserverrc $KDEHOME/share/config/
 
 # start kde basics
+SANDBOX_FAILED=false
 echo "Starting new KDE session in $KDEHOME..."
 kbuildsycoca4 2> /dev/null
+if [ $? != 0 ]; then
+    echo "failed to run kbuildsycoca4"
+    SANDBOX_FAILED=true
+fi
+
 kdeinit4 2> /dev/null
+if [ $? != 0 ]; then
+    echo "failed to start kdeinit4"
+    SANDBOX_FAILED=true
+fi
+
 qdbus org.kde.kded /kded org.kde.kded.loadSecondPhase 2> /dev/null
 echo "Started..."
 
 # Start the nepomuk server (which will automatically start other nepomuk services
 echo "Starting nepomukserver"
-nepomukserver 2> $KDETMP/nepomuk-server.log &
+@CMAKE_BINARY_DIR@/server/nepomukserver 2> $KDETMP/nepomuk-server.log &
 
-export NEPOMUK_TESTLIB_RUNNING=true
+ret=$(ps | grep nepomukserver | wc -l)
+if [ $ret != 1 ]; then
+    echo "failed to start nepomukserver"
+    SANDBOX_FAILED=true
+fi
+
+if ( $SANDBOX_FAILED ); then
+    export NEPOMUK_TESTLIB_RUNNING=false
+else
+    export NEPOMUK_TESTLIB_RUNNING=true
+fi
