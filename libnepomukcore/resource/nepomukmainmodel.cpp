@@ -78,7 +78,8 @@ public:
 
         Soprano::BackendSettings settings;
 
-        KConfigGroup repoConfig = KSharedConfig::openConfig( "nepomukserverrc" )->group( "main Settings" );
+        KConfig config("nepomukserverrc");
+        KConfigGroup repoConfig = config.group( "main Settings" );
         int portNumber = repoConfig.readEntry("Port", 0);
         if(!portNumber) {
             kError() << "Could not find virtuoso to connect to. Aborting";

@@ -129,9 +129,9 @@ void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUr
     //
     // We only need the resource types if any connections are watching types.
     //
-    QSet<QUrl> types;
+    QList<QUrl> types;
     if(!m_typeHash.isEmpty()) {
-        types = m_model->typeCache()->types( res ).toSet();
+        types = m_model->typeCache()->types( res );
     }
 
 
@@ -148,7 +148,7 @@ void Nepomuk2::ResourceWatcherManager::changeProperty(const QUrl &res, const QUr
             it != removedValues.constEnd(); ++it) {
             removedTypes << it->uri();
         }
-        changeTypes(res, types, addedTypes, removedTypes);
+        changeTypes(res, types.toSet(), addedTypes, removedTypes);
     }
 
 

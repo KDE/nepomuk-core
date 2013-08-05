@@ -193,8 +193,10 @@ void Nepomuk2::Repository::open()
         return;
     }
 
-    if( !m_virtuosoVersion.startsWith("6.1.6") ) {
-        kError() << "NepomukStorage only works with virtuoso 6.1.6";
+    // We accept virtuoso version 6.1.6+ Nepomuk hasn't really been tested with 7
+    QRegExp regex("(6\.1\.[6789])");
+    if( !m_virtuosoVersion.contains(regex) ) {
+        kError() << "NepomukStorage only works with virtuoso 6.1.6 and beyond";
         return;
     }
 
