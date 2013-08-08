@@ -107,14 +107,16 @@ void ResourceListGenerator::doJob()
 
         // file count
         QString countQuery = QString::fromLatin1("select count(distinct ?r) where { ?r a nfo:FileDataObject ;"
-                                                 " nie:url ?url ; nao:hasTag ?t. }");
+                                                 " nie:url ?url ; ?p ?t. "
+                                                 "FILTER(?p in (nao:hasTag, nao:numericRating, nao:description)). }");
         Soprano::QueryResultIterator iter = m_model->executeQuery( countQuery, Soprano::Query::QueryLanguageSparqlNoInference );
         int approxCount = 0;
         if( iter.next() )
             approxCount = iter[0].literal().toInt() + m_resourceCount;
 
         query = QString::fromLatin1("select distinct ?r where { ?r a nfo:FileDataObject ;"
-                                    " nie:url ?url ; nao:hasTag ?t. "
+                                    " nie:url ?url ; ?p ?t ."
+                                    " FILTER(?p in (nao:hasTag, nao:numericRating, nao:description)) ."
                                     " FILTER(REGEX(STR(?url), '^file:')) . }");
         it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
 

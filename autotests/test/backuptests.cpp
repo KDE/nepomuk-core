@@ -270,11 +270,20 @@ void BackupTests::tagsAndRatings()
     QVERIFY( tempFile.open() );
     QUrl fileUrl1 = QUrl::fromLocalFile( tempFile.fileName() );
 
+    KTemporaryFile tempFile2;
+    QVERIFY( tempFile2.open() );
+    QUrl fileUrl2 = QUrl::fromLocalFile( tempFile2.fileName() );
+
     SimpleResource fileRes1;
     fileRes1.addType( NFO::FileDataObject() );
     fileRes1.setProperty( NIE::url(), fileUrl1 );
     fileRes1.setProperty( NAO::numericRating(), 5 );
     fileRes1.setProperty( NAO::description(), QLatin1String("Booga") );
+
+    SimpleResource fileRes2;
+    fileRes2.addType( NFO::FileDataObject() );
+    fileRes2.setProperty( NIE::url(), fileUrl2 );
+    fileRes2.setProperty( NAO::numericRating(), 7 );
 
     SimpleResource tagRes;
     tagRes.addType( NAO::Tag() );
@@ -282,7 +291,7 @@ void BackupTests::tagsAndRatings()
     fileRes1.setProperty( NAO::hasTag(), tagRes );
 
     SimpleResourceGraph graph;
-    graph << fileRes1 << tagRes;
+    graph << fileRes1 << fileRes2 << tagRes;
 
     KJob* job = graph.save();
     job->exec();
@@ -339,6 +348,26 @@ void BackupTests::tagsAndRatings()
     it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
     QVERIFY( it.next() );
     QCOMPARE( it[0].literal().toString(), QLatin1String("Booga") );
+
+    //
+    // FileRes2
+    //
+    // Make sure a resource with nie:url fileUrl1 exists
+    query = QString::fromLatin1("select ?r where { ?r nie:url %1. }")
+            .arg( Soprano::Node::resourceToN3(fileUrl2) );
+    it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+
+    QUrl resUri2;
+    QVERIFY( it.next() );
+    resUri2 = it[0].uri();
+    QCOMPARE( resUri2.scheme(), QLatin1String("nepomuk") );
+
+    // Make sure it has the correct rating
+    query = QString::fromLatin1("ask where { %1 nao:numericRating %2 . }")
+            .arg( Soprano::Node::resourceToN3( resUri2 ),
+                  Soprano::Node::literalToN3( Soprano::LiteralValue(7) ) );
+
+    QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
 }
 
 
