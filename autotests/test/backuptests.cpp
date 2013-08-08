@@ -274,6 +274,7 @@ void BackupTests::tagsAndRatings()
     fileRes1.addType( NFO::FileDataObject() );
     fileRes1.setProperty( NIE::url(), fileUrl1 );
     fileRes1.setProperty( NAO::numericRating(), 5 );
+    fileRes1.setProperty( NAO::description(), QLatin1String("Booga") );
 
     SimpleResource tagRes;
     tagRes.addType( NAO::Tag() );
@@ -331,6 +332,13 @@ void BackupTests::tagsAndRatings()
             .arg( Soprano::Node::resourceToN3(resUri) );
 
     QVERIFY( model->executeQuery( query, Soprano::Query::QueryLanguageSparql ).boolValue() );
+
+    // Make sure the fileRes has its description
+    query = QString::fromLatin1("select ?d where { %1 nao:description ?d . }")
+            .arg( Soprano::Node::resourceToN3( resUri ) );
+    it = model->executeQuery( query, Soprano::Query::QueryLanguageSparql );
+    QVERIFY( it.next() );
+    QCOMPARE( it[0].literal().toString(), QLatin1String("Booga") );
 }
 
 
