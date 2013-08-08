@@ -222,6 +222,13 @@ SimpleResourceGraph Exiv2Extractor::extract(const QUrl& resUri, const QUrl& file
             fileRes.setProperty( NEXIF::orientation(), value );
     }
 
+    it = data.findKey( Exiv2::ExifKey("Exif.Photo.DateTimeOriginal") );
+    if( it != data.end() ) {
+        QVariant value = toVariantDateTime( it->value() );
+        if( !value.isNull() )
+            fileRes.setProperty( NEXIF::dateTimeOriginal(), value );
+    }
+
     it = data.findKey( Exiv2::ExifKey("Exif.Photo.FocalLength") );
     if( it != data.end() ) {
         QVariant value = toVariantFloat( it->value() );
