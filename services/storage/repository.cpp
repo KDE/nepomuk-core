@@ -39,6 +39,7 @@
 #include <KNotification>
 #include <KIcon>
 #include <KIO/DeleteJob>
+#include <kdbusconnectionpool.h>
 
 #include <QtCore/QTimer>
 #include <QtCore/QFile>
@@ -379,7 +380,7 @@ void Nepomuk2::Repository::openPublicInterface()
 
     m_dataManagementAdaptor = new Nepomuk2::DataManagementAdaptor(m_dataManagementModel);
 
-    QDBusConnection con = QDBusConnection::sessionBus();
+    QDBusConnection con = KDBusConnectionPool::threadConnection();
     con.registerObject(QLatin1String("/datamanagement"), m_dataManagementAdaptor,
                        QDBusConnection::ExportScriptableContents);
 }

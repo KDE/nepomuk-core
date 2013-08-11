@@ -25,7 +25,7 @@
 #include <Soprano/Error/Error>
 #include <Soprano/Error/ErrorCode>
 
-#include <QtDBus/QDBusConnection>
+#include <kdbusconnectionpool.h>
 
 #include <QtCore/QStringList>
 #include <QtCore/QEventLoop>
@@ -61,9 +61,10 @@ void Nepomuk2::DataManagementCommand::run()
 {
     QVariant result = runCommand();
     Soprano::Error::Error error = model()->lastError();
+    QDBusConnection con = KDBusConnectionPool::threadConnection();
     if(error) {
         // send error reply
-        QDBusConnection::sessionBus().send(m_msg.createErrorReply(convertSopranoErrorCode(error.code()), error.message()));
+        con.send(m_msg.createErrorReply(convertSopranoErrorCode(error.code()), error.message()));
     }
     else {
         // encode result (ie. convert QUrl to QString)
@@ -71,10 +72,10 @@ void Nepomuk2::DataManagementCommand::run()
             if(result.type() == QVariant::Url) {
                 result = encodeUrl(result.toUrl());
             }
-            QDBusConnection::sessionBus().send(m_msg.createReply(result));
+            con.send(m_msg.createReply(result));
         }
         else {
-            QDBusConnection::sessionBus().send(m_msg.createReply());
+            con.send(m_msg.createReply());
         }
     }
 

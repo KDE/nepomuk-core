@@ -24,7 +24,6 @@
 #include "resourcemanager.h"
 #include "graphmigrationjob.h"
 
-#include <QtDBus/QDBusConnection>
 #include <QtCore/QFile>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QTimer>
@@ -36,6 +35,7 @@
 #include <KStandardDirs>
 #include <KConfigGroup>
 #include <KProcess>
+#include <kdbusconnectionpool.h>
 #include <Soprano/QueryResultIterator>
 
 namespace {
@@ -50,7 +50,8 @@ Nepomuk2::Storage::Storage()
     , m_resetInProgress( false )
 {
     // register the fancier name for this important service
-    QDBusConnection::sessionBus().registerService( "org.kde.NepomukStorage" );
+    QDBusConnection con = KDBusConnectionPool::threadConnection();
+    con.registerService( "org.kde.NepomukStorage" );
 
     m_repository = new Repository( QLatin1String( s_repositoryName ) );
     connect( m_repository, SIGNAL( loaded( Repository*, bool ) ),

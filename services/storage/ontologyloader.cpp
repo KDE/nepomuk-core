@@ -36,6 +36,7 @@
 #include <KStandardDirs>
 #include <KLocale>
 #include <KDirWatch>
+#include <kdbusconnectionpool.h>
 
 #include <QtCore/QFileInfo>
 #include <QtCore/QTimer>
@@ -156,12 +157,12 @@ Nepomuk2::OntologyLoader::OntologyLoader( Soprano::Model* model, QObject* parent
 
     // export ourselves on DBus
     ( void )new OntologyManagerAdaptor( this );
-    QDBusConnection::sessionBus().registerObject( QLatin1String("/nepomukontologyloader"),
-                                                  this,
-                                                  QDBusConnection::ExportAdaptors );
+    QDBusConnection con = KDBusConnectionPool::threadConnection();
+    con.registerObject( QLatin1String("/nepomukontologyloader"), this,
+                        QDBusConnection::ExportAdaptors );
 
     // be backwards compatible
-    QDBusConnection::sessionBus().registerService( QLatin1String("org.kde.nepomuk.services.nepomukontologyloader") );
+    con.registerService( QLatin1String("org.kde.nepomuk.services.nepomukontologyloader") );
 
     d->model = new OntologyManagerModel( model, this );
     connect( &d->updateTimer, SIGNAL(timeout()), this, SLOT(updateNextOntology()) );

@@ -25,9 +25,9 @@
 
 #include <QtCore/QStringList>
 #include <QtDBus/QDBusServiceWatcher>
-#include <QtDBus/QDBusConnection>
 
 #include <KDebug>
+#include <kdbusconnectionpool.h>
 
 Nepomuk2::Query::FolderConnection::FolderConnection( Folder* folder )
     : QObject( folder ),
@@ -153,11 +153,12 @@ QDBusObjectPath Nepomuk2::Query::FolderConnection::registerDBusObject( const QSt
 
     // build the dbus object path from the id and register the connection as a Query dbus object
     const QString dbusObjectPath = QString( "/nepomukqueryservice/query%1" ).arg( id );
-    QDBusConnection::sessionBus().registerObject( dbusObjectPath, this );
+    QDBusConnection con = KDBusConnectionPool::threadConnection();
+    con.registerObject( dbusObjectPath, this );
 
     // watch the dbus client for unregistration for auto-cleanup
     m_serviceWatcher = new QDBusServiceWatcher( dbusClient,
-                                                QDBusConnection::sessionBus(),
+                                                con,
                                                 QDBusServiceWatcher::WatchForUnregistration,
                                                 this );
     connect( m_serviceWatcher, SIGNAL(serviceUnregistered(QString)),
