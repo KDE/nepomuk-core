@@ -191,7 +191,7 @@ Nepomuk2::FileWatch::FileWatch()
         }
     }
 #else
-    connectToKDirNotify();
+    connectToKDirWatch();
 #endif
 
     // we automatically watch newly mounted media - it is very unlikely that anything non-interesting is mounted
