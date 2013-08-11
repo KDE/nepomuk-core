@@ -172,8 +172,12 @@ namespace {
 
         if( object.isLiteral() ) {
             Soprano::LiteralValue lv = object.literal();
-            if( lv.dataTypeUri().isEmpty() )
+            if( lv.dataTypeUri().isEmpty() ) {
+                // Plain nodes in Nepomuk don't have a language tag
+                if( lv.isPlain() && !lv.toString().isEmpty() )
+                    return true;
                 return false;
+            }
 
             if( lv.isString() && lv.toString().isEmpty() )
                 return false;
