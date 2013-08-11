@@ -324,8 +324,7 @@ QStringList QueryParser::Private::split(const QString &query, bool is_user_query
     QString part;
     int size = query.size();
     bool between_quotes = false;
-    bool split_at_every_char =
-        i18nc("Are words of your language separated by spaces (Y/N) ?", "Y") != QLatin1String("Y");
+    bool split_at_every_char = !localeWordsSeparatedBySpaces();
 
     for (int i=0; i<size; ++i) {
         QChar c = query.at(i);

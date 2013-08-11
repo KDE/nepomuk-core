@@ -33,6 +33,11 @@
 
 #include <soprano/literalvalue.h>
 
+bool localeWordsSeparatedBySpaces()
+{
+    return i18nc("Are words of your language separated by spaces (Y/N) ?", "Y") == QLatin1String("Y");
+}
+
 QString termStringValue(const Nepomuk2::Query::Term &term)
 {
     if (!term.isLiteralTerm()) {
@@ -67,6 +72,7 @@ bool termIntValue(const Nepomuk2::Query::Term& term, int &value)
 Nepomuk2::Query::Term fuseTerms(const QList<Nepomuk2::Query::Term> &terms, int first_term_index, int& end_term_index)
 {
     Nepomuk2::Query::Term fused_term;
+    bool words_separated_by_spaces = localeWordsSeparatedBySpaces();
     bool build_and = true;
     bool build_not = false;
 
@@ -106,9 +112,8 @@ Nepomuk2::Query::Term fuseTerms(const QList<Nepomuk2::Query::Term> &terms, int f
                 } else if (content == QLatin1String(")")) {
                     // Done
                     return fused_term;
-                } else if (content.size() <= 2) {
+                } else if (content.size() <= 2 && words_separated_by_spaces) {
                     // Ignore small terms, they are typically "to", "a", etc.
-                    // NOTE: Some locales may want to have this filter removed
                     continue;
                 }
             }

@@ -25,6 +25,8 @@
 #include <QtCore/QString>
 #include <QtCore/QList>
 
+bool localeWordsSeparatedBySpaces();
+
 QString termStringValue(const Nepomuk2::Query::Term &term);
 bool termIntValue(const Nepomuk2::Query::Term &term, int &value);
 
