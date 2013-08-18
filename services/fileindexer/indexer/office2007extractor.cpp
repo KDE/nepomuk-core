@@ -255,7 +255,7 @@ void Office2007Extractor::extractAllText(QIODevice* device, QTextStream& stream)
                 stream << QLatin1Char(' ');
         }
 
-        if( xml.isEndDocument() )
+        if( xml.isEndDocument() || xml.hasError() )
             break;
     }
 }
@@ -304,7 +304,7 @@ void Office2007Extractor::extractTextWithTag(QIODevice* device, const QString& t
             }
         }
 
-        if( xml.isEndDocument() )
+        if( xml.isEndDocument() || xml.hasError() )
             break;
     }
 }
