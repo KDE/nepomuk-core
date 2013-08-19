@@ -194,7 +194,7 @@ void Nepomuk2::Repository::open()
     }
 
     // We accept virtuoso version 6.1.6+ Nepomuk hasn't really been tested with 7
-    QRegExp regex("(6\.1\.[6789])");
+    QRegExp regex("(6\\.1\\.[6789])");
     if( !m_virtuosoVersion.contains(regex) ) {
         kError() << "NepomukStorage only works with virtuoso 6.1.6 and beyond";
         return;
