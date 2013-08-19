@@ -58,21 +58,16 @@ QList<Nepomuk2::Query::Term> PassNumbers::run(const QList<Nepomuk2::Query::Term>
         return rs;
     }
 
-    // Named integer
     if (number_names.contains(value)) {
+        // Named number
         rs.append(Nepomuk2::Query::LiteralTerm(number_names.value(value)));
     } else {
-        // Integer or double
-        bool is_integer = false;
-        bool is_double = false;
-        long long int as_integer = value.toLongLong(&is_integer);
-        double as_double = value.toDouble(&is_double);
+        // Integer
+        bool ok = false;
+        long long int as_integer = value.toLongLong(&ok);
 
-        // Prefer integers over doubles
-        if (is_integer) {
+        if (ok) {
             rs.append(Nepomuk2::Query::LiteralTerm(as_integer));
-        } else if (is_double) {
-            rs.append(Nepomuk2::Query::LiteralTerm(as_double));
         }
     }
 

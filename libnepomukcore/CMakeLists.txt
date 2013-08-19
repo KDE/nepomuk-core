@@ -72,6 +72,7 @@ set(nepomuk_queryparser_SRCS
   queryparser/pass_filenames.cpp
   queryparser/pass_filesize.cpp
   queryparser/pass_numbers.cpp
+  queryparser/pass_decimalvalues.cpp
   queryparser/pass_periodnames.cpp
   queryparser/pass_properties.cpp
   queryparser/pass_splitunits.cpp
