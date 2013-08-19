@@ -22,6 +22,8 @@
 
 #include "literalterm.h"
 
+#include <QRegExp>
+
 PatternMatcher::PatternMatcher(Nepomuk2::Query::QueryParser *parser,
                                QList<Nepomuk2::Query::Term> &terms,
                                int cursor_position,
@@ -151,7 +153,7 @@ bool PatternMatcher::matchTerm(const Nepomuk2::Query::Term &term, const QString 
         QStringList allowed_values = pattern.split(QLatin1Char('|'));
 
         Q_FOREACH(const QString &allowed_value, allowed_values) {
-            if (value == allowed_value) {
+            if (QRegExp(allowed_value, Qt::CaseInsensitive, QRegExp::RegExp2).exactMatch(value)) {
                 return true;
             }
         }
@@ -189,8 +191,27 @@ void PatternMatcher::addCompletionProposal(int first_pattern_index_not_matching,
         return;
     }
 
+    // Replacer pattern parts that have matched with their matched term, and
+    // replace "a|b|c" with "a". This makes the pattern nicer for the user
+    int pattern_parts_to_replace = first_term_index_not_matching - first_term_index_matching;
+    QStringList user_friendly_pattern(pattern);
+
+    for (int i=0; i<user_friendly_pattern.count(); ++i) {
+        QString &part = user_friendly_pattern[i];
+
+        if (part.startsWith(QLatin1Char('%'))) {
+            continue;
+        }
+
+        if (i < pattern_parts_to_replace) {
+            part = terms.at(first_term_index_matching + i).toLiteralTerm().value().toString();
+        } else {
+            part = part.section(QLatin1Char('|'), 0, 0);
+        }
+    }
+
     parser->addCompletionProposal(new Nepomuk2::Query::CompletionProposal(
-        pattern,
+        user_friendly_pattern,
         first_pattern_index_not_matching - 1,
         first_matching.position(),
         last_matching.position() + last_matching.length() + 1 - first_matching.position(),
