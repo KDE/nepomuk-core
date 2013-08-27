@@ -226,12 +226,15 @@ bool Nepomuk2::Sync::ResourceIdentifier::runIdentification(const KUrl& uri)
         }
 
 
-        const int score = m_model->executeQuery(QString::fromLatin1("select count(?p) as ?cnt where { "
+        QList<Soprano::BindingSet> bindings = m_model->executeQuery(QString::fromLatin1("select count(?p) as ?cnt where { "
                                                                        "%1 ?p ?o. filter( ?p in (%2) ) . }")
                                                    .arg( r.toN3(),
                                                          identifyingProperties.join(",") ),
-                                                   Soprano::Query::QueryLanguageSparqlNoInference)
-                          .allBindings().first()["cnt"].literal().toInt();
+                                                   Soprano::Query::QueryLanguageSparqlNoInference).allBindings();
+        if(bindings.isEmpty())
+            continue;
+
+        const int score = bindings.first()["cnt"].literal().toInt();
 
         if( maxScore < score ) {
             maxScore = score;
