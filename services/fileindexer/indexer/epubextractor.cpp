@@ -148,8 +148,9 @@ SimpleResourceGraph EPubExtractor::extract(const QUrl& resUri, const QUrl& fileU
         if( value.startsWith("Unspecified:", Qt::CaseInsensitive) ) {
             value = value.mid( QString("Unspecified:").size() ).simplified();
         }
-        if( value.startsWith("publication:", Qt::CaseInsensitive) ) {
-            value = value.mid( QString("publication:").size() ).simplified();
+        int ind = value.indexOf("publication:", Qt::CaseInsensitive);
+        if( ind != -1) {
+            value = value.mid( ind + QString("publication:").size() ).simplified();
         }
         QDateTime dt = ExtractorPlugin::dateTimeFromString(value);
         if( !dt.isNull() )
