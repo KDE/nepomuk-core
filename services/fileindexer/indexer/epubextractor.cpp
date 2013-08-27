@@ -164,7 +164,10 @@ SimpleResourceGraph EPubExtractor::extract(const QUrl& resUri, const QUrl& fileU
 
     struct eiterator* iter = epub_get_iterator(ePubDoc, EITERATOR_SPINE, 0 );
     do {
-        QString html = QString::fromUtf8(epub_it_get_curr(iter));
+        char * curr = epub_it_get_curr(iter);
+        if (!curr)
+            continue;
+        QString html = QString::fromUtf8(curr);
 
         QTextDocument doc;
         doc.setHtml( html );
