@@ -34,7 +34,7 @@
 #include <KComponentData>
 #include <KApplication>
 
-#include <QtCore/QCoreApplication>
+#include <QApplication>
 #include <QtCore/QDir>
 #include <QtCore/QTextStream>
 
@@ -70,7 +70,7 @@ int main(int argc, char *argv[])
     const KCmdLineArgs *args = KCmdLineArgs::parsedArgs();
 
     // Application
-    QCoreApplication app( argc, argv );
+    QApplication app( argc, argv );
     KComponentData data( aboutData, KComponentData::RegisterAsMainComponent );
 
     if( args->count() == 0 ) {

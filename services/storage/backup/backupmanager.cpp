@@ -27,7 +27,6 @@
 #include "backupgenerationjob.h"
 #include "backuprestorationjob.h"
 
-#include <QtDBus/QDBusConnection>
 #include <QtCore/QListIterator>
 #include <QtCore/QTimer>
 #include <QtCore/QDir>
@@ -41,6 +40,7 @@
 #include <KGlobal>
 #include <KLocale>
 #include <KCalendarSystem>
+#include <kdbusconnectionpool.h>
 
 
 Nepomuk2::BackupManager::BackupManager(Nepomuk2::Storage* storageService)
@@ -51,7 +51,7 @@ Nepomuk2::BackupManager::BackupManager(Nepomuk2::Storage* storageService)
 {
     new BackupManagerAdaptor( this );
     // Register via DBUs
-    QDBusConnection con = QDBusConnection::sessionBus();
+    QDBusConnection con = KDBusConnectionPool::threadConnection();
     con.registerObject( QLatin1String("/backupmanager"), this );
 
     m_backupLocation = KStandardDirs::locateLocal( "data", "nepomuk/backupsync/backups/" );

@@ -30,6 +30,7 @@
 #include <KPluginFactory>
 #include <KUrl>
 #include <KDebug>
+#include <kdbusconnectionpool.h>
 
 #include "resourcemanager.h"
 #include "types/property.h"
@@ -60,7 +61,7 @@ Nepomuk2::Query::QueryService::QueryService( Soprano::Model* model, QObject* par
     QLatin1String serviceName("nepomukqueryservice");
     QString dbusName = QString::fromLatin1("org.kde.nepomuk.services.%1").arg( serviceName );
 
-    QDBusConnection bus = QDBusConnection::sessionBus();
+    QDBusConnection bus = KDBusConnectionPool::threadConnection();
     if( !bus.registerService( dbusName ) ) {
         kDebug() << "Failed to register the QueryService .. ";
     }
@@ -112,7 +113,8 @@ QDBusObjectPath Nepomuk2::Query::QueryService::desktopQuery( const QString& quer
     Query q = QueryParser::parseQuery( query );
     if( !q.isValid() ) {
         kDebug() << "Invalid desktop query:" << query;
-        QDBusConnection::sessionBus().send( msg.createErrorReply( QDBusError::InvalidArgs, i18n("Invalid desktop query: '%1'", query) ) );
+        QDBusConnection con = KDBusConnectionPool::threadConnection();
+        con.send( msg.createErrorReply( QDBusError::InvalidArgs, i18n("Invalid desktop query: '%1'", query) ) );
         return QDBusObjectPath(QLatin1String("/non/existing/path"));
     }
     else {
@@ -140,7 +142,8 @@ QDBusObjectPath Nepomuk2::Query::QueryService::sparqlQuery( const QString& sparq
 
     if( sparql.isEmpty() ) {
         kDebug() << "Invalid SPARQL query:" << sparql;
-        QDBusConnection::sessionBus().send( msg.createErrorReply( QDBusError::InvalidArgs, i18n("Invalid SPARQL query: '%1'", sparql) ) );
+        QDBusConnection con = KDBusConnectionPool::threadConnection();
+        con.send( msg.createErrorReply( QDBusError::InvalidArgs, i18n("Invalid SPARQL query: '%1'", sparql) ) );
         return QDBusObjectPath(QLatin1String("/non/existing/path"));
     }
     else {

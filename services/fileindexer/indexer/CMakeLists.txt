@@ -34,6 +34,7 @@ target_link_libraries( nepomukindexer
   nepomukcore
   nepomukextractor
   ${KDE4_KDECORE_LIBS}
+  ${KDE4_KDEUI_LIBS}
   ${SOPRANO_LIBRARIES}
   )
 

@@ -29,11 +29,11 @@
 #include <Soprano/NodeIterator>
 #include <Soprano/Vocabulary/RDF>
 
-#include <QtDBus/QDBusConnection>
 #include <QtDBus/QDBusMessage>
 
 #include <KUrl>
 #include <KDebug>
+#include <kdbusconnectionpool.h>
 
 #include <QtCore/QStringList>
 #include <QtCore/QSet>
@@ -104,7 +104,8 @@ Nepomuk2::ResourceWatcherManager::ResourceWatcherManager(DataManagementModel* pa
       m_mutex( QMutex::Recursive ),
       m_connectionCount(0)
 {
-    QDBusConnection::sessionBus().registerObject("/resourcewatcher", this, QDBusConnection::ExportScriptableSlots|QDBusConnection::ExportScriptableSignals);
+    QDBusConnection con = KDBusConnectionPool::threadConnection();
+    con.registerObject("/resourcewatcher", this, QDBusConnection::ExportScriptableSlots|QDBusConnection::ExportScriptableSignals);
 }
 
 Nepomuk2::ResourceWatcherManager::~ResourceWatcherManager()
@@ -320,7 +321,8 @@ QDBusObjectPath Nepomuk2::ResourceWatcherManager::watch(const QStringList& resou
         return con->registerDBusObject(message().service(), ++m_connectionCount);
     }
     else {
-        QDBusConnection::sessionBus().send(message().createErrorReply(QDBusError::InvalidArgs, QLatin1String("Failed to create watch for given arguments.")));
+        QDBusConnection bus = KDBusConnectionPool::threadConnection();
+        bus.send(message().createErrorReply(QDBusError::InvalidArgs, QLatin1String("Failed to create watch for given arguments.")));
         return QDBusObjectPath();
     }
 }
