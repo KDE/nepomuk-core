@@ -56,6 +56,13 @@ Nepomuk2::DataManagementAdaptor::DataManagementAdaptor(Nepomuk2::DataManagementM
 
     // N threads means N connections to Virtuoso
     m_threadPool->setMaxThreadCount(10);
+
+    // This is hack to slow down the indexing. A lot of processes seem to be indexing things
+    // at the same time, and this leads of very high cpu usage along with occasional transaction
+    // failures. As a temporary measure, it would be best to only allow one storeResource at a
+    // time for 4.11.1
+    m_storeResourcesThreadPool = new QThreadPool(this);
+    m_storeResourcesThreadPool->setMaxThreadCount(1);
 }
 
 Nepomuk2::DataManagementAdaptor::~DataManagementAdaptor()
@@ -103,7 +110,8 @@ QHash< QString, QString > Nepomuk2::DataManagementAdaptor::storeResources(const 
 {
     Q_ASSERT(calledFromDBus());
     setDelayedReply(true);
-    enqueueCommand(new StoreResourcesCommand(resources, app, identificationMode, flags, additionalMetadata, m_model, message()));
+    StoreResourcesCommand* command = new StoreResourcesCommand(resources, app, identificationMode, flags, additionalMetadata, m_model, message());
+    m_storeResourcesThreadPool->start(command);
     // QtDBus will ignore this return value
     return QHash<QString, QString>();
 }
