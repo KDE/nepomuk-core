@@ -104,7 +104,7 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
     // Handling multiple tags in mpeg files.
     if( (mimeType == "audio/mpeg") || (mimeType == "audio/mpeg3") || (mimeType == "audio/x-mpeg") ) {
         TagLib::MPEG::File mpegFile( fileUrl.toLocalFile().toUtf8().data(), true );
-        if( !mpegFile.ID3v2Tag()->isEmpty() ) {
+        if( mpegFile.ID3v2Tag() && !mpegFile.ID3v2Tag()->isEmpty() ) {
             TagLib::ID3v2::FrameList lstID3v2;
 
             // Artist.
@@ -165,7 +165,7 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
     // Handling multiple tags in FLAC files.
     if( mimeType == "audio/flac" ) {
         TagLib::FLAC::File flacFile( fileUrl.toLocalFile().toUtf8().data(), true );
-        if( !flacFile.xiphComment()->isEmpty() ) {
+        if( flacFile.xiphComment() && !flacFile.xiphComment()->isEmpty() ) {
             TagLib::Ogg::FieldListMap lstFLAC = flacFile.xiphComment()->fieldListMap();
             TagLib::Ogg::FieldListMap::ConstIterator itFLAC;
 
@@ -216,7 +216,7 @@ Nepomuk2::SimpleResourceGraph TagLibExtractor::extract(const QUrl& resUri, const
     // Handling multiple tags in OGG files.
     if( mimeType == "audio/ogg" || mimeType == "audio/x-vorbis+ogg" ) {
         TagLib::Ogg::Vorbis::File oggFile( fileUrl.toLocalFile().toUtf8().data(), true );
-        if( !oggFile.tag()->isEmpty() ) {
+        if( oggFile.tag() && !oggFile.tag()->isEmpty() ) {
             TagLib::Ogg::FieldListMap lstOGG = oggFile.tag()->fieldListMap();
             TagLib::Ogg::FieldListMap::ConstIterator itOGG;
 
