@@ -151,7 +151,7 @@ namespace Nepomuk2 {
             /// cardinality of 1. This reduces the number of match candidates for Virtuoso, thus, significantly
             /// speeding up the query.
             inline QString uniqueVarName( const Types::Property& property = Types::Property(), bool* firstUse = 0 ) {
-                if( property.isValid() &&
+                /*if( property.isValid() &&
                     property.maxCardinality() == 1 &&
                     !m_groupTermStack.isEmpty() ) {
                     // use only one variable name for all occurrences of this property
@@ -170,11 +170,11 @@ namespace Nepomuk2 {
                         return *it;
                     }
                 }
-                else {
+                else { */
                     if(firstUse)
                         *firstUse = true;
                     return QLatin1String( "?v" ) + QString::number( ++m_varNameCnt );
-                }
+               // }
             }
 
             /// used by ComparisonTerm to add variable names set via ComparisonTerm::setVariableName
