@@ -103,7 +103,7 @@ namespace Nepomuk2 {
             CLOSED,
             OPENING,
             OPEN,
-            LOADED,
+            LOADED
         };
 
         QString m_name;
