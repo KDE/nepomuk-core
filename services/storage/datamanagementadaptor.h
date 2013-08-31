@@ -100,6 +100,7 @@ private:
 
     Nepomuk2::DataManagementModel* m_model;
     QThreadPool* m_threadPool;
+    QThreadPool* m_storeResourcesThreadPool;
     QHash<QString, QString> m_namespaces;
     QRegExp m_namespacePrefixRx;
 };
