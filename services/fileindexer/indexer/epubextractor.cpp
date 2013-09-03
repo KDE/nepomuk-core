@@ -188,7 +188,7 @@ SimpleResourceGraph EPubExtractor::extract(const QUrl& resUri, const QUrl& fileU
         tit = epub_get_titerator(ePubDoc, TITERATOR_GUIDE, 0 );
     }
 
-    if( tit ) {
+    if( epub_tit_curr_valid(tit) ) {
         do {
             char *clink = epub_tit_get_curr_link(tit);
 
@@ -196,7 +196,8 @@ SimpleResourceGraph EPubExtractor::extract(const QUrl& resUri, const QUrl& fileU
             int size = epub_get_data(ePubDoc, clink, &data);
             free(clink);
 
-            if( data ) {
+            // epub_get_data returns -1 on failure
+            if( size > 0 && data ) {
                 QString html = QString::fromUtf8(data, size);
 
                 QTextDocument doc;
