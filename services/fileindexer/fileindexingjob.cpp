@@ -69,7 +69,7 @@ void Nepomuk2::FileIndexingJob::start()
 
     m_process->setProgram( exe, args );
     m_process->setOutputChannelMode(KProcess::OnlyStdoutChannel);
-    connect( m_process, SIGNAL(finished(int)), this, SLOT(slotIndexedFile(int)) );
+    connect( m_process, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(slotIndexedFile(int, QProcess::ExitStatus)) );
     m_process->start();
 
     // start the timer which will kill the process if it does not terminate after 5 minutes
@@ -94,15 +94,19 @@ void Nepomuk2::FileIndexingJob::slotProcessNonExistingFile()
 }
 
 
-void Nepomuk2::FileIndexingJob::slotIndexedFile(int exitCode)
+void Nepomuk2::FileIndexingJob::slotIndexedFile(int exitCode, QProcess::ExitStatus exitStatus)
 {
     // stop the timer since there is no need to kill the process anymore
     m_processTimer->stop();
 
     //kDebug() << "Indexing of " << m_url.toLocalFile() << "finished with exit code" << exitCode;
+    if(exitStatus != QProcess::NormalExit) {
+        setError( IndexerCrashed );
+        setErrorText( QLatin1String( "Indexer process crashed on " ) + m_url.toLocalFile() );
+    }
     if(exitCode == 1) {
-        setError( KJob::UserDefinedError );
-        setErrorText( QLatin1String( "Indexer process returned with an error for" ) + m_url.toLocalFile() );
+        setError( IndexerFailed );
+        setErrorText( QLatin1String( "Indexer process returned with an error for " ) + m_url.toLocalFile() );
         if(FileIndexerConfig::self()->isDebugModeEnabled()) {
             QFile errorLogFile(KStandardDirs::locateLocal("data", QLatin1String("nepomuk/file-indexer-error-log"), true));
             if(errorLogFile.open(QIODevice::Append)) {
