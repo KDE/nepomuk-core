@@ -215,7 +215,8 @@ SimpleResourceGraph EPubExtractor::extract(const QUrl& resUri, const QUrl& fileU
     if( !plainText.isEmpty() )
         fileRes.addProperty( NIE::plainTextContent(), plainText );
 
-    graph << fileRes;
+    if( fileRes.isValid() )
+        graph << fileRes;
     return graph;
 }
 

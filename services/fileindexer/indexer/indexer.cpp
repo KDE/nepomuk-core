@@ -154,20 +154,27 @@ bool Nepomuk2::Indexer::fileIndex(const QUrl& uri, const QUrl& url, const QStrin
         if( vl.size() == 1 ) {
             plainText = vl.first().toString();
             graph[uri].remove( NIE::plainTextContent() );
+            // Check that the SimpleResource is still valid:
+            // if it only contained text it may not be.
+            if ( !graph[uri].isValid() )
+                graph.remove(uri);
         }
 
-        QHash<QUrl, QVariant> additionalMetadata;
-        additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
+        // Check again that the graph is not empty: it may have only contained text
+        if( !graph.isEmpty() ) {
+            QHash<QUrl, QVariant> additionalMetadata;
+            additionalMetadata.insert( RDF::type(), NRL::DiscardableInstanceBase() );
 
-        // we do not have an event loop - thus, we need to delete the job ourselves
-        QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNew,
-                                                                         NoStoreResourcesFlags, additionalMetadata ) );
-        job->setAutoDelete(false);
-        job->exec();
-        if( job->error() ) {
-            m_lastError = job->errorString();
-            kError() << "SimpleIndexerError: " << m_lastError;
-            return false;
+            // we do not have an event loop - thus, we need to delete the job ourselves
+            QScopedPointer<StoreResourcesJob> job( Nepomuk2::storeResources( graph, IdentifyNew,
+                                                                             NoStoreResourcesFlags, additionalMetadata ) );
+            job->setAutoDelete(false);
+            job->exec();
+            if( job->error() ) {
+                m_lastError = job->errorString();
+                kError() << "SimpleIndexerError: " << m_lastError;
+                return false;
+            }
         }
 
         if( plainText.length() ) {
