@@ -431,11 +431,11 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
     // Setting values of date-time periods (14:30, June 6, etc)
     pass_datevalues.setPm(true);
     runPass(pass_datevalues, cursor_position,
-        i18nc("An hour (%5) and an optional minute (%6), PM", "at %5 :|. %6 pm;at %5 h pm;at %5 pm;%5 : %6 pm;%5 h pm;%5 pm"),
+        i18nc("An hour (%5) and an optional minute (%6), PM", "at %5 :|\\. %6 pm;at %5 h pm;at %5 pm;%5 : %6 pm;%5 h pm;%5 pm"),
         ki18n("A time after midday"));
     pass_datevalues.setPm(false);
     runPass(pass_datevalues, cursor_position,
-        i18nc("An hour (%5) and an optional minute (%6), AM", "at %5 :|. %6 am;at %5 . %6;at %5 h am;at %5 am;at %5;%5 :|. %6 am;%5 : %6 : %7;%5 : %6;%5 h am;%5 h;%5 am"),
+        i18nc("An hour (%5) and an optional minute (%6), AM", "at %5 :|\\. %6 am;at %5 \\. %6;at %5 h am;at %5 am;at %5;%5 :|\\. %6 am;%5 : %6 : %7;%5 : %6;%5 h am;%5 h;%5 am"),
         ki18n("A time"));
 
     runPass(pass_datevalues, cursor_position, i18nc(
@@ -452,7 +452,7 @@ void QueryParser::Private::runPasses(int cursor_position, QueryParser::ParserFla
 
     // Decimal values
     runPass(pass_decimalvalues, cursor_position,
-        i18nc("Decimal values with an integer (%1) and decimal (%2) part", "%1 . %2"),
+        i18nc("Decimal values with an integer (%1) and decimal (%2) part", "%1 \\. %2"),
         ki18n("A decimal value")
     );
 
