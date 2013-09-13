@@ -161,7 +161,7 @@ SimpleResourceGraph OdfExtractor::extract(const QUrl& resUri, const QUrl& fileUr
                 stream << QLatin1Char(' ');
         }
 
-        if( xml.isEndDocument() )
+        if( xml.hasError() || xml.isEndDocument() )
             break;
     }
 
