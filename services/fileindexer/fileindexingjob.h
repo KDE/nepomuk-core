@@ -24,8 +24,8 @@
 
 #include <KJob>
 #include <KUrl>
+#include <KProcess>
 
-class KProcess;
 class QFileInfo;
 class QTimer;
 
@@ -59,6 +59,15 @@ namespace Nepomuk2 {
 
         virtual void start();
 
+        /**
+         * Error codes: IndexerFailed is emitted when the indexer returns 1
+         *              IndexerCrashed is emitted when the indexer crashed
+         */
+        enum {
+            IndexerFailed = UserDefinedError,
+            IndexerCrashed
+        };
+
     Q_SIGNALS:
         /**
          * Emitted once the indexing for a file or resource has finished.
@@ -73,7 +82,7 @@ namespace Nepomuk2 {
         // TODO: actually emit the indexingDone signal
 
     private slots:
-        void slotIndexedFile(int exitCode);
+        void slotIndexedFile(int exitCode, QProcess::ExitStatus exitStatus);
         void slotProcessTimerTimeout();
         void slotProcessNonExistingFile();
 
