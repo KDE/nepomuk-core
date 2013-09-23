@@ -168,6 +168,26 @@ namespace Nepomuk2 {
             Type type() const;
 
             /**
+             * Store user data in the term
+             *
+             * \param key key identifying the use data. It must be unique for each
+             *            each user of the Term class. This can be something like
+             *            "yourapplication.some_data".
+             * \param value value associated with the key
+             * \since 4.12
+             */
+            void setUserData( const QString& key, const QVariant& value );
+
+            /**
+             * Get the user data associated with a key
+             *
+             * If the key does not exist, an invalid QVariant is returned.
+             *
+             * \since 4.12
+             */
+            QVariant userData( const QString& key ) const;
+
+            /**
              * Optimizes the term without changing its meaning. This removes
              * redundant terms such as NegationTerm and OptionalTerm nestings and flattens
              * AndTerm and OrTerm hierarchies.

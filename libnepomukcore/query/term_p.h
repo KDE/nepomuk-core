@@ -21,6 +21,7 @@
 #define _NEPOMUK2_SEARCH_TERM_P_H_
 
 #include <QtCore/QSharedData>
+#include <QtCore/QHash>
 
 #include "term.h"
 
@@ -47,6 +48,7 @@ namespace Nepomuk2 {
             }
 
             Term::Type m_type;
+            QHash<QString, QVariant> m_userdata;
         };
     }
 }

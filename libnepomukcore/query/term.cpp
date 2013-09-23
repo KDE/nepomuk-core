@@ -86,6 +86,15 @@ Nepomuk2::Query::Term::Type Nepomuk2::Query::Term::type() const
     return d_ptr->m_type;
 }
 
+void Nepomuk2::Query::Term::setUserData( const QString& key, const QVariant& value )
+{
+    d_ptr->m_userdata.insert( key, value );
+}
+
+QVariant Nepomuk2::Query::Term::userData( const QString& key ) const
+{
+    return d_ptr->m_userdata.value( key );
+}
 
 Nepomuk2::Query::Term Nepomuk2::Query::Term::optimized() const
 {
