@@ -114,7 +114,7 @@ void Nepomuk2::ServiceControl::start()
 
 void Nepomuk2::ServiceControl::shutdown()
 {
-    delete m_nepomukServiceModule;
+    m_nepomukServiceModule->deleteLater();
     m_nepomukServiceModule = 0;
 }
 
