@@ -47,6 +47,7 @@ private slots:
     void testContact();
     void testContact_extraProperty();
     void testContact_differentTypes();
+    void testContact_sameUID();
 private:
     void resetModel();
 
