@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Service
+X-KDE-ServiceTypes=NepomukFileExtractor
+X-KDE-Library=nepomukofficeextractor
+Name=Nepomuk Office Extractor
+Comment=Nepomuk File extractor for DOC, XLS and PPT files

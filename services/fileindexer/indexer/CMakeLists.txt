@@ -225,5 +225,25 @@ install(
 TARGETS nepomukoffice2007extractor
 DESTINATION ${PLUGIN_INSTALL_DIR})
 
+#
+# Office (binary formats)
+#
+
+kde4_add_plugin( nepomukofficeextractor officeextractor.cpp )
+
+target_link_libraries( nepomukofficeextractor
+    nepomukcore
+    nepomukextractor
+    ${KDE4_KIO_LIBS}
+)
+
+install(
+FILES nepomukofficeextractor.desktop
+DESTINATION ${SERVICES_INSTALL_DIR})
+
+install(
+TARGETS nepomukofficeextractor
+DESTINATION ${PLUGIN_INSTALL_DIR})
+
 add_subdirectory(mobipocket)
 add_subdirectory(test)
