@@ -11,7 +11,7 @@
 #define QFILESTREAM_H
 
 #include <QtCore/QFile>
-#include "mobipocket.h"
+#include <qmobipocket/mobipocket.h>
 
 namespace Mobipocket {
 

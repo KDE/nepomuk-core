@@ -41,6 +41,9 @@ set_package_properties(FFmpeg PROPERTIES DESCRIPTION "Video Tag reader" URL "htt
 find_package(EPub)
 set_package_properties(EPub PROPERTIES DESCRIPTION "Ebook epub reader" URL "http://sourceforge.net/projects/ebook-tools" TYPE OPTIONAL PURPOSE "Support for epub metadata")
 
+find_package(QMobipocket)
+set_package_properties(QMobipocket PROPERTIES DESCRIPTION "Mobipocket epub reader" URL "https://projects.kde.org/projects/kde/kdegraphics/kdegraphics-mobipocket" TYPE OPTIONAL PURPOSE "Support for mobi metadata")
+
 # set the version to be used by NepomukCoreConfig.cmake and the lib version
 # ===============================================================================================
 set(CMAKE_NEPOMUK_CORE_VERSION_MAJOR ${KDE_VERSION_MAJOR})

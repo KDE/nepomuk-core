@@ -22,7 +22,7 @@
 
 #include "mobiextractor.h"
 
-#include "mobipocket.h"
+#include <qmobipocket/mobipocket.h>
 #include "qfilestream.h"
 
 #include "nie.h"

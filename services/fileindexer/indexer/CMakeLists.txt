@@ -245,5 +245,11 @@ install(
 TARGETS nepomukofficeextractor
 DESTINATION ${PLUGIN_INSTALL_DIR})
 
-add_subdirectory(mobipocket)
+#
+# Mobipocket
+#
+if (QMOBIPOCKET_FOUND)
+    add_subdirectory(mobipocket)
+endif(QMOBIPOCKET_FOUND)
+
 add_subdirectory(test)
