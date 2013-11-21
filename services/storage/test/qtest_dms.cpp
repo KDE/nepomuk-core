@@ -210,6 +210,7 @@ void Nepomuk2::insertOntologies(Soprano::Model* model, const QUrl& graph)
     addProperty( model, graph, NCO::fullname(), NCO::Contact(), XMLSchema::string() );
     addProperty( model, graph, NCO::nickname(), NCO::Contact(), XMLSchema::string() );
     addProperty( model, graph, NCO::birthDate(), NCO::Contact(), XMLSchema::date() );
+    addProperty( model, graph, NCO::contactUID(), NCO::Contact(), XMLSchema::string() );
 
     model->addStatement( NCO::gender(), RDF::type(), RDF::Property(), graph );
     model->addStatement( NCO::gender(), RDFS::range(), NCO::Gender(), graph );

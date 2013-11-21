@@ -211,5 +211,29 @@ void IdentificationTests::testContact_differentTypes()
     QCOMPARE( resUri, resUri2 );
 }
 
+void IdentificationTests::testContact_sameUID()
+{
+    SimpleResource res;
+    res.addType( NCO::PersonContact() );
+    res.addProperty( NCO::fullname(), QLatin1String("Peter Parker") );
+    res.addProperty( NCO::nickname(), QLatin1String("WebHead") );
+    res.addProperty( NCO::contactUID(), QLatin1String("contact-UID") );
+
+    QHash< QUrl, QUrl > mappings = m_dmModel->storeResources(SimpleResourceGraph() << res, "app");
+    QUrl resUri = mappings.value(res.uri());
+    QVERIFY(!m_model->lastError());
+
+    SimpleResource res2;
+    res2.addType( NCO::PersonContact() );
+    res2.addProperty( NCO::nickname(), QLatin1String("Spidey") );
+    res2.addProperty( NCO::contactUID(), QLatin1String("contact-UID") );
+
+    QHash< QUrl, QUrl > mappings2 = m_dmModel->storeResources(SimpleResourceGraph() << res, "app");
+    QUrl resUri2 = mappings2.value(res2.uri());
+    QVERIFY(!m_model->lastError());
+
+    // They should be the same even though the nicknames are different
+    QCOMPARE(resUri, resUri2);
+}
 
 QTEST_KDEMAIN_CORE(IdentificationTests)
