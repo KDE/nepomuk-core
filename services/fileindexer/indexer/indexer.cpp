@@ -227,26 +227,23 @@ void Nepomuk2::Indexer::setNiePlainTextContent(const QUrl& uri, QString& plainTe
         plainText.resize( maxSize );
     }
 
-    QString uriN3 = Soprano::Node::resourceToN3( uri );
-
-    // FIXME: Do not use the kext:indexingLevel graph.
+    // We can use the kext:indexingLevel graph because they are both added by the same application
     QString query = QString::fromLatin1("select ?g where { graph ?g { %1 kext:indexingLevel ?l . } }")
-                    .arg ( uriN3 );
+                    .arg ( Soprano::Node::resourceToN3(uri) );
     Soprano::Model* model = ResourceManager::instance()->mainModel();
     Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
 
-    QUrl graph;
+    Soprano::Node graph;
     if( it.next() ) {
-        graph = it[0].uri();
+        graph = it[0];
         it.close();
     }
 
     if( !graph.isEmpty() ) {
-        QString graphN3 = Soprano::Node::resourceToN3( graph );
-        QString insertCommand = QString::fromLatin1("sparql insert { graph %1 { %2 nie:plainTextContent %3 . } }")
-                                .arg( graphN3, uriN3, Soprano::Node::literalToN3(plainText) );
-
-        model->executeQuery( insertCommand, Soprano::Query::QueryLanguageUser, QLatin1String("sql") );
+        // We use addStatement so that the virtuoso backend internally uses paramertized
+        // queries to push the plain text. Parameterized queries seem to use less memory in
+        // virtuoso when inserting.
+        model->addStatement( uri, NIE::plainTextContent(), Soprano::LiteralValue(plainText), graph );
         if( model->lastError() ) {
             kError() << model->lastError().message();
         }

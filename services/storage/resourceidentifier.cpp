@@ -34,6 +34,7 @@
 #include <Soprano/Vocabulary/RDFS>
 #include <Soprano/Vocabulary/RDF>
 #include "nie.h"
+#include "nco.h"
 
 #include <KDebug>
 
@@ -105,6 +106,18 @@ bool Nepomuk2::ResourceIdentifier::isIdentifyingProperty(const QUrl& uri)
     }
 }
 
+namespace {
+    QUrl fetchResource(Soprano::Model* model, const QString& prop, const QString& value) {
+        QString query = QString::fromLatin1("select ?r where { ?r %1 %2 . } LIMIT 1")
+                        .arg( prop, value );
+        Soprano::QueryResultIterator it = model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
+        if( it.next() ) {
+            return it[0].uri();
+        }
+
+        return QUrl();
+    }
+}
 
 bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
 {
@@ -125,11 +138,8 @@ bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
     //
     QUrl nieUrl = res.nieUrl();
     if( !nieUrl.isEmpty() ) {
-        QString query = QString::fromLatin1("select ?r where { ?r nie:url %1 . } LIMIT 1")
-                        .arg( Soprano::Node::resourceToN3( nieUrl ) );
-        Soprano::QueryResultIterator it = m_model->executeQuery( query, Soprano::Query::QueryLanguageSparqlNoInference );
-        if( it.next() ) {
-            const QUrl newUri = it[0].uri();
+        QUrl newUri = fetchResource(m_model, QLatin1String("nie:url"), Soprano::Node::resourceToN3(nieUrl));
+        if (!newUri.isEmpty()) {
             kDebug() << uri << " --> " << newUri;
             manualIdentification( uri, newUri );
             return true;
@@ -141,6 +151,29 @@ bool Nepomuk2::ResourceIdentifier::runIdentification(const KUrl& uri)
     // If IdentifyNone mode, then we do not run the full identification
     if( m_mode == IdentifyNone )
         return false;
+
+    //
+    // Check if it is a Contact has the same contactUID
+    //
+    QList<Soprano::Node> types = res.property( RDF::type() );
+    // HACK: We should ideally check for all nco:Contacts, but meh. No one really pushes
+    //       a contactUID with a nco:Contact. Both Telepathy and Akonadi push it with a PersonContact
+    if( types.contains(NCO::PersonContact()) ) {
+        QList<Soprano::Node> ids = res.property(NCO::contactUID());
+        if( ids.size() == 1 ) {
+            QString id = ids.first().literal().toString();
+            if( id.isEmpty() )
+                return false;
+
+            QUrl newUri = fetchResource(m_model, QLatin1String("nco:contactUID"), ids.first().toN3());
+            if( newUri.isEmpty() ) {
+                kDebug() << uri << " --> " << newUri;
+                manualIdentification( uri, newUri );
+                return true;
+            }
+            return false;
+        }
+    }
 
     // Never identify data objects
     foreach(const Soprano::Node& t, res.property(RDF::type())) {
