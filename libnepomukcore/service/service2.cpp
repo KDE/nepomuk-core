@@ -72,7 +72,7 @@ public:
     QString description;
 
     bool loadDetails();
-    bool configurePriority();
+    void configurePriority();
     bool createDBusInterfaces();
 };
 
@@ -123,27 +123,18 @@ bool Nepomuk2::Service2::Private::loadDetails()
     return true;
 }
 
-
-bool Nepomuk2::Service2::Private::configurePriority()
+void Nepomuk2::Service2::Private::configurePriority()
 {
     // Lower our priority by default which makes sense for most services since Nepomuk
     // does not want to get in the way of the user
     // TODO: make it configurable
     // ====================================
-    if ( !lowerPriority() ) {
+    if ( !lowerPriority() )
         kDebug() << "Failed to lower priority.";
-        return false;
-    }
-    if ( !lowerSchedulingPriority() ) {
+    if ( !lowerSchedulingPriority() )
         kDebug() << "Failed to lower scheduling priority.";
-        return false;
-    }
-    if ( !lowerIOPriority() ) {
+    if ( !lowerIOPriority() )
         kDebug() << "Failed to lower io priority.";
-        return false;
-    }
-
-    return true;
 }
 
 bool Nepomuk2::Service2::Private::createDBusInterfaces()
@@ -189,8 +180,7 @@ bool Nepomuk2::Service2::initCommon(const QString& name)
     if( !d->loadDetails() )
         return false;
 
-    if( !d->configurePriority() )
-        return false;
+    d->configurePriority();
 
     if( !d->createDBusInterfaces() )
         return false;
