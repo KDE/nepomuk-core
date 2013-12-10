@@ -19,6 +19,7 @@
 */
 
 #include <cstdlib>
+#include <iostream>
 
 #if defined(__unix__) || defined(__unix) || (defined(__APPLE__) && defined(__MACH__))
     #include <unistd.h>
@@ -29,7 +30,6 @@
     #define sleep(x)
 #endif
 
-#include <QTextStream>
 #include <QProcess>
 #include <QCoreApplication>
 #include <QDBusConnection>
@@ -53,8 +53,6 @@ bool isServerRunning();
 bool isServiceRunning( const KService::Ptr& ptr );
 void startService( const KService::Ptr& ptr );
 void stopService( const KService::Ptr& ptr );
-
-QTextStream out ( stdout );
 
 int main( int argc, char* argv[] )
 {
@@ -107,8 +105,8 @@ int main( int argc, char* argv[] )
         }
 
         if( service.isNull() ) {
-            out << "Error: service '" << serviceName << "' does not exist.\n";
-            out.flush();
+            std::cerr << "Error: service '" << qPrintable( serviceName )
+                      << "' does not exist." << std::endl;
             KCmdLineArgs::usage();
         }
     }
@@ -143,8 +141,8 @@ int main( int argc, char* argv[] )
         if( command == "status" )
             showStatus();
         else {
-            out << "Error: unrecognized command '" << command << "'.\n";
-            out.flush();
+            std::cerr << "Error: unrecognized command '"
+                      << qPrintable( command ) << "'." << std::endl;
             KCmdLineArgs::usage();
         }
     }
@@ -175,11 +173,11 @@ bool isServerRunning()
 void startNepomukServer()
 {
     if( isServerRunning() )
-        out << "Nepomuk Server already running.\n";
+        std::cerr << "Nepomuk Server already running." << std::endl;
     else if( QProcess::startDetached( "nepomukserver" ) )
-        out << "Nepomuk Server started successfully.\n";
+        std::cerr << "Nepomuk Server started successfully." << std::endl;
     else
-        out << "Could not start the Nepomuk Server.\n";
+        std::cerr << "Could not start the Nepomuk Server." << std::endl;
 }
 
 void stopNepomukServer()
@@ -189,21 +187,25 @@ void stopNepomukServer()
     QDBusReply<void> reply = interface.call( "quit" );
 
     if( reply.isValid() )
-        out << "Nepomuk Server stopped succesfully.\n";
+        std::cerr << "Nepomuk Server stopped succesfully." << std::endl;
     else
-        out << "Couldn't stop the Nepomuk Server: " << interface.lastError().message() << "\n";
+        std::cerr << "Couldn't stop the Nepomuk Server: "
+                  << qPrintable( interface.lastError().message() )
+                  << std::endl;
 }
 
 void startService(const KService::Ptr& ptr)
 {
     if( !isServerRunning() ) {
-        out << "Nepomuk Server is not running. Starting it...\n";
+        std::cerr << "Nepomuk Server is not running. Starting it..."
+                  << std::endl;
         startNepomukServer();
         return;
     }
 
     if( isServiceRunning( ptr ) ) {
-        out << ptr->desktopEntryName() << " already running.\n";
+        std::cerr << qPrintable( ptr->desktopEntryName() )
+                  << " already running." << std::endl;
     }
     else {
         QString program = ptr->exec();
@@ -215,9 +217,11 @@ void startService(const KService::Ptr& ptr)
         }
 
         if( QProcess::startDetached( program, args ) )
-            out << ptr->desktopEntryName() << " started succesfully.\n";
+            std::cerr << qPrintable( ptr->desktopEntryName() )
+                      << " started successfully." << std::endl;
         else
-            out << ptr->desktopEntryName() << " could not be started.\n";
+            std::cerr << qPrintable( ptr->desktopEntryName() )
+                      << " could not be started." << std::endl;
     }
 }
 
@@ -231,16 +235,18 @@ void stopService( const KService::Ptr& ptr )
     QDBusReply<void> reply = interface.call( "shutdown" );
 
     if( reply.isValid() )
-        out << "Nepomuk " << serviceName << " stopped succesfully.\n";
+        std::cerr << qPrintable( serviceName )
+                  << " could not be started." << std::endl;
     else
-        out << "Couldn't stop Nepomuk " << serviceName << ": "
-            << interface.lastError().message() << "\n";
+        std::cerr << "Couldn't stop Nepomuk " << qPrintable( serviceName )
+                  << ": " << qPrintable( interface.lastError().message() )
+                  << std::endl;
 }
 
 void showStatus()
 {
     if( isServerRunning() ) {
-        out << "Nepomuk Server is running.\n";
+        std::cerr << "Nepomuk Server is running." << std::endl;
 
         foreach( const KService::Ptr& ptr, allServices ) {
             if( isServiceRunning( ptr ) ) {
@@ -248,10 +254,11 @@ void showStatus()
                 if( name.startsWith(QLatin1String("nepomuk")) ) {
                     name = name.mid( 7 );
                 }
-                out << "Service " << name << " is running.\n";
+                std::cerr << "Service " << qPrintable( name ) << " is running."
+                          << std::endl;
             }
         }
     }
     else
-        out << "Nepomuk Server is not running.\n";
+        std::cerr << "Nepomuk Server is not running." << std::endl;
 }
