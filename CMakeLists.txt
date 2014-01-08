@@ -44,6 +44,9 @@ set_package_properties(EPub PROPERTIES DESCRIPTION "Ebook epub reader" URL "http
 find_package(QMobipocket)
 set_package_properties(QMobipocket PROPERTIES DESCRIPTION "Mobipocket epub reader" URL "https://projects.kde.org/projects/kde/kdegraphics/kdegraphics-mobipocket" TYPE OPTIONAL PURPOSE "Support for mobi metadata")
 
+find_package(Baloo)
+set_package_properties(Baloo PROPERTIES DESCRIPTION "Baloo metadata search" URL "http://kde.org" TYPE OPTIONAL PURPOSE "Support for Baloo Migrator")
+
 # set the version to be used by NepomukCoreConfig.cmake and the lib version
 # ===============================================================================================
 set(CMAKE_NEPOMUK_CORE_VERSION_MAJOR ${KDE_VERSION_MAJOR})
@@ -86,6 +89,11 @@ add_subdirectory(interfaces)
 add_subdirectory(removed-services)
 add_subdirectory(includes)
 add_subdirectory(tools)
+
+if(Baloo_FOUND)
+  add_subdirectory(baloo)
+endif()
+
 if(KDE4_BUILD_TESTS)
   add_subdirectory(tests)
   add_subdirectory(autotests)
