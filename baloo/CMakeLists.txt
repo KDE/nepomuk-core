@@ -1,5 +1,7 @@
 project(nepomukbaloomigrator)
 
+include_directories(${BALOO_INCLUDE_DIR} ${KFILEMETADATA_INCLUDE_DIR})
+
 set( BALOO_MIGRATOR_SRCS
   main.cpp
   systray.cpp
