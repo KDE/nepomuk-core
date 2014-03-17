@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=nepomukbaloomigrator
+Exec=nepomukbaloomigrator
+Type=Application
+Comment=Tool to migrate the old Nepomuk based data to Baloo.
+Terminal=false
+NoDisplay=true
+X-KDE-autostart-condition=nepomukserverrc:Baloo:migrated=false
+OnlyShowIn=KDE;

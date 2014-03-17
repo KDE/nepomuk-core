@@ -21,4 +21,6 @@ target_link_libraries(nepomukbaloomigrator
   nepomukcore
 )
 
+install(PROGRAMS nepomukbaloomigrator.desktop DESTINATION ${AUTOSTART_INSTALL_DIR})
+
 install(TARGETS nepomukbaloomigrator ${INSTALL_TARGETS_DEFAULT_ARGS})
