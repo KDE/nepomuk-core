@@ -1,8 +1,25 @@
 [Desktop Entry]
 Name=nepomukbaloomigrator
+Name[cs]=nepomukbaloomigrator
+Name[de]=nepomukbaloomigrator
+Name[nds]=Nepomuk-Baloo-Ümwannelhölper
+Name[nl]=nepomuk-baloo-migrator
+Name[pt]=nepomukbaloomigrator
+Name[pt_BR]=nepomukbaloomigrator
+Name[sv]=Nepomuk Baloo-överföring
+Name[uk]=nepomukbaloomigrator
+Name[x-test]=xxnepomukbaloomigratorxx
 Exec=nepomukbaloomigrator
 Type=Application
 Comment=Tool to migrate the old Nepomuk based data to Baloo.
+Comment[de]=Dienstprogramm zum Migrieren alter Nepomuk-basierter Daten zu Baloo.
+Comment[nds]=Programm för't Överföhren vun de olen, op Nepomuk opbuut Daten na Baloo
+Comment[nl]=Hulpmiddel om oude op Nepomuk gebaseerde gegevens naar Baloo te migreren.
+Comment[pt]=Ferramenta para migrar os dados antigos do Nepomuk para o Baloo.
+Comment[pt_BR]=Ferramenta para migrar os dados antigos do Nepomuk para o Baloo.
+Comment[sv]=Verktyg för att överföra gammal Nepomuk-baserad data till Baloo.
+Comment[uk]=Засіб для перенесення даних Nepomuk до сховища даних Baloo.
+Comment[x-test]=xxTool to migrate the old Nepomuk based data to Baloo.xx
 Terminal=false
 NoDisplay=true
 X-KDE-autostart-condition=nepomukserverrc:Baloo:migrated=false
