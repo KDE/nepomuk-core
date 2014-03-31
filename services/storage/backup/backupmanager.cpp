@@ -272,7 +272,7 @@ void Nepomuk2::BackupManager::slotRestorationPercent(KJob*, ulong percent)
 
 namespace {
     bool removeDir(const QString & dirName) {
-        bool result;
+        bool result = false;
         QDir dir(dirName);
 
         if (dir.exists(dirName)) {
