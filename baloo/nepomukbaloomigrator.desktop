@@ -1,5 +1,6 @@
 [Desktop Entry]
 Name=nepomukbaloomigrator
+Name[bs]=nepomukbaloomigrator
 Name[ca]=nepomukbaloomigrator
 Name[ca@valencia]=nepomukbaloomigrator
 Name[cs]=nepomukbaloomigrator
@@ -39,6 +40,7 @@ Name[zh_TW]=nepomukbaloomigrator
 Exec=nepomukbaloomigrator
 Type=Application
 Comment=Tool to migrate the old Nepomuk based data to Baloo.
+Comment[bs]=Alat za prebacivanje starih Nepomuk podataka u Baloo.
 Comment[ca]=Eina per migrar les dades antigues basades en el Nepomuk al Baloo.
 Comment[ca@valencia]=Eina per migrar les dades antigues basades en el Nepomuk al Baloo.
 Comment[da]=Værktøj til at migrere de gamle Nepomuk-baserede data til Baloo.
